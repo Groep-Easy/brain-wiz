@@ -20,7 +20,7 @@ import { config } from '../../../config/server.js'
 
 @Injectable()
 export class RoomsService {
-  constructor(
+  public constructor(
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
     private readonly qrcodeService: QrcodeService,
