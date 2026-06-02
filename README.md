@@ -85,4 +85,4 @@ Run this before a PR or merge:
 npm run validate
 ```
 
-This small, consistent workflow helps all 12 contributors stay aligned and prevents unnecessary Git conflicts. If you want, I can also add a pre-commit hook with Husky and lint-staged next.
+This consistent workflow helps all contributors stay aligned and prevents unnecessary Git conflicts.
