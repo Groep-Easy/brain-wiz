@@ -7,11 +7,11 @@ src/server/   Node.js process on the host machine.
               Owns ALL game state. Single source of truth.
               Never trust client input — validate everything.
 
-src/host/     Static HTML/CSS/JS. Served by the server.
+src/host/     React + TypeScript app (built with Vite). Served by the server.
               Displayed on the TV or main screen.
               Read-only: receives state, never mutates it.
 
-src/client/   Static HTML/CSS/JS. Served by the server.
+src/client/   React + TypeScript app (built with Vite). Served by the server.
               Loaded in each player's phone browser.
               Sends player actions, receives state updates.
 
@@ -42,9 +42,18 @@ Because the server owns all state, reconnection is simple:
 on reconnect, the server sends a full `ROOM_STATE_UPDATE` to the
 rejoining socket. The client re-renders from scratch. No merge conflicts.
 
-## No build step (intentional)
+## Build steps
 
-Files in `src/host/` and `src/client/` are served directly as static
-files by Express. There is no webpack, vite, or transpiler.
-Plain ES modules in the browser, CommonJS-free on the server.
-This removes an entire category of tooling failure under time pressure.
+Both browser contexts are **React + TypeScript apps built with Vite**, each
+with its own config and `tsconfig.json`:
+
+| Context      | Vite config             | Dev script           | Build output  | Dev port |
+| ------------ | ----------------------- | -------------------- | ------------- | -------- |
+| `src/client` | `vite.client.config.ts` | `npm run client:dev` | `dist/client` | 5173     |
+| `src/host`   | `vite.host.config.ts`   | `npm run host:dev`   | `dist/host`   | 5174     |
+
+This replaces the earlier "no build step" plan — both UIs grew complex enough
+to justify a component framework. The host remains a **read-only subscriber**
+(it never sends events); only its build tooling changed, not its role.
+
+The server remains CommonJS-free and is compiled with `tsc`.
