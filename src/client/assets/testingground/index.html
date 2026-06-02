@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Wiz React Testing Ground</title>
+    <link rel="stylesheet" href="../sliding-puzzle/sliding-puzzle.css" />
+    <link rel="stylesheet" href="./testingground.css" />
+  </head>
+  <body>
+    <div class="testing-ground">
+      <aside class="device-panel" aria-label="Device emulator controls">
+        <div>
+          <p class="panel-kicker">Testing Ground</p>
+          <h1>Sliding puzzle UI</h1>
+        </div>
+
+        <label class="field">
+          Device
+          <select id="devicePreset">
+            <option value="iphone-se">iPhone SE</option>
+            <option value="iphone-15" selected>iPhone 15</option>
+            <option value="pixel-8">Pixel 8</option>
+            <option value="galaxy-s24">Galaxy S24</option>
+          </select>
+        </label>
+
+        <div class="segmented-control" role="group" aria-label="Orientation">
+          <button class="is-active" type="button" data-orientation="portrait">Portrait</button>
+          <button type="button" data-orientation="landscape">Landscape</button>
+        </div>
+
+        <label class="field">
+          Scale
+          <input id="scaleRange" type="range" min="45" max="100" value="88" />
+        </label>
+
+        <label class="field">
+          Image URL
+          <input id="imageSource" type="url" placeholder="?image=/assets/puzzle.png" />
+        </label>
+
+        <button id="loadImageButton" class="panel-button" type="button">Load image</button>
+
+        <p id="deviceSize" class="device-size" aria-live="polite"></p>
+      </aside>
+
+      <section class="preview-stage" aria-label="Phone emulator preview">
+        <div id="phoneFrame" class="phone-frame">
+          <div id="phoneRoot"></div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="../sliding-puzzle/sliding-puzzle.js"></script>
+    <script src="./testingground.js"></script>
+  </body>
+</html>
