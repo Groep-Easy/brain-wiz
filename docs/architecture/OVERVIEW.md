@@ -42,9 +42,16 @@ Because the server owns all state, reconnection is simple:
 on reconnect, the server sends a full `ROOM_STATE_UPDATE` to the
 rejoining socket. The client re-renders from scratch. No merge conflicts.
 
-## No build step (intentional)
+## Build steps
 
-Files in `src/host/` and `src/client/` are served directly as static
-files by Express. There is no webpack, vite, or transpiler.
-Plain ES modules in the browser, CommonJS-free on the server.
-This removes an entire category of tooling failure under time pressure.
+`src/host/` keeps the original "no build step" approach: plain ES modules
+served directly as static files, no transpiler. This removes a category of
+tooling failure for the read-only host display.
+
+`src/client/` is a **React + TypeScript app built with Vite** (see
+`vite.config.ts` and `src/client/tsconfig.json`). Dev runs through the Vite
+dev server (`npm run client:dev`); production builds emit to `dist/client`
+(`npm run client:build`). This replaces the earlier static-file plan for the
+client — the phone UI grew complex enough to justify a component framework.
+
+The server remains CommonJS-free and is compiled with `tsc`.

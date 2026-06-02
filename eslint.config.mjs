@@ -102,8 +102,6 @@ export default [
     },
   },
   {
-    // node:test's describe/it return promises by design, and test fixtures
-    // legitimately use literal values — relax those rules for tests only.
     files: ['tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-floating-promises': 'off',
@@ -112,6 +110,12 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', '.eslintrc.config.mjs', 'node_modules/**'],
+    ignores: [
+      'dist/**',
+      '.eslintrc.config.mjs',
+      'node_modules/**',
+      'src/client/**',
+      'vite.config.ts',
+    ],
   },
 ]
