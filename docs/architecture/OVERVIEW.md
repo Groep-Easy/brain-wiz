@@ -25,12 +25,17 @@ src/shared/   No runtime context of its own.
 
 ```
 [Phone 1] ──┐
-[Phone 2] ──┤── Socket.io (WebSocket, local network) ──── [Node server]
+[Phone 2] ──┤── WebSocket (native `ws`, local network) ──── [Node server]
 [Phone N] ──┘                                                    │
                                                          broadcasts to all
                                                          ┌───────┴──────┐
                                                       [Phones]     [Host display]
 ```
+
+Transport is the **native `ws`** WebSocket via NestJS's `WsAdapter`
+(`src/server/index.ts`), not Socket.io. Messages use a JSON envelope
+`{ event, data }`; `event` is one of the shared constants in
+`src/shared/events/socket-events.ts`.
 
 The server is the only actor that mutates state.
 Clients send actions. Server validates, updates state, broadcasts to everyone.

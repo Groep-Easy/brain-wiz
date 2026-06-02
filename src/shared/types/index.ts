@@ -15,13 +15,9 @@ export type GamePhase = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leader
 export type RoundType = 'quiz' | 'collab-puzzle' | 'head-to-head'
 
 export interface Player {
-  /** Socket ID assigned by server */
   id: string
-  /** Display name chosen at join */
   name: string
-  /** Live connection state */
   connected: boolean
-  /** Cumulative score */
   score: number
 }
 
@@ -29,16 +25,13 @@ export interface RoomState {
   code: string
   players: Player[]
   phase: GamePhase
-  /** 0-based index */
   round: number
 }
 
 export interface QuestionState {
   id: string
   text: string
-  /** Pre-shuffled on server */
   answers: Answer[]
-  /** Seconds allowed */
   timeLimit: number
 }
 
@@ -49,3 +42,14 @@ export interface Answer {
 
 /** playerId → score delta */
 export type ScoreMap = Record<string, number>
+
+/** Client → server liveness probe (PING). */
+export interface PingPayload {
+  t: number
+}
+
+/** Server → client probe response (PONG). */
+export interface PongPayload {
+  t: number
+  serverTime: number
+}
