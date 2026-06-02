@@ -7,11 +7,11 @@ src/server/   Node.js process on the host machine.
               Owns ALL game state. Single source of truth.
               Never trust client input — validate everything.
 
-src/host/     Static HTML/CSS/JS. Served by the server.
+src/host/     React + TypeScript app (built with Vite). Served by the server.
               Displayed on the TV or main screen.
               Read-only: receives state, never mutates it.
 
-src/client/   Static HTML/CSS/JS. Served by the server.
+src/client/   React + TypeScript app (built with Vite). Served by the server.
               Loaded in each player's phone browser.
               Sends player actions, receives state updates.
 
@@ -44,14 +44,16 @@ rejoining socket. The client re-renders from scratch. No merge conflicts.
 
 ## Build steps
 
-`src/host/` keeps the original "no build step" approach: plain ES modules
-served directly as static files, no transpiler. This removes a category of
-tooling failure for the read-only host display.
+Both browser contexts are **React + TypeScript apps built with Vite**, each
+with its own config and `tsconfig.json`:
 
-`src/client/` is a **React + TypeScript app built with Vite** (see
-`vite.config.ts` and `src/client/tsconfig.json`). Dev runs through the Vite
-dev server (`npm run client:dev`); production builds emit to `dist/client`
-(`npm run client:build`). This replaces the earlier static-file plan for the
-client — the phone UI grew complex enough to justify a component framework.
+| Context      | Vite config             | Dev script           | Build output  | Dev port |
+| ------------ | ----------------------- | -------------------- | ------------- | -------- |
+| `src/client` | `vite.client.config.ts` | `npm run client:dev` | `dist/client` | 5173     |
+| `src/host`   | `vite.host.config.ts`   | `npm run host:dev`   | `dist/host`   | 5174     |
+
+This replaces the earlier "no build step" plan — both UIs grew complex enough
+to justify a component framework. The host remains a **read-only subscriber**
+(it never sends events); only its build tooling changed, not its role.
 
 The server remains CommonJS-free and is compiled with `tsc`.

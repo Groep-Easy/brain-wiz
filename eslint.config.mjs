@@ -115,7 +115,9 @@ export default [
       '.eslintrc.config.mjs',
       'node_modules/**',
       'src/client/**',
-      'vite.config.ts',
+      'src/host/**',
+      'vite.client.config.ts',
+      'vite.host.config.ts',
     ],
   },
 ]
