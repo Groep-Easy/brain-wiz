@@ -16,6 +16,8 @@ import {
 import { DifficultyEnum, QuestionThemeEnum } from './enums.js'
 import type { Round } from './round.entity.js'
 
+const REQUIRED_WRONG_ANSWERS_COUNT = 3
+
 /**
  * Question entity - represents a trivia question in the content pool
  * Multiple rooms can use the same question across different sessions
@@ -103,8 +105,11 @@ export class Question {
   @BeforeInsert()
   @BeforeUpdate()
   public validateWrongAnswers(): void {
-    if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length !== 3) {
-      throw new Error('Question must have exactly 3 wrong answers')
+    if (
+      !Array.isArray(this.wrongAnswers) ||
+      this.wrongAnswers.length !== REQUIRED_WRONG_ANSWERS_COUNT
+    ) {
+      throw new Error(`Question must have exactly ${REQUIRED_WRONG_ANSWERS_COUNT} wrong answers`)
     }
   }
 }

@@ -134,6 +134,7 @@ export class ClientAnswer {
       (this.isCorrect === null && this.pointsAwarded !== null)
     ) {
       // Optionally allow partial state, but log warning
+      // eslint-disable-next-line no-console
       console.warn(
         `ClientAnswer ${this.id}: partial scoring state - ` +
           `isCorrect=${this.isCorrect}, pointsAwarded=${this.pointsAwarded}`

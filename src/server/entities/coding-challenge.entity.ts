@@ -16,6 +16,8 @@ import {
 import { DifficultyEnum, CodingLanguageEnum } from './enums.js'
 import type { Round } from './round.entity.js'
 
+const REQUIRED_WRONG_ANSWERS_COUNT = 3
+
 /**
  * CodingChallenge entity - represents a programming problem
  * Multiple rooms can use the same challenge across different sessions
@@ -121,8 +123,13 @@ export class CodingChallenge {
   @BeforeInsert()
   @BeforeUpdate()
   public validateWrongAnswers(): void {
-    if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length !== 3) {
-      throw new Error('CodingChallenge must have exactly 3 wrong answers')
+    if (
+      !Array.isArray(this.wrongAnswers) ||
+      this.wrongAnswers.length !== REQUIRED_WRONG_ANSWERS_COUNT
+    ) {
+      throw new Error(
+        `CodingChallenge must have exactly ${REQUIRED_WRONG_ANSWERS_COUNT} wrong answers`
+      )
     }
   }
 }

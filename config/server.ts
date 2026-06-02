@@ -11,13 +11,14 @@
 import { getDatabaseConfig } from './database.js'
 
 const DEFAULT_PORT = 3000
+const MAX_PORT_NUMBER = 65535
 
 /**
  * Validate port is within valid range
  */
 function validatePort(port: number): void {
-  if (port < 1 || port > 65535) {
-    throw new Error(`Invalid PORT: must be between 1 and 65535, got ${port}`)
+  if (port < 1 || port > MAX_PORT_NUMBER) {
+    throw new Error(`Invalid PORT: must be between 1 and ${MAX_PORT_NUMBER}, got ${port}`)
   }
 }
 

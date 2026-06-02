@@ -10,6 +10,13 @@
  * - Exports typed configuration for TypeORM and NestJS
  */
 
+const MIN_PASSWORD_LENGTH = 8
+const MAX_PORT_NUMBER = 65535
+const DEFAULT_POOL_MIN = 3
+const DEFAULT_POOL_MAX = 10
+const DEFAULT_QUERY_TIMEOUT = 30000
+const DEFAULT_IDLE_TIMEOUT = 900000
+
 /**
  * Database configuration object
  * Mirrors TypeORM DataSourceOptions structure
@@ -77,8 +84,10 @@ function validatePassword(password: string): void {
     )
   }
 
-  if (password.length < 8) {
-    throw new Error('DB_PASSWORD must be at least 8 characters long (security requirement)')
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(
+      `DB_PASSWORD must be at least ${MIN_PASSWORD_LENGTH} characters long (security requirement)`
+    )
   }
 }
 
@@ -105,8 +114,8 @@ export function loadDatabaseConfig(): DatabaseConfig {
 
   // Validate port is valid
   const portNum = parsePositiveInt(port, 'DB_PORT')
-  if (portNum > 65535) {
-    throw new Error(`Invalid DB_PORT: must be <= 65535, got ${portNum}`)
+  if (portNum > MAX_PORT_NUMBER) {
+    throw new Error(`Invalid DB_PORT: must be <= ${MAX_PORT_NUMBER}, got ${portNum}`)
   }
 
   // Validate password
@@ -114,11 +123,15 @@ export function loadDatabaseConfig(): DatabaseConfig {
 
   // Optional fields with sensible defaults
   const isSsl = parseBoolean(process.env['DB_SSL'], false)
-  const poolMin = parsePositiveInt(process.env['DB_POOL_MIN'], 'DB_POOL_MIN', 3)
-  const poolMax = parsePositiveInt(process.env['DB_POOL_MAX'], 'DB_POOL_MAX', 10)
-  const queryTimeout = parsePositiveInt(process.env['DB_QUERY_TIMEOUT'], 'DB_QUERY_TIMEOUT', 30000)
+  const poolMin = parsePositiveInt(process.env['DB_POOL_MIN'], 'DB_POOL_MIN', DEFAULT_POOL_MIN)
+  const poolMax = parsePositiveInt(process.env['DB_POOL_MAX'], 'DB_POOL_MAX', DEFAULT_POOL_MAX)
+  const queryTimeout = parsePositiveInt(
+    process.env['DB_QUERY_TIMEOUT'],
+    'DB_QUERY_TIMEOUT',
+    DEFAULT_QUERY_TIMEOUT
+  )
   // Idle timeout is validated but not used in this config version
-  parsePositiveInt(process.env['DB_IDLE_TIMEOUT'], 'DB_IDLE_TIMEOUT', 900000)
+  parsePositiveInt(process.env['DB_IDLE_TIMEOUT'], 'DB_IDLE_TIMEOUT', DEFAULT_IDLE_TIMEOUT)
   const logLevel = (process.env['DB_LOG_LEVEL'] ?? 'error') as 'query' | 'error'
   const isLoggingEnabled = parseBoolean(process.env['DB_LOGGING_ENABLED'], false)
   const shouldSynchronize = parseBoolean(process.env['DB_SYNCHRONIZE'], false)
@@ -146,6 +159,7 @@ export function loadDatabaseConfig(): DatabaseConfig {
       )
     }
     if (isLoggingEnabled) {
+      // eslint-disable-next-line no-console
       console.warn('WARNING: DB_LOGGING_ENABLED=true in production may impact performance')
     }
   }
