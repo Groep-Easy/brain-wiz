@@ -1,21 +1,56 @@
 /**
  * @file rooms.controller.ts
- * @owner server-squad
- * @description HTTP routes for room lifecycle. Scaffold only — handler bodies
- * are intentionally NOT implemented yet (TODOs only).
+ * @description HTTP endpoints for room lifecycle management.
+ *
+ * This controller:
+ * - Creates new game rooms
+ * - Retrieves room information by join code
+ * - Validates incoming room codes
+ * - Returns QR-code assets used by the host display
  */
-import { Controller, Get, Param, Post } from '@nestjs/common'
+import { BadRequestException, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common'
+import { RoomsService } from './rooms.service.js'
+import { isValidRoomCode } from '../../shared/utils/room-code.js'
 
 @Controller('rooms')
 export class RoomsController {
+  constructor(private readonly roomsService: RoomsService) {}
+
+  /**
+   * Create a new room and return its join information.
+   */
   @Post()
-  public createRoom(): void {
-    // TODO: implement in week 1 — create a room via RoomManager and return its code
+  public async createRoom() {
+    const room = await this.roomsService.createRoom()
+
+    return {
+      code: room.joinCode,
+      qrCodePayload: room.qrCodePayload,
+      qrCodeSvg: room.qrCodeSvg,
+      status: room.status,
+    }
   }
 
+  /**
+   * Retrieve room information for a given join code.
+   */
   @Get(':code')
-  public getRoom(@Param('code') code: string): void {
-    // TODO: implement in week 1 — return the current RoomState for `code`
-    void code
+  public async getRoom(@Param('code') code: string) {
+    if (!isValidRoomCode(code)) {
+      throw new BadRequestException('Invalid room code format')
+    }
+
+    const room = await this.roomsService.getRoom(code.toUpperCase())
+
+    if (!room) {
+      throw new NotFoundException('Room not found')
+    }
+
+    return {
+      code: room.joinCode,
+      qrCodePayload: room.qrCodePayload,
+      qrCodeSvg: room.qrCodeSvg,
+      status: room.status,
+    }
   }
 }

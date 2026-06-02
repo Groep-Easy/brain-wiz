@@ -47,6 +47,14 @@ export class Room {
   public qrCodePayload!: string
 
   /**
+   * QR code as SVG string
+   * Generated when room is created
+   * Stored so the host display can render it without regeneration
+   */
+  @Column('text')
+  public qrCodeSvg!: string
+  
+  /**
    * Current status of the room
    * CONSTRAINT: NOT NULL, default 'lobby'
    */

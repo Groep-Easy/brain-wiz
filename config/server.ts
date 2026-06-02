@@ -48,6 +48,22 @@ function parseNodeEnv(): 'development' | 'production' | 'test' {
   return env as 'development' | 'production' | 'test'
 }
 
+/**
+ * Parse base URL for QR code and join links
+ */
+function parseBaseUrl(port: number): string {
+  const raw = process.env['BASE_URL'] ?? `http://localhost:${port}`
+
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    throw new Error(`Invalid BASE_URL: must be a valid URL, got "${raw}"`)
+  }
+
+  return url.toString().replace(/\/$/, '')
+}
+
 // Load configurations with validation
 const nodeEnv = parseNodeEnv()
 const port = parsePort()
@@ -55,8 +71,12 @@ const port = parsePort()
 // Database config is validated here - will throw if invalid
 const databaseConfig = getDatabaseConfig()
 
+// Base URL validated on startup
+const baseUrl = parseBaseUrl(port)
+
 export const config = Object.freeze({
   PORT: port,
   NODE_ENV: nodeEnv,
+  BASE_URL: baseUrl,
   DATABASE: databaseConfig,
 })
