@@ -4,10 +4,13 @@
  * @description Manages all active game rooms in memory.
  * This is the authoritative state store — no other module holds room state.
  */
+import 'reflect-metadata'
+import { Injectable } from '@nestjs/common'
 import { generateRoomCode } from '../../shared/utils/room-code.js'
 import { ROOM } from '../../shared/constants/game-config.js'
 import type { Player, RoomState } from '../../shared/types/index.js'
 
+@Injectable()
 export class RoomManager {
   private readonly _rooms = new Map<string, RoomState>()
 

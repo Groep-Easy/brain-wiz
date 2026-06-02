@@ -18,6 +18,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "strictPropertyInitialization": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
