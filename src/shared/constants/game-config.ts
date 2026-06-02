@@ -1,5 +1,5 @@
 /**
- * @file game-config.js
+ * @file game-config.ts
  * @owner git-master
  * @description Immutable game configuration constants.
  *
@@ -8,6 +8,7 @@
  *  2. All exports are Object.freeze — treat as read-only at runtime.
  *  3. Values that differ per environment belong in config/, not here.
  */
+import type { RoundType } from '../types/index.js'
 
 export const ROOM = Object.freeze({
   CODE_LENGTH: 4,
@@ -29,6 +30,6 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'collab-puzzle', 'head-to-head'],
-  DEFAULT_SEQUENCE: ['quiz', 'collab-puzzle', 'quiz', 'head-to-head'],
+  TYPES: ['quiz', 'collab-puzzle', 'head-to-head'] as readonly RoundType[],
+  DEFAULT_SEQUENCE: ['quiz', 'collab-puzzle', 'quiz', 'head-to-head'] as readonly RoundType[],
 })
