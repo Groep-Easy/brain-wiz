@@ -1,0 +1,19 @@
+# Enforce LF line endings in source files to prevent cross-platform Git conflicts
+* text=auto eol=lf
+*.js text
+*.json text
+*.md text
+*.html text
+*.css text
+*.yml text
+*.yaml text
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Treat binary assets as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
