@@ -1,9 +1,9 @@
 {
-  "name": "brain-wis",
+  "name": "brain-wiz",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Brain Wis — local multiplayer knowledge & puzzle game",
+  "description": "Brain Wiz — local multiplayer knowledge & puzzle game",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

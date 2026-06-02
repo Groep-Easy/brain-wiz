@@ -1,0 +1,16 @@
+.env
+#.env.example
+.editorconfig
+.prittierignore
+.prittierrc
+
+.git
+.git/**
+.gitattributes
+.gitignore
+
+.github
+.github/**
+
+.vscode
+.vscode/**

@@ -25,7 +25,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(config.PORT, '0.0.0.0')
 
   // eslint-disable-next-line no-console
-  console.log(`Brain Wis running on http://0.0.0.0:${config.PORT}`)
+  console.log(`Brain Wiz running on http://0.0.0.0:${config.PORT}`)
   // eslint-disable-next-line no-console
   console.log(`Host display: http://localhost:${config.PORT}/host`)
 }
