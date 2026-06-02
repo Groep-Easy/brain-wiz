@@ -2,11 +2,11 @@
 
 ## Scope: 3 rounds at launch
 
-| Round | Type | Dynamic |
-|-------|------|---------|
-| Quiz | Multiple choice, timed, individual scoring | Questions from question bank |
-| Collab puzzle | All players work together toward one answer | Puzzle from puzzle bank |
-| Head-to-head | Two players compete, rest watch | Brainteaser from brainteaser bank |
+| Round         | Type                                        | Dynamic                           |
+| ------------- | ------------------------------------------- | --------------------------------- |
+| Quiz          | Multiple choice, timed, individual scoring  | Questions from question bank      |
+| Collab puzzle | All players work together toward one answer | Puzzle from puzzle bank           |
+| Head-to-head  | Two players compete, rest watch             | Brainteaser from brainteaser bank |
 
 ## Adding a new round type
 

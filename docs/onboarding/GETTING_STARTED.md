@@ -1,6 +1,7 @@
 # Getting started
 
 ## Prerequisites
+
 - Node.js 20 or newer — `node --version` to check
 - npm 10 or newer
 - VSCode with the recommended extensions (prompted on first open)
@@ -21,11 +22,13 @@ npm run dev
 ```
 
 Host display (TV / laptop screen):
+
 ```
 http://localhost:3000/host
 ```
 
 Players open on their phone (same Wi-Fi network):
+
 ```
 http://<host-ip>:3000
 ```

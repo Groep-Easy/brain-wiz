@@ -1,5 +1,5 @@
 /**
- * @file room-code.test.js
+ * @file room-code.test.ts
  * @owner git-master
  */
 import { describe, it } from 'node:test'

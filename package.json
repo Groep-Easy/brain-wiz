@@ -2,26 +2,33 @@
   "name": "brain-wis",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Brain Wis — local multiplayer knowledge & puzzle game",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "node scripts/dev.js",
-    "start": "node src/server/index.js",
-    "lint": "eslint src/ tests/ --ext .js",
-    "lint:fix": "eslint src/ tests/ --ext .js --fix",
-    "format": "prettier --write \"src/**/*.{js,html,css,json}\" \"tests/**/*.js\" \"docs/**/*.md\"",
-    "format:check": "prettier --check \"src/**/*.{js,html,css,json}\" \"tests/**/*.js\" \"docs/**/*.md\"",
-    "test": "node --test tests/**/*.test.js",
-    "test:server": "node --test tests/server/**/*.test.js",
-    "test:shared": "node --test tests/shared/**/*.test.js",
+    "build": "tsc",
+    "dev": "tsc && node dist/scripts/dev.js",
+    "start": "node dist/src/server/index.js",
+    "lint": "eslint src tests config scripts",
+    "lint:fix": "eslint src tests config scripts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"config/**/*.ts\" \"scripts/**/*.ts\" \"docs/**/*.md\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"config/**/*.ts\" \"scripts/**/*.ts\" \"docs/**/*.md\"",
+    "test": "tsc && cd dist && node --test",
+    "test:server": "tsc && cd dist/tests/server && node --test",
+    "test:shared": "tsc && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.2.5"
+    "@types/express": "^4.17.21",
+    "@types/node": "^25.9.1",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.1"
   },
   "dependencies": {
     "express": "^4.18.3",

@@ -1,5 +1,5 @@
 /**
- * @file socket-events.js
+ * @file socket-events.ts
  * @owner git-master
  * @description Single source of truth for ALL Socket.io event name strings.
  *
@@ -11,44 +11,44 @@
 
 // ── Room lifecycle ────────────────────────────────────────────────────────────
 /** Server → all:    room state changed.   Payload: { room: RoomState }       */
-export const ROOM_STATE_UPDATE    = 'ROOM_STATE_UPDATE'
+export const ROOM_STATE_UPDATE = 'ROOM_STATE_UPDATE'
 /** Client → server: join request.         Payload: { roomCode, playerName }  */
-export const PLAYER_JOIN          = 'PLAYER_JOIN'
+export const PLAYER_JOIN = 'PLAYER_JOIN'
 /** Server → client: join accepted.        Payload: { playerId, roomCode }    */
-export const PLAYER_JOIN_ACK      = 'PLAYER_JOIN_ACK'
+export const PLAYER_JOIN_ACK = 'PLAYER_JOIN_ACK'
 /** Server → client: join rejected.        Payload: { reason: string }        */
 export const PLAYER_JOIN_REJECTED = 'PLAYER_JOIN_REJECTED'
 /** Client → server: deliberate leave.     Payload: none                      */
-export const PLAYER_LEAVE         = 'PLAYER_LEAVE'
+export const PLAYER_LEAVE = 'PLAYER_LEAVE'
 /** Server → all:    unplanned disconnect. Payload: { playerId }               */
-export const PLAYER_DISCONNECTED  = 'PLAYER_DISCONNECTED'
+export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
 /** Server → all:    player reconnected.   Payload: { playerId }               */
-export const PLAYER_RECONNECTED   = 'PLAYER_RECONNECTED'
+export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────
 /** Host → server:   start game.           Payload: none                      */
-export const GAME_START        = 'GAME_START'
+export const GAME_START = 'GAME_START'
 /** Server → all:    phase changed.        Payload: { phase: GamePhase }      */
 export const GAME_PHASE_CHANGE = 'GAME_PHASE_CHANGE'
 /** Server → all:    round started.        Payload: { round: RoundState }     */
-export const ROUND_START       = 'ROUND_START'
+export const ROUND_START = 'ROUND_START'
 /** Server → all:    round ended.          Payload: { scores: ScoreMap }      */
-export const ROUND_END         = 'ROUND_END'
+export const ROUND_END = 'ROUND_END'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
-export const GAME_OVER         = 'GAME_OVER'
+export const GAME_OVER = 'GAME_OVER'
 
 // ── Quiz round ────────────────────────────────────────────────────────────────
 /** Server → all:    question live.        Payload: { question: QuestionState }          */
-export const QUESTION_SHOW    = 'QUESTION_SHOW'
+export const QUESTION_SHOW = 'QUESTION_SHOW'
 /** Server → all:    answer reveal.        Payload: { correctAnswer, playerAnswers }     */
-export const QUESTION_REVEAL  = 'QUESTION_REVEAL'
+export const QUESTION_REVEAL = 'QUESTION_REVEAL'
 /** Client → server: submit answer.        Payload: { answerId, timestamp }             */
-export const ANSWER_SUBMIT    = 'ANSWER_SUBMIT'
+export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
-export const ANSWER_ACK       = 'ANSWER_ACK'
+export const ANSWER_ACK = 'ANSWER_ACK'
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
 /** Server → all:    tick.                 Payload: { secondsRemaining: number } */
-export const TIMER_TICK    = 'TIMER_TICK'
+export const TIMER_TICK = 'TIMER_TICK'
 /** Server → all:    expired.              Payload: none                          */
 export const TIMER_EXPIRED = 'TIMER_EXPIRED'

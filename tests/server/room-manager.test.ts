@@ -1,5 +1,5 @@
 /**
- * @file room-manager.test.js
+ * @file room-manager.test.ts
  * @owner server-squad
  */
 import { describe, it } from 'node:test'
@@ -16,7 +16,9 @@ describe('RoomManager', () => {
   it('retrieves created room in lobby phase', () => {
     const mgr = new RoomManager()
     const code = mgr.createRoom()
-    assert.equal(mgr.getRoom(code).phase, 'lobby')
+    const room = mgr.getRoom(code)
+    assert.ok(room)
+    assert.equal(room.phase, 'lobby')
   })
   it('adds player successfully', () => {
     const mgr = new RoomManager()
@@ -36,6 +38,8 @@ describe('RoomManager', () => {
     const code = mgr.createRoom()
     mgr.addPlayer(code, { id: 'target', name: 'Bob', connected: true, score: 0 })
     mgr.removePlayer('target')
-    assert.equal(mgr.getRoom(code).players.length, 0)
+    const room = mgr.getRoom(code)
+    assert.ok(room)
+    assert.equal(room.players.length, 0)
   })
 })

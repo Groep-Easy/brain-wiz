@@ -1,5 +1,5 @@
 /**
- * @file index.js
+ * @file index.ts
  * @owner server-squad
  * @description Server entry point. Bootstraps Express + Socket.io.
  * Keep this file thin — it wires things together, nothing else.

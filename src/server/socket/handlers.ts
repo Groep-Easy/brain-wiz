@@ -1,20 +1,19 @@
 /**
- * @file handlers.js
+ * @file handlers.ts
  * @owner server-squad
  * @description Registers all Socket.io connection and event handlers.
  * Import socket event name constants — never use raw strings.
  */
-import * as EVENTS from '../../../src/shared/events/socket-events.js'
+import type { Server, Socket } from 'socket.io'
+import * as EVENTS from '../../shared/events/socket-events.js'
 import { RoomManager } from '../core/room-manager.js'
 
 const roomManager = new RoomManager()
+void roomManager
 
-/**
- * @param {import('socket.io').Server} io
- */
-export function registerSocketHandlers(io) {
-  io.on('connection', (socket) => {
-    socket.on(EVENTS.PLAYER_JOIN, (payload) => {
+export function registerSocketHandlers(io: Server): void {
+  io.on('connection', (socket: Socket) => {
+    socket.on(EVENTS.PLAYER_JOIN, (payload: unknown) => {
       // TODO: implement in week 1
       void payload
     })
@@ -31,7 +30,7 @@ export function registerSocketHandlers(io) {
       // TODO: implement in week 2
     })
 
-    socket.on(EVENTS.ANSWER_SUBMIT, (payload) => {
+    socket.on(EVENTS.ANSWER_SUBMIT, (payload: unknown) => {
       // TODO: implement in week 2
       void payload
     })
