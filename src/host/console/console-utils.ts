@@ -34,6 +34,20 @@ export function rttNote(raw: string): string {
   return ''
 }
 
+/** Build a ws:// URL with a query string from the given params. */
+export function buildWsUrl(base: string, params: Record<string, string>): string {
+  const url = new URL(base)
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value)
+  }
+  return url.toString()
+}
+
+/** Derive the HTTP base (for REST calls) from a ws:// / wss:// URL. */
+export function wsToHttp(wsUrl: string): string {
+  return wsUrl.replace(/^ws/i, 'http').replace(/\/+$/, '')
+}
+
 /** Parse a raw payload string as JSON, falling back to the raw string. */
 export function parsePayload(rawData: string): unknown {
   const trimmed = rawData.trim()
