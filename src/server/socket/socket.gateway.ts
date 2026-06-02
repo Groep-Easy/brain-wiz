@@ -8,12 +8,15 @@
  * NOTE: handler bodies are intentionally NOT implemented yet — TODOs only.
  */
 import {
+  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   type OnGatewayConnection,
   type OnGatewayDisconnect,
+  type WsResponse,
 } from '@nestjs/websockets'
 import * as EVENTS from '../../shared/events/socket-events.js'
+import type { PingPayload, PongPayload } from '../../shared/types/index.js'
 
 // TODO: inject `RoomManager` (provided by SocketModule) once handlers are
 // implemented, e.g. `constructor(private readonly roomManager: RoomManager) {}`
@@ -28,6 +31,20 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public handleDisconnect(client: unknown): void {
     // TODO: handle reconnect window in week 1
     void client
+  }
+
+  /**
+   * Liveness probe. Echoes the client's timestamp and stamps the server time
+   * so the client can measure round-trip latency. The native `ws` adapter
+   * sends this returned `WsResponse` back as `{ event, data }`.
+   */
+  @SubscribeMessage(EVENTS.PING)
+  public handlePing(@MessageBody() payload: PingPayload | undefined): WsResponse<PongPayload> {
+    const t = typeof payload?.t === 'number' ? payload.t : 0
+    return {
+      event: EVENTS.PONG,
+      data: { t, serverTime: Date.now() },
+    }
   }
 
   @SubscribeMessage(EVENTS.PLAYER_JOIN)
