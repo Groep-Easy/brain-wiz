@@ -18,7 +18,7 @@ function startServer(): void {
   if (serverProcess) {
     serverProcess.kill()
   }
-  serverProcess = spawn('node', [SERVER_ENTRY], { stdio: 'inherit' })
+  serverProcess = spawn('node', ['--env-file=.env', SERVER_ENTRY], { stdio: 'inherit' })
   serverProcess.on('exit', (code) => {
     if (code !== null && code !== 0) {
       // eslint-disable-next-line no-console
