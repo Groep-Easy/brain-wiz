@@ -35,15 +35,15 @@ import type { ClientAnswer } from './client-answer.entity.js'
 @Entity('rounds')
 @Index('idx_rounds_index_unique_per_room', ['roomId', 'roundIndex'], { unique: true })
 @Index('idx_rounds_no_repeat_question', ['roomId', 'questionId'], {
-  where: 'question_id IS NOT NULL',
+  where: '"questionId" IS NOT NULL',
   unique: true,
 })
 @Index('idx_rounds_no_repeat_coding', ['roomId', 'codingChallengeId'], {
-  where: 'coding_challenge_id IS NOT NULL',
+  where: '"codingChallengeId" IS NOT NULL',
   unique: true,
 })
 @Index('idx_rounds_no_repeat_puzzle', ['roomId', 'puzzleId'], {
-  where: 'puzzle_id IS NOT NULL',
+  where: '"puzzleId" IS NOT NULL',
   unique: true,
 })
 export class Round {
