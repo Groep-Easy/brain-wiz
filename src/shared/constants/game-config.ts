@@ -15,6 +15,8 @@ export const ROOM = Object.freeze({
   MAX_PLAYERS: 12,
   MIN_PLAYERS_TO_START: 2,
   JOIN_TIMEOUT_MS: 30_000,
+  /** Grace period a dropped client's slot is held for reconnection. */
+  RECONNECT_GRACE_MS: 30_000,
 })
 
 export const TIMER = Object.freeze({

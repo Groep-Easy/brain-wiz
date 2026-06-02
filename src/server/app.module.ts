@@ -9,12 +9,10 @@
  */
 import { Module } from '@nestjs/common'
 import { DatabaseModule } from './database/index.js'
-import { SocketModule } from './socket/socket.module.js'
+import { LobbyModule } from './room/lobby/lobby.module.js'
 import { HealthModule } from './health/health.module.js'
-import { RoomsController } from './rooms/rooms.controller.js'
 
 @Module({
-  imports: [DatabaseModule, SocketModule, HealthModule],
-  controllers: [RoomsController],
+  imports: [DatabaseModule, LobbyModule, HealthModule],
 })
 export class AppModule {}

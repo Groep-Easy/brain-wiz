@@ -57,7 +57,12 @@ export function createDataSource(): DataSource {
     poolSize: dbConfig.poolSize.max,
     cache: {
       type: 'database',
-      tableName: 'typeorm_metadata',
+      // Must NOT be 'typeorm_metadata' — that name is reserved for TypeORM's
+      // internal view/migration metadata table (columns type/name/value/...).
+      // Pointing the query-result cache at it creates a table with cache
+      // columns (id/identifier/time/duration/query/result), and schema sync's
+      // loadViews() then fails with "column t.name does not exist".
+      tableName: 'query-result-cache',
       duration: 30000, // Cache query results for 30s
     },
   })

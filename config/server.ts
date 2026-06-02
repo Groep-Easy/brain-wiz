@@ -48,9 +48,35 @@ function parseNodeEnv(): 'development' | 'production' | 'test' {
   return env as 'development' | 'production' | 'test'
 }
 
+/**
+ * Local Vite dev servers (see vite.client.config.ts / vite.host.config.ts).
+ * Allowed by default in development/test so the host display and phone client
+ * can call the server (e.g. POST /rooms) from their own origin.
+ */
+const DEFAULT_DEV_CORS_ORIGINS = ['http://localhost:5173', 'http://localhost:5174']
+
+/**
+ * Parse the list of allowed CORS origins.
+ *
+ * Set CORS_ORIGINS to a comma-separated list to override (required in
+ * production). When unset, development/test fall back to the local Vite dev
+ * servers; production falls back to an empty list (cross-origin denied).
+ */
+function parseCorsOrigins(env: 'development' | 'production' | 'test'): string[] {
+  const raw = process.env['CORS_ORIGINS']
+  if (raw && raw.trim().length > 0) {
+    return raw
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+  }
+  return env === 'production' ? [] : [...DEFAULT_DEV_CORS_ORIGINS]
+}
+
 // Load configurations with validation
 const nodeEnv = parseNodeEnv()
 const port = parsePort()
+const corsOrigins = parseCorsOrigins(nodeEnv)
 
 // Database config is validated here - will throw if invalid
 const databaseConfig = getDatabaseConfig()
@@ -58,5 +84,6 @@ const databaseConfig = getDatabaseConfig()
 export const config = Object.freeze({
   PORT: port,
   NODE_ENV: nodeEnv,
+  CORS_ORIGINS: Object.freeze(corsOrigins),
   DATABASE: databaseConfig,
 })
