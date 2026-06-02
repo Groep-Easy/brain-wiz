@@ -1,0 +1,35 @@
+# CODEOWNERS — every PR must be reviewed by the relevant owner
+# The LAST matching rule wins.
+
+# Fallback: git master reviews everything unmatched
+*                               @git-master
+
+# Server — only server squad touches this
+/src/server/                    @server-squad
+
+# Host display — only host squad
+/src/host/                      @host-squad
+
+# Phone client — only client squad
+/src/client/                    @client-squad
+
+# Shared contracts — git master must approve ALL changes here
+# A change here breaks every context simultaneously
+/src/shared/                    @git-master
+
+# Config files — git master only
+/.editorconfig                  @git-master
+/.eslintrc.json                 @git-master
+/.prettierrc                    @git-master
+/.vscode/                       @git-master
+/config/                        @git-master
+
+# Docs — git master approves
+/docs/                          @git-master
+
+# Tests mirror ownership of the thing being tested
+/tests/server/                  @server-squad
+/tests/host/                    @host-squad
+/tests/client/                  @client-squad
+/tests/shared/                  @git-master
+/tests/e2e/                     @git-master

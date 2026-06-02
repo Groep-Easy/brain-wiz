@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs — never commit compiled artifacts
+dist/
+build/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment — NEVER commit real env files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor state (project settings are in .editorconfig / .vscode/)
+.idea/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
