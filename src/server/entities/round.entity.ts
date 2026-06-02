@@ -48,20 +48,20 @@ import type { ClientAnswer } from './client-answer.entity.js'
 })
 export class Round {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Room this round belongs to
    * CONSTRAINT: NOT NULL, Foreign Key ON DELETE CASCADE
    */
   @ManyToOne('Room', 'rounds', { onDelete: 'CASCADE', eager: false })
-  room!: Room
+  public room!: Room
 
   /**
    * Room ID (denormalized)
    */
   @Column('uuid')
-  roomId!: string
+  public roomId!: string
 
   /**
    * Round number within this room (0-based)
@@ -69,14 +69,14 @@ export class Round {
    * Used to order rounds in a room
    */
   @Column('smallint')
-  roundIndex!: number
+  public roundIndex!: number
 
   /**
    * Current status of this round
    * CONSTRAINT: NOT NULL, default 'pending'
    */
   @Column('enum', { enum: RoundStatusEnum, default: RoundStatusEnum.PENDING })
-  status!: RoundStatusEnum
+  public status!: RoundStatusEnum
 
   /**
    * Type of content in this round
@@ -84,7 +84,7 @@ export class Round {
    * Must match which FK is set (if question_id set, contentType = 'question')
    */
   @Column('enum', { enum: ContentTypeEnum })
-  contentType!: ContentTypeEnum
+  public contentType!: ContentTypeEnum
 
   /**
    * Time limit for answering this round (seconds)
@@ -92,19 +92,19 @@ export class Round {
    * CONSTRAINT: NOT NULL
    */
   @Column('smallint')
-  timeLimitSeconds!: number
+  public timeLimitSeconds!: number
 
   /**
    * When round started (opened for answers)
    */
   @Column('timestamptz', { nullable: true })
-  startedAt: Date | null = null
+  public startedAt: Date | null = null
 
   /**
    * When round finished (answers locked)
    */
   @Column('timestamptz', { nullable: true })
-  finishedAt: Date | null = null
+  public finishedAt: Date | null = null
 
   /**
    * CRITICAL: One of these three must be set, others must be NULL
@@ -116,42 +116,42 @@ export class Round {
    * CONSTRAINT: Foreign Key to questions(id) ON DELETE RESTRICT
    */
   @ManyToOne('Question', 'rounds', { onDelete: 'RESTRICT', eager: false })
-  question: Question | null = null
+  public question: Question | null = null
 
   @Column('uuid', { nullable: true })
-  questionId: string | null = null
+  public questionId: string | null = null
 
   /**
    * Coding challenge ID if contentType = 'coding_challenge'
    * CONSTRAINT: Foreign Key to coding_challenges(id) ON DELETE RESTRICT
    */
   @ManyToOne('CodingChallenge', 'rounds', { onDelete: 'RESTRICT', eager: false })
-  codingChallenge: CodingChallenge | null = null
+  public codingChallenge: CodingChallenge | null = null
 
   @Column('uuid', { nullable: true })
-  codingChallengeId: string | null = null
+  public codingChallengeId: string | null = null
 
   /**
    * Puzzle ID if contentType = 'puzzle'
    * CONSTRAINT: Foreign Key to puzzles(id) ON DELETE RESTRICT
    */
   @ManyToOne('Puzzle', 'rounds', { onDelete: 'RESTRICT', eager: false })
-  puzzle: Puzzle | null = null
+  public puzzle: Puzzle | null = null
 
   @Column('uuid', { nullable: true })
-  puzzleId: string | null = null
+  public puzzleId: string | null = null
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationship: all answers submitted for this round
    */
   @OneToMany('ClientAnswer', 'round', { onDelete: 'CASCADE' })
-  clientAnswers!: ClientAnswer[]
+  public clientAnswers!: ClientAnswer[]
 
   /**
    * Validate before insert/update
@@ -160,7 +160,7 @@ export class Round {
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateRound(): void {
+  public validateRound(): void {
     const contentCount = [this.questionId, this.codingChallengeId, this.puzzleId].filter(
       (id) => id !== null && id !== undefined
     ).length
@@ -207,7 +207,7 @@ export class Round {
    * Helper method to get the content entity (question, challenge, or puzzle)
    * Useful for services that need the actual content
    */
-  getContent(): Question | CodingChallenge | Puzzle | null {
+  public getContent(): Question | CodingChallenge | Puzzle | null {
     return this.question || this.codingChallenge || this.puzzle || null
   }
 }

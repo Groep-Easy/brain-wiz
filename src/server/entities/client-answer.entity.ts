@@ -27,27 +27,27 @@ import type { Round } from './round.entity.js'
 @Index('idx_client_answers_answered', ['answeredAt'])
 export class ClientAnswer {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Client who submitted this answer
    * CONSTRAINT: NOT NULL, Foreign Key to clients(id) ON DELETE CASCADE
    */
   @ManyToOne('Client', 'answers', { onDelete: 'CASCADE', eager: false })
-  client!: Client
+  public client!: Client
 
   @Column('uuid')
-  clientId!: string
+  public clientId!: string
 
   /**
    * Round this answer is for
    * CONSTRAINT: NOT NULL, Foreign Key to rounds(id) ON DELETE CASCADE
    */
   @ManyToOne('Round', 'clientAnswers', { onDelete: 'CASCADE', eager: false })
-  round!: Round
+  public round!: Round
 
   @Column('uuid')
-  roundId!: string
+  public roundId!: string
 
   /**
    * The answer value as string
@@ -58,14 +58,14 @@ export class ClientAnswer {
    * CONSTRAINT: NOT NULL
    */
   @Column('text')
-  answerValue!: string
+  public answerValue!: string
 
   /**
    * Whether the answer was correct
    * NULL until scoring is complete
    */
   @Column('boolean', { nullable: true })
-  isCorrect: boolean | null = null
+  public isCorrect: boolean | null = null
 
   /**
    * Points awarded for this answer
@@ -74,21 +74,21 @@ export class ClientAnswer {
    * 0 = correct answer but no points (e.g., too slow)
    */
   @Column('int', { nullable: true })
-  pointsAwarded: number | null = null
+  public pointsAwarded: number | null = null
 
   /**
    * When client submitted this answer
    * CONSTRAINT: NOT NULL
    */
   @Column('timestamptz')
-  answeredAt!: Date
+  public answeredAt!: Date
 
   /**
    * How long client took to answer (milliseconds from round start to submission)
    * Used for scoring calculations (faster answers worth more points)
    */
   @Column('int', { nullable: true })
-  timeToAnswerMs: number | null = null
+  public timeToAnswerMs: number | null = null
 
   /**
    * Whether the client ran out of time (no answer submitted)
@@ -96,20 +96,20 @@ export class ClientAnswer {
    * CONSTRAINT: NOT NULL, default false
    */
   @Column('boolean', { default: false })
-  isTimeout!: boolean
+  public isTimeout!: boolean
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Validate before insert/update
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateAnswer(): void {
+  public validateAnswer(): void {
     if (!this.answerValue || this.answerValue.trim().length === 0) {
       throw new Error('answerValue cannot be empty')
     }

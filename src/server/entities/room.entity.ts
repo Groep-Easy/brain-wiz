@@ -27,7 +27,7 @@ import type { Round } from './round.entity.js'
 })
 export class Room {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Join code for players to enter room (e.g., "ABCD1234")
@@ -36,7 +36,7 @@ export class Room {
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 16 })
-  joinCode!: string
+  public joinCode!: string
 
   /**
    * QR code payload (usually the full join URL)
@@ -44,14 +44,14 @@ export class Room {
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  qrCodePayload!: string
+  public qrCodePayload!: string
 
   /**
    * Current status of the room
    * CONSTRAINT: NOT NULL, default 'lobby'
    */
   @Column('enum', { enum: RoomStatusEnum, default: RoomStatusEnum.LOBBY })
-  status!: RoomStatusEnum
+  public status!: RoomStatusEnum
 
   /**
    * WebSocket ID of the host connection
@@ -59,7 +59,7 @@ export class Room {
    * Can be NULL if host disconnected
    */
   @Column('varchar', { length: 128, nullable: true })
-  hostSocketId: string | null = null
+  public hostSocketId: string | null = null
 
   /**
    * Game modes selected for this session
@@ -67,7 +67,7 @@ export class Room {
    * CONSTRAINT: NOT NULL, min length 1
    */
   @Column('enum', { enum: GameModeEnum, array: true })
-  selectedGameModes!: GameModeEnum[]
+  public selectedGameModes!: GameModeEnum[]
 
   /**
    * Question themes to filter content
@@ -78,7 +78,7 @@ export class Room {
     array: true,
     default: () => "'{}'::question_theme_enum[]",
   })
-  selectedThemes!: QuestionThemeEnum[]
+  public selectedThemes!: QuestionThemeEnum[]
 
   /**
    * Coding languages to filter challenges
@@ -89,14 +89,14 @@ export class Room {
     array: true,
     default: () => "'{}'::coding_language_enum[]",
   })
-  selectedLanguages!: CodingLanguageEnum[]
+  public selectedLanguages!: CodingLanguageEnum[]
 
   /**
    * Total rounds to play in this session
    * CONSTRAINT: NOT NULL, default 10, must be > 0
    */
   @Column('smallint', { default: 10 })
-  totalRounds!: number
+  public totalRounds!: number
 
   /**
    * Default time limit for rounds (seconds)
@@ -104,7 +104,7 @@ export class Room {
    * CONSTRAINT: NOT NULL, default 20, must be > 0
    */
   @Column('smallint', { default: 20 })
-  defaultTimeLimitSeconds!: number
+  public defaultTimeLimitSeconds!: number
 
   /**
    * Current round index (0-based)
@@ -112,43 +112,43 @@ export class Room {
    * CONSTRAINT: NOT NULL, default 0
    */
   @Column('smallint', { default: 0 })
-  currentRoundIndex!: number
+  public currentRoundIndex!: number
 
   /**
    * Timestamp when game actually started (not when room was created)
    * NULL until room status becomes 'active'
    */
   @Column('timestamptz', { nullable: true })
-  startedAt: Date | null = null
+  public startedAt: Date | null = null
 
   /**
    * Timestamp when game finished
    * Set when status changes to 'finished' or 'abandoned'
    */
   @Column('timestamptz', { nullable: true })
-  finishedAt: Date | null = null
+  public finishedAt: Date | null = null
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationships
    */
   @OneToMany('Client', 'room', { onDelete: 'CASCADE' })
-  clients!: Client[]
+  public clients!: Client[]
 
   @OneToMany('Round', 'room', { onDelete: 'CASCADE' })
-  rounds!: Round[]
+  public rounds!: Round[]
 
   /**
    * Validate constraints before insert
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateRoom(): void {
+  public validateRoom(): void {
     if (this.totalRounds <= 0) {
       throw new Error('totalRounds must be greater than 0')
     }
