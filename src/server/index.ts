@@ -1,33 +1,33 @@
 /**
  * @file index.ts
  * @owner server-squad
- * @description Server entry point. Bootstraps Express + Socket.io.
- * Keep this file thin — it wires things together, nothing else.
+ * @description Server entry point. Bootstraps the NestJS application with a
+ * native `ws` WebSocket adapter. Keep this file thin — it wires things
+ * together, nothing else.
  */
-import express from 'express'
-import { createServer } from 'http'
-import { Server } from 'socket.io'
-import { registerSocketHandlers } from './socket/handlers.js'
+import 'reflect-metadata'
+import { NestFactory } from '@nestjs/core'
+import { WsAdapter } from '@nestjs/platform-ws'
+import { AppModule } from './app.module.js'
 import { config } from '../../config/server.js'
 
-const app = express()
-const httpServer = createServer(app)
-const io = new Server(httpServer, {
-  cors: { origin: '*' }, // local network — all origins allowed
-})
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule)
 
-// Serve static host display
-app.use('/host', express.static('src/host'))
+  // Use the native `ws` transport for WebSocket gateways.
+  app.useWebSocketAdapter(new WsAdapter(app))
 
-// Serve static phone client
-app.use('/', express.static('src/client'))
+  // TODO: serve the static host display (src/host) and phone client (src/client).
+  // Old Express mounts were `app.use('/host', express.static('src/host'))` and
+  // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
+  // (@nestjs/serve-static) or equivalent once the static assets are wired up.
 
-// Register all socket event handlers
-registerSocketHandlers(io)
+  await app.listen(config.PORT, '0.0.0.0')
 
-httpServer.listen(config.PORT, '0.0.0.0', () => {
   // eslint-disable-next-line no-console
   console.log(`Brain Wis running on http://0.0.0.0:${config.PORT}`)
   // eslint-disable-next-line no-console
   console.log(`Host display: http://localhost:${config.PORT}/host`)
-})
+}
+
+void bootstrap()
