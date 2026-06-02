@@ -1,4 +1,4 @@
-# Brain Wis
+# Brain Wiz
 
 ## Goal
 
