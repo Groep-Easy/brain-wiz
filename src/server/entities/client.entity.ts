@@ -25,20 +25,20 @@ import type { ClientAnswer } from './client-answer.entity.js'
 @Index('idx_clients_room', ['roomId'])
 export class Client {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Room this client joined
    * CONSTRAINT: NOT NULL, Foreign Key to rooms(id) ON DELETE CASCADE
    */
   @ManyToOne('Room', 'clients', { onDelete: 'CASCADE', eager: false })
-  room!: Room
+  public room!: Room
 
   /**
    * Room ID (denormalized for query efficiency)
    */
   @Column('uuid')
-  roomId!: string
+  public roomId!: string
 
   /**
    * Display name shown to other players
@@ -46,7 +46,7 @@ export class Client {
    * UNIQUE per room (multiple clients can have same name in different rooms)
    */
   @Column('varchar', { length: 64 })
-  displayName!: string
+  public displayName!: string
 
   /**
    * WebSocket ID for this connection
@@ -55,7 +55,7 @@ export class Client {
    * May change if player reconnects (new WebSocket session)
    */
   @Column('varchar', { length: 128, nullable: true })
-  socketId: string | null = null
+  public socketId: string | null = null
 
   /**
    * Whether this client is currently connected via WebSocket
@@ -63,14 +63,14 @@ export class Client {
    * Transient property - updates when socket connects/disconnects
    */
   @Column('boolean', { default: false })
-  isConnected!: boolean
+  public isConnected!: boolean
 
   /**
    * When this client joined the room
    * CONSTRAINT: NOT NULL
    */
   @Column('timestamptz')
-  joinedAt!: Date
+  public joinedAt!: Date
 
   /**
    * Cumulative score for the game session
@@ -78,7 +78,7 @@ export class Client {
    * CONSTRAINT: NOT NULL, default 0
    */
   @Column('int', { default: 0 })
-  totalScore!: number
+  public totalScore!: number
 
   /**
    * Final rank in the room (1st, 2nd, 3rd, etc.)
@@ -86,26 +86,26 @@ export class Client {
    * NULL until game ends
    */
   @Column('smallint', { nullable: true })
-  finalRank: number | null = null
+  public finalRank: number | null = null
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationships
    */
   @OneToMany('ClientAnswer', 'client', { onDelete: 'CASCADE' })
-  answers!: ClientAnswer[]
+  public answers!: ClientAnswer[]
 
   /**
    * Validate before insert/update
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateClient(): void {
+  public validateClient(): void {
     if (!this.displayName || this.displayName.trim().length === 0) {
       throw new Error('displayName cannot be empty')
     }

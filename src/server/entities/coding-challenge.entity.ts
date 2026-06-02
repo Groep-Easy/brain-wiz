@@ -24,14 +24,14 @@ import type { Round } from './round.entity.js'
 @Index('idx_coding_language_difficulty', ['language', 'difficulty'])
 export class CodingChallenge {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Challenge title/name
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  title!: string
+  public title!: string
 
   /**
    * Full problem description/prompt
@@ -39,35 +39,35 @@ export class CodingChallenge {
    * CONSTRAINT: NOT NULL
    */
   @Column('text')
-  prompt!: string
+  public prompt!: string
 
   /**
    * Initial code snippet shown to player
    * May be NULL if no starter code provided
    */
   @Column('text', { nullable: true })
-  codeSnippet: string | null = null
+  public codeSnippet: string | null = null
 
   /**
    * Programming language for this challenge
    * CONSTRAINT: NOT NULL
    */
   @Column('enum', { enum: CodingLanguageEnum })
-  language!: CodingLanguageEnum
+  public language!: CodingLanguageEnum
 
   /**
    * Difficulty level
    * CONSTRAINT: NOT NULL
    */
   @Column('enum', { enum: DifficultyEnum })
-  difficulty!: DifficultyEnum
+  public difficulty!: DifficultyEnum
 
   /**
    * Correct solution (usually function name or key part)
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 256 })
-  correctAnswer!: string
+  public correctAnswer!: string
 
   /**
    * Array of wrong answer options - exactly 3 required
@@ -75,52 +75,52 @@ export class CodingChallenge {
    * Validation must happen in service layer
    */
   @Column('text', { array: true })
-  wrongAnswers!: string[]
+  public wrongAnswers!: string[]
 
   /**
    * Explanation of the solution for learning
    */
   @Column('text', { nullable: true })
-  solutionExplanation: string | null = null
+  public solutionExplanation: string | null = null
 
   /**
    * Path to challenge image/diagram
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  imagePath!: string
+  public imagePath!: string
 
   /**
    * Time limit in seconds
    */
   @Column('smallint', { nullable: true })
-  timeLimitSeconds: number | null = null
+  public timeLimitSeconds: number | null = null
 
   /**
    * Base points for correct answer
    * CONSTRAINT: NOT NULL, default 1000
    */
   @Column('smallint', { default: 1000 })
-  basePoints!: number
+  public basePoints!: number
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationship: rounds that use this challenge
    */
   @OneToMany('Round', 'codingChallenge', { onDelete: 'RESTRICT' })
-  rounds!: Round[]
+  public rounds!: Round[]
 
   /**
    * Validate wrong answers array
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateWrongAnswers(): void {
+  public validateWrongAnswers(): void {
     if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length !== 3) {
       throw new Error('CodingChallenge must have exactly 3 wrong answers')
     }

@@ -23,21 +23,21 @@ import type { Round } from './round.entity.js'
 @Index('idx_puzzles_type', ['puzzleType'])
 export class Puzzle {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Puzzle name/title
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 256 })
-  title!: string
+  public title!: string
 
   /**
    * Detailed puzzle description/problem statement
    * CONSTRAINT: NOT NULL
    */
   @Column('text')
-  description!: string
+  public description!: string
 
   /**
    * Type of puzzle for filtering
@@ -45,7 +45,7 @@ export class Puzzle {
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 64 })
-  puzzleType!: string
+  public puzzleType!: string
 
   /**
    * Puzzle-specific configuration as JSON
@@ -56,44 +56,44 @@ export class Puzzle {
    * Defaults to empty object if not needed
    */
   @Column('jsonb', { default: {} })
-  config: Record<string, unknown> = {}
+  public config: Record<string, unknown> = {}
 
   /**
    * Difficulty level
    * CONSTRAINT: NOT NULL
    */
   @Column('enum', { enum: DifficultyEnum })
-  difficulty!: DifficultyEnum
+  public difficulty!: DifficultyEnum
 
   /**
    * Path to puzzle image/visual
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  imagePath!: string
+  public imagePath!: string
 
   /**
    * Time limit in seconds
    */
   @Column('smallint', { nullable: true })
-  timeLimitSeconds: number | null = null
+  public timeLimitSeconds: number | null = null
 
   /**
    * Maximum points awardable for this puzzle
    * CONSTRAINT: NOT NULL, default 1000
    */
   @Column('smallint', { default: 1000 })
-  maxPoints!: number
+  public maxPoints!: number
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationship: rounds that use this puzzle
    */
   @OneToMany('Round', 'puzzle', { onDelete: 'RESTRICT' })
-  rounds!: Round[]
+  public rounds!: Round[]
 }

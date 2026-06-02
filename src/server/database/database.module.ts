@@ -43,7 +43,7 @@ export class DatabaseModule implements OnApplicationBootstrap, OnApplicationShut
    * 2. Run pending migrations (optional)
    * 3. Validate schema integrity
    */
-  async onApplicationBootstrap(): Promise<void> {
+  public async onApplicationBootstrap(): Promise<void> {
     this.logger.log('Initializing database connection...')
 
     try {
@@ -68,7 +68,7 @@ export class DatabaseModule implements OnApplicationBootstrap, OnApplicationShut
    * On application shutdown:
    * Close database connection gracefully
    */
-  async onApplicationShutdown(): Promise<void> {
+  public async onApplicationShutdown(): Promise<void> {
     this.logger.log('Closing database connection...')
 
     try {

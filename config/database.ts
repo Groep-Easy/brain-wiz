@@ -113,16 +113,16 @@ export function loadDatabaseConfig(): DatabaseConfig {
   validatePassword(password)
 
   // Optional fields with sensible defaults
-  const ssl = parseBoolean(process.env['DB_SSL'], false)
+  const isSsl = parseBoolean(process.env['DB_SSL'], false)
   const poolMin = parsePositiveInt(process.env['DB_POOL_MIN'], 'DB_POOL_MIN', 3)
   const poolMax = parsePositiveInt(process.env['DB_POOL_MAX'], 'DB_POOL_MAX', 10)
   const queryTimeout = parsePositiveInt(process.env['DB_QUERY_TIMEOUT'], 'DB_QUERY_TIMEOUT', 30000)
   // Idle timeout is validated but not used in this config version
   parsePositiveInt(process.env['DB_IDLE_TIMEOUT'], 'DB_IDLE_TIMEOUT', 900000)
   const logLevel = (process.env['DB_LOG_LEVEL'] ?? 'error') as 'query' | 'error'
-  const loggingEnabled = parseBoolean(process.env['DB_LOGGING_ENABLED'], false)
-  const synchronize = parseBoolean(process.env['DB_SYNCHRONIZE'], false)
-  const dropSchema = parseBoolean(process.env['DB_DROP_SCHEMA'], false)
+  const isLoggingEnabled = parseBoolean(process.env['DB_LOGGING_ENABLED'], false)
+  const shouldSynchronize = parseBoolean(process.env['DB_SYNCHRONIZE'], false)
+  const shouldDropSchema = parseBoolean(process.env['DB_DROP_SCHEMA'], false)
 
   // Validate pool configuration
   if (poolMin > poolMax) {
@@ -133,25 +133,25 @@ export function loadDatabaseConfig(): DatabaseConfig {
 
   // Warn about dangerous settings in production
   if (nodeEnv === 'production') {
-    if (synchronize) {
+    if (shouldSynchronize) {
       throw new Error(
         'ERROR: DB_SYNCHRONIZE=true is forbidden in production. ' +
           'Always use migrations (DB_SYNCHRONIZE=false) in production.'
       )
     }
-    if (dropSchema) {
+    if (shouldDropSchema) {
       throw new Error(
         'ERROR: DB_DROP_SCHEMA=true is forbidden in production. ' +
           'This would delete all production data.'
       )
     }
-    if (loggingEnabled) {
+    if (isLoggingEnabled) {
       console.warn('WARNING: DB_LOGGING_ENABLED=true in production may impact performance')
     }
   }
 
   // Construct SSL config
-  const sslConfig: boolean | { rejectUnauthorized: boolean } = ssl
+  const sslConfig: boolean | { rejectUnauthorized: boolean } = isSsl
     ? { rejectUnauthorized: true }
     : false
 
@@ -174,10 +174,10 @@ export function loadDatabaseConfig(): DatabaseConfig {
     },
     logging: {
       level: logLevel,
-      enabled: loggingEnabled,
+      enabled: isLoggingEnabled,
     },
-    synchronize,
-    dropSchema,
+    synchronize: shouldSynchronize,
+    dropSchema: shouldDropSchema,
   }
 }
 

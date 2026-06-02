@@ -24,35 +24,35 @@ import type { Round } from './round.entity.js'
 @Index('idx_questions_theme_difficulty', ['theme', 'difficulty'])
 export class Question {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  public id!: string
 
   /**
    * Question text - limited to 512 chars for display on mobile
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  text!: string
+  public text!: string
 
   /**
    * Question category for filtering and balancing
    * CONSTRAINT: NOT NULL
    */
   @Column('enum', { enum: QuestionThemeEnum })
-  theme!: QuestionThemeEnum
+  public theme!: QuestionThemeEnum
 
   /**
    * Difficulty level affects point scaling
    * CONSTRAINT: NOT NULL
    */
   @Column('enum', { enum: DifficultyEnum })
-  difficulty!: DifficultyEnum
+  public difficulty!: DifficultyEnum
 
   /**
    * The correct answer - limited to 256 chars
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 256 })
-  correctAnswer!: string
+  public correctAnswer!: string
 
   /**
    * Array of wrong answer options - exactly 3 required
@@ -60,21 +60,21 @@ export class Question {
    * Validation must happen in service layer to match schema constraint
    */
   @Column('text', { array: true })
-  wrongAnswers!: string[]
+  public wrongAnswers!: string[]
 
   /**
    * Path to question image (relative or absolute URL)
    * CONSTRAINT: NOT NULL
    */
   @Column('varchar', { length: 512 })
-  imagePath!: string
+  public imagePath!: string
 
   /**
    * Time limit for answering in seconds
    * If NULL, no time limit (warning: could cause game to hang)
    */
   @Column('smallint', { nullable: true })
-  timeLimitSeconds: number | null = null
+  public timeLimitSeconds: number | null = null
 
   /**
    * Base points awarded for correct answer
@@ -82,19 +82,19 @@ export class Question {
    * CONSTRAINT: NOT NULL, default 1000
    */
   @Column('smallint', { default: 1000 })
-  basePoints!: number
+  public basePoints!: number
 
   @CreateDateColumn()
-  createdAt!: Date
+  public createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  public updatedAt!: Date
 
   /**
    * Relationship: rounds that use this question
    */
   @OneToMany('Round', 'question', { onDelete: 'RESTRICT' })
-  rounds!: Round[]
+  public rounds!: Round[]
 
   /**
    * Validate that wrong answers array has exactly 3 items
@@ -102,7 +102,7 @@ export class Question {
    */
   @BeforeInsert()
   @BeforeUpdate()
-  validateWrongAnswers(): void {
+  public validateWrongAnswers(): void {
     if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length !== 3) {
       throw new Error('Question must have exactly 3 wrong answers')
     }
