@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Lobby - Quiz Game</title>
+  <link rel="stylesheet" href="main_style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- style voor setup lobby page -->
+  <style>
+    body { display: flex; flex-direction: column; align-items: center; }
+    header { text-align: center; padding: 24px; }
+ 
+    .tabs { display: flex; gap: 8px; border-bottom: 1px solid #d4d4d8; }
+    .tab {
+      border: none; background: none; border-radius: 0;
+      border-bottom: 2px solid transparent; color: #71717a;
+    }
+    .tab.active { color: #18181b; border-bottom-color: #2563eb; font-weight: 600; }
+ 
+    .panel { display: none; padding: 24px; width: 100%; max-width: 480px; box-sizing: border-box; }
+    .panel.active { display: block; }
+ 
+    .qr-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    #qrcode { background: #fff; padding: 12px; border-radius: 8px; }
+    .code {
+      font-size: 2rem; letter-spacing: 4px; font-weight: 700;
+      background: #fff; padding: 8px 16px; border-radius: 8px; border: 1px solid #d4d4d8;
+    }
+ 
+    .players { margin-top: 24px; }
+    .players ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .players li { background: #fff; border: 1px solid #d4d4d8; border-radius: 16px; padding: 6px 14px; }
+    .empty { color: #71717a; }
+ 
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 6px; font-weight: 600; }
+ 
+    .start-btn { width: 100%; max-width: 480px; margin: 24px 0; padding: 16px; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Host Lobby</h1>
+    <p class="hint">Scan de QR-code of typ de code in op je telefoon om mee te doen.</p>
+  </header>
+ 
+  <div class="tabs">
+    <button class="tab active" data-tab="lobby">Lobby</button>
+    <button class="tab" data-tab="settings">Instellingen</button>
+  </div>
+ 
+  <!-- LOBBY -->
+  <section class="panel active" id="lobby">
+    <div class="qr-box">
+      <div id="qrcode"></div>
+      <div class="code" id="game-code">------</div>
+    </div>
+ 
+    <div class="players">
+      <h2>Spelers <span id="player-count">(0)</span></h2>
+      <ul id="player-list">
+        <li class="empty">Wachten op spelers...</li>
+      </ul>
+    </div>
+  </section>
+ 
+  <!-- SETTINGS -->
+  <section class="panel" id="settings">
+    <div class="field">
+      <label for="time-per-question">Tijd per vraag (seconden)</label>
+      <input type="number" id="time-per-question" value="20" min="5" max="120">
+    </div>
+    <div class="field">
+      <label for="question-count">Aantal vragen</label>
+      <input type="number" id="question-count" value="10" min="1" max="50">
+    </div>
+  </section>
+ 
+  <button class="start-btn primary" id="start-btn">Start Game</button>
+ 
+  <script>
+    // Tab-wisselaar
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+ 
+    // Game-code genereren (placeholder; later van de server)
+    function makeCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return code;
+    }
+    const gameCode = makeCode();
+    document.getElementById('game-code').textContent = gameCode;
+ 
+    // QR-code naar de join-pagina met de code
+    const joinUrl = window.location.origin + '/join.html?code=' + gameCode;
+    new QRCode(document.getElementById('qrcode'), { text: joinUrl, width: 180, height: 180 });
+ 
+    // Spelerslijst (placeholder; later via WebSocket)
+    function renderPlayers(names) {
+      const list = document.getElementById('player-list');
+      document.getElementById('player-count').textContent = '(' + names.length + ')';
+      list.innerHTML = names.length === 0
+        ? '<li class="empty">Wachten op spelers...</li>'
+        : names.map(n => '<li>' + n + '</li>').join('');
+    }
+    renderPlayers([]);
+ 
+    // Start-knop (placeholder)
+    document.getElementById('start-btn').addEventListener('click', () => {
+      const settings = {
+        timePerQuestion: Number(document.getElementById('time-per-question').value),
+        questionCount: Number(document.getElementById('question-count').value)
+      };
+      console.log('Start game met instellingen:', settings);
+    });
+  </script>
+</body>
+</html>
