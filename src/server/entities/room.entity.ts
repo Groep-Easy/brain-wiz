@@ -53,7 +53,7 @@ export class Room {
    */
   @Column('text', { default: '' })
   public qrCodeSvg!: string
-  
+
   /**
    * Current status of the room
    * CONSTRAINT: NOT NULL, default 'lobby'
