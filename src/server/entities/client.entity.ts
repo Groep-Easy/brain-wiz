@@ -17,6 +17,8 @@ import {
 import type { Room } from './room.entity.js'
 import type { ClientAnswer } from './client-answer.entity.js'
 
+const MAX_DISPLAY_NAME_LENGTH = 64
+
 /**
  * Client entity - represents a player in a game room
  * Each client has exactly one display name per room
@@ -110,8 +112,8 @@ export class Client {
       throw new Error('displayName cannot be empty')
     }
 
-    if (this.displayName.length > 64) {
-      throw new Error('displayName cannot exceed 64 characters')
+    if (this.displayName.length > MAX_DISPLAY_NAME_LENGTH) {
+      throw new Error(`displayName cannot exceed ${MAX_DISPLAY_NAME_LENGTH} characters`)
     }
 
     if (this.totalScore < 0) {
