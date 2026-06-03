@@ -1,49 +1,14 @@
 <!DOCTYPE html>
 <html lang="nl">
-  <style>
-    .top {
-      height: 50px;
-      position: relative;
-      border: 3px solid lightgreen;
-      background-color: white;
-      border-radius: 25px;
-    }
-    .top-right {position: absolute; top: 27%; right: 2%;}
-    .top-left {position: absolute;left: 2%;}
-    .question {
-      height: 100px;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .answers {
-      height: 200px;
-      position: relative;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: blue;
-    }
-    .answer {
-
-    }
-    .answers-right {position: absolute; left: 50%;}
-    .answers-left {position: absolute; right: 50%;}
-    .answers-top {position: absolute; : 30%;}
-    .answers-bottom {position: absolute; top: 50%;}
-  </style>
+  <link rel="stylesheet" href="styles/main_style.css">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brain Wiz — Host question page</title>
 
   <div class="top">
-    <div class="top-left">
-      <p>#code of game</p>
-    </div>
+    <div class="top-left"><p>#code of game</p></div>
+    <div class="top-center">theme</div>
     <div class="top-right">
       <button>Sound toggle</button>
       <button>Settings</button>
@@ -52,14 +17,17 @@
 </head>
 <body>
   <div class="question"><H1>What is the highest building in the world?</h1></div>
+  <div class="image">q</div>
   <div class="answers">
-    <div class="answers-top"><div class="answers-left">Answer1</div></div>
-    <div class="answers-top"><div class="answers-right">Answer2</div></div>
-    <div class="answers-bottom"><div class="answers-left">Answer3</div></div>
-    <div class="answers-bottom"><div class="answers-right">Answer4</div></div>
+    <div class="answer answer1">Answer1</div>
+    <div class="answer answer2">Answer2</div>
+    <div class="answer answer3">Answer3</div>
+    <div class="answer answer4">Answer4</div>
   </div>
-  <p>#amount answers</p>
-  <p>loading bar</p>
+  <div class="bottom">
+    <p>#amount answers</p>
+    <p>countdown timer</p>
+  </div>
   <script type="module" src="/socket.io/socket.io.js"></script>
 </body>
 </html>
