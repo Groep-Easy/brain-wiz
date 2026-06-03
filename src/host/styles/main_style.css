@@ -9,6 +9,7 @@
   --teal:  #056C5C;  /* primair, knoppen     */
   --bg:    #F7F5EF;  /* warme lichte achtergrond */
   --surface: #FFFFFF;
+  --darkblue: #2C57A8;
 }
 
 body {
@@ -65,7 +66,7 @@ input:focus {
 .hint { color: var(--navy); font-size: 0.9rem; }
 
 .top {
-  height: 50px;
+  height: 10vh;
   position: relative;
   border: 3px var(--tan);
   display: flex;
@@ -82,18 +83,26 @@ input:focus {
   transform: translateX(50%);
 }
 .question {
-  height: 100px;
+  height: 10vh;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .image {
-  height: 200px;
+  height: 25vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.imageanswer {
+  height: 3vh;
 }
 .answers {
-  height: 200px;
+  height: 30vh;
+  width: 95%;
   position: static;
+  margin: auto;
   justify-content: center;
   align-items: center;
   place-items: center;
@@ -105,22 +114,21 @@ input:focus {
   border-radius: 25px;
 }
 .answer {
-  height: 80px;
-  width: 557px;
+  height: 90%;
+  width: 98%;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 25px;
+  border-radius: 20px;
 }
 .answer1 {grid-row: 1; grid-column: 1; background-color: var(--teal);}
 .answer2 {grid-row: 1; grid-column: 2; background-color: var(--red);}
 .answer3 {grid-row: 2; grid-column: 1; background-color: var(--surface);}
-.answer4 {grid-row: 2; grid-column: 2; background-color: var(--dark);}
+.answer4 {grid-row: 2; grid-column: 2; background-color: var(--darkblue);}
 .bottom {
-  height: 100 px;
+  height: 22vh;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 25%;
-  transform: translateY(100%);
 }
