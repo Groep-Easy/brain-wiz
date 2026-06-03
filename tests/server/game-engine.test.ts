@@ -4,11 +4,11 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { GameEngineService } from '../../src/server/room/game/game-engine.service.js'
-import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types.js'
-import * as EVENTS from '../../src/shared/events/socket-events.js'
-import { ROUNDS } from '../../src/shared/constants/game-config.js'
-import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums.js'
+import { GameEngineService } from '../../src/server/room/game/game-engine.service'
+import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
+import * as EVENTS from '../../src/shared/events/socket-events'
+import { ROUNDS } from '../../src/shared/constants/game-config'
+import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
 
 interface RecordingBroadcaster {
   events: string[]

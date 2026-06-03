@@ -10,8 +10,8 @@
  * `WS_SUBPROTOCOL` plus the token itself. The server echoes only the marker
  * (never the token), and reads the token from the request header.
  */
-import { WS_SUBPROTOCOL } from '../../shared/constants/ws.js'
-import type { UpgradeRequest } from './socket.types.js'
+import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
+import type { UpgradeRequest } from './socket.types'
 
 export { WS_SUBPROTOCOL }
 

@@ -9,7 +9,7 @@ import {
   clientIp,
   parseHostTokenFromHeaders,
   selectSubprotocol,
-} from '../../src/server/socket/socket-handshake.js'
+} from '../../src/server/socket/socket-handshake'
 
 describe('selectSubprotocol', () => {
   it('selects the marker when the client offers it', () => {

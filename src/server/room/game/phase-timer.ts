@@ -5,7 +5,7 @@
  * via `onTick(secondsRemaining)` and resolves with a TimerOutcome. Always
  * clears its interval on resolution, so no tick fires after it settles.
  */
-import { TimerOutcome, type PhaseTimerLike, type TimerOptions } from './game.types.js'
+import { TimerOutcome, type PhaseTimerLike, type TimerOptions } from './game.types'
 
 const ONE_SECOND_MS = 1000
 

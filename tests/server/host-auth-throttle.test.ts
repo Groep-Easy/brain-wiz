@@ -4,8 +4,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
-import { HOST_AUTH } from '../../src/shared/constants/game-config.js'
+import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle'
+import { HOST_AUTH } from '../../src/shared/constants/game-config'
 
 function clockThrottle(): { throttle: HostAuthThrottle; advance(ms: number): void } {
   let now = 1_000

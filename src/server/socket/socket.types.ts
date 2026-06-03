@@ -5,7 +5,7 @@
  * tagged with our per-connection bookkeeping, the subset of the upgrade request
  * we inspect, and the parsed connect query params.
  */
-import type { ClientSocket } from '../room/lobby/lobby.types.js'
+import type { ClientSocket } from '../room/lobby/lobby.types'
 
 /**
  * The `ws`-socket surface the heartbeat monitor uses. All optional so test

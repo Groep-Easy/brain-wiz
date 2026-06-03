@@ -12,8 +12,8 @@
  */
 import 'reflect-metadata'
 import { Injectable, Logger } from '@nestjs/common'
-import { WS } from '../../shared/constants/game-config.js'
-import type { HeartbeatSocket } from './socket.types.js'
+import { WS } from '../../shared/constants/game-config'
+import type { HeartbeatSocket } from './socket.types'
 
 @Injectable()
 export class HeartbeatMonitor {

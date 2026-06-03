@@ -10,7 +10,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { HOST_AUTH } from '../../shared/constants/game-config.js'
+import { HOST_AUTH } from '../../shared/constants/game-config'
 
 interface Record {
   failures: number

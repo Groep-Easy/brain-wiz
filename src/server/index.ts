@@ -9,8 +9,8 @@ import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
-import { AppModule } from './app.module.js'
-import { config } from '../../config/server.js'
+import { AppModule } from './app.module'
+import { config } from '../config/server'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)

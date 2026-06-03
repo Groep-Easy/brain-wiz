@@ -2,13 +2,13 @@
  * @file src/server/entities/index.ts
  * @description Entity exports
  */
-export { Question } from './question.entity.js'
-export { CodingChallenge } from './coding-challenge.entity.js'
-export { Puzzle } from './puzzle.entity.js'
-export { Room } from './room.entity.js'
-export { Client } from './client.entity.js'
-export { Round } from './round.entity.js'
-export { ClientAnswer } from './client-answer.entity.js'
+export { Question } from './question.entity'
+export { CodingChallenge } from './coding-challenge.entity'
+export { Puzzle } from './puzzle.entity'
+export { Room } from './room.entity'
+export { Client } from './client.entity'
+export { Round } from './round.entity'
+export { ClientAnswer } from './client-answer.entity'
 export {
   DifficultyEnum,
   QuestionThemeEnum,
@@ -17,4 +17,4 @@ export {
   RoomStatusEnum,
   RoundStatusEnum,
   ContentTypeEnum,
-} from './enums.js'
+} from './enums'

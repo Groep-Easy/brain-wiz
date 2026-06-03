@@ -3,8 +3,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { QrcodeModule } from '../../src/server/qrcode/qrcode.module.js'
-import { QrcodeService } from '../../src/server/qrcode/qrcode.service.js'
+import { QrcodeModule } from '../../src/server/qrcode/qrcode.module'
+import { QrcodeService } from '../../src/server/qrcode/qrcode.service'
 
 describe('QrcodeModule', () => {
   it('exports the module', () => {
