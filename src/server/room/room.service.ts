@@ -14,19 +14,28 @@ import { GameModeEnum, RoomStatusEnum } from '../entities/enums.js'
 import { generateRoomCode } from '../../shared/utils/room-code.js'
 import { ROUNDS, TIMER } from '../../shared/constants/game-config.js'
 import { RoomNotInLobbyError } from './room.errors.js'
+import { QrcodeService } from '../qrcode/qrcode.service.js'
+import { config } from '../../../config/server.js'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
 
 @Injectable()
 export class RoomService {
-  public constructor(@InjectRepository(Room) private readonly rooms: Repository<Room>) {}
+  public constructor(
+    @InjectRepository(Room) private readonly rooms: Repository<Room>,
+    private readonly qrcodeService?: QrcodeService
+  ) {}
 
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()
+    const qrCodePayload = `${config.BASE_URL}/join?code=${joinCode}`
+    const qrCodeSvg = this.qrcodeService ? await this.qrcodeService.generateSvg(qrCodePayload) : ''
+
     const room = this.rooms.create({
       joinCode,
-      qrCodePayload: `/join/${joinCode}`,
+      qrCodePayload,
+      qrCodeSvg,
       status: RoomStatusEnum.LOBBY,
       selectedGameModes: [GameModeEnum.QUESTIONS],
       selectedThemes: [],
@@ -35,6 +44,7 @@ export class RoomService {
       defaultTimeLimitSeconds: TIMER.QUESTION_SECONDS,
       currentRoundIndex: 0,
     })
+
     return this.rooms.save(room)
   }
 
