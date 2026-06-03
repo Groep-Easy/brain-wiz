@@ -50,6 +50,25 @@ describe('RoomBroadcaster', () => {
     assert.doesNotThrow(() => broadcaster.emitToRoom('nope', PLAYER_LEAVE))
   })
 
+  it('a single throwing socket does not stop delivery to the rest of the room', () => {
+    const reg = new ConnectionRegistry()
+    const dead = {
+      send: (): void => {
+        throw new Error('socket closed')
+      },
+    }
+    const a = recordingSocket()
+    reg.registerClient('room-1', 'dead', dead)
+    reg.registerClient('room-1', 'c-a', a)
+    const broadcaster = new RoomBroadcaster(reg)
+
+    assert.doesNotThrow(() => broadcaster.emitToRoom('room-1', PLAYER_LEAVE, { playerId: 'x' }))
+    assert.equal(a.sent.length, 1) // healthy socket still received it
+    // dead socket was pruned from the registry
+    assert.equal(reg.lookup(dead), undefined)
+    assert.equal(reg.getClientSockets('room-1').length, 1)
+  })
+
   it('broadcastRoomState wraps the state as ROOM_STATE_UPDATE { room }', () => {
     const reg = new ConnectionRegistry()
     const socket = recordingSocket()

@@ -187,6 +187,59 @@ describe('LobbyService.joinClient', () => {
   })
 })
 
+describe('LobbyService.joinClient input validation', () => {
+  it('rejects a malformed room code before any lookup', async () => {
+    const lobby = makeLobby()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', 'AB', 'Alice') // too short
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal((ack?.data as { reason: string }).reason, 'Invalid room code')
+  })
+
+  it('rejects an over-long display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'x'.repeat(50))
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal((ack?.data as { reason: string }).reason, 'Invalid display name')
+  })
+
+  it('rejects a blank (whitespace-only) display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, '   ')
+    assert.ok(eventsOf(client).includes(EVENTS.PLAYER_JOIN_REJECTED))
+  })
+
+  it('trims the display name and dedupes against the trimmed value', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    await lobby.joinClient(recordingSocket(), 's1', code, '  Alice  ')
+    const state = await lobby.getRoomState(code)
+    assert.equal(state?.players[0]?.name, 'Alice')
+    const dup = recordingSocket()
+    await lobby.joinClient(dup, 's2', code, 'Alice')
+    assert.ok(eventsOf(dup).includes(EVENTS.PLAYER_JOIN_REJECTED))
+  })
+})
+
+describe('LobbyService room teardown clears the host token', () => {
+  it('drops the host token once the room has no live sockets', async () => {
+    const lobby = makeLobby()
+    const { code, hostToken } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+
+    // No host socket connected; the lone client leaving empties the room.
+    await lobby.leaveClient(client)
+
+    // Token is gone, so a host can no longer authenticate against this room.
+    await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+  })
+})
+
 describe('LobbyService.leaveClient', () => {
   it('removes the player and broadcasts updated state', async () => {
     const lobby = makeLobby()

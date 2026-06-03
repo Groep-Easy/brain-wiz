@@ -10,6 +10,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
+import { safeEqual } from '../../socket/secure-compare.js'
 import type { ClientSocket, Membership } from './lobby.types.js'
 
 @Injectable()
@@ -88,7 +89,12 @@ export class ConnectionRegistry {
 
   public verifyHostToken(roomId: string, token: string): boolean {
     const expected = this._hostTokens.get(roomId)
-    return expected !== undefined && expected === token
+    return expected !== undefined && safeEqual(expected, token)
+  }
+
+  /** Drop a room's host token (room torn down) to bound map growth. */
+  public clearHostToken(roomId: string): void {
+    this._hostTokens.delete(roomId)
   }
 
   public setReconnectToken(clientId: string, token: string): void {
@@ -97,7 +103,7 @@ export class ConnectionRegistry {
 
   public verifyReconnectToken(clientId: string, token: string | undefined): boolean {
     const expected = this._reconnectTokens.get(clientId)
-    return expected !== undefined && token !== undefined && expected === token
+    return expected !== undefined && token !== undefined && safeEqual(expected, token)
   }
 
   public clearReconnectToken(clientId: string): void {

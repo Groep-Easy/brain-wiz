@@ -18,7 +18,8 @@ import { Room } from '../../entities/room.entity.js'
 import { Client } from '../../entities/client.entity.js'
 import { RoomStatusEnum } from '../../entities/enums.js'
 import * as EVENTS from '../../../shared/events/socket-events.js'
-import { ROOM } from '../../../shared/constants/game-config.js'
+import { ROOM, PLAYER } from '../../../shared/constants/game-config.js'
+import { isValidRoomCode } from '../../../shared/utils/room-code.js'
 import { RoomNotFoundError } from '../room.errors.js'
 import { NotEnoughPlayersError, InvalidHostTokenError } from './lobby.errors.js'
 import type { ClientSocket, CreateRoomResult } from './lobby.types.js'
@@ -72,6 +73,19 @@ export class LobbyService {
     playerId?: string,
     playerToken?: string
   ): Promise<void> {
+    if (!isValidRoomCode(roomCode)) {
+      this.reject(socket, 'Invalid room code')
+      return
+    }
+    const displayName = playerName.trim()
+    if (
+      displayName.length < PLAYER.NAME_MIN_LENGTH ||
+      displayName.length > PLAYER.NAME_MAX_LENGTH
+    ) {
+      this.reject(socket, 'Invalid display name')
+      return
+    }
+
     const room = await this.rooms.findByJoinCode(roomCode)
     if (!room) {
       this.reject(socket, 'Room not found')
@@ -85,8 +99,6 @@ export class LobbyService {
     if (playerId) {
       const existing = await this.clients.findById(playerId)
       if (existing && existing.roomId === room.id) {
-        // Reclaiming an existing identity requires the matching reconnect
-        // secret — knowing the (broadcast) playerId alone must not be enough.
         if (!this.registry.verifyReconnectToken(playerId, playerToken)) {
           this.reject(socket, 'Invalid reconnect token')
           return
@@ -101,12 +113,12 @@ export class LobbyService {
       this.reject(socket, 'Room is full')
       return
     }
-    if (roster.some((c) => c.displayName === playerName)) {
+    if (roster.some((c) => c.displayName === displayName)) {
       this.reject(socket, 'Display name is taken')
       return
     }
 
-    const client = await this.clients.addClient(room.id, playerName, connectionId)
+    const client = await this.clients.addClient(room.id, displayName, connectionId)
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
@@ -134,6 +146,7 @@ export class LobbyService {
     if (room) {
       await this.broadcastState(room)
     }
+    this.maybeTeardownRoom(membership.roomId)
   }
 
   /** Unexpected socket drop: arm the reconnect grace window. */
@@ -149,6 +162,7 @@ export class LobbyService {
       if (room) {
         await this.rooms.updateHostSocket(room, null)
       }
+      this.maybeTeardownRoom(membership.roomId)
       return
     }
 
@@ -186,10 +200,22 @@ export class LobbyService {
     if (room) {
       await this.broadcastState(room)
     }
+    this.maybeTeardownRoom(roomId)
   }
 
   public hasPendingRemoval(clientId: string): boolean {
     return this.registry.hasGraceTimer(clientId)
+  }
+
+  /**
+   * When a room has no live sockets left (everyone has left/expired and the
+   * host is gone), drop its in-memory host token so the registry's maps don't
+   * grow unbounded as rooms come and go.
+   */
+  private maybeTeardownRoom(roomId: string): void {
+    if (this.registry.getRoomSockets(roomId).length === 0) {
+      this.registry.clearHostToken(roomId)
+    }
   }
 
   public async startGame(code: string, hostToken: string): Promise<RoomState> {

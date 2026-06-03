@@ -6,7 +6,7 @@
  * a room, using the live sockets held by the ConnectionRegistry.
  */
 import 'reflect-metadata'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConnectionRegistry } from './connection-registry.js'
 import type { ClientSocket } from './lobby.types.js'
 import { ROOM_STATE_UPDATE } from '../../../shared/events/socket-events.js'
@@ -14,16 +14,32 @@ import type { RoomState } from '../../../shared/types/index.js'
 
 @Injectable()
 export class RoomBroadcaster {
+  private readonly logger = new Logger(RoomBroadcaster.name)
+
   public constructor(private readonly registry: ConnectionRegistry) {}
 
   public emitToSocket(socket: ClientSocket, event: string, data?: unknown): void {
-    socket.send(JSON.stringify({ event, data }))
+    this.safeSend(socket, JSON.stringify({ event, data }))
   }
 
   public emitToRoom(roomId: string, event: string, data?: unknown): void {
     const payload = JSON.stringify({ event, data })
     for (const socket of this.registry.getRoomSockets(roomId)) {
+      this.safeSend(socket, payload)
+    }
+  }
+
+  /**
+   * Send to one socket without letting a single dead/erroring socket abort the
+   * caller (e.g. a whole room broadcast). On failure the socket is pruned from
+   * the registry so it's not retried.
+   */
+  private safeSend(socket: ClientSocket, payload: string): void {
+    try {
       socket.send(payload)
+    } catch (error) {
+      this.logger.warn(`Dropping unreachable socket: ${String(error)}`)
+      this.registry.unregister(socket)
     }
   }
 

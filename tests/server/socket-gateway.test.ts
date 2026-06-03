@@ -6,9 +6,12 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
 import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
+import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
+import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
+import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
-import { ROOM, RATE_LIMIT } from '../../src/shared/constants/game-config.js'
+import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
 
 interface Call {
   method: string
@@ -19,13 +22,16 @@ const ALLOWED_ORIGIN = 'http://localhost:5173'
 const ALLOWED = [ALLOWED_ORIGIN]
 
 /** Records every delegated call so we can assert the gateway wires correctly. */
-function fakeLobby(registered = false): { service: LobbyService; calls: Call[] } {
+function fakeLobby(
+  registered = false,
+  hostAccepts = true
+): { service: LobbyService; calls: Call[] } {
   const calls: Call[] = []
   const record =
     (method: string) =>
     async (...args: unknown[]): Promise<unknown> => {
       calls.push({ method, args })
-      return Promise.resolve(method === 'connectHost' ? true : undefined)
+      return Promise.resolve(method === 'connectHost' ? hostAccepts : undefined)
     }
   const service = {
     connectHost: record('connectHost'),
@@ -37,12 +43,21 @@ function fakeLobby(registered = false): { service: LobbyService; calls: Call[] }
   return { service, calls }
 }
 
-/** Build a gateway with a permissive rate limiter unless one is supplied. */
-function makeGateway(
-  service: LobbyService,
-  rateLimiter: RateLimiter = new RateLimiter()
-): SocketGateway {
-  return new SocketGateway(service, rateLimiter, ALLOWED)
+interface GatewayDeps {
+  rateLimiter?: RateLimiter
+  hostAuth?: HostAuthThrottle
+  heartbeat?: HeartbeatMonitor
+}
+
+/** Build a gateway with permissive defaults unless deps are supplied. */
+function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGateway {
+  return new SocketGateway(
+    service,
+    deps.rateLimiter ?? new RateLimiter(),
+    deps.hostAuth ?? new HostAuthThrottle(),
+    deps.heartbeat ?? new HeartbeatMonitor(),
+    ALLOWED
+  )
 }
 
 function socket(): {
@@ -245,5 +260,46 @@ describe('SocketGateway player messages', () => {
     const s = socket()
     gateway.handlePlayerLeave(s)
     assert.deepEqual(calls, [{ method: 'leaveClient', args: [s] }])
+  })
+})
+
+describe('SocketGateway host authentication', () => {
+  function hostRequest(remoteAddress: string): {
+    url: string
+    headers: { origin: string; 'sec-websocket-protocol': string }
+    socket: { remoteAddress: string }
+  } {
+    return {
+      url: '/?role=host&code=ABCD',
+      headers: { origin: ALLOWED_ORIGIN, 'sec-websocket-protocol': `${WS_SUBPROTOCOL}, sekret` },
+      socket: { remoteAddress },
+    }
+  }
+
+  it('reads the host token from the Sec-WebSocket-Protocol header, not the URL', () => {
+    const { service, calls } = fakeLobby()
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s, hostRequest('1.2.3.4'))
+    const call = calls.find((c) => c.method === 'connectHost')
+    assert.ok(call)
+    assert.deepEqual(call.args.slice(0, 2), ['ABCD', 'sekret'])
+    assert.equal(call.args[3], s)
+  })
+
+  it('refuses (and closes) a host connection from a locked-out IP without attempting auth', () => {
+    const hostAuth = new HostAuthThrottle()
+    for (let i = 0; i < HOST_AUTH.MAX_FAILURES; i++) {
+      hostAuth.recordFailure('9.9.9.9')
+    }
+    const { service, calls } = fakeLobby()
+    const gateway = makeGateway(service, { hostAuth })
+    const s = socket()
+    gateway.handleConnection(s, hostRequest('9.9.9.9'))
+    assert.equal(
+      calls.find((c) => c.method === 'connectHost'),
+      undefined
+    )
+    assert.equal(s.closed, true)
   })
 })
