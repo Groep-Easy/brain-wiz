@@ -19,10 +19,7 @@ export const WS_ALLOWED_ORIGINS = 'WS_ALLOWED_ORIGINS'
  * - missing origin → allowed (non-browser client, not a CSWSH vector)
  * - present origin → must be in the allow-list
  */
-export function isOriginAllowed(
-  origin: string | undefined,
-  allowed: readonly string[]
-): boolean {
+export function isOriginAllowed(origin: string | undefined, allowed: readonly string[]): boolean {
   if (origin === undefined || origin === '') {
     return true
   }

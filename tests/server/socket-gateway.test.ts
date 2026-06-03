@@ -45,7 +45,12 @@ function makeGateway(
   return new SocketGateway(service, rateLimiter, ALLOWED)
 }
 
-function socket(): { send(d: string): void; close(): void; closed: boolean; connectionId?: string } {
+function socket(): {
+  send(d: string): void
+  close(): void
+  closed: boolean
+  connectionId?: string
+} {
   const s = {
     send: (): void => undefined,
     closed: false,
