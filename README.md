@@ -18,7 +18,7 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 - `esbenp.prettier-vscode`
 - `dbaeumer.vscode-eslint`
 - `editorconfig.editorconfig`
-- `eamodio.gitlens`
+- `eamodio.gitlens` (optional)
 - `christian-kohler.path-intellisense`
 - `streetsidesoftware.code-spell-checker`
 - `gruntfuggly.todo-tree`
@@ -28,11 +28,17 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 1. Clone the repository.
 2. Open the repository folder in VS Code.
 3. Install extensions when prompted.
-4. Run:
+4. Install dependencies:
    ```bash
    npm install --package-lock-only
    npm ci
    ```
+5. Setup your environment and database:
+   ```bash
+   cp .env.example .env
+   docker compose up -d
+   ```
+   _(Make sure Docker is running on your machine before running `docker compose`)_
 
 ## Workspace configuration
 

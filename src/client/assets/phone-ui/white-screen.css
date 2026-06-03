@@ -1,0 +1,21 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+}
+
+.phone-white-screen {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100svh;
+  background: #ffffff;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.phone-white-screen,
+.phone-white-screen * {
+  box-sizing: border-box;
+}
