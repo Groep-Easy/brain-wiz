@@ -14,7 +14,7 @@ import { isValidRoomCode } from '../../shared/utils/room-code.js'
 
 @Controller('rooms')
 export class RoomsController {
-  constructor(private readonly roomsService: RoomsService) {}
+  public constructor(private readonly roomsService: RoomsService) {}
 
   /**
    * Create a new room and return its join information.
