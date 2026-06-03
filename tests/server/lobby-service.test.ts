@@ -20,6 +20,7 @@ import {
 } from '../../src/server/room/lobby/lobby.errors.js'
 import { Room } from '../../src/server/entities/room.entity.js'
 import { Client } from '../../src/server/entities/client.entity.js'
+import { Question } from '../../src/server/entities/question.entity.js'
 import * as EVENTS from '../../src/shared/events/socket-events.js'
 import { ROOM } from '../../src/shared/constants/game-config.js'
 
@@ -77,6 +78,23 @@ function fakeClientRepo(): Repository<Client> {
   } as unknown as Repository<Client>
 }
 
+function fakeQuestionRepo(): Repository<Question> {
+  const store: Question[] = []
+  let seq = 0
+  return {
+    create: (p: Partial<Question>): Question => Object.assign(new Question(), p),
+    save: async (q: Question): Promise<Question> => {
+      if (!q.id) {
+        q.id = `question-${++seq}`
+      }
+      if (!store.includes(q)) {
+        store.push(q)
+      }
+      return q
+    },
+  } as unknown as Repository<Question>
+}
+
 function recordingSocket(): {
   sent: Array<{ event: string; data: unknown }>
   send(d: string): void
@@ -90,7 +108,8 @@ function makeLobby(): LobbyService {
   const clients = new ClientService(fakeClientRepo())
   const registry = new ConnectionRegistry()
   const broadcaster = new RoomBroadcaster(registry)
-  return new LobbyService(rooms, clients, registry, broadcaster)
+  const questions = fakeQuestionRepo()
+  return new LobbyService(rooms, clients, registry, broadcaster, questions)
 }
 
 function eventsOf(socket: { sent: Array<{ event: string }> }): string[] {

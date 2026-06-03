@@ -16,13 +16,16 @@ import { RoomBroadcaster } from './room-broadcaster.js'
 import { toRoomState } from '../room.helpers.js'
 import { Room } from '../../entities/room.entity.js'
 import { Client } from '../../entities/client.entity.js'
+import { Question } from '../../entities/question.entity.js'
+import { InjectRepository } from '@nestjs/typeorm'
+import type { Repository } from 'typeorm'
 import { RoomStatusEnum } from '../../entities/enums.js'
 import * as EVENTS from '../../../shared/events/socket-events.js'
 import { ROOM } from '../../../shared/constants/game-config.js'
 import { RoomNotFoundError } from '../room.errors.js'
-import { NotEnoughPlayersError, InvalidHostTokenError } from './lobby.errors.js'
+import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors.js'
 import type { ClientSocket, CreateRoomResult } from './lobby.types.js'
-import type { RoomState } from '../../../shared/types/index.js'
+import type { RoomState, QuestionCreatePayload } from '../../../shared/types/index.js'
 
 @Injectable()
 export class LobbyService {
@@ -30,7 +33,8 @@ export class LobbyService {
     private readonly rooms: RoomService,
     private readonly clients: ClientService,
     private readonly registry: ConnectionRegistry,
-    private readonly broadcaster: RoomBroadcaster
+    private readonly broadcaster: RoomBroadcaster,
+    @InjectRepository(Question) private readonly questions: Repository<Question>
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -235,5 +239,21 @@ export class LobbyService {
 
   private reject(socket: ClientSocket, reason: string): void {
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_REJECTED, { reason })
+  }
+
+  public async createQuestion(payload: QuestionCreatePayload): Promise<string> {
+    const question = this.questions.create({
+      text: payload.text,
+      theme: payload.theme,
+      difficulty: payload.difficulty,
+      correctAnswers: payload.correctAnswers,
+      wrongAnswers: payload.wrongAnswers,
+      imagePath: payload.imagePath || '',
+      timeLimitSeconds: payload.timeLimitSeconds || null,
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+      basePoints: payload.basePoints || 1000,
+    })
+    const saved = await this.questions.save(question)
+    return saved.id
   }
 }

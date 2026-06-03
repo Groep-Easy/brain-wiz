@@ -47,6 +47,14 @@ export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
 
+// ── Question Creation ──────────────────────────────────────────────────────────
+/** Client → server: create question.      Payload: { question: QuestionCreatePayload } */
+export const QUESTION_CREATE = 'QUESTION_CREATE'
+/** Server → client: create accepted.      Payload: { questionId: string }              */
+export const QUESTION_CREATE_ACK = 'QUESTION_CREATE_ACK'
+/** Server → client: create rejected.      Payload: { reason: string }                  */
+export const QUESTION_CREATE_ERROR = 'QUESTION_CREATE_ERROR'
+
 // ── Timer ─────────────────────────────────────────────────────────────────────
 /** Server → all:    tick.                 Payload: { secondsRemaining: number } */
 export const TIMER_TICK = 'TIMER_TICK'

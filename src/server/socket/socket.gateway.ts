@@ -17,7 +17,12 @@ import {
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
 import * as EVENTS from '../../shared/events/socket-events.js'
-import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index.js'
+import type {
+  PingPayload,
+  PlayerJoinPayload,
+  PongPayload,
+  QuestionCreatePayload,
+} from '../../shared/types/index.js'
 import { LobbyService } from '../room/lobby/lobby.service.js'
 import type { ClientSocket } from '../room/lobby/lobby.types.js'
 
@@ -104,5 +109,26 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(EVENTS.PLAYER_LEAVE)
   public handlePlayerLeave(@ConnectedSocket() client: ClientSocket): void {
     void this.lobby.leaveClient(client)
+  }
+
+  @SubscribeMessage(EVENTS.QUESTION_CREATE)
+  public async handleCreateQuestion(
+    @MessageBody() payload: QuestionCreatePayload | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): Promise<void> {
+    if (!payload || !payload.text || !payload.correctAnswers) {
+      this.lobby['broadcaster'].emitToSocket(client, EVENTS.QUESTION_CREATE_ERROR, {
+        reason: 'Invalid payload',
+      })
+      return
+    }
+
+    try {
+      const questionId = await this.lobby.createQuestion(payload)
+      this.lobby['broadcaster'].emitToSocket(client, EVENTS.QUESTION_CREATE_ACK, { questionId })
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Unknown error'
+      this.lobby['broadcaster'].emitToSocket(client, EVENTS.QUESTION_CREATE_ERROR, { reason })
+    }
   }
 }

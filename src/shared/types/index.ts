@@ -9,6 +9,7 @@
  *  2. Types only. No classes, no runtime objects.
  *  3. Keep types flat — nested shapes get their own type.
  */
+import type { QuestionThemeEnum, DifficultyEnum } from '../../server/entities/enums.js'
 
 export type GamePhase = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
 
@@ -59,6 +60,17 @@ export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
   playerId?: string
+}
+
+export interface QuestionCreatePayload {
+  text: string
+  theme: QuestionThemeEnum
+  difficulty: DifficultyEnum
+  correctAnswers: string[]
+  wrongAnswers: string[]
+  imagePath?: string
+  timeLimitSeconds?: number | null
+  basePoints?: number
 }
 
 /** Server → client join accepted (PLAYER_JOIN_ACK). */
