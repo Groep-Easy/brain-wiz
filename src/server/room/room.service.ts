@@ -73,6 +73,22 @@ export class RoomService {
     return this.rooms.save(room)
   }
 
+  /** Persist progress through the round sequence. */
+  public async setCurrentRound(room: Room, roundIndex: number): Promise<Room> {
+    room.currentRoundIndex = roundIndex
+    return this.rooms.save(room)
+  }
+
+  /** Terminal transition. `finishedAt` is required by the entity for these states. */
+  public async finishRoom(
+    room: Room,
+    status: RoomStatusEnum.FINISHED | RoomStatusEnum.ABANDONED
+  ): Promise<Room> {
+    room.status = status
+    room.finishedAt = new Date()
+    return this.rooms.save(room)
+  }
+
   private async generateUniqueJoinCode(): Promise<string> {
     for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
       const code = generateRoomCode()

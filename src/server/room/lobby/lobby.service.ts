@@ -13,6 +13,7 @@ import { RoomService } from '../room.service.js'
 import { ClientService } from '../../client/client.service.js'
 import { ConnectionRegistry } from './connection-registry.js'
 import { RoomBroadcaster } from './room-broadcaster.js'
+import { GameEngineService } from '../game/game-engine.service.js'
 import { toRoomState } from '../room.helpers.js'
 import { Room } from '../../entities/room.entity.js'
 import { Client } from '../../entities/client.entity.js'
@@ -31,7 +32,8 @@ export class LobbyService {
     private readonly rooms: RoomService,
     private readonly clients: ClientService,
     private readonly registry: ConnectionRegistry,
-    private readonly broadcaster: RoomBroadcaster
+    private readonly broadcaster: RoomBroadcaster,
+    private readonly gameEngine: GameEngineService
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -149,6 +151,7 @@ export class LobbyService {
     if (room) {
       await this.broadcastState(room)
     }
+    await this.maybeAbortGame(membership.roomId)
     this.maybeTeardownRoom(membership.roomId)
   }
 
@@ -178,6 +181,7 @@ export class LobbyService {
     if (room) {
       this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_DISCONNECTED, { playerId: client.id })
       await this.broadcastState(room)
+      await this.maybeAbortGame(room.id)
     }
     const timer = setTimeout(() => {
       void this.expireGrace(client.id)
@@ -238,6 +242,7 @@ export class LobbyService {
     this.broadcaster.emitToRoom(started.id, EVENTS.GAME_START)
     const state = await this.buildState(started)
     this.broadcaster.broadcastRoomState(started.id, state)
+    void this.gameEngine.run(started.id)
     return state
   }
 
@@ -285,5 +290,17 @@ export class LobbyService {
 
   private reject(socket: ClientSocket, reason: string): void {
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_REJECTED, { reason })
+  }
+
+  /** Abort a running game once its last connected player is gone. */
+  private async maybeAbortGame(roomId: string): Promise<void> {
+    const room = await this.rooms.findById(roomId)
+    if (!room || room.status !== RoomStatusEnum.ACTIVE) {
+      return
+    }
+    const roster = await this.clients.findByRoom(roomId)
+    if (roster.filter((c) => c.isConnected).length === 0) {
+      this.gameEngine.abort(roomId)
+    }
   }
 }
