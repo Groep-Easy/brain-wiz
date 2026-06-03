@@ -43,7 +43,7 @@ export class Room {
    * Used by host display to show QR for players to scan
    * CONSTRAINT: NOT NULL
    */
-  @Column('varchar', { length: 512 })
+  @Column('varchar', { length: 512, default: '' })
   public qrCodePayload!: string
 
   /**
@@ -51,7 +51,7 @@ export class Room {
    * Generated when room is created
    * Stored so the host display can render it without regeneration
    */
-  @Column('text')
+  @Column('text', { default: '' })
   public qrCodeSvg!: string
   
   /**

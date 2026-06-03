@@ -12,6 +12,8 @@ import { ConnectionRegistry } from './connection-registry.js'
 import { RoomBroadcaster } from './room-broadcaster.js'
 import { SocketGateway } from '../../socket/socket.gateway.js'
 import { RateLimiter } from '../../socket/rate-limiter.js'
+import { HostAuthThrottle } from '../../socket/host-auth-throttle.js'
+import { HeartbeatMonitor } from '../../socket/heartbeat-monitor.js'
 import { WS_ALLOWED_ORIGINS } from '../../socket/socket.origin.js'
 import { RoomsController } from './room.controller.js'
 import { config } from '../../../../config/server.js'
@@ -23,9 +25,9 @@ import { config } from '../../../../config/server.js'
     LobbyService,
     ConnectionRegistry,
     RoomBroadcaster,
-    // RateLimiter's only constructor arg is a test clock seam (defaulting to
-    // Date.now), which Nest's DI can't resolve — build it explicitly here.
+    HeartbeatMonitor,
     { provide: RateLimiter, useFactory: (): RateLimiter => new RateLimiter() },
+    { provide: HostAuthThrottle, useFactory: (): HostAuthThrottle => new HostAuthThrottle() },
     // Origins allowed to open a WebSocket — mirrors the HTTP CORS allow-list.
     { provide: WS_ALLOWED_ORIGINS, useValue: config.CORS_ORIGINS },
     SocketGateway,

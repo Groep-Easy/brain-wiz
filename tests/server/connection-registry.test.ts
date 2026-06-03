@@ -104,7 +104,15 @@ describe('ConnectionRegistry', () => {
     reg.setHostToken('room-1', 'secret-token')
     assert.equal(reg.verifyHostToken('room-1', 'secret-token'), true)
     assert.equal(reg.verifyHostToken('room-1', 'wrong'), false)
+    assert.equal(reg.verifyHostToken('room-1', 'secret-tokeX'), false) // same length, differs
     assert.equal(reg.verifyHostToken('room-unknown', 'secret-token'), false)
+  })
+
+  it('clears a host token (room torn down)', () => {
+    const reg = new ConnectionRegistry()
+    reg.setHostToken('room-1', 'secret-token')
+    reg.clearHostToken('room-1')
+    assert.equal(reg.verifyHostToken('room-1', 'secret-token'), false)
   })
 
   it('stores, verifies, rejects and clears a per-client reconnect token', () => {
