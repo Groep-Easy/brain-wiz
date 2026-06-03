@@ -16,6 +16,9 @@ import {
 import { DifficultyEnum, QuestionThemeEnum } from './enums.js'
 import type { Round } from './round.entity.js'
 
+const MIN_ANSWERS = 1
+const MAX_ANSWERS = 2
+
 /**
  * Question entity - represents a trivia question in the content pool
  * Multiple rooms can use the same question across different sessions
@@ -47,19 +50,10 @@ export class Question {
   @Column('enum', { enum: DifficultyEnum })
   public difficulty!: DifficultyEnum
 
-  /**
-   * The correct answer - limited to 256 chars
-   * CONSTRAINT: NOT NULL
-   */
-  @Column('varchar', { length: 256 })
-  public correctAnswer!: string
+  @Column('text', { array: true, default: [] })
+  public correctAnswers!: string[]
 
-  /**
-   * Array of wrong answer options - exactly 3 required
-   * CONSTRAINT: array_length must be 3
-   * Validation must happen in service layer to match schema constraint
-   */
-  @Column('text', { array: true })
+  @Column('text', { array: true, default: [] })
   public wrongAnswers!: string[]
 
   /**
@@ -97,14 +91,29 @@ export class Question {
   public rounds!: Round[]
 
   /**
-   * Validate that wrong answers array has exactly 3 items
+   * Validate answers length constraints
    * Called before insert/update
    */
   @BeforeInsert()
   @BeforeUpdate()
-  public validateWrongAnswers(): void {
-    if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length !== 3) {
-      throw new Error('Question must have exactly 3 wrong answers')
+  public validateAnswers(): void {
+    if (
+      !Array.isArray(this.correctAnswers) ||
+      this.correctAnswers.length < MIN_ANSWERS ||
+      this.correctAnswers.length > MAX_ANSWERS
+    ) {
+      throw new Error(
+        `Question must have between ${MIN_ANSWERS} and ${MAX_ANSWERS} correct answers`
+      )
+    }
+
+    if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length > 1) {
+      throw new Error('Question can have a maximum of 1 wrong answer')
+    }
+
+    const totalAnswers = this.correctAnswers.length + this.wrongAnswers.length
+    if (totalAnswers !== MAX_ANSWERS) {
+      throw new Error(`Question must have exactly ${MAX_ANSWERS} possible answers`)
     }
   }
 }

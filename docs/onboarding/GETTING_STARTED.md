@@ -17,6 +17,14 @@ npm install
 
 ## Running the game
 
+For a complete local setup including database services, test data seeding, and migrations, use the provided startup script:
+
+```bash
+./scripts/start.sh
+```
+
+Alternatively, if you already have the database running and migrated, you can use:
+
 ```bash
 npm run dev
 ```

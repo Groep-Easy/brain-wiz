@@ -84,7 +84,6 @@ export class Room {
   @Column('enum', {
     enum: QuestionThemeEnum,
     array: true,
-    default: () => "'{}'::question_theme_enum[]",
   })
   public selectedThemes!: QuestionThemeEnum[]
 
@@ -95,7 +94,6 @@ export class Room {
   @Column('enum', {
     enum: CodingLanguageEnum,
     array: true,
-    default: () => "'{}'::coding_language_enum[]",
   })
   public selectedLanguages!: CodingLanguageEnum[]
 
