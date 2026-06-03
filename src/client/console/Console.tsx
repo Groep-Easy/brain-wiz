@@ -1,26 +1,15 @@
 /**
  * @file Console.tsx
- * @owner host-squad
- * @description Throwaway WebSocket debug console, served at /console.
- *
- * NOT a real host UI — it's a manual test client for the server team, kept off
- * the host root (/) so it doesn't collide with the host team's work. As the
- * HOST it can create a room (POST /rooms), connect read-only over WS
- * (?role=host&code&hostToken) and start the game (POST /rooms/:code/start), so
- * you can drive the host→server lobby flow by hand. It also logs every frame it
- * receives and can fire arbitrary `{ event, data }` frames.
+ * @owner client-squad
+ * @description Throwaway WebSocket debug console for the phone client, served at
+ * /console. Mirrors the host console but exposes the CLIENT side of the lobby
+ * flow: connect + join a room (PLAYER_JOIN), leave (PLAYER_LEAVE) and reconnect
+ * (re-join with the stored playerId, to exercise the server's grace window). It
+ * also logs every frame and can fire arbitrary `{ event, data }` frames.
  */
 import { useRef, useState } from 'react'
-import { PING } from '../../shared/events/socket-events'
-import {
-  buildWsUrl,
-  parsePayload,
-  rttNote,
-  wsToHttp,
-  type Direction,
-  type LogEntry,
-  type Status,
-} from './console-utils'
+import { PING, PLAYER_JOIN, PLAYER_JOIN_ACK, PLAYER_LEAVE } from '../../shared/events/socket-events'
+import { parsePayload, rttNote, type Direction, type LogEntry, type Status } from './console-utils'
 import './console.css'
 
 const DEFAULT_URL = 'ws://localhost:3000'
@@ -32,10 +21,11 @@ export function Console(): React.JSX.Element {
   const [eventName, setEventName] = useState<string>(PING)
   const [payload, setPayload] = useState('{}')
   const [code, setCode] = useState('')
-  const [hostToken, setHostToken] = useState('')
+  const [name, setName] = useState('')
 
   const socketRef = useRef<WebSocket | null>(null)
   const idRef = useRef(0)
+  const playerIdRef = useRef<string | null>(null)
 
   function append(dir: Direction, text: string): void {
     idRef.current += 1
@@ -48,7 +38,19 @@ export function Console(): React.JSX.Element {
     setLog((prev) => [entry, ...prev])
   }
 
-  function connect(target: string): void {
+  function capturePlayerId(raw: string): void {
+    try {
+      const frame = JSON.parse(raw) as { event?: string; data?: { playerId?: string } }
+      if (frame.event === PLAYER_JOIN_ACK && typeof frame.data?.playerId === 'string') {
+        playerIdRef.current = frame.data.playerId
+        append('info', `joined as ${frame.data.playerId}`)
+      }
+    } catch {
+      // not JSON — ignore
+    }
+  }
+
+  function open(target: string, onOpen?: () => void): void {
     socketRef.current?.close()
     append('info', `connecting to ${target}…`)
     setStatus('connecting')
@@ -58,10 +60,12 @@ export function Console(): React.JSX.Element {
     socket.onopen = (): void => {
       setStatus('open')
       append('info', 'connection open')
+      onOpen?.()
     }
     socket.onmessage = (event): void => {
       const raw = String(event.data)
       append('in', raw + rttNote(raw))
+      capturePlayerId(raw)
     }
     socket.onclose = (): void => {
       setStatus('closed')
@@ -88,54 +92,32 @@ export function Console(): React.JSX.Element {
     append('out', frame)
   }
 
-  async function createRoom(): Promise<void> {
-    try {
-      const res = await fetch(`${wsToHttp(url)}/rooms`, { method: 'POST' })
-      if (!res.ok) {
-        append('info', `create room failed: HTTP ${res.status}`)
-        return
-      }
-      const body = (await res.json()) as { code: string; hostToken: string }
-      setCode(body.code)
-      setHostToken(body.hostToken)
-      append('info', `room created — code ${body.code}, hostToken ${body.hostToken}`)
-    } catch (error) {
-      append('info', `create room error: ${String(error)}`)
+  function joinPayload(): string {
+    const data: { roomCode: string; playerName: string; playerId?: string } = {
+      roomCode: code,
+      playerName: name,
     }
+    if (playerIdRef.current) {
+      data.playerId = playerIdRef.current
+    }
+    return JSON.stringify(data)
   }
 
-  function connectAsHost(): void {
-    if (!code || !hostToken) {
-      append('info', 'create a room first')
+  function connectAndJoin(): void {
+    if (!code || !name) {
+      append('info', 'enter a room code and a name first')
       return
     }
-    connect(buildWsUrl(url, { role: 'host', code, hostToken }))
+    open(url, () => send(PLAYER_JOIN, joinPayload()))
   }
 
-  async function startGame(): Promise<void> {
-    if (!code) {
-      append('info', 'no room to start — create one first')
-      return
-    }
-    try {
-      const res = await fetch(`${wsToHttp(url)}/rooms/${code}/start`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ hostToken }),
-      })
-      if (!res.ok) {
-        append('info', `start game failed: HTTP ${res.status}`)
-        return
-      }
-      append('info', 'game started')
-    } catch (error) {
-      append('info', `start game error: ${String(error)}`)
-    }
+  function leave(): void {
+    send(PLAYER_LEAVE, '')
   }
 
   return (
     <main className="console">
-      <h1>Host WebSocket debug console</h1>
+      <h1>Client WebSocket debug console</h1>
 
       <section className="row">
         <input
@@ -145,7 +127,7 @@ export function Console(): React.JSX.Element {
           disabled={status !== 'closed'}
         />
         {status === 'closed' ? (
-          <button onClick={() => connect(url)}>Connect</button>
+          <button onClick={() => open(url)}>Connect</button>
         ) : (
           <button onClick={disconnect}>Disconnect</button>
         )}
@@ -155,13 +137,12 @@ export function Console(): React.JSX.Element {
       </section>
 
       <section className="row">
-        <button onClick={() => void createRoom()}>Create room</button>
-        <input aria-label="room code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="code" />
-        <button onClick={connectAsHost} disabled={!code || !hostToken}>
-          Connect as host
-        </button>
-        <button onClick={() => void startGame()} disabled={!code}>
-          Start game
+        <input aria-label="room code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="room code" />
+        <input aria-label="player name" value={name} onChange={(e) => setName(e.target.value)} placeholder="your name" />
+        <button onClick={connectAndJoin}>Connect &amp; join</button>
+        <button onClick={leave}>Leave</button>
+        <button onClick={connectAndJoin} disabled={!playerIdRef.current}>
+          Reconnect
         </button>
       </section>
 

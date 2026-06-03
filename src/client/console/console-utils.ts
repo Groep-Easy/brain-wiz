@@ -1,9 +1,8 @@
 /**
  * @file console-utils.ts
- * @owner host-squad
- * @description Types and pure helpers for the WebSocket debug console
- * (Console.tsx). Kept separate from the component so the logic is easy to scan
- * and reuse without React in the way.
+ * @owner client-squad
+ * @description Types and pure helpers for the phone client's WebSocket debug
+ * console (Console.tsx). Mirrors the host console so both behave the same.
  */
 import { PONG } from '../../shared/events/socket-events'
 
@@ -32,20 +31,6 @@ export function rttNote(raw: string): string {
     // not JSON — nothing to annotate
   }
   return ''
-}
-
-/** Build a ws:// URL with a query string from the given params. */
-export function buildWsUrl(base: string, params: Record<string, string>): string {
-  const url = new URL(base)
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value)
-  }
-  return url.toString()
-}
-
-/** Derive the HTTP base (for REST calls) from a ws:// / wss:// URL. */
-export function wsToHttp(wsUrl: string): string {
-  return wsUrl.replace(/^ws/i, 'http').replace(/\/+$/, '')
 }
 
 /** Parse a raw payload string as JSON, falling back to the raw string. */
