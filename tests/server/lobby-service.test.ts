@@ -227,21 +227,79 @@ describe('LobbyService disconnect + reconnect grace', () => {
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const first = recordingSocket()
     await lobby.joinClient(first, 'sock-1', code, 'Alice')
-    const playerId = (
-      first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
-        playerId: string
-      }
-    ).playerId
+    const ack = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      playerId: string
+      reconnectToken: string
+    }
+    const { playerId, reconnectToken } = ack
     await lobby.handleDisconnect(first)
 
     const second = recordingSocket()
-    await lobby.joinClient(second, 'sock-2', code, 'Alice', playerId)
+    await lobby.joinClient(second, 'sock-2', code, 'Alice', playerId, reconnectToken)
 
     assert.ok(eventsOf(host).includes(EVENTS.PLAYER_RECONNECTED))
     assert.equal(lobby.hasPendingRemoval(playerId), false)
     const state = await lobby.getRoomState(code)
     assert.equal(state?.players.length, 1)
     assert.equal(state?.players[0]?.connected, true)
+  })
+
+  it('issues a reconnect token on a fresh join', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      reconnectToken?: string
+    }
+    assert.ok(ack.reconnectToken && ack.reconnectToken.length > 0)
+  })
+
+  it('rejects a reconnect that presents a wrong (or missing) reconnect token', async () => {
+    const lobby = makeLobby()
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+    const first = recordingSocket()
+    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    const playerId = (
+      first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as { playerId: string }
+    ).playerId
+    await lobby.handleDisconnect(first)
+
+    // Attacker knows the (broadcast) playerId but not the secret token.
+    const attacker = recordingSocket()
+    await lobby.joinClient(attacker, 'sock-evil', code, 'Mallory', playerId, 'wrong-token')
+
+    assert.ok(eventsOf(attacker).includes(EVENTS.PLAYER_JOIN_REJECTED))
+    assert.equal(eventsOf(attacker).includes(EVENTS.PLAYER_RECONNECTED), false)
+    // The legitimate player can still be reclaimed and isn't yet removed.
+    assert.equal(lobby.hasPendingRemoval(playerId), true)
+  })
+
+  it('rotates the reconnect token on each reconnect (no replay of the old one)', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const first = recordingSocket()
+    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    const ack1 = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      playerId: string
+      reconnectToken: string
+    }
+    await lobby.handleDisconnect(first)
+
+    const second = recordingSocket()
+    await lobby.joinClient(second, 'sock-2', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    const ack2 = second.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      reconnectToken: string
+    }
+    assert.notEqual(ack2.reconnectToken, ack1.reconnectToken)
+
+    // The original token must no longer be accepted.
+    await lobby.handleDisconnect(second)
+    const replay = recordingSocket()
+    await lobby.joinClient(replay, 'sock-3', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    assert.ok(eventsOf(replay).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
   it('expireGrace removes a client that never reconnected', async () => {

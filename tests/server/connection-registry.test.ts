@@ -107,6 +107,17 @@ describe('ConnectionRegistry', () => {
     assert.equal(reg.verifyHostToken('room-unknown', 'secret-token'), false)
   })
 
+  it('stores, verifies, rejects and clears a per-client reconnect token', () => {
+    const reg = new ConnectionRegistry()
+    reg.setReconnectToken('client-a', 'secret')
+    assert.equal(reg.verifyReconnectToken('client-a', 'secret'), true)
+    assert.equal(reg.verifyReconnectToken('client-a', 'wrong'), false)
+    assert.equal(reg.verifyReconnectToken('client-a', undefined), false)
+    assert.equal(reg.verifyReconnectToken('client-unknown', 'secret'), false)
+    reg.clearReconnectToken('client-a')
+    assert.equal(reg.verifyReconnectToken('client-a', 'secret'), false)
+  })
+
   it('tracks reconnect grace timers per client', () => {
     const reg = new ConnectionRegistry()
     const timer = setTimeout((): void => undefined, 10_000)
