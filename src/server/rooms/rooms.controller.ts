@@ -12,6 +12,13 @@ import { BadRequestException, Controller, Get, NotFoundException, Param, Post } 
 import { RoomsService } from './rooms.service.js'
 import { isValidRoomCode } from '../../shared/utils/room-code.js'
 
+interface RoomResponse {
+  code: string
+  qrCodePayload: string
+  qrCodeSvg: string
+  status: string
+}
+
 @Controller('rooms')
 export class RoomsController {
   public constructor(private readonly roomsService: RoomsService) {}
@@ -20,13 +27,7 @@ export class RoomsController {
    * Create a new room and return its join information.
    */
   @Post()
-  public async createRoom(): Promise<{
-    code: string
-    qrCodePayload: string
-    qrCodeSvg: string
-    status: string
-  }> {
-
+  public async createRoom(): Promise<RoomResponse> {
     const room = await this.roomsService.createRoom()
 
     return {
@@ -40,16 +41,8 @@ export class RoomsController {
   /**
    * Retrieve room information for a given join code.
    */
-  @Get(':code')
-  public async getRoom(
-    @Param('code') code: string,
-  ): Promise<{
-    code: string
-    qrCodePayload: string
-    qrCodeSvg: string
-    status: string
-  }> {
-
+   @Get(':code')
+  public async getRoom(@Param('code') code: string): Promise<RoomResponse> {
     if (!isValidRoomCode(code)) {
       throw new BadRequestException('Invalid room code format')
     }
