@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leader Board</title>
+    <link rel="stylesheet" href="../styles/main_style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      header {
+        text-align: center;
+        padding: 24px;
+      }
+
+      #leaderboard {
+        width: 60%;
+        margin: 20px auto;
+      }
+
+      .player {
+        background-color: var(--surface);
+        color: var(--dark);
+
+        margin: 10px 0;
+        padding: 15px 20px;
+        border-radius: 15px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        will-change: transform;
+      }
+
+      .first {
+        background-color: var(--teal);
+        color: var(--surface);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Leader board</h1>
+    </header>
+    <div id="leaderboard"></div>
+
+    <script>
+      let players = [
+        { name: 'Player 1', score: 100 },
+        { name: 'Player 2', score: 300 },
+        { name: 'Player 3', score: 200 },
+      ]
+
+      const playerElements = new Map()
+
+      function createLeaderBoard() {
+        const container = document.getElementById('leaderboard')
+
+        players.forEach((player) => {
+          const div = document.createElement('div')
+
+          div.className = 'player'
+          div.innerHTML = `<span class="name"></span>
+                           <span class="score"></span>`
+
+          div.querySelector('.name').textContent = player.name
+          div.querySelector('.score').textContent = player.score
+
+          playerElements.set(player.name, div)
+          container.appendChild(div)
+        })
+
+        updateLeaderBoard()
+      }
+
+      function updateLeaderBoard() {
+        const container = document.getElementById('leaderboard')
+
+        const firstPositions = new Map()
+        playerElements.forEach((el, name) => {
+          firstPositions.set(name, el.getBoundingClientRect().top)
+        })
+
+        const sortedPlayers = [...players].sort((a, b) => b.score - a.score)
+
+        sortedPlayers.forEach((player, index) => {
+          const el = playerElements.get(player.name)
+
+          el.querySelector('.score').textContent = player.score
+
+          el.classList.toggle('first', index === 0)
+
+          container.appendChild(el)
+        })
+
+        playerElements.forEach((el, name) => {
+          const lastTop = el.getBoundingClientRect().top
+          const firstTop = firstPositions.get(name)
+
+          const deltaY = firstTop - lastTop
+
+          if (deltaY !== 0) {
+            el.style.transition = 'none'
+            el.style.transform = `translateY(${deltaY}px)`
+
+            requestAnimationFrame(() => {
+              el.style.transition = 'transform 800ms ease'
+              el.style.transform = ''
+            })
+          }
+        })
+      }
+
+      function updateScores() {
+        players = players.map((player) => {
+          return {
+            ...player,
+            score: player.score + Math.floor(Math.random() * 200),
+          }
+        })
+
+        updateLeaderBoard()
+      }
+
+      createLeaderBoard()
+    </script>
+
+    <!-- test button -->
+    <button onclick="updateScores()">Update Scores</button>
+  </body>
+</html>
