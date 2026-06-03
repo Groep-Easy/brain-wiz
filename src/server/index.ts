@@ -7,6 +7,7 @@
  */
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
+import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module.js'
 import { config } from '../../config/server.js'
@@ -23,6 +24,8 @@ async function bootstrap(): Promise<void> {
 
   // Use the native `ws` transport for WebSocket gateways.
   app.useWebSocketAdapter(new WsAdapter(app))
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
   // TODO: serve the static host display (src/host) and phone client (src/client).
   // Old Express mounts were `app.use('/host', express.static('src/host'))` and

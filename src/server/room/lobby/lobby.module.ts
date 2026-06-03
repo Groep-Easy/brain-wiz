@@ -12,10 +12,9 @@ import { ConnectionRegistry } from './connection-registry.js'
 import { RoomBroadcaster } from './room-broadcaster.js'
 import { SocketGateway } from '../../socket/socket.gateway.js'
 import { RoomsController } from './room.controller.js'
-import { DatabaseModule } from '../../database/index.js'
 
 @Module({
-  imports: [RoomModule, ClientModule, DatabaseModule],
+  imports: [RoomModule, ClientModule],
   controllers: [RoomsController],
   providers: [LobbyService, ConnectionRegistry, RoomBroadcaster, SocketGateway],
   exports: [LobbyService],

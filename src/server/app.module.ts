@@ -11,8 +11,9 @@ import { Module } from '@nestjs/common'
 import { DatabaseModule } from './database/index.js'
 import { LobbyModule } from './room/lobby/lobby.module.js'
 import { HealthModule } from './health/health.module.js'
+import { QuestionModule } from './question/question.module.js'
 
 @Module({
-  imports: [DatabaseModule, LobbyModule, HealthModule],
+  imports: [DatabaseModule, LobbyModule, HealthModule, QuestionModule],
 })
 export class AppModule {}
