@@ -30,9 +30,7 @@ export class RoomService {
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()
     const qrCodePayload = `${config.BASE_URL}/join?code=${joinCode}`
-    const qrCodeSvg = this.qrcodeService
-      ? await this.qrcodeService.generateSvg(qrCodePayload)
-      : ''
+    const qrCodeSvg = this.qrcodeService ? await this.qrcodeService.generateSvg(qrCodePayload) : ''
 
     const room = this.rooms.create({
       joinCode,
