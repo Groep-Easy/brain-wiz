@@ -52,3 +52,9 @@ export const ANSWER_ACK = 'ANSWER_ACK'
 export const TIMER_TICK = 'TIMER_TICK'
 /** Server → all:    expired.              Payload: none                          */
 export const TIMER_EXPIRED = 'TIMER_EXPIRED'
+
+// ── Connectivity ────────────────────────────────────────────────────────────────
+/** Client → server: liveness probe.       Payload: { t: number }              */
+export const PING = 'PING'
+/** Server → client: probe response.       Payload: { t, serverTime }          */
+export const PONG = 'PONG'
