@@ -82,7 +82,10 @@ export class LobbyService {
       displayName.length < PLAYER.NAME_MIN_LENGTH ||
       displayName.length > PLAYER.NAME_MAX_LENGTH
     ) {
-      this.reject(socket, 'Invalid display name')
+      this.reject(
+        socket,
+        `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
+      )
       return
     }
 

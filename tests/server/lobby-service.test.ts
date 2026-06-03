@@ -21,7 +21,7 @@ import {
 import { Room } from '../../src/server/entities/room.entity.js'
 import { Client } from '../../src/server/entities/client.entity.js'
 import * as EVENTS from '../../src/shared/events/socket-events.js'
-import { ROOM } from '../../src/shared/constants/game-config.js'
+import { ROOM, PLAYER } from '../../src/shared/constants/game-config.js'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
@@ -202,7 +202,10 @@ describe('LobbyService.joinClient input validation', () => {
     const client = recordingSocket()
     await lobby.joinClient(client, 'sock-1', code, 'x'.repeat(50))
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
-    assert.equal((ack?.data as { reason: string }).reason, 'Invalid display name')
+    assert.equal(
+      (ack?.data as { reason: string }).reason,
+      `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
+    )
   })
 
   it('rejects a blank (whitespace-only) display name', async () => {
