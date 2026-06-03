@@ -20,7 +20,13 @@ export class RoomsController {
    * Create a new room and return its join information.
    */
   @Post()
-  public async createRoom() {
+  public async createRoom(): Promise<{
+    code: string
+    qrCodePayload: string
+    qrCodeSvg: string
+    status: string
+  }> {
+    
     const room = await this.roomsService.createRoom()
 
     return {
