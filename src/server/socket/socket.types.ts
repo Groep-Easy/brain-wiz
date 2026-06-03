@@ -7,8 +7,20 @@
  */
 import type { ClientSocket } from '../room/lobby/lobby.types.js'
 
+/**
+ * The `ws`-socket surface the heartbeat monitor uses. All optional so test
+ * fakes (and the abstract ClientSocket) satisfy it; the real `ws` socket
+ * provides them at runtime.
+ */
+export interface HeartbeatSocket {
+  isAlive?: boolean
+  ping?: () => void
+  terminate?: () => void
+  on?: (event: string, listener: () => void) => void
+}
+
 /** A live socket tagged with the per-connection id we assign on connect. */
-export interface IdentifiedSocket extends ClientSocket {
+export interface IdentifiedSocket extends ClientSocket, HeartbeatSocket {
   connectionId?: string
   idleTimer?: NodeJS.Timeout
 }
@@ -16,7 +28,11 @@ export interface IdentifiedSocket extends ClientSocket {
 /** The subset of the WS upgrade request the gateway inspects. */
 export interface UpgradeRequest {
   url?: string
-  headers?: { origin?: string }
+  headers?: {
+    origin?: string
+    'sec-websocket-protocol'?: string
+  }
+  socket?: { remoteAddress?: string }
 }
 
 /** One connection's fixed-window counter, held by the RateLimiter. */
