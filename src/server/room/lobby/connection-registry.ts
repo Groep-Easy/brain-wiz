@@ -18,6 +18,7 @@ export class ConnectionRegistry {
   private readonly _clients = new Map<string, Map<string, ClientSocket>>()
   private readonly _membership = new Map<ClientSocket, Membership>()
   private readonly _hostTokens = new Map<string, string>()
+  private readonly _reconnectTokens = new Map<string, string>()
   private readonly _graceTimers = new Map<string, NodeJS.Timeout>()
 
   public registerHost(roomId: string, socket: ClientSocket): void {
@@ -88,6 +89,19 @@ export class ConnectionRegistry {
   public verifyHostToken(roomId: string, token: string): boolean {
     const expected = this._hostTokens.get(roomId)
     return expected !== undefined && expected === token
+  }
+
+  public setReconnectToken(clientId: string, token: string): void {
+    this._reconnectTokens.set(clientId, token)
+  }
+
+  public verifyReconnectToken(clientId: string, token: string | undefined): boolean {
+    const expected = this._reconnectTokens.get(clientId)
+    return expected !== undefined && token !== undefined && expected === token
+  }
+
+  public clearReconnectToken(clientId: string): void {
+    this._reconnectTokens.delete(clientId)
   }
 
   public setGraceTimer(clientId: string, timer: NodeJS.Timeout): void {

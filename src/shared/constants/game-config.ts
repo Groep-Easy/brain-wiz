@@ -19,6 +19,11 @@ export const ROOM = Object.freeze({
   RECONNECT_GRACE_MS: 30_000,
 })
 
+export const RATE_LIMIT = Object.freeze({
+  WINDOW_MS: 1_000,
+  MAX_MESSAGES: 20,
+})
+
 export const TIMER = Object.freeze({
   QUESTION_SECONDS: 30,
   REVEAL_SECONDS: 5,

@@ -58,13 +58,19 @@ export class LobbyService {
     return true
   }
 
+  /** True when a live socket has already authenticated as a host or client. */
+  public isConnectionRegistered(socket: ClientSocket): boolean {
+    return this.registry.lookup(socket) !== undefined
+  }
+
   /** Handle a PLAYER_JOIN: fresh join or reconnect (when playerId is supplied). */
   public async joinClient(
     socket: ClientSocket,
     connectionId: string,
     roomCode: string,
     playerName: string,
-    playerId?: string
+    playerId?: string,
+    playerToken?: string
   ): Promise<void> {
     const room = await this.rooms.findByJoinCode(roomCode)
     if (!room) {
@@ -79,6 +85,12 @@ export class LobbyService {
     if (playerId) {
       const existing = await this.clients.findById(playerId)
       if (existing && existing.roomId === room.id) {
+        // Reclaiming an existing identity requires the matching reconnect
+        // secret — knowing the (broadcast) playerId alone must not be enough.
+        if (!this.registry.verifyReconnectToken(playerId, playerToken)) {
+          this.reject(socket, 'Invalid reconnect token')
+          return
+        }
         await this.reconnect(room, existing, connectionId, socket)
         return
       }
@@ -95,10 +107,13 @@ export class LobbyService {
     }
 
     const client = await this.clients.addClient(room.id, playerName, connectionId)
+    const reconnectToken = randomUUID()
+    this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
+      reconnectToken,
     })
     await this.broadcastState(room)
   }
@@ -110,6 +125,7 @@ export class LobbyService {
       return
     }
     this.registry.unregister(socket)
+    this.registry.clearReconnectToken(membership.clientId)
     const client = await this.clients.findById(membership.clientId)
     if (client) {
       await this.clients.remove(client)
@@ -164,6 +180,7 @@ export class LobbyService {
       return
     }
     const roomId = client.roomId
+    this.registry.clearReconnectToken(clientId)
     await this.clients.remove(client)
     const room = await this.rooms.findById(roomId)
     if (room) {
@@ -214,10 +231,14 @@ export class LobbyService {
       clearTimeout(timer)
     }
     await this.clients.updateSocket(client, connectionId)
+    // Rotate the reconnect secret so a previously-seen token can't be replayed.
+    const reconnectToken = randomUUID()
+    this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
+      reconnectToken,
     })
     this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_RECONNECTED, { playerId: client.id })
     await this.broadcastState(room)

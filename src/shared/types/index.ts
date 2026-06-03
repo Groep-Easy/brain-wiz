@@ -54,20 +54,19 @@ export interface PongPayload {
   serverTime: number
 }
 
-/** Client → server join request (PLAYER_JOIN). `playerId` echoes back to reconnect. */
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
   playerId?: string
+  playerToken?: string
 }
 
-/** Server → client join accepted (PLAYER_JOIN_ACK). */
 export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
+  reconnectToken: string
 }
 
-/** Server → client join rejected (PLAYER_JOIN_REJECTED). */
 export interface PlayerJoinRejectedPayload {
   reason: string
 }

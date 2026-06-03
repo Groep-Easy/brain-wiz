@@ -5,16 +5,21 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
+import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
+import { ROOM, RATE_LIMIT } from '../../src/shared/constants/game-config.js'
 
 interface Call {
   method: string
   args: unknown[]
 }
 
+const ALLOWED_ORIGIN = 'http://localhost:5173'
+const ALLOWED = [ALLOWED_ORIGIN]
+
 /** Records every delegated call so we can assert the gateway wires correctly. */
-function fakeLobby(): { service: LobbyService; calls: Call[] } {
+function fakeLobby(registered = false): { service: LobbyService; calls: Call[] } {
   const calls: Call[] = []
   const record =
     (method: string) =>
@@ -27,26 +32,48 @@ function fakeLobby(): { service: LobbyService; calls: Call[] } {
     joinClient: record('joinClient'),
     leaveClient: record('leaveClient'),
     handleDisconnect: record('handleDisconnect'),
+    isConnectionRegistered: (): boolean => registered,
   } as unknown as LobbyService
   return { service, calls }
 }
 
-function socket(): { send(d: string): void; connectionId?: string } {
-  return { send: (): void => undefined }
+/** Build a gateway with a permissive rate limiter unless one is supplied. */
+function makeGateway(
+  service: LobbyService,
+  rateLimiter: RateLimiter = new RateLimiter()
+): SocketGateway {
+  return new SocketGateway(service, rateLimiter, ALLOWED)
+}
+
+function socket(): {
+  send(d: string): void
+  close(): void
+  closed: boolean
+  connectionId?: string
+} {
+  const s = {
+    send: (): void => undefined,
+    closed: false,
+    close: (): void => {
+      s.closed = true
+    },
+  }
+  return s
 }
 
 describe('SocketGateway ping/pong', () => {
   it('answers a ping with a pong envelope', () => {
-    const gateway = new SocketGateway(fakeLobby().service)
-    assert.equal(gateway.handlePing({ t: 1234 }).event, PONG)
+    const gateway = makeGateway(fakeLobby().service)
+    const result = gateway.handlePing({ t: 1234 }, socket())
+    assert.equal(result?.event, PONG)
   })
   it('echoes the client timestamp back in the pong', () => {
-    const gateway = new SocketGateway(fakeLobby().service)
-    assert.equal(gateway.handlePing({ t: 1234 }).data.t, 1234)
+    const gateway = makeGateway(fakeLobby().service)
+    assert.equal(gateway.handlePing({ t: 1234 }, socket())?.data.t, 1234)
   })
   it('defaults the echoed timestamp to 0 when the ping has no payload', () => {
-    const gateway = new SocketGateway(fakeLobby().service)
-    assert.equal(gateway.handlePing(undefined).data.t, 0)
+    const gateway = makeGateway(fakeLobby().service)
+    assert.equal(gateway.handlePing(undefined, socket())?.data.t, 0)
   })
 })
 
@@ -62,7 +89,7 @@ describe('parseConnectParams', () => {
 
 describe('SocketGateway connection handling', () => {
   it('assigns a connection id to every new socket', () => {
-    const gateway = new SocketGateway(fakeLobby().service)
+    const gateway = makeGateway(fakeLobby().service)
     const s = socket()
     gateway.handleConnection(s)
     assert.equal(typeof s.connectionId, 'string')
@@ -71,7 +98,7 @@ describe('SocketGateway connection handling', () => {
 
   it('registers a host when the URL carries a valid host role', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
     const s = socket()
     gateway.handleConnection(s, { url: '/?role=host&code=ABCD&hostToken=secret' })
     const call = calls.find((c) => c.method === 'connectHost')
@@ -82,7 +109,7 @@ describe('SocketGateway connection handling', () => {
 
   it('does not register a host for a plain client connection', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
     gateway.handleConnection(socket())
     assert.equal(
       calls.find((c) => c.method === 'connectHost'),
@@ -92,28 +119,118 @@ describe('SocketGateway connection handling', () => {
 
   it('delegates disconnects to the lobby', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
     const s = socket()
     gateway.handleDisconnect(s)
     assert.deepEqual(calls, [{ method: 'handleDisconnect', args: [s] }])
   })
 })
 
-describe('SocketGateway player messages', () => {
-  it('delegates PLAYER_JOIN with the connection id and payload', () => {
+describe('SocketGateway origin guard', () => {
+  it('rejects and closes a socket whose origin is not allow-listed', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s, { headers: { origin: 'http://evil.example' } })
+    assert.equal(s.closed, true)
+    assert.equal(s.connectionId, undefined)
+    assert.equal(calls.length, 0)
+  })
+
+  it('allows an allow-listed origin', () => {
+    const gateway = makeGateway(fakeLobby().service)
+    const s = socket()
+    gateway.handleConnection(s, { headers: { origin: ALLOWED_ORIGIN } })
+    assert.equal(s.closed, false)
+    assert.equal(typeof s.connectionId, 'string')
+  })
+
+  it('allows a non-browser client that sends no origin header', () => {
+    const gateway = makeGateway(fakeLobby().service)
+    const s = socket()
+    gateway.handleConnection(s, { headers: {} })
+    assert.equal(s.closed, false)
+  })
+})
+
+describe('SocketGateway idle-socket timeout', () => {
+  it('closes a socket that never authenticates within the join window', () => {
+    const { service } = fakeLobby(false)
+    const gateway = makeGateway(service)
     const s = socket()
     gateway.handleConnection(s)
-    gateway.handlePlayerJoin({ roomCode: 'ABCD', playerName: 'Alice', playerId: 'p1' }, s)
+    assert.equal(s.closed, false)
+    assert.ok((s as { idleTimer?: NodeJS.Timeout }).idleTimer) // timer armed
+    gateway.closeIfIdle(s) // simulate the timer firing
+    assert.equal(s.closed, true)
+  })
+
+  it('leaves an authenticated socket open when the idle timer fires', () => {
+    const { service } = fakeLobby(true)
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s)
+    gateway.closeIfIdle(s)
+    assert.equal(s.closed, false)
+  })
+
+  it('clears the idle timer on disconnect', () => {
+    const { service } = fakeLobby(false)
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s)
+    gateway.handleDisconnect(s)
+    assert.equal((s as { idleTimer?: NodeJS.Timeout }).idleTimer, undefined)
+  })
+
+  it('arms the timer with the configured join timeout', () => {
+    assert.equal(ROOM.JOIN_TIMEOUT_MS, 30_000)
+  })
+})
+
+describe('SocketGateway rate limiting', () => {
+  it('drops messages once a connection exceeds its budget', () => {
+    const { service, calls } = fakeLobby()
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s)
+    for (let i = 0; i < RATE_LIMIT.MAX_MESSAGES; i++) {
+      gateway.handlePlayerLeave(s)
+    }
+    const overBudget = calls.length
+    gateway.handlePlayerLeave(s) // one past the cap
+    assert.equal(calls.length, overBudget) // dropped, not delegated
+  })
+
+  it('does not pong once over budget', () => {
+    const gateway = makeGateway(fakeLobby().service)
+    const s = socket()
+    gateway.handleConnection(s)
+    for (let i = 0; i < RATE_LIMIT.MAX_MESSAGES; i++) {
+      gateway.handlePing({ t: 1 }, s)
+    }
+    assert.equal(gateway.handlePing({ t: 1 }, s), undefined)
+  })
+})
+
+describe('SocketGateway player messages', () => {
+  it('delegates PLAYER_JOIN with the connection id, payload and reconnect token', () => {
+    const { service, calls } = fakeLobby()
+    const gateway = makeGateway(service)
+    const s = socket()
+    gateway.handleConnection(s)
+    gateway.handlePlayerJoin(
+      { roomCode: 'ABCD', playerName: 'Alice', playerId: 'p1', playerToken: 'tok' },
+      s
+    )
     const call = calls.find((c) => c.method === 'joinClient')
     assert.ok(call)
-    assert.deepEqual(call.args, [s, s.connectionId, 'ABCD', 'Alice', 'p1'])
+    assert.deepEqual(call.args, [s, s.connectionId, 'ABCD', 'Alice', 'p1', 'tok'])
   })
 
   it('ignores a PLAYER_JOIN missing required fields', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
     const s = socket()
     gateway.handlePlayerJoin({ roomCode: 'ABCD' } as never, s)
     assert.equal(
@@ -124,7 +241,7 @@ describe('SocketGateway player messages', () => {
 
   it('delegates PLAYER_LEAVE to the lobby', () => {
     const { service, calls } = fakeLobby()
-    const gateway = new SocketGateway(service)
+    const gateway = makeGateway(service)
     const s = socket()
     gateway.handlePlayerLeave(s)
     assert.deepEqual(calls, [{ method: 'leaveClient', args: [s] }])
