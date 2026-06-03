@@ -74,10 +74,22 @@ function parseCorsOrigins(env: 'development' | 'production' | 'test'): string[] 
   return env === 'production' ? [] : [...DEFAULT_DEV_CORS_ORIGINS]
 }
 
+function parseApiKey(env: 'development' | 'production' | 'test'): string {
+  const key = process.env['ADMIN_API_KEY']
+  if (!key) {
+    if (env === 'production') {
+      throw new Error('ADMIN_API_KEY is required in production')
+    }
+    return 'dev-secret-key'
+  }
+  return key
+}
+
 // Load configurations with validation
 const nodeEnv = parseNodeEnv()
 const port = parsePort()
 const corsOrigins = parseCorsOrigins(nodeEnv)
+const adminApiKey = parseApiKey(nodeEnv)
 
 // Database config is validated here - will throw if invalid
 const databaseConfig = getDatabaseConfig()
@@ -86,5 +98,6 @@ export const config = Object.freeze({
   PORT: port,
   NODE_ENV: nodeEnv,
   CORS_ORIGINS: Object.freeze(corsOrigins),
+  ADMIN_API_KEY: adminApiKey,
   DATABASE: databaseConfig,
 })

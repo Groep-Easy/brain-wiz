@@ -20,7 +20,7 @@ import { RoomStatusEnum } from '../../entities/enums.js'
 import * as EVENTS from '../../../shared/events/socket-events.js'
 import { ROOM } from '../../../shared/constants/game-config.js'
 import { RoomNotFoundError } from '../room.errors.js'
-import { NotEnoughPlayersError, InvalidHostTokenError } from './lobby.errors.js'
+import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors.js'
 import type { ClientSocket, CreateRoomResult } from './lobby.types.js'
 import type { RoomState } from '../../../shared/types/index.js'
 

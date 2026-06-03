@@ -36,9 +36,9 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 5. Setup your environment and database:
    ```bash
    cp .env.example .env
-   docker compose up -d
+   ./scripts/start.sh
    ```
-   _(Make sure Docker is running on your machine before running `docker compose`)_
+   _(Make sure Docker is running on your machine. The start script will spin up Postgres, wait for readiness, run migrations, and start the app.)_
 
 ## Workspace configuration
 
