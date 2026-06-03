@@ -9,11 +9,11 @@
  */
 import { Module } from '@nestjs/common'
 import { DatabaseModule } from './database/index.js'
-import { SocketModule } from './socket/socket.module.js'
+import { LobbyModule } from './room/lobby/lobby.module.js'
 import { HealthModule } from './health/health.module.js'
-import { RoomsModule } from './rooms/rooms.module.js'
+import { QuestionModule } from './question/question.module.js'
 
 @Module({
-  imports: [DatabaseModule, SocketModule, HealthModule, RoomsModule],
+  imports: [DatabaseModule, LobbyModule, HealthModule, QuestionModule],
 })
 export class AppModule {}
