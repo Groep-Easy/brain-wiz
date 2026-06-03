@@ -26,7 +26,7 @@ export class RoomsController {
     qrCodeSvg: string
     status: string
   }> {
-    
+
     const room = await this.roomsService.createRoom()
 
     return {
@@ -41,7 +41,15 @@ export class RoomsController {
    * Retrieve room information for a given join code.
    */
   @Get(':code')
-  public async getRoom(@Param('code') code: string) {
+  public async getRoom(
+    @Param('code') code: string,
+  ): Promise<{
+    code: string
+    qrCodePayload: string
+    qrCodeSvg: string
+    status: string
+  }> {
+
     if (!isValidRoomCode(code)) {
       throw new BadRequestException('Invalid room code format')
     }
