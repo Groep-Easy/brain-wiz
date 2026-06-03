@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc && node dist/scripts/dev.js",
-    "start": "node dist/src/server/index.js",
+    "start": "node --env-file=.env dist/src/server/index.js",
     "lint": "eslint src tests config scripts",
     "lint:fix": "eslint src tests config scripts --fix",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"config/**/*.ts\" \"scripts/**/*.ts\" \"docs/**/*.md\"",
