@@ -16,10 +16,12 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
+import { QuestionService } from '../questions/question.service.js'
 import * as EVENTS from '../../shared/events/socket-events.js'
 import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index.js'
 import { LobbyService } from '../room/lobby/lobby.service.js'
 import type { ClientSocket } from '../room/lobby/lobby.types.js'
+
 
 /** A live socket tagged with the per-connection id we assign on connect. */
 export interface IdentifiedSocket extends ClientSocket {
@@ -56,7 +58,11 @@ export function parseConnectParams(url: string | undefined): ConnectParams {
 
 @WebSocketGateway()
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  public constructor(private readonly lobby: LobbyService) {}
+  // public constructor(private readonly lobby: LobbyService) {}
+  public constructor(
+    private readonly lobby: LobbyService,
+    private readonly questionService: QuestionService,
+  ) {}
 
   public handleConnection(client: IdentifiedSocket, request?: { url?: string }): void {
     const connectionId = randomUUID()
@@ -105,4 +111,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public handlePlayerLeave(@ConnectedSocket() client: ClientSocket): void {
     void this.lobby.leaveClient(client)
   }
+
+  @SubscribeMessage(EVENTS.QUESTION_SHOW)
+  public handleQuestionShow(
+    @ConnectedSocket() client: IdentifiedSocket,
+    @MessageBody() payload: { questionId: string } | undefined
+  ): void {
+    if (!payload?.questionId) return
+    void this.questionService.sendQuestionToRoom(client, payload.questionId)
+  }
+
 }

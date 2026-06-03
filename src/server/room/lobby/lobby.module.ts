@@ -12,11 +12,14 @@ import { ConnectionRegistry } from './connection-registry.js'
 import { RoomBroadcaster } from './room-broadcaster.js'
 import { SocketGateway } from '../../socket/socket.gateway.js'
 import { RoomsController } from './room.controller.js'
+import { QuestionService } from '../../questions/question.service.js'
+import { Question } from '../../entities/question.entity.js'
+import { TypeOrmModule } from '@nestjs/typeorm'
 
 @Module({
-  imports: [RoomModule, ClientModule],
+  imports: [RoomModule, ClientModule, TypeOrmModule.forFeature([Question])],
   controllers: [RoomsController],
-  providers: [LobbyService, ConnectionRegistry, RoomBroadcaster, SocketGateway],
+  providers: [LobbyService, ConnectionRegistry, RoomBroadcaster, SocketGateway, QuestionService],
   exports: [LobbyService],
 })
 export class LobbyModule {}
