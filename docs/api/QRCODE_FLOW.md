@@ -8,8 +8,8 @@ This feature allows a host to create a game room and immediately receive the joi
 
 The QR-code flow is part of the room lifecycle. When a room is created, the backend prepares both join options:
 
-* a **manual join code** for players who type the code themselves;
-* a **QR code** for players who scan the host screen with their phone.
+- a **manual join code** for players who type the code themselves;
+- a **QR code** for players who scan the host screen with their phone.
 
 ```text
 Host creates room
@@ -312,10 +312,10 @@ Live lobby updates = sockets + connection registry + broadcaster
 
 The backend now prepares all join information when a room is created:
 
-* a unique room code;
-* a join URL;
-* an SVG QR code;
-* a persisted room record in PostgreSQL.
+- a unique room code;
+- a join URL;
+- an SVG QR code;
+- a persisted room record in PostgreSQL.
 
 This gives the host display everything it needs to show a clean join screen for players.
 
