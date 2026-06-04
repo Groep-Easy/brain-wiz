@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Player, RoomState, LeaderboardEntry, ScoreMap } from '../shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
-import { Question } from './screens/question'
+import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
@@ -77,7 +77,7 @@ export function App(): React.JSX.Element {
           case EVENTS.QUESTION_SHOW:
             if (data.question) {
               setCurrentQuestion(data.question.text)
-              setCurrentAnswers(data.question.answers.map((a: { text: string }) => a.text))
+              setCurrentAnswers(data.question.answers?.map((a: { text: string }) => a.text) ?? [])
               setAmountAnswers(0)
             }
             break
@@ -106,6 +106,8 @@ export function App(): React.JSX.Element {
     socket.onclose = () => {
       setStatus('closed')
       setRoomState(null)
+      setCode('')
+      setHostToken('')
     }
 
     socket.onerror = () => {
