@@ -274,7 +274,7 @@ export class GameEngineService {
     if (players.length === 0) {
       return []
     }
-    
+
     const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
 
     const previousPositionByPlayerId = new Map(
