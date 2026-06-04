@@ -131,7 +131,7 @@ export function Question() {
         answers = data.answers
         break
       case 'amountAnswers':
-        amountAnswers = data.amountAnswers
+        amountAnswers = data.amountAnswers 
         break
       case 'timer':
         timer = data.timer
