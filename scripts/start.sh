@@ -33,7 +33,7 @@ npm run build
 
 # Run TypeORM migrations
 echo "🔄 Running database migrations..."
-node --env-file=.env ./node_modules/typeorm/cli.js migration:run -d dist/src/server/database/data-source.js
+node --env-file=.env ./node_modules/typeorm/cli.js migration:run -d dist/server/database/data-source.js
 
 # Start the dev server
 echo "💻 Starting NestJS dev server..."

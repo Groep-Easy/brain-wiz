@@ -10,10 +10,11 @@ import { HostAuthThrottle } from '../../socket/host-auth-throttle.js'
 import { HeartbeatMonitor } from '../../socket/heartbeat-monitor.js'
 import { WS_ALLOWED_ORIGINS } from '../../socket/socket.origin.js'
 import { RoomsController } from './room.controller.js'
-import { config } from '../../../../config/server.js'
+import { config } from '../../../config/server.js'
+import { QuestionModule } from '../../question/question.module.js'
 
 @Module({
-  imports: [RoomModule, ClientModule, RealtimeModule, GameModule],
+  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule],
   controllers: [RoomsController],
   providers: [
     LobbyService,

@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { QuestionController } from '../../src/server/question/question.controller.js'
-import type { QuestionService } from '../../src/server/question/question.service.js'
-import { CreateQuestionDto } from '../../src/server/question/dto/create-question.dto.js'
-import { DifficultyEnum, QuestionThemeEnum } from '../../src/server/entities/enums.js'
+import { QuestionController } from '../../src/server/question/question.controller'
+import type { QuestionService } from '../../src/server/question/question.service'
+import { CreateQuestionDto } from '../../src/server/question/dto/create-question.dto'
+import { DifficultyEnum, QuestionThemeEnum } from '../../src/server/entities/enums'
 import { validate } from 'class-validator'
 import { plainToInstance } from 'class-transformer'
 

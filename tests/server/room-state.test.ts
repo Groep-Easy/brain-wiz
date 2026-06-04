@@ -5,8 +5,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { toRoomState, roomStatusToPhase } from '../../src/server/room/room.helpers.js'
-import { RoomStatusEnum } from '../../src/server/entities/enums.js'
+import { toRoomState, roomStatusToPhase } from '../../src/server/room/room.helpers'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
 
 describe('roomStatusToPhase', () => {
   it('maps lobby to the lobby phase', () => {

@@ -23,36 +23,52 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import * as EVENTS from '../../shared/events/socket-events.js'
-import { ROOM, WS } from '../../shared/constants/game-config.js'
-import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index.js'
-import { LobbyService } from '../room/lobby/lobby.service.js'
-import { RateLimiter } from './rate-limiter.js'
-import { HostAuthThrottle } from './host-auth-throttle.js'
-import { HeartbeatMonitor } from './heartbeat-monitor.js'
-import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin.js'
-import { clientIp, parseHostTokenFromHeaders, selectSubprotocol } from './socket-handshake.js'
-import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types.js'
+import * as EVENTS from '../../shared/events/socket-events'
+import { ROOM, WS } from '../../shared/constants/game-config'
+import { QuestionService } from '../question/question.service.js'
+import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index'
+import { LobbyService } from '../room/lobby/lobby.service'
+import { RateLimiter } from './rate-limiter'
+import { HostAuthThrottle } from './host-auth-throttle'
+import { HeartbeatMonitor } from './heartbeat-monitor'
+import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin'
+import {
+  clientIp,
+  parseHostTokenFromHeaders,
+  selectSubprotocol,
+  INVALID_TOKEN_CLOSE_CODE,
+  INVALID_TOKEN_CLOSE_REASON,
+} from './socket-handshake'
+import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types'
 
-/** Parse `role`/`code`/`hostToken` from the WebSocket upgrade request URL. */
+/** Named sentinel to avoid magic-number lint errors when testing for missing query */
+const NO_QUERY_INDEX = -1
+
+/** A socket that supports close(code, reason) at runtime (ws). */
+type CloseableSocket = IdentifiedSocket & { close?: (code?: number, reason?: string) => void }
+
+/** Parse `role`/`code` from the WebSocket upgrade request URL.
+ * NOTE: `hostToken` query params are disallowed for security reasons; tokens
+ * must be supplied via the Sec-WebSocket-Protocol header only.
+ */
 export function parseConnectParams(url: string | undefined): ConnectParams {
-  if (!url) {
-    return {}
-  }
-  const search = new URL(url, 'http://localhost').searchParams
+  if (!url) return {}
+
   const params: ConnectParams = {}
-  const role = search.get('role')
-  const code = search.get('code')
-  const hostToken = search.get('hostToken')
-  if (role) {
-    params.role = role
+  const queryIndex = url.indexOf('?')
+  if (queryIndex === NO_QUERY_INDEX) return params
+
+  const query = url.slice(queryIndex + 1)
+  const pairs = query.split('&')
+  const map = new Map<string, string>()
+  for (const p of pairs) {
+    const [k, v] = p.split('=')
+    if (k) map.set(decodeURIComponent(k), v ? decodeURIComponent(v) : '')
   }
-  if (code) {
-    params.code = code
-  }
-  if (hostToken) {
-    params.hostToken = hostToken
-  }
+  const role = map.get('role')
+  const code = map.get('code')
+  if (role) params.role = role
+  if (code) params.code = code
   return params
 }
 
@@ -67,6 +83,7 @@ export class SocketGateway
     private readonly rateLimiter: RateLimiter,
     private readonly hostAuth: HostAuthThrottle,
     private readonly heartbeat: HeartbeatMonitor,
+    private readonly questionService: QuestionService,
     @Inject(WS_ALLOWED_ORIGINS) private readonly allowedOrigins: readonly string[]
   ) {}
 
@@ -93,9 +110,30 @@ export class SocketGateway
     client.idleTimer = idleTimer
 
     const params = parseConnectParams(request?.url)
-    const hostToken = parseHostTokenFromHeaders(request?.headers) ?? params.hostToken
-    if (params.role === 'host' && params.code && hostToken) {
-      this.connectHost(params.code, hostToken, connectionId, client, clientIp(request))
+    const headerToken = parseHostTokenFromHeaders(request?.headers)
+
+    // If the client sent a token via the query string, reject it explicitly
+    // and do not expose the token in logs.
+    const url = request?.url
+    const hasHostTokenInUrl = typeof url === 'string' && url.includes('hostToken=')
+    if (hasHostTokenInUrl) {
+      this.logger.warn('Rejected WS connection: token sent via query param')
+      ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+      return
+    }
+
+    // Host connections MUST supply their token via the Sec-WebSocket-Protocol
+    // header. If it's missing, reject with the specific close code + reason.
+    if (params.role === 'host') {
+      if (!params.code) return
+      if (!headerToken) {
+        this.logger.warn(
+          'Rejected WS connection: host attempted auth without Sec-WebSocket-Protocol token'
+        )
+        ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+        return
+      }
+      this.connectHost(params.code, headerToken, connectionId, client, clientIp(request))
     }
   }
 
@@ -148,14 +186,9 @@ export class SocketGateway
     @MessageBody() payload: PingPayload | undefined,
     @ConnectedSocket() client?: IdentifiedSocket
   ): WsResponse<PongPayload> | undefined {
-    if (!this.rateLimiter.allow(client?.connectionId)) {
-      return undefined
-    }
+    if (!this.rateLimiter.allow(client?.connectionId)) return undefined
     const t = typeof payload?.t === 'number' ? payload.t : 0
-    return {
-      event: EVENTS.PONG,
-      data: { t, serverTime: Date.now() },
-    }
+    return { event: EVENTS.PONG, data: { t, serverTime: Date.now() } }
   }
 
   @SubscribeMessage(EVENTS.PLAYER_JOIN)
@@ -163,12 +196,8 @@ export class SocketGateway
     @MessageBody() payload: PlayerJoinPayload | undefined,
     @ConnectedSocket() client: IdentifiedSocket
   ): void {
-    if (!this.rateLimiter.allow(client.connectionId)) {
-      return
-    }
-    if (!payload?.roomCode || !payload?.playerName) {
-      return
-    }
+    if (!this.rateLimiter.allow(client.connectionId)) return
+    if (!payload?.roomCode || !payload?.playerName) return
     void this.lobby.joinClient(
       client,
       client.connectionId ?? '',
@@ -181,9 +210,12 @@ export class SocketGateway
 
   @SubscribeMessage(EVENTS.PLAYER_LEAVE)
   public handlePlayerLeave(@ConnectedSocket() client: IdentifiedSocket): void {
-    if (!this.rateLimiter.allow(client.connectionId)) {
-      return
-    }
+    if (!this.rateLimiter.allow(client.connectionId)) return
     void this.lobby.leaveClient(client)
+  }
+
+  @SubscribeMessage(EVENTS.QUESTION_SHOW)
+  public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
+    void this.questionService.sendQuestionToRoom(client)
   }
 }

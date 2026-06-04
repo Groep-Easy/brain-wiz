@@ -6,8 +6,8 @@
  * engine can broadcast without a dependency cycle.
  */
 import { Module } from '@nestjs/common'
-import { ConnectionRegistry } from '../room/lobby/connection-registry.js'
-import { RoomBroadcaster } from '../room/lobby/room-broadcaster.js'
+import { ConnectionRegistry } from '../room/lobby/connection-registry'
+import { RoomBroadcaster } from '../room/lobby/room-broadcaster'
 
 @Module({
   providers: [ConnectionRegistry, RoomBroadcaster],

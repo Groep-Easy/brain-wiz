@@ -8,7 +8,7 @@
  * IMPORTANT: Environment validation happens here on startup. If any required
  * variables are missing, the application will fail fast with a clear error.
  */
-import { getDatabaseConfig } from './database.js'
+import { getDatabaseConfig } from './database'
 
 const DEFAULT_PORT = 3000
 const MAX_PORT_NUMBER = 65535

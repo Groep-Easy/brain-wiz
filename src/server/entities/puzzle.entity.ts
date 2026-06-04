@@ -11,8 +11,8 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm'
-import { DifficultyEnum } from './enums.js'
-import type { Round } from './round.entity.js'
+import { DifficultyEnum } from './enums'
+import type { Round } from './round.entity'
 
 /**
  * Puzzle entity - represents a logic/pattern/visual puzzle

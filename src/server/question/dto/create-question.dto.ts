@@ -12,7 +12,7 @@ import {
   ArrayMaxSize,
   MinLength,
 } from 'class-validator'
-import { DifficultyEnum, QuestionThemeEnum } from '../../entities/enums.js'
+import { DifficultyEnum, QuestionThemeEnum } from '../../entities/enums'
 
 export class CreateQuestionDto {
   @IsString()

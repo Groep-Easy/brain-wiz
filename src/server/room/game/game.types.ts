@@ -5,7 +5,7 @@
  * and the in-memory per-room running-game record.
  */
 
-import { Round } from '../../entities/round.entity.js'
+import { Round } from '../../entities/round.entity'
 
 /** A round's internal sub-phase. Maps to the shared wire `GamePhase`. */
 export enum GamePhase {
