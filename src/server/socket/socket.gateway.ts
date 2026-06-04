@@ -35,7 +35,6 @@ import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin.js'
 import { clientIp, parseHostTokenFromHeaders, selectSubprotocol } from './socket-handshake.js'
 import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types.js'
 
-
 /** Parse `role`/`code`/`hostToken` from the WebSocket upgrade request URL. */
 export function parseConnectParams(url: string | undefined): ConnectParams {
   if (!url) {
@@ -194,5 +193,4 @@ export class SocketGateway
   public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
     void this.questionService.sendQuestionToRoom(client)
   }
-
 }

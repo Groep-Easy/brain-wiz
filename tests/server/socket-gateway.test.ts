@@ -14,7 +14,6 @@ import { PONG } from '../../src/shared/events/socket-events.js'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
 import type { QuestionService } from '../../src/server/question/question.service.js'
 
-
 interface Call {
   method: string
   args: unknown[]

@@ -49,26 +49,25 @@ export class QuestionService {
     }
   }
 
-
   // gets random question from the database
-    public async getRandomQuestion(): Promise<Question | null> {
-      const questions = await this.questions.find()
-      if (questions.length === 0) return null
+  public async getRandomQuestion(): Promise<Question | null> {
+    const questions = await this.questions.find()
+    if (questions.length === 0) return null
 
-      const randomIndex = Math.floor(Math.random() * questions.length)
-      return questions[randomIndex] ?? null
-    }
+    const randomIndex = Math.floor(Math.random() * questions.length)
+    return questions[randomIndex] ?? null
+  }
 
-    // when called sends the question to the host of the room
-    public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
-      const membership = this.registry.lookup(hostSocket)
-      if (!membership || membership.role !== 'host') return
+  // when called sends the question to the host of the room
+  public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
+    const membership = this.registry.lookup(hostSocket)
+    if (!membership || membership.role !== 'host') return
 
-      const question = await this.getRandomQuestion()
-      if (!question) return
+    const question = await this.getRandomQuestion()
+    if (!question) return
 
-      this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
-        question: question.text,
-      })
-    }
+    this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
+      question: question.text,
+    })
+  }
 }
