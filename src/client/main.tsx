@@ -13,6 +13,7 @@ import { App } from './App'
 import { Console } from './console/Console'
 import { Game } from './screens/Game'
 import './styles/index.css'
+import { LoadingComp } from './components/LoadingComp'
 
 const container = document.getElementById('root')
 if (!container) {
@@ -26,6 +27,7 @@ createRoot(container).render(
         <Route path="/" element={<App />} />
         <Route path="/game" element={<Game />} />
         <Route path="/console" element={<Console />} />
+        <Route path="/loadingComp" element={<LoadingComp />}></Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

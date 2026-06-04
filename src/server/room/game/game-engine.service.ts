@@ -21,6 +21,7 @@ import * as EVENTS from '../../../shared/events/socket-events'
 import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
 import type {
   GamePhase as WireGamePhase,
+  LeaderboardEntry,
   RoundSummary,
   ScoreMap,
 } from '../../../shared/types/index'
@@ -42,12 +43,18 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
+  [GamePhase.LEADERBOARD]: 'leaderboard',
 }
+
+const FIRST_RANK = 1
+const NO_RANK_CHANGE = 0
+const NEW_PLAYER_POSITION = Number.MAX_SAFE_INTEGER
 
 @Injectable()
 export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
   private readonly games = new Map<string, RunningGame>()
+  private readonly leaderboardOrderByRoom = new Map<string, string[]>()
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
@@ -103,6 +110,7 @@ export class GameEngineService {
       game.timer.cancel()
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId })
       this.games.delete(roomId)
+      this.leaderboardOrderByRoom.delete(roomId)
     }
   }
 
@@ -159,6 +167,15 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
+
+    await this.enterPhase(room, GamePhase.LEADERBOARD)
+    this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
+      round: this.toRoundSummary(round),
+      leaderboard: await this.buildLeaderboard(room.id),
+    })
+    if (await this.timePhase(room.id, game, TIMER.LEADERBOARD_SECONDS)) {
+      return
+    }
   }
 
   /** Enter a phase, then run its timer. Returns true if the game was aborted. */
@@ -246,6 +263,67 @@ export class GameEngineService {
   private async buildScores(roomId: string): Promise<ScoreMap> {
     const roster = await this.clients.findByRoom(roomId)
     return Object.fromEntries(roster.map((c) => [c.id, c.totalScore]))
+  }
+
+  private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
+    if (!roomId.trim()) {
+      return []
+    }
+
+    const players = await this.clients.findByRoom(roomId)
+    if (players.length === 0) {
+      return []
+    }
+    
+    const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
+
+    const previousPositionByPlayerId = new Map(
+      previousLeaderboardOrder.map((playerId, position) => [playerId, position])
+    )
+
+    const leaderboard = [...players].sort((firstPlayer, secondPlayer) => {
+      const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
+
+      if (scoreOrder !== NO_RANK_CHANGE) {
+        return scoreOrder
+      }
+
+      const firstPlayerPreviousPosition =
+        previousPositionByPlayerId.get(firstPlayer.id) ?? NEW_PLAYER_POSITION
+
+      const secondPlayerPreviousPosition =
+        previousPositionByPlayerId.get(secondPlayer.id) ?? NEW_PLAYER_POSITION
+
+      const previousPositionOrder = firstPlayerPreviousPosition - secondPlayerPreviousPosition
+
+      if (previousPositionOrder !== NO_RANK_CHANGE) {
+        return previousPositionOrder
+      }
+
+      return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
+    })
+
+    this.leaderboardOrderByRoom.set(
+      roomId,
+      leaderboard.map((player) => player.id)
+    )
+
+    return leaderboard.map((player, index) => {
+      const rank = index + FIRST_RANK
+      const previousPosition = previousPositionByPlayerId.get(player.id)
+      const previousRank = previousPosition === undefined ? null : previousPosition + FIRST_RANK
+      const rankChange = previousRank === null ? NO_RANK_CHANGE : previousRank - rank
+
+      return {
+        playerId: player.id,
+        name: player.displayName,
+        score: player.totalScore,
+        rank,
+        previousRank,
+        rankChange,
+        connected: player.isConnected,
+      }
+    })
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

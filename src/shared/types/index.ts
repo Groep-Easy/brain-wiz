@@ -72,6 +72,23 @@ export interface RoundEndPayload {
   scores: ScoreMap
 }
 
+/** Server → all: leaderboard shown (LEADERBOARD_SHOW). */
+export interface LeaderboardShowPayload {
+  round: RoundSummary
+  leaderboard: LeaderboardEntry[]
+}
+
+/** Sorted leaderboard entries for all players in the room */
+export interface LeaderboardEntry {
+  playerId: string
+  name: string
+  score: number
+  rank: number
+  previousRank: number | null
+  rankChange: number
+  connected: boolean
+}
+
 /** Server → all: game over (GAME_OVER). */
 export interface GameOverPayload {
   finalScores: ScoreMap

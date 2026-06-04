@@ -29,12 +29,31 @@ interface FakeBroadcaster {
   emitToRoom: (...args: unknown[]) => void
 }
 
+interface FakeRoomService {
+  findById: (id: string) => Promise<{ usedQuestionsIds: string[] } | null>
+  appendUsedQuestionsId: (roomId: string, questionId: string) => Promise<void>
+}
+
+/** A room mock whose used-question list is empty, so any question is eligible. */
+function fakeRoomService(): FakeRoomService {
+  return {
+    findById: async () => ({ usedQuestionsIds: [] }),
+    appendUsedQuestionsId: async () => undefined,
+  }
+}
+
 function makeService(
   repo: Partial<FakeRepo>,
   registry: Partial<FakeRegistry> = {},
-  broadcaster: Partial<FakeBroadcaster> = {}
+  broadcaster: Partial<FakeBroadcaster> = {},
+  roomService: Partial<FakeRoomService> = {}
 ): QuestionService {
-  return new QuestionService(repo as never, registry as never, broadcaster as never)
+  return new QuestionService(
+    repo as never,
+    registry as never,
+    broadcaster as never,
+    roomService as never
+  )
 }
 
 const sampleQuestion: Question = {
@@ -67,13 +86,13 @@ function hostSocket(): ClientSocket {
 describe('QuestionService.getRandomQuestion', () => {
   it('returns null when there are no questions in the database', async () => {
     const service = makeService({ find: async () => [] })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.equal(result, null)
   })
 
   it('returns the only question when there is exactly one', async () => {
     const service = makeService({ find: async () => [sampleQuestion] })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.deepEqual(result, sampleQuestion)
   })
 
@@ -84,7 +103,7 @@ describe('QuestionService.getRandomQuestion', () => {
       { ...sampleQuestion, id: 'id-3', text: 'Question 3' },
     ] as never as Question[]
     const service = makeService({ find: async () => questions })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.ok(result !== null)
     assert.ok(questions.some((q) => q.id === result?.id))
   })
@@ -105,7 +124,12 @@ describe('QuestionService.sendQuestionToRoom', () => {
     const broadcaster: FakeBroadcaster = {
       emitToRoom: (...args) => emitted.push(args),
     }
-    const service = makeService({ find: async () => [sampleQuestion] }, registry, broadcaster)
+    const service = makeService(
+      { find: async () => [sampleQuestion] },
+      registry,
+      broadcaster,
+      fakeRoomService()
+    )
 
     await service.sendQuestionToRoom(socket)
 
@@ -140,7 +164,7 @@ describe('QuestionService.sendQuestionToRoom', () => {
     const broadcaster: FakeBroadcaster = {
       emitToRoom: (...args) => emitted.push(args),
     }
-    const service = makeService({ find: async () => [] }, registry, broadcaster)
+    const service = makeService({ find: async () => [] }, registry, broadcaster, fakeRoomService())
 
     await service.sendQuestionToRoom(socket)
 
