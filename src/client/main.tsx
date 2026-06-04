@@ -11,6 +11,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { App } from './App'
 import { Console } from './console/Console'
 import './styles/index.css'
+import { LoadingComp } from './components/LoadingComp'
 
 const container = document.getElementById('root')
 if (!container) {
@@ -23,6 +24,7 @@ createRoot(container).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/console" element={<Console />} />
+        <Route path="/loadingComp" element={<LoadingComp />}></Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
