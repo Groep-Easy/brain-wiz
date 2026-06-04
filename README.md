@@ -44,6 +44,13 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
    ```
    _(Make sure Docker is running on your machine before running `docker compose`)_
 
+   Important: the `.env` file contains local secrets and must never be committed to
+   the repository. The project already ignores `.env` files via `.gitignore`.
+
+   If a secret is accidentally committed upstream, rotate the credential(s)
+   immediately, remove the file from history (see maintainers), and have all
+   collaborators re-clone the repository after the history has been rewritten.
+
 ## Workspace configuration
 
 This repository includes strict, shared settings so everyone uses the same formatting and Git behavior:

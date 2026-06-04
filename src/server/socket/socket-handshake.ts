@@ -39,6 +39,10 @@ export function parseHostTokenFromHeaders(headers: UpgradeRequest['headers']): s
     .find((part) => part.length > 0 && part !== WS_SUBPROTOCOL)
 }
 
+/** Close code and reason used when an invalid token transport is detected. */
+export const INVALID_TOKEN_CLOSE_CODE = 4001
+export const INVALID_TOKEN_CLOSE_REASON = 'Unauthorized: invalid token transport'
+
 /** Best-effort client IP for throttling/logging; '' when unavailable. */
 export function clientIp(request: UpgradeRequest | undefined): string {
   return request?.socket?.remoteAddress ?? ''
