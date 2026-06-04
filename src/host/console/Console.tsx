@@ -11,9 +11,20 @@
  * receives and can fire arbitrary `{ event, data }` frames.
  */
 import { useRef, useState } from 'react'
-import { PING, QUESTION_REVEAL, QUESTION_SHOW } from '../../shared/events/socket-events'
+import {
+  LEADERBOARD_SHOW,
+  PING,
+  QUESTION_REVEAL,
+  QUESTION_SHOW,
+} from '../../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
-import type { QuestionRevealPayload, QuestionShowPayload, QuestionState } from '../../shared/types'
+import type {
+  LeaderboardEntry,
+  LeaderboardShowPayload,
+  QuestionRevealPayload,
+  QuestionShowPayload,
+  QuestionState,
+} from '../../shared/types'
 import {
   buildWsUrl,
   parseFrame,
@@ -28,6 +39,19 @@ import './console.css'
 
 const DEFAULT_URL = 'ws://localhost:3000'
 
+function rankDelta(entry: LeaderboardEntry): string {
+  if (entry.previousRank === null) {
+    return 'new'
+  }
+  if (entry.rankChange > 0) {
+    return `▲${entry.rankChange}`
+  }
+  if (entry.rankChange < 0) {
+    return `▼${-entry.rankChange}`
+  }
+  return '—'
+}
+
 export function Console(): React.JSX.Element {
   const [url, setUrl] = useState(DEFAULT_URL)
   const [status, setStatus] = useState<Status>('closed')
@@ -38,6 +62,7 @@ export function Console(): React.JSX.Element {
   const [hostToken, setHostToken] = useState('')
   const [question, setQuestion] = useState<QuestionState | null>(null)
   const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
   const idRef = useRef(0)
@@ -64,6 +89,8 @@ export function Console(): React.JSX.Element {
       setReveal(null)
     } else if (frame.event === QUESTION_REVEAL) {
       setReveal(frame.data as QuestionRevealPayload)
+    } else if (frame.event === LEADERBOARD_SHOW) {
+      setLeaderboard((frame.data as LeaderboardShowPayload).leaderboard)
     }
   }
 
@@ -238,6 +265,25 @@ export function Console(): React.JSX.Element {
               ))}
             </ul>
           )}
+        </section>
+      )}
+
+      {leaderboard && (
+        <section className="leaderboard">
+          <h2>Leaderboard</h2>
+          <ol className="leaderboard-list">
+            {leaderboard.map((entry) => (
+              <li key={entry.playerId} data-offline={entry.connected ? undefined : 'true'}>
+                <span className="lb-rank">{entry.rank}</span>
+                <span className="lb-name">
+                  {entry.name}
+                  {entry.connected ? '' : ' (offline)'}
+                </span>
+                <span className="lb-score">{entry.score}</span>
+                <span className="lb-delta">{rankDelta(entry)}</span>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
 
