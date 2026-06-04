@@ -1,5 +1,7 @@
-import { LoadingComp } from "./components/LoadingComp";
+import { LoadingComp } from "./components/LoadingComp"
+import { JoinScreen } from "./components/JoinScreen"
 import { useState } from 'react'
+import { useRef } from 'react'
 /**
  * @file App.tsx
  * @owner client-squad
@@ -14,15 +16,6 @@ type GameState =
   | 'question'
   | 'answered'
   | 'results'
-
-function JoinScreen({ onJoin }: { onJoin: () => void }) {
-  return (
-    <div className="screen">
-      <h2>Join game</h2>
-      <button onClick={onJoin}>Join room</button>
-    </div>
-  )
-}
 
 function WaitingScreen() {
   return (
@@ -64,13 +57,43 @@ function ResultsScreen() {
 
 export function App(): React.JSX.Element | null {
   const [state, setState] = useState<GameState>('enter-code')
+  const socket = useRef(new WebSocket("ws://localhost:3000"))
+  let playerId = useRef(null)
+  let reconnectToken = useRef(null)
+
+  socket.current.onmessage = (e) => {
+    const { event, data } = JSON.parse(e.data)
+    switch (event) {
+      case "PLAYER_JOIN_ACK":
+        setState("waiting")
+        playerId.current = data.playerId
+        reconnectToken.current = data.reconnectToken
+        break
+      case "PLAYER_JOIN_REJECTED":
+        setState("enter-code")
+        alert(data.reason)
+        break
+      case "ROOM_STATE_UPDATE":
+        break
+    }
+  }
 
   function handleJoin() {
-    setState('joining')
+    var player_name = document.getElementById("name").value
+    var room_code = document.getElementById("room").value
 
-    setTimeout(() => {
-      setState('waiting')
-    }, 1000)
+    if (player_name && room_code) {
+      socket.current.send(
+        JSON.stringify({
+          event: "PLAYER_JOIN",
+          data: {
+            roomCode: room_code,
+            playerName: player_name
+          }
+        })
+      )
+      setState("joining")
+    }
   }
 
   function handleAnswer(answer: string) {
