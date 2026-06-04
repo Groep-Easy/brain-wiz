@@ -39,6 +39,7 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 7. Setup your environment and database:
    ```bash
    cp .env.example .env
+   docker compose build
    docker compose up -d
    ```
    _(Make sure Docker is running on your machine before running `docker compose`)_
