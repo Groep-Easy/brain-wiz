@@ -5,5 +5,13 @@
     "outDir": "dist"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "src/client", "src/host", "tests", "**/*.test.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/client",
+    "src/host",
+    "src/minigames",
+    "tests",
+    "**/*.test.ts"
+  ]
 }
