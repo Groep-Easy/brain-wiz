@@ -14,8 +14,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import type { Room } from './room.entity.js'
-import type { ClientAnswer } from './client-answer.entity.js'
+import type { Room } from './room.entity'
+import type { ClientAnswer } from './client-answer.entity'
 
 const MAX_DISPLAY_NAME_LENGTH = 64
 

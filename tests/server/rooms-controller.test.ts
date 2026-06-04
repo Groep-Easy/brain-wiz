@@ -5,14 +5,14 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common'
-import { RoomsController } from '../../src/server/room/lobby/room.controller.js'
-import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
-import { RoomNotFoundError } from '../../src/server/room/room.errors.js'
+import { RoomsController } from '../../src/server/room/lobby/room.controller'
+import type { LobbyService } from '../../src/server/room/lobby/lobby.service'
+import { RoomNotFoundError } from '../../src/server/room/room.errors'
 import {
   InvalidHostTokenError,
   NotEnoughPlayersError,
-} from '../../src/server/room/lobby/lobby.errors.js'
-import type { RoomState } from '../../src/shared/types/index.js'
+} from '../../src/server/room/lobby/lobby.errors'
+import type { RoomState } from '../../src/shared/types/index'
 
 const lobbyState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0 }
 

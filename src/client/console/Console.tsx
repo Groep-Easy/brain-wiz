@@ -26,6 +26,7 @@ export function Console(): React.JSX.Element {
   const socketRef = useRef<WebSocket | null>(null)
   const idRef = useRef(0)
   const playerIdRef = useRef<string | null>(null)
+  const reconnectTokenRef = useRef<string | null>(null)
 
   function append(dir: Direction, text: string): void {
     idRef.current += 1
@@ -40,9 +41,15 @@ export function Console(): React.JSX.Element {
 
   function capturePlayerId(raw: string): void {
     try {
-      const frame = JSON.parse(raw) as { event?: string; data?: { playerId?: string } }
+      const frame = JSON.parse(raw) as {
+        event?: string
+        data?: { playerId?: string; reconnectToken?: string }
+      }
       if (frame.event === PLAYER_JOIN_ACK && typeof frame.data?.playerId === 'string') {
         playerIdRef.current = frame.data.playerId
+        if (typeof frame.data.reconnectToken === 'string') {
+          reconnectTokenRef.current = frame.data.reconnectToken
+        }
         append('info', `joined as ${frame.data.playerId}`)
       }
     } catch {
@@ -93,12 +100,20 @@ export function Console(): React.JSX.Element {
   }
 
   function joinPayload(): string {
-    const data: { roomCode: string; playerName: string; playerId?: string } = {
+    const data: {
+      roomCode: string
+      playerName: string
+      playerId?: string
+      playerToken?: string
+    } = {
       roomCode: code,
       playerName: name,
     }
     if (playerIdRef.current) {
       data.playerId = playerIdRef.current
+    }
+    if (reconnectTokenRef.current) {
+      data.playerToken = reconnectTokenRef.current
     }
     return JSON.stringify(data)
   }

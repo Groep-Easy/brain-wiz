@@ -12,6 +12,7 @@
  */
 import { useRef, useState } from 'react'
 import { PING } from '../../shared/events/socket-events'
+import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
 import {
   buildWsUrl,
   parsePayload,
@@ -48,12 +49,12 @@ export function Console(): React.JSX.Element {
     setLog((prev) => [entry, ...prev])
   }
 
-  function connect(target: string): void {
+  function connect(target: string, protocols?: string[]): void {
     socketRef.current?.close()
     append('info', `connecting to ${target}…`)
     setStatus('connecting')
 
-    const socket = new WebSocket(target)
+    const socket = protocols ? new WebSocket(target, protocols) : new WebSocket(target)
     socketRef.current = socket
     socket.onopen = (): void => {
       setStatus('open')
@@ -109,7 +110,8 @@ export function Console(): React.JSX.Element {
       append('info', 'create a room first')
       return
     }
-    connect(buildWsUrl(url, { role: 'host', code, hostToken }))
+    // Token rides in the WS subprotocol (out of the URL/logs), not the query.
+    connect(buildWsUrl(url, { role: 'host', code }), [WS_SUBPROTOCOL, hostToken])
   }
 
   async function startGame(): Promise<void> {

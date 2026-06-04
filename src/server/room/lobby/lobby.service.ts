@@ -9,20 +9,22 @@
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { randomUUID } from 'node:crypto'
-import { RoomService } from '../room.service.js'
-import { ClientService } from '../../client/client.service.js'
-import { ConnectionRegistry } from './connection-registry.js'
-import { RoomBroadcaster } from './room-broadcaster.js'
-import { toRoomState } from '../room.helpers.js'
-import { Room } from '../../entities/room.entity.js'
-import { Client } from '../../entities/client.entity.js'
-import { RoomStatusEnum } from '../../entities/enums.js'
-import * as EVENTS from '../../../shared/events/socket-events.js'
-import { ROOM } from '../../../shared/constants/game-config.js'
-import { RoomNotFoundError } from '../room.errors.js'
-import { NotEnoughPlayersError, InvalidHostTokenError } from './lobby.errors.js'
-import type { ClientSocket, CreateRoomResult } from './lobby.types.js'
-import type { RoomState } from '../../../shared/types/index.js'
+import { RoomService } from '../room.service'
+import { ClientService } from '../../client/client.service'
+import { ConnectionRegistry } from './connection-registry'
+import { RoomBroadcaster } from './room-broadcaster'
+import { GameEngineService } from '../game/game-engine.service'
+import { toRoomState } from '../room.helpers'
+import { Room } from '../../entities/room.entity'
+import { Client } from '../../entities/client.entity'
+import { RoomStatusEnum } from '../../entities/enums'
+import * as EVENTS from '../../../shared/events/socket-events'
+import { ROOM, PLAYER } from '../../../shared/constants/game-config'
+import { isValidRoomCode } from '../../../shared/utils/room-code'
+import { RoomNotFoundError } from '../room.errors'
+import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
+import type { ClientSocket, CreateRoomResult } from './lobby.types'
+import type { RoomState } from '../../../shared/types/index'
 
 @Injectable()
 export class LobbyService {
@@ -30,7 +32,8 @@ export class LobbyService {
     private readonly rooms: RoomService,
     private readonly clients: ClientService,
     private readonly registry: ConnectionRegistry,
-    private readonly broadcaster: RoomBroadcaster
+    private readonly broadcaster: RoomBroadcaster,
+    private readonly gameEngine: GameEngineService
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -58,14 +61,36 @@ export class LobbyService {
     return true
   }
 
+  /** True when a live socket has already authenticated as a host or client. */
+  public isConnectionRegistered(socket: ClientSocket): boolean {
+    return this.registry.lookup(socket) !== undefined
+  }
+
   /** Handle a PLAYER_JOIN: fresh join or reconnect (when playerId is supplied). */
   public async joinClient(
     socket: ClientSocket,
     connectionId: string,
     roomCode: string,
     playerName: string,
-    playerId?: string
+    playerId?: string,
+    playerToken?: string
   ): Promise<void> {
+    if (!isValidRoomCode(roomCode)) {
+      this.reject(socket, 'Invalid room code')
+      return
+    }
+    const displayName = playerName.trim()
+    if (
+      displayName.length < PLAYER.NAME_MIN_LENGTH ||
+      displayName.length > PLAYER.NAME_MAX_LENGTH
+    ) {
+      this.reject(
+        socket,
+        `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
+      )
+      return
+    }
+
     const room = await this.rooms.findByJoinCode(roomCode)
     if (!room) {
       this.reject(socket, 'Room not found')
@@ -79,6 +104,10 @@ export class LobbyService {
     if (playerId) {
       const existing = await this.clients.findById(playerId)
       if (existing && existing.roomId === room.id) {
+        if (!this.registry.verifyReconnectToken(playerId, playerToken)) {
+          this.reject(socket, 'Invalid reconnect token')
+          return
+        }
         await this.reconnect(room, existing, connectionId, socket)
         return
       }
@@ -89,16 +118,19 @@ export class LobbyService {
       this.reject(socket, 'Room is full')
       return
     }
-    if (roster.some((c) => c.displayName === playerName)) {
+    if (roster.some((c) => c.displayName === displayName)) {
       this.reject(socket, 'Display name is taken')
       return
     }
 
-    const client = await this.clients.addClient(room.id, playerName, connectionId)
+    const client = await this.clients.addClient(room.id, displayName, connectionId)
+    const reconnectToken = randomUUID()
+    this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
+      reconnectToken,
     })
     await this.broadcastState(room)
   }
@@ -110,6 +142,7 @@ export class LobbyService {
       return
     }
     this.registry.unregister(socket)
+    this.registry.clearReconnectToken(membership.clientId)
     const client = await this.clients.findById(membership.clientId)
     if (client) {
       await this.clients.remove(client)
@@ -118,6 +151,8 @@ export class LobbyService {
     if (room) {
       await this.broadcastState(room)
     }
+    await this.maybeAbortGame(membership.roomId)
+    this.maybeTeardownRoom(membership.roomId)
   }
 
   /** Unexpected socket drop: arm the reconnect grace window. */
@@ -133,6 +168,7 @@ export class LobbyService {
       if (room) {
         await this.rooms.updateHostSocket(room, null)
       }
+      this.maybeTeardownRoom(membership.roomId)
       return
     }
 
@@ -145,6 +181,7 @@ export class LobbyService {
     if (room) {
       this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_DISCONNECTED, { playerId: client.id })
       await this.broadcastState(room)
+      await this.maybeAbortGame(room.id)
     }
     const timer = setTimeout(() => {
       void this.expireGrace(client.id)
@@ -164,15 +201,28 @@ export class LobbyService {
       return
     }
     const roomId = client.roomId
+    this.registry.clearReconnectToken(clientId)
     await this.clients.remove(client)
     const room = await this.rooms.findById(roomId)
     if (room) {
       await this.broadcastState(room)
     }
+    this.maybeTeardownRoom(roomId)
   }
 
   public hasPendingRemoval(clientId: string): boolean {
     return this.registry.hasGraceTimer(clientId)
+  }
+
+  /**
+   * When a room has no live sockets left (everyone has left/expired and the
+   * host is gone), drop its in-memory host token so the registry's maps don't
+   * grow unbounded as rooms come and go.
+   */
+  private maybeTeardownRoom(roomId: string): void {
+    if (this.registry.getRoomSockets(roomId).length === 0) {
+      this.registry.clearHostToken(roomId)
+    }
   }
 
   public async startGame(code: string, hostToken: string): Promise<RoomState> {
@@ -192,6 +242,7 @@ export class LobbyService {
     this.broadcaster.emitToRoom(started.id, EVENTS.GAME_START)
     const state = await this.buildState(started)
     this.broadcaster.broadcastRoomState(started.id, state)
+    void this.gameEngine.run(started.id)
     return state
   }
 
@@ -214,10 +265,14 @@ export class LobbyService {
       clearTimeout(timer)
     }
     await this.clients.updateSocket(client, connectionId)
+    // Rotate the reconnect secret so a previously-seen token can't be replayed.
+    const reconnectToken = randomUUID()
+    this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
+      reconnectToken,
     })
     this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_RECONNECTED, { playerId: client.id })
     await this.broadcastState(room)
@@ -235,5 +290,17 @@ export class LobbyService {
 
   private reject(socket: ClientSocket, reason: string): void {
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_REJECTED, { reason })
+  }
+
+  /** Abort a running game once its last connected player is gone. */
+  private async maybeAbortGame(roomId: string): Promise<void> {
+    const room = await this.rooms.findById(roomId)
+    if (!room || room.status !== RoomStatusEnum.ACTIVE) {
+      return
+    }
+    const roster = await this.clients.findByRoom(roomId)
+    if (roster.filter((c) => c.isConnected).length === 0) {
+      this.gameEngine.abort(roomId)
+    }
   }
 }

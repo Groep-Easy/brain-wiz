@@ -14,10 +14,10 @@ import {
   Param,
   Post,
 } from '@nestjs/common'
-import { LobbyService } from './lobby.service.js'
-import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors.js'
-import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors.js'
-import type { RoomState } from '../../../shared/types/index.js'
+import { LobbyService } from './lobby.service'
+import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors'
+import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
+import type { RoomState } from '../../../shared/types/index'
 
 interface StartRoomBody {
   hostToken?: string

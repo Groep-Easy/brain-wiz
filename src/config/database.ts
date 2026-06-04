@@ -176,8 +176,8 @@ export function loadDatabaseConfig(): DatabaseConfig {
     username,
     password,
     database,
-    entities: ['dist/src/server/entities/**/*.entity.js'],
-    migrations: ['dist/src/server/database/migrations/**/*.js'],
+    entities: ['dist/server/entities/**/*.entity.js'],
+    migrations: ['dist/server/database/migrations/**/*.js'],
     ssl: sslConfig,
     poolSize: {
       min: poolMin,

@@ -28,17 +28,28 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 1. Clone the repository.
 2. Open the repository folder in VS Code.
 3. Install extensions when prompted.
-4. Install dependencies:
+4. Install docker + docker-buildx
+5. Activate docker buildx
+   `DOCKER_BUILDKIT=1`
+6. Install dependencies:
    ```bash
    npm install --package-lock-only
    npm ci
    ```
-5. Setup your environment and database:
+7. Setup your environment and database:
    ```bash
    cp .env.example .env
+   docker compose build
    docker compose up -d
    ```
    _(Make sure Docker is running on your machine before running `docker compose`)_
+
+   Important: the `.env` file contains local secrets and must never be committed to
+   the repository. The project already ignores `.env` files via `.gitignore`.
+
+   If a secret is accidentally committed upstream, rotate the credential(s)
+   immediately, remove the file from history (see maintainers), and have all
+   collaborators re-clone the repository after the history has been rewritten.
 
 ## Workspace configuration
 
