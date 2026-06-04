@@ -219,45 +219,49 @@ export class GameEngineService {
   }
 
   private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
-    const roster = await this.clients.findByRoom(roomId)
-    const previousOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
-    const previousIndexById = new Map(previousOrder.map((clientId, index) => [clientId, index]))
+    const players = await this.clients.findByRoom(roomId)
+    const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
 
-    const sorted = [...roster].sort((a, b) => {
-      const scoreDifference = b.totalScore - a.totalScore
-      if (scoreDifference !== 0) {
-        return scoreDifference
+    const previousPositionByPlayerId = new Map(
+      previousLeaderboardOrder.map((playerId, position) => [playerId, position])
+    )
+
+    const newPlayerPosition = Number.MAX_SAFE_INTEGER
+
+    const leaderboard = [...players].sort((firstPlayer, secondPlayer) => {
+      const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
+
+      if (scoreOrder !== 0) {
+        return scoreOrder
       }
 
-      const previousA = previousIndexById.get(a.id)
-      const previousB = previousIndexById.get(b.id)
+      const firstPlayerPreviousPosition =
+        previousPositionByPlayerId.get(firstPlayer.id) ?? newPlayerPosition
 
-      if (previousA !== undefined && previousB !== undefined) {
-        return previousA - previousB
+      const secondPlayerPreviousPosition =
+        previousPositionByPlayerId.get(secondPlayer.id) ?? newPlayerPosition
+
+      const previousLeaderboardOrder =
+        firstPlayerPreviousPosition - secondPlayerPreviousPosition
+
+      if (previousLeaderboardOrder !== 0) {
+        return previousLeaderboardOrder
       }
 
-      if (previousA !== undefined) {
-        return -1
-      }
-
-      if (previousB !== undefined) {
-        return 1
-      }
-
-      return a.joinedAt.getTime() - b.joinedAt.getTime()
+      return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
     })
 
     this.leaderboardOrderByRoom.set(
       roomId,
-      sorted.map((client) => client.id)
+      leaderboard.map((player) => player.id)
     )
 
-    return sorted.map((client, index) => ({
-      playerId: client.id,
-      name: client.displayName,
-      score: client.totalScore,
+    return leaderboard.map((player, index) => ({
+      playerId: player.id,
+      name: player.displayName,
+      score: player.totalScore,
       rank: index + 1,
-      connected: client.isConnected,
+      connected: player.isConnected,
     }))
   }
 
