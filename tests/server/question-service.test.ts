@@ -21,6 +21,11 @@ interface FakeRepo {
   save: (q: Question) => Promise<Question>
 }
 
+interface FakeRoomService {
+  findById: (id: string) => Promise<any>
+  appendUsedQuestionsId: (roomId: string, questionId: string) => Promise<void>
+}
+
 interface FakeRegistry {
   lookup: (socket: ClientSocket) => ReturnType<ConnectionRegistry['lookup']>
 }
@@ -32,9 +37,20 @@ interface FakeBroadcaster {
 function makeService(
   repo: Partial<FakeRepo>,
   registry: Partial<FakeRegistry> = {},
-  broadcaster: Partial<FakeBroadcaster> = {}
+  broadcaster: Partial<FakeBroadcaster> = {},
+  roomService: Partial<FakeRoomService> = {}
 ): QuestionService {
-  return new QuestionService(repo as never, registry as never, broadcaster as never)
+  const fakeRoomService = {
+    findById: async (id: string) => ({ id, usedQuestionsIds: [] }),
+    appendUsedQuestionsId: async () => undefined,
+    ...roomService,
+  }
+  return new QuestionService(
+    repo as never,
+    registry as never,
+    broadcaster as never,
+    fakeRoomService as never
+  )
 }
 
 const sampleQuestion: Question = {
@@ -67,13 +83,13 @@ function hostSocket(): ClientSocket {
 describe('QuestionService.getRandomQuestion', () => {
   it('returns null when there are no questions in the database', async () => {
     const service = makeService({ find: async () => [] })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.equal(result, null)
   })
 
   it('returns the only question when there is exactly one', async () => {
     const service = makeService({ find: async () => [sampleQuestion] })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.deepEqual(result, sampleQuestion)
   })
 
@@ -84,7 +100,7 @@ describe('QuestionService.getRandomQuestion', () => {
       { ...sampleQuestion, id: 'id-3', text: 'Question 3' },
     ] as never as Question[]
     const service = makeService({ find: async () => questions })
-    const result = await service.getRandomQuestion()
+    const result = await service.getRandomQuestion([])
     assert.ok(result !== null)
     assert.ok(questions.some((q) => q.id === result?.id))
   })

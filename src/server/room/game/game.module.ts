@@ -12,14 +12,14 @@ import { ClientModule } from '../../client/client.module'
 import { DatabaseModule } from '../../database/index'
 import { GameEngineService } from './game-engine.service'
 import { RoundBuilder } from './round-builder'
-import { ROUND_PRESENTER, StubRoundPresenter } from './round-presenter'
+import { ROUND_PRESENTER, RealRoundPresenter } from './round-presenter'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
   providers: [
     GameEngineService,
     RoundBuilder,
-    { provide: ROUND_PRESENTER, useClass: StubRoundPresenter },
+    { provide: ROUND_PRESENTER, useClass: RealRoundPresenter },
   ],
   exports: [GameEngineService],
 })

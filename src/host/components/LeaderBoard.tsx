@@ -1,25 +1,18 @@
 /**
  * @file LeaderBoard.tsx
  * @owner host-squad
- * @description Root component for the host display (served at /). This is the
- * host team's page. The server team's WebSocket debug console lives separately
- * at /console (see console/Console.tsx) so the two don't collide.
+ * @description Renders the leaderboard screen for the host, showing ranks and
+ * score changes with layout animations.
  */
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useRef, useLayoutEffect } from 'react'
+import type { LeaderboardEntry } from '../../shared/types/index'
 import '../styles/leaderboard.css'
 
-type Player = {
-  name: string
-  score: number
+interface LeaderBoardProps {
+  leaderboard: LeaderboardEntry[]
 }
 
-export function LeaderBoard(): React.JSX.Element {
-  const [players, setPlayers] = useState<Player[]>([
-    { name: 'Player 1', score: 100 },
-    { name: 'Player 2', score: 300 },
-    { name: 'Player 3', score: 200 },
-  ])
-
+export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Element {
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
   const previousPositions = useRef<Map<string, number>>(new Map())
 
@@ -50,41 +43,41 @@ export function LeaderBoard(): React.JSX.Element {
     })
 
     previousPositions.current = currentPositions
-  }, [players])
-
-  function updateScores() {
-    setPlayers((prev) =>
-      prev.map((player) => ({
-        ...player,
-        score: player.score + Math.floor(Math.random() * 200),
-      }))
-    )
-  }
-
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score)
+  }, [leaderboard])
 
   return (
-    <>
-      <ul>
-        {sortedPlayers.map((player, index) => (
+    <div className="leaderboard-screen">
+      <header className="leaderboard-header">
+        <h1>Leaderboard</h1>
+      </header>
+      <ul className="leaderboard-list">
+        {leaderboard.map((entry, index) => (
           <li
-            key={player.name}
+            key={entry.playerId}
             ref={(el) => {
               if (el) {
-                itemRefs.current.set(player.name, el)
+                itemRefs.current.set(entry.name, el)
               } else {
-                itemRefs.current.delete(player.name)
+                itemRefs.current.delete(entry.name)
               }
             }}
-            className={`player ${index === 0 ? 'first' : ''}`}
+            className={`player-row ${index === 0 ? 'first-place' : ''}`}
           >
-            <span className="name">{player.name}</span>
-            <span className="score">{player.score}</span>
+            <div className="player-info">
+              <span className="rank">#{entry.rank}</span>
+              <span className="name">{entry.name}</span>
+            </div>
+            <div className="player-stats">
+              <span className="score">{entry.score} pts</span>
+              {entry.rankChange !== 0 && (
+                <span className={`rank-change ${entry.rankChange > 0 ? 'rank-up' : 'rank-down'}`}>
+                  {entry.rankChange > 0 ? `▲ ${entry.rankChange}` : `▼ ${Math.abs(entry.rankChange)}`}
+                </span>
+              )}
+            </div>
           </li>
         ))}
       </ul>
-
-      <button onClick={updateScores}>Update Scores</button>
-    </>
+    </div>
   )
 }
