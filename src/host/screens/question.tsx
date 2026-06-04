@@ -121,10 +121,21 @@ export function Question() {
         setHostToken(data.hostToken)
         gameCode = data.gameCode
         break
+      case 'theme':
+        theme = data.theme
+        break
       case 'question':
         currentQuestion = data.question
         break
-      case '':
+      case 'answers':
+        answers = data.answers
+        break
+      case 'amountAnswers':
+        amountAnswers = data.amountAnswers
+        break
+      case 'timer':
+        timer = data.timer
+        break
     }
   }
 
