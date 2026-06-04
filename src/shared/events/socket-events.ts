@@ -34,6 +34,8 @@ export const GAME_PHASE_CHANGE = 'GAME_PHASE_CHANGE'
 export const ROUND_START = 'ROUND_START'
 /** Server → all:    round ended.          Payload: { scores: ScoreMap }      */
 export const ROUND_END = 'ROUND_END'
+/** Server → all:    leaderboard shown.    Payload: { round, leaderboard }    */
+export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
 

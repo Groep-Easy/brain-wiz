@@ -23,6 +23,7 @@ import type {
   GamePhase as WireGamePhase,
   RoundSummary,
   ScoreMap,
+  LeaderboardEntry,
 } from '../../../shared/types/index.js'
 import {
   GamePhase,
@@ -39,6 +40,7 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
+  [GamePhase.LEADERBOARD]: 'leaderboard',
 }
 
 @Injectable()
@@ -139,6 +141,15 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
+
+    await this.enterPhase(room, GamePhase.LEADERBOARD)
+    this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
+      round: this.toRoundSummary(round),
+      leaderboard: await this.buildLeaderboard(room.id),
+    })
+    if (await this.timePhase(room.id, game, TIMER.LEADERBOARD_SECONDS)) {
+      return
+    }
   }
 
   /** Enter a phase, then run its timer. Returns true if the game was aborted. */
@@ -203,6 +214,20 @@ export class GameEngineService {
   private async buildScores(roomId: string): Promise<ScoreMap> {
     const roster = await this.clients.findByRoom(roomId)
     return Object.fromEntries(roster.map((c) => [c.id, c.totalScore]))
+  }
+
+  private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
+    const roster = await this.clients.findByRoom(roomId)
+
+    return [...roster]
+      .sort((a, b) => b.totalScore - a.totalScore || a.displayName.localeCompare(b.displayName))
+      .map((client, index) => ({
+        playerId: client.id,
+        name: client.displayName,
+        score: client.totalScore,
+        rank: index + 1,
+        connected: client.isConnected,
+      }))
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

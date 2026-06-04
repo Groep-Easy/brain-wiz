@@ -43,6 +43,7 @@ export const TIMER = Object.freeze({
   QUESTION_SECONDS: 30,
   REVEAL_SECONDS: 5,
   ROUND_INTRO_SECONDS: 3,
+  LEADERBOARD_SECONDS: 10,
 })
 
 export const SCORING = Object.freeze({
