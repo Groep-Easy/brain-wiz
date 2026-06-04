@@ -14,8 +14,8 @@
  */
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'
-import { getDatabaseConfig } from '../../../config/database.js'
-import * as entities from '../entities/index.js'
+import { getDatabaseConfig } from '../../config/database'
+import * as entities from '../entities/index'
 
 /**
  * Entity list - needed separately for TypeORM CLI
@@ -46,7 +46,7 @@ export function createDataSource(): DataSource {
     password: dbConfig.password,
     database: dbConfig.database,
     entities: ENTITIES,
-    migrations: ['dist/src/server/database/migrations/**/*.js'],
+    migrations: ['dist/server/database/migrations/**/*.js'],
     migrationsTableName: 'typeorm_migrations',
     synchronize: dbConfig.synchronize,
     dropSchema: dbConfig.dropSchema,

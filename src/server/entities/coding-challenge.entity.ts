@@ -13,8 +13,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import { DifficultyEnum, CodingLanguageEnum } from './enums.js'
-import type { Round } from './round.entity.js'
+import { DifficultyEnum, CodingLanguageEnum } from './enums'
+import type { Round } from './round.entity'
 
 const REQUIRED_WRONG_ANSWERS_COUNT = 3
 

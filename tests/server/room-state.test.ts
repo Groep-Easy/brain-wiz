@@ -5,8 +5,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { toRoomState, roomStatusToPhase } from '../../src/server/room/room.helpers.js'
-import { RoomStatusEnum } from '../../src/server/entities/enums.js'
+import { toRoomState, roomStatusToPhase } from '../../src/server/room/room.helpers'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
 
 describe('roomStatusToPhase', () => {
   it('maps lobby to the lobby phase', () => {
@@ -44,5 +44,20 @@ describe('toRoomState', () => {
       { id: 'c1', name: 'Alice', connected: true, score: 10 },
       { id: 'c2', name: 'Bob', connected: false, score: 0 },
     ])
+  })
+})
+
+describe('toRoomState livePhase override', () => {
+  const room = { joinCode: 'ABCD', status: RoomStatusEnum.ACTIVE, currentRoundIndex: 2 }
+
+  it('uses the live phase when provided', () => {
+    const state = toRoomState(room, [], 'playing')
+    assert.equal(state.phase, 'playing')
+    assert.equal(state.round, 2)
+  })
+
+  it('falls back to the status-derived phase when omitted', () => {
+    const state = toRoomState(room, [])
+    assert.equal(state.phase, 'round-intro')
   })
 })

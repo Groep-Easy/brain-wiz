@@ -43,6 +43,40 @@ export interface Answer {
 /** playerId → score delta */
 export type ScoreMap = Record<string, number>
 
+/** Round metadata broadcast on ROUND_START. Not the question content.
+ *  Named RoundSummary (not RoundState) to avoid confusion with RoomState. */
+export interface RoundSummary {
+  index: number
+  total: number
+  type: RoundType
+  timeLimitSeconds: number
+}
+
+/** Server → all: round started (ROUND_START). */
+export interface RoundStartPayload {
+  round: RoundSummary
+}
+
+/** Server → all: phase changed (GAME_PHASE_CHANGE). */
+export interface GamePhaseChangePayload {
+  phase: GamePhase
+}
+
+/** Server → all: timer tick (TIMER_TICK). */
+export interface TimerTickPayload {
+  secondsRemaining: number
+}
+
+/** Server → all: round ended (ROUND_END). */
+export interface RoundEndPayload {
+  scores: ScoreMap
+}
+
+/** Server → all: game over (GAME_OVER). */
+export interface GameOverPayload {
+  finalScores: ScoreMap
+}
+
 /** Client → server liveness probe (PING). */
 export interface PingPayload {
   t: number
@@ -54,20 +88,19 @@ export interface PongPayload {
   serverTime: number
 }
 
-/** Client → server join request (PLAYER_JOIN). `playerId` echoes back to reconnect. */
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
   playerId?: string
+  playerToken?: string
 }
 
-/** Server → client join accepted (PLAYER_JOIN_ACK). */
 export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
+  reconnectToken: string
 }
 
-/** Server → client join rejected (PLAYER_JOIN_REJECTED). */
 export interface PlayerJoinRejectedPayload {
   reason: string
 }
