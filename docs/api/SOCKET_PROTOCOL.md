@@ -168,6 +168,44 @@ QuestionRevealPayload = { roundId: string; correctAnswerIds: string[]; playerAns
 
 (Full definitions in `src/shared/types/index.ts`.)
 
+### 3c. Source map (where each event is emitted / handled)
+
+For every wired game-flow, timer, and quiz-answering event, the authoritative
+emit (or inbound handler) site. Line numbers are indicative — the file is the
+contract.
+
+| Event               | Dir   | Source                                                                  |
+| ------------------- | ----- | ----------------------------------------------------------------------- |
+| `ANSWER_SUBMIT`     | C→S   | handler `socket/socket.gateway.ts:222` → `room/game/answer.service.ts` (`submit`) |
+| `ANSWER_ACK`        | S→C   | `room/game/answer.service.ts:126` (`ack`)                               |
+| `QUESTION_SHOW`     | S→all | `room/game/round-presenter.impl.ts:46` (`RoundPresenterImpl.present`)   |
+| `QUESTION_REVEAL`   | S→all | `room/game/scoring.service.ts:101` (`scoreRound`)                       |
+| `GAME_PHASE_CHANGE` | S→all | `room/game/game-engine.service.ts:213` (`enterPhase`)                   |
+| `ROUND_START`       | S→all | `room/game/game-engine.service.ts:126` (`runRound`)                     |
+| `ROUND_END`         | S→all | `room/game/game-engine.service.ts:159` (`runRound`)                     |
+| `GAME_OVER`         | S→all | `room/game/game-engine.service.ts:95` (game loop, non-aborted only)     |
+| `TIMER_TICK`        | S→all | `room/game/game-engine.service.ts:179` (`timePhase` `onTick`)           |
+| `TIMER_EXPIRED`     | S→all | `room/game/game-engine.service.ts:150` (`runRound`, question phase only) |
+
+All paths are relative to `src/server/`. Event-name constants live in
+`src/shared/events/socket-events.ts`; payload types in `src/shared/types/index.ts`.
+
+Implementation notes worth knowing when consuming these:
+
+- **`QUESTION_SHOW`** options are shuffled (Fisher-Yates) with stable per-round
+  ids `"<roundId>:<index>"`; `question.id` is the **round id** and `timeLimit`
+  is the round's `timeLimitSeconds`. Correctness is never sent.
+- **`ANSWER_SUBMIT`** is honoured only for client sockets while a window is open;
+  exactly one answer per `(clientId, roundId)` is persisted (in-memory guard +
+  DB unique index). The server derives answer time from its own clock.
+- **`QUESTION_REVEAL`** includes every roster member — non-submitters appear with
+  `answerId: null, isTimeout: true, pointsAwarded: 0`.
+- **`TIMER_EXPIRED`** fires for the question phase on both natural timeout and
+  early end (all connected players answered); it is **not** sent if the game
+  aborts mid-phase, and intro/reveal phases never emit it.
+- **`GAME_OVER`** is sent only after the last round of a non-aborted game; an
+  abandoned game marks the room `ABANDONED` and emits nothing.
+
 ---
 
 ## 4. Connection rules & limits
