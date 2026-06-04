@@ -25,6 +25,7 @@ import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
 import type { RoomState } from '../../../shared/types/index'
+import { QuestionService } from '../../question/question.service.js'
 
 @Injectable()
 export class LobbyService {
@@ -33,7 +34,8 @@ export class LobbyService {
     private readonly clients: ClientService,
     private readonly registry: ConnectionRegistry,
     private readonly broadcaster: RoomBroadcaster,
-    private readonly gameEngine: GameEngineService
+    private readonly gameEngine: GameEngineService,
+    private readonly questionService: QuestionService
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -244,6 +246,23 @@ export class LobbyService {
     this.broadcaster.broadcastRoomState(started.id, state)
     void this.gameEngine.run(started.id)
     return state
+  }
+
+  public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
+    const membership = this.registry.lookup(hostSocket)
+    if (!membership || membership.role !== 'host') return
+
+    const room = await this.rooms.findById(membership.roomId)
+    if (!room) return
+
+    const question = await this.questionService.getRandomQuestion(room.usedQuestionsIds)
+    if (!question) return
+
+    await this.rooms.appendUsedQuestionsId(membership.roomId, question.id)
+
+    this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
+      question: question.text,
+    })
   }
 
   public async getRoomState(code: string): Promise<RoomState | null> {

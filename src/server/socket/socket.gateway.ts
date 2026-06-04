@@ -25,7 +25,6 @@ import {
 import { randomUUID } from 'node:crypto'
 import * as EVENTS from '../../shared/events/socket-events'
 import { ROOM, WS } from '../../shared/constants/game-config'
-import { QuestionService } from '../question/question.service.js'
 import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
@@ -83,7 +82,6 @@ export class SocketGateway
     private readonly rateLimiter: RateLimiter,
     private readonly hostAuth: HostAuthThrottle,
     private readonly heartbeat: HeartbeatMonitor,
-    private readonly questionService: QuestionService,
     @Inject(WS_ALLOWED_ORIGINS) private readonly allowedOrigins: readonly string[]
   ) {}
 
@@ -216,6 +214,6 @@ export class SocketGateway
 
   @SubscribeMessage(EVENTS.QUESTION_SHOW)
   public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
-    void this.questionService.sendQuestionToRoom(client)
+    void this.lobby.sendQuestionToRoom(client)
   }
 }
