@@ -253,7 +253,7 @@ ROUND_END                           { scores: ScoreMap }
   ─ phase: leaderboard ─────────────────────────────────────────
   GAME_PHASE_CHANGE  { phase: 'leaderboard' }  +  ROOM_STATE_UPDATE
   LEADERBOARD_SHOW                  { round: RoundSummary, leaderboard: LeaderboardEntry[] }
-  TIMER_TICK …                      every 1s for LEADERBOARD_SECONDS (5s)
+  TIMER_TICK …                      every 1s for LEADERBOARD_SECONDS (10s)
 ```
 
 After the last round:

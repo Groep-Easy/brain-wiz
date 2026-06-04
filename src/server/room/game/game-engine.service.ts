@@ -223,7 +223,15 @@ export class GameEngineService {
   }
 
   private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
+    if (!roomId.trim()) {
+      return []
+    }
+
     const players = await this.clients.findByRoom(roomId)
+    if (players.length === 0) {
+      return []
+    }
+    
     const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
 
     const previousPositionByPlayerId = new Map(
