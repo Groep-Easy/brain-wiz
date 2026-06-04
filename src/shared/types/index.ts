@@ -40,7 +40,7 @@ export interface Answer {
   text: string
 }
 
-/** playerId → score delta */
+/** playerId → cumulative score (running total at the time the map is sent) */
 export type ScoreMap = Record<string, number>
 
 /** Round metadata broadcast on ROUND_START. Not the question content.
@@ -70,6 +70,23 @@ export interface TimerTickPayload {
 /** Server → all: round ended (ROUND_END). */
 export interface RoundEndPayload {
   scores: ScoreMap
+}
+
+/** Server → all: leaderboard shown (LEADERBOARD_SHOW). */
+export interface LeaderboardShowPayload {
+  round: RoundSummary
+  leaderboard: LeaderboardEntry[]
+}
+
+/** Sorted leaderboard entries for all players in the room */
+export interface LeaderboardEntry {
+  playerId: string
+  name: string
+  score: number
+  rank: number
+  previousRank: number | null
+  rankChange: number
+  connected: boolean
 }
 
 /** Server → all: game over (GAME_OVER). */
@@ -103,4 +120,40 @@ export interface PlayerJoinAckPayload {
 
 export interface PlayerJoinRejectedPayload {
   reason: string
+}
+
+/** Server → all: question is live (QUESTION_SHOW). */
+export interface QuestionShowPayload {
+  question: QuestionState
+}
+
+/** Client → server: submit an answer (ANSWER_SUBMIT). */
+export interface AnswerSubmitPayload {
+  answerId: string
+  /** Client clock when the answer was chosen. Advisory only — the server times
+   *  answers from its own clock (anti-cheat), so this field is not used for
+   *  scoring. */
+  timestamp: number
+}
+
+/** Server → client: answer outcome (ANSWER_ACK). */
+export interface AnswerAckPayload {
+  received: true
+  accepted: boolean
+  reason?: 'window-closed' | 'invalid-answer' | 'already-answered' | 'server-error'
+}
+
+/** One player's result inside QUESTION_REVEAL.playerAnswers. */
+export interface PlayerAnswerResult {
+  answerId: string | null
+  isCorrect: boolean
+  pointsAwarded: number
+  isTimeout: boolean
+}
+
+/** Server → all: reveal correctness + scoring (QUESTION_REVEAL). */
+export interface QuestionRevealPayload {
+  roundId: string
+  correctAnswerIds: string[]
+  playerAnswers: Record<string /* playerId */, PlayerAnswerResult>
 }

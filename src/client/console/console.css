@@ -79,3 +79,101 @@
 .log-info {
   color: #8889;
 }
+
+.question {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #8884;
+  border-radius: 4px;
+}
+
+.question-text {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.answer-chip {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #8886;
+  border-radius: 4px;
+}
+
+button[data-correct='true'],
+.answer-chip[data-correct='true'] {
+  border-color: #2e7d32;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.reveal-result {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.reveal-players {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.reveal-players li {
+  padding: 0.2rem 0;
+}
+
+.leaderboard {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #8884;
+  border-radius: 4px;
+}
+
+.leaderboard h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+}
+
+.leaderboard-list li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.25rem 0.2rem;
+  border-bottom: 1px solid #8882;
+}
+
+.leaderboard-list li[data-me='true'] {
+  font-weight: 700;
+}
+
+.leaderboard-list li[data-offline='true'] {
+  opacity: 0.5;
+}
+
+.lb-rank {
+  flex: 0 0 1.5rem;
+  text-align: right;
+  color: #8889;
+}
+
+.lb-name {
+  flex: 1 1 auto;
+}
+
+.lb-score {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.lb-delta {
+  flex: 0 0 3rem;
+  text-align: right;
+}

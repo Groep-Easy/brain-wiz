@@ -3,7 +3,7 @@
  * @owner server-squad
  */
 import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import * as assert from 'node:assert/strict'
 import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
 import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
 import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
@@ -12,6 +12,8 @@ import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
+import type { AnswerService } from '../../src/server/room/game/answer.service.js'
+import type { AnswerSubmitPayload } from '../../src/shared/types/index.js'
 
 interface Call {
   method: string
@@ -39,6 +41,7 @@ function fakeLobby(
     leaveClient: record('leaveClient'),
     handleDisconnect: record('handleDisconnect'),
     isConnectionRegistered: (): boolean => registered,
+    sendQuestionToRoom: record('sendQuestionToRoom'), // stub to avoid type errors
   } as unknown as LobbyService
   return { service, calls }
 }
@@ -49,6 +52,12 @@ interface GatewayDeps {
   heartbeat?: HeartbeatMonitor
 }
 
+function fakeAnswerService(): AnswerService {
+  return {
+    submit: async () => undefined,
+  } as unknown as AnswerService
+}
+
 /** Build a gateway with permissive defaults unless deps are supplied. */
 function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGateway {
   return new SocketGateway(
@@ -56,6 +65,7 @@ function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGatew
     deps.rateLimiter ?? new RateLimiter(),
     deps.hostAuth ?? new HostAuthThrottle(),
     deps.heartbeat ?? new HeartbeatMonitor(),
+    fakeAnswerService(),
     ALLOWED
   )
 }
@@ -315,5 +325,55 @@ describe('SocketGateway host authentication', () => {
       undefined
     )
     assert.equal(s.closed, true)
+  })
+})
+
+describe('SocketGateway.handleAnswerSubmit', () => {
+  it('delegates a rate-allowed ANSWER_SUBMIT to AnswerService', async () => {
+    const submitted: Array<{ socket: unknown; payload: AnswerSubmitPayload }> = []
+    const answerService = {
+      submit: async (s: unknown, payload: AnswerSubmitPayload): Promise<void> => {
+        submitted.push({ socket: s, payload })
+      },
+    }
+    const rateLimiter = { allow: (): boolean => true }
+
+    const gateway = new SocketGateway(
+      {} as never,
+      rateLimiter as never,
+      {} as never,
+      {} as never,
+      answerService as never,
+      [] as never
+    )
+
+    const client = socket()
+    const payload: AnswerSubmitPayload = { answerId: 'round-1:0', timestamp: 0 }
+    gateway.handleAnswerSubmit(payload, client)
+    await new Promise<void>((r) => {
+      setImmediate(r)
+    })
+
+    assert.equal(submitted.length, 1)
+    assert.equal(submitted[0]?.payload.answerId, 'round-1:0')
+  })
+
+  it('drops an ANSWER_SUBMIT that exceeds the rate limit', async () => {
+    const submitted: unknown[] = []
+    const answerService = { submit: async (): Promise<void> => void submitted.push(1) }
+    const rateLimiter = { allow: (): boolean => false }
+    const gateway = new SocketGateway(
+      {} as never,
+      rateLimiter as never,
+      {} as never,
+      {} as never,
+      answerService as never,
+      [] as never
+    )
+    gateway.handleAnswerSubmit({ answerId: 'x', timestamp: 0 }, socket())
+    await new Promise<void>((r) => {
+      setImmediate(r)
+    })
+    assert.equal(submitted.length, 0)
   })
 })

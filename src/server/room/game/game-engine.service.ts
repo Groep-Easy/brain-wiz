@@ -21,6 +21,7 @@ import * as EVENTS from '../../../shared/events/socket-events'
 import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
 import type {
   GamePhase as WireGamePhase,
+  LeaderboardEntry,
   RoundSummary,
   ScoreMap,
 } from '../../../shared/types/index'
@@ -34,17 +35,26 @@ import {
 import { PhaseTimer } from './phase-timer'
 import { RoundBuilder } from './round-builder'
 import { ROUND_PRESENTER } from './round-presenter'
+import { GameEventBus } from './game-event-bus'
+import { firstValueFrom } from 'rxjs'
+import { filter, first, timeout } from 'rxjs/operators'
 
 const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
+  [GamePhase.LEADERBOARD]: 'leaderboard',
 }
+
+const FIRST_RANK = 1
+const NO_RANK_CHANGE = 0
+const NEW_PLAYER_POSITION = Number.MAX_SAFE_INTEGER
 
 @Injectable()
 export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
   private readonly games = new Map<string, RunningGame>()
+  private readonly leaderboardOrderByRoom = new Map<string, string[]>()
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
@@ -52,7 +62,8 @@ export class GameEngineService {
     private readonly clients: ClientService,
     private readonly roundBuilder: RoundBuilder,
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
-    @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter
+    @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
+    private readonly bus: GameEventBus
   ) {}
 
   /** Overridable so tests can inject a controllable timer. */
@@ -97,7 +108,9 @@ export class GameEngineService {
       await this.abandonQuietly(roomId)
     } finally {
       game.timer.cancel()
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId })
       this.games.delete(roomId)
+      this.leaderboardOrderByRoom.delete(roomId)
     }
   }
 
@@ -126,10 +139,25 @@ export class GameEngineService {
 
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
-    if (await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)) {
+
+    let didEndEarly = false
+    const earlySub = this.bus
+      .on('ALL_PLAYERS_ANSWERED')
+      .pipe(filter((e) => e.roomId === room.id && e.roundId === round.id))
+      .subscribe(() => {
+        didEndEarly = true
+        game.timer.endEarly()
+      })
+
+    const didAbort = await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)
+    earlySub.unsubscribe()
+    if (didAbort) {
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
       return
     }
     this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+
+    await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
 
     if (await this.runPhase(room, game, GamePhase.REVEAL, TIMER.REVEAL_SECONDS)) {
       return
@@ -139,6 +167,15 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
+
+    await this.enterPhase(room, GamePhase.LEADERBOARD)
+    this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
+      round: this.toRoundSummary(round),
+      leaderboard: await this.buildLeaderboard(room.id),
+    })
+    if (await this.timePhase(room.id, game, TIMER.LEADERBOARD_SECONDS)) {
+      return
+    }
   }
 
   /** Enter a phase, then run its timer. Returns true if the game was aborted. */
@@ -159,6 +196,29 @@ export class GameEngineService {
         this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining }),
     })
     return outcome === TimerOutcome.ABORTED
+  }
+
+  /** Close the answer window and wait for ScoringService to finish (with a
+   * fallback timeout) so QUESTION_REVEAL precedes the reveal phase and ROUND_END
+   * reflects this round's points. */
+  private async closeAndAwaitScore(
+    roomId: string,
+    roundId: string,
+    reason: 'expired' | 'all-answered'
+  ): Promise<void> {
+    const scored = firstValueFrom(
+      this.bus.on('ROUND_SCORED').pipe(
+        filter((e) => e.roomId === roomId && e.roundId === roundId),
+        first(),
+        timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
+      )
+    )
+    this.bus.publish({ type: 'ROUND_WINDOW_CLOSED', roomId, roundId, reason })
+    try {
+      await scored
+    } catch {
+      this.logger.warn(`ROUND_SCORED not received for round ${roundId}; proceeding`)
+    }
   }
 
   /** Emit the phase change and a fresh room-state snapshot carrying the live phase. */
@@ -203,6 +263,67 @@ export class GameEngineService {
   private async buildScores(roomId: string): Promise<ScoreMap> {
     const roster = await this.clients.findByRoom(roomId)
     return Object.fromEntries(roster.map((c) => [c.id, c.totalScore]))
+  }
+
+  private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
+    if (!roomId.trim()) {
+      return []
+    }
+
+    const players = await this.clients.findByRoom(roomId)
+    if (players.length === 0) {
+      return []
+    }
+
+    const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
+
+    const previousPositionByPlayerId = new Map(
+      previousLeaderboardOrder.map((playerId, position) => [playerId, position])
+    )
+
+    const leaderboard = [...players].sort((firstPlayer, secondPlayer) => {
+      const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
+
+      if (scoreOrder !== NO_RANK_CHANGE) {
+        return scoreOrder
+      }
+
+      const firstPlayerPreviousPosition =
+        previousPositionByPlayerId.get(firstPlayer.id) ?? NEW_PLAYER_POSITION
+
+      const secondPlayerPreviousPosition =
+        previousPositionByPlayerId.get(secondPlayer.id) ?? NEW_PLAYER_POSITION
+
+      const previousPositionOrder = firstPlayerPreviousPosition - secondPlayerPreviousPosition
+
+      if (previousPositionOrder !== NO_RANK_CHANGE) {
+        return previousPositionOrder
+      }
+
+      return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
+    })
+
+    this.leaderboardOrderByRoom.set(
+      roomId,
+      leaderboard.map((player) => player.id)
+    )
+
+    return leaderboard.map((player, index) => {
+      const rank = index + FIRST_RANK
+      const previousPosition = previousPositionByPlayerId.get(player.id)
+      const previousRank = previousPosition === undefined ? null : previousPosition + FIRST_RANK
+      const rankChange = previousRank === null ? NO_RANK_CHANGE : previousRank - rank
+
+      return {
+        playerId: player.id,
+        name: player.displayName,
+        score: player.totalScore,
+        rank,
+        previousRank,
+        rankChange,
+        connected: player.isConnected,
+      }
+    })
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

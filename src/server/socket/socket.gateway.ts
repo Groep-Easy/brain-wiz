@@ -25,7 +25,13 @@ import {
 import { randomUUID } from 'node:crypto'
 import * as EVENTS from '../../shared/events/socket-events'
 import { ROOM, WS } from '../../shared/constants/game-config'
-import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index'
+import { AnswerService } from '../room/game/answer.service'
+import type {
+  AnswerSubmitPayload,
+  PingPayload,
+  PlayerJoinPayload,
+  PongPayload,
+} from '../../shared/types/index'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
@@ -82,6 +88,7 @@ export class SocketGateway
     private readonly rateLimiter: RateLimiter,
     private readonly hostAuth: HostAuthThrottle,
     private readonly heartbeat: HeartbeatMonitor,
+    private readonly answerService: AnswerService,
     @Inject(WS_ALLOWED_ORIGINS) private readonly allowedOrigins: readonly string[]
   ) {}
 
@@ -215,5 +222,15 @@ export class SocketGateway
   @SubscribeMessage(EVENTS.QUESTION_SHOW)
   public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
     void this.lobby.sendQuestionToRoom(client)
+  }
+  
+  @SubscribeMessage(EVENTS.ANSWER_SUBMIT)
+  public handleAnswerSubmit(
+    @MessageBody() payload: AnswerSubmitPayload | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): void {
+    if (!this.rateLimiter.allow(client.connectionId)) return
+    if (!payload?.answerId) return
+    void this.answerService.submit(client, payload)
   }
 }

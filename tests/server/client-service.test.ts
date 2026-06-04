@@ -114,3 +114,28 @@ describe('ClientService mutations', () => {
     assert.equal(store.length, 0)
   })
 })
+
+function fakeRepo(): { saved: Client[]; save: (c: Client) => Promise<Client> } {
+  const saved: Client[] = []
+  return {
+    saved,
+    save: async (c: Client): Promise<Client> => {
+      saved.push(c)
+      return c
+    },
+  }
+}
+
+describe('ClientService.addScore', () => {
+  it('increments totalScore by the delta and persists', async () => {
+    const repo = fakeRepo()
+    const service = new ClientService(repo as never)
+    const client = { id: 'p1', totalScore: 100 } as Client
+
+    const result = await service.addScore(client, 250)
+
+    assert.equal(result.totalScore, 350)
+    assert.equal(repo.saved.length, 1)
+    assert.equal(repo.saved[0]?.totalScore, 350)
+  })
+})

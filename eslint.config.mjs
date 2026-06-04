@@ -116,6 +116,7 @@ export default [
       'node_modules/**',
       'src/client/**',
       'src/host/**',
+      'src/minigames/**',
       'vite.client.config.ts',
       'vite.host.config.ts',
     ],

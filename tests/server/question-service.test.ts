@@ -3,7 +3,7 @@
  * @owner server-squad
  */
 import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import * as assert from 'node:assert/strict'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { DifficultyEnum, QuestionThemeEnum } from '../../src/server/entities/enums.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
