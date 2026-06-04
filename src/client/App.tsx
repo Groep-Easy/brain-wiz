@@ -1,6 +1,7 @@
 import { LoadingComp } from "./components/LoadingComp"
 import { JoinScreen } from "./components/JoinScreen"
 import { useState } from 'react'
+import { useRef } from 'react'
 /**
  * @file App.tsx
  * @owner client-squad
@@ -56,17 +57,17 @@ function ResultsScreen() {
 
 export function App(): React.JSX.Element | null {
   const [state, setState] = useState<GameState>('enter-code')
-  const socket = new WebSocket("ws://localhost:3000")
-  let playerId = null
-  let reconnectToken = null
+  const socket = useRef(new WebSocket("ws://localhost:3000"))
+  let playerId = useRef(null)
+  let reconnectToken = useRef(null)
 
-  socket.onmessage = (e) => {
+  socket.current.onmessage = (e) => {
     const { event, data } = JSON.parse(e.data)
     switch (event) {
       case "PLAYER_JOIN_ACK":
         setState("waiting")
-        playerId = data.playerId
-        reconnectToken = data.reconnectToken
+        playerId.current = data.playerId
+        reconnectToken.current = data.reconnectToken
         break
       case "PLAYER_JOIN_REJECTED":
         setState("enter-code")
@@ -82,7 +83,7 @@ export function App(): React.JSX.Element | null {
     var room_code = document.getElementById("room").value
 
     if (player_name && room_code) {
-      socket.send(
+      socket.current.send(
         JSON.stringify({
           event: "PLAYER_JOIN",
           data: {
