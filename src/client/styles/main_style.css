@@ -1,0 +1,130 @@
+/* main_style.css — shared palette + base styles for the phone client.
+ * Palette mirrors the host (src/host/styles/main_style.css) so shapes and
+ * colours match across the host screen and the phone. */
+
+:root {
+  --dark: #2a3135;
+  --navy: #36435f;
+  --red: #ba162d;
+  --tan: #ccb87b;
+  --teal: #056c5c;
+  --bg: #f7f5ef;
+  --surface: #ffffff;
+  --darkblue: #2c57a8;
+  /* Force a light theme so our warm cards never get inverted by OS dark mode.
+   * (The base index.css sets `color-scheme: light dark`.) */
+  color-scheme: light;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+}
+
+/* Card-style screens: join, waiting, round intro, fallbacks */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--tan);
+  border-radius: 18px;
+  padding: 1.75rem 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+.card h1 {
+  margin: 0 0 0.25rem;
+  color: var(--dark);
+}
+.card h2 {
+  margin: 0 0 1rem;
+  color: var(--navy);
+}
+.subtitle {
+  color: var(--navy);
+  margin: 0 0 1rem;
+}
+.divider {
+  height: 2px;
+  background: var(--tan);
+  border-radius: 999px;
+  margin: 1rem 0;
+}
+
+/* Inputs */
+.field {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+.field label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--navy);
+  margin-bottom: 0.35rem;
+}
+.field input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid var(--tan);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--dark);
+  box-sizing: border-box;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+/* Primary button */
+.primary-btn {
+  width: 100%;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--teal);
+  color: #fff;
+  cursor: pointer;
+}
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.primary-btn:not(:disabled):hover {
+  opacity: 0.92;
+}
+
+.error-text {
+  color: var(--red);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.code-pill {
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  background: var(--bg);
+  border: 1px solid var(--tan);
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  color: var(--dark);
+}
+
+/* Reconnect/disconnect banner */
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--red);
+  color: #fff;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  z-index: 10;
+}

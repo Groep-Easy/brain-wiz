@@ -1,155 +1,368 @@
-import { LoadingComp } from "./components/LoadingComp"
-import { JoinScreen } from "./components/JoinScreen"
-import { useState } from 'react'
-import { useRef } from 'react'
-/**
- * @file App.tsx
- * @owner client-squad
- * @description Root component for the phone client. Placeholder hello-world
- * screen — socket wiring and the join/lobby UI land in a later slice.
- */
+import { useEffect, useRef, useState } from 'react'
+import type {
+  RoomState,
+  RoundSummary,
+  QuestionState,
+  QuestionRevealPayload,
+  LeaderboardEntry,
+  ScoreMap,
+  GamePhase,
+  PlayerJoinAckPayload,
+  PlayerJoinRejectedPayload,
+  AnswerAckPayload,
+} from '../shared/types/index'
+import * as EVENTS from '../shared/events/socket-events'
+import { JoinScreen } from './components/JoinScreen'
+import { Waiting } from './screens/Waiting'
+import { RoundIntro } from './screens/RoundIntro'
+import { Answer } from './screens/Answer'
+import { Leaderboard } from './screens/Leaderboard'
+import { GameOver } from './screens/GameOver'
+import { LoadingComp } from './components/LoadingComp'
+import './styles/main_style.css'
 
-type GameState =
-  | 'enter-code'
-  | 'joining'
-  | 'waiting'
-  | 'question'
-  | 'answered'
-  | 'results'
+const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+const STORAGE_KEY = 'brainwiz-player'
+const MAX_RECONNECT_ATTEMPTS = 5
+const RECONNECT_DELAY_MS = 1500
 
-function WaitingScreen() {
-  return (
-    <div className="screen">
-      <h2>Waiting for players...</h2>
-    </div>
-  )
+interface SavedPlayer {
+  roomCode: string
+  playerName: string
+  playerId: string
+  reconnectToken: string
 }
 
-function QuestionScreen({ onAnswer }: { onAnswer: (a: string) => void }) {
-  return (
-    <div className="screen">
-      <h2>Question</h2>
-      <button onClick={() => onAnswer('A')}>A</button>
-      <button onClick={() => onAnswer('B')}>B</button>
-      <button onClick={() => onAnswer('C')}>C</button>
-      <button onClick={() => onAnswer('D')}>D</button>
-    </div>
-  )
+function loadSavedPlayer(): SavedPlayer | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<SavedPlayer>
+    if (parsed.roomCode && parsed.playerName && parsed.playerId && parsed.reconnectToken) {
+      return {
+        roomCode: parsed.roomCode,
+        playerName: parsed.playerName,
+        playerId: parsed.playerId,
+        reconnectToken: parsed.reconnectToken,
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
-function AnsweredScreen() {
-  return (
-    <div className="screen">
-      <h2>Answer submitted</h2>
-      <p>Waiting for other players...</p>
-    </div>
-  )
+function readCodeFromUrl(): string {
+  const params = new URLSearchParams(window.location.search)
+  return params.get('code')?.toUpperCase() ?? ''
 }
 
-function ResultsScreen() {
-  return (
-    <div className="screen">
-      <h2>Game finished</h2>
-      <p>Results go here if we can otherwise look at the screen</p>
-    </div>
-  )
-}
+export function App(): React.JSX.Element {
+  const [status, setStatus] = useState<'connecting' | 'open' | 'closed'>('connecting')
+  const [joined, setJoined] = useState(false)
+  const [joining, setJoining] = useState<boolean>(() => loadSavedPlayer() !== null)
+  const [roomState, setRoomState] = useState<RoomState | null>(null)
+  const [round, setRound] = useState<RoundSummary | null>(null)
+  const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [secondsRemaining, setSecondsRemaining] = useState(0)
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null)
+  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const [reconnectExhausted, setReconnectExhausted] = useState(false)
 
-export function App(): React.JSX.Element | null {
-  const [state, setState] = useState<GameState>('enter-code')
-  const socket = useRef(new WebSocket("ws://localhost:3000"))
-  let playerId = useRef(null)
-  let reconnectToken = useRef(null)
+  const socketRef = useRef<WebSocket | null>(null)
+  const playerIdRef = useRef<string | null>(null)
+  const credsRef = useRef<SavedPlayer | null>(loadSavedPlayer())
+  const pendingJoinRef = useRef<{ name: string; code: string } | null>(null)
+  const intentionalCloseRef = useRef(false)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  socket.current.onmessage = (e) => {
-    const { event, data } = JSON.parse(e.data)
-    switch (event) {
-      case "PLAYER_JOIN_ACK":
-        setState("waiting")
-        playerId.current = data.playerId
-        reconnectToken.current = data.reconnectToken
+  const [urlCode] = useState(readCodeFromUrl)
+
+  function sendJoin(name: string, code: string, creds: SavedPlayer | null): void {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN) return
+    socket.send(
+      JSON.stringify({
+        event: EVENTS.PLAYER_JOIN,
+        data: {
+          roomCode: code,
+          playerName: name,
+          ...(creds ? { playerId: creds.playerId, playerToken: creds.reconnectToken } : {}),
+        },
+      })
+    )
+  }
+
+  function handleEvent(ev: string, data: any): void {
+    switch (ev) {
+      case EVENTS.PLAYER_JOIN_ACK: {
+        const ack = data as PlayerJoinAckPayload
+        playerIdRef.current = ack.playerId
+        const creds: SavedPlayer = {
+          roomCode: ack.roomCode,
+          playerName: credsRef.current?.playerName ?? pendingJoinRef.current?.name ?? '',
+          playerId: ack.playerId,
+          reconnectToken: ack.reconnectToken,
+        }
+        credsRef.current = creds
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(creds))
+        } catch {
+          /* ignore storage errors (private mode, quota) */
+        }
+        pendingJoinRef.current = null
+        setJoinError(null)
+        setJoining(false)
+        setJoined(true)
         break
-      case "PLAYER_JOIN_REJECTED":
-        setState("enter-code")
-        alert(data.reason)
+      }
+      case EVENTS.PLAYER_JOIN_REJECTED: {
+        const rejected = data as PlayerJoinRejectedPayload
+        credsRef.current = null
+        try {
+          localStorage.removeItem(STORAGE_KEY)
+        } catch {
+          /* ignore */
+        }
+        setJoining(false)
+        setJoined(false)
+        setJoinError(rejected.reason || 'Could not join the room.')
         break
-      case "ROOM_STATE_UPDATE":
+      }
+      case EVENTS.ROOM_STATE_UPDATE:
+        setRoomState(data.room as RoomState)
+        break
+      case EVENTS.GAME_PHASE_CHANGE:
+        setRoomState((prev) => (prev ? { ...prev, phase: data.phase as GamePhase } : prev))
+        break
+      case EVENTS.ROUND_START:
+        if (data.round) setRound(data.round as RoundSummary)
+        break
+      case EVENTS.TIMER_TICK:
+        setSecondsRemaining(data.secondsRemaining as number)
+        break
+      case EVENTS.QUESTION_SHOW:
+        if (data.question) {
+          setQuestion(data.question as QuestionState)
+          setReveal(null)
+          setSelectedAnswerId(null)
+        }
+        break
+      case EVENTS.QUESTION_REVEAL:
+        setReveal(data as QuestionRevealPayload)
+        break
+      case EVENTS.LEADERBOARD_SHOW:
+        if (data.leaderboard) setLeaderboard(data.leaderboard as LeaderboardEntry[])
+        break
+      case EVENTS.GAME_OVER:
+        if (data.finalScores) setFinalScores(data.finalScores as ScoreMap)
+        break
+      case EVENTS.ANSWER_ACK: {
+        const ack = data as AnswerAckPayload
+        if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
+          setSelectedAnswerId(null)
+        }
+        break
+      }
+      default:
         break
     }
   }
 
-  function handleJoin() {
-    var player_name = document.getElementById("name").value
-    var room_code = document.getElementById("room").value
+  function connect(): void {
+    intentionalCloseRef.current = false
+    setStatus('connecting')
+    const socket = new WebSocket(BACKEND_WS_URL)
+    socketRef.current = socket
 
-    if (player_name && room_code) {
-      socket.current.send(
-        JSON.stringify({
-          event: "PLAYER_JOIN",
-          data: {
-            roomCode: room_code,
-            playerName: player_name
-          }
-        })
-      )
-      setState("joining")
+    socket.onopen = () => {
+      if (socketRef.current !== socket) return
+      setStatus('open')
+      setReconnectExhausted(false)
+      reconnectAttemptsRef.current = 0
+      const creds = credsRef.current
+      if (creds) {
+        sendJoin(creds.playerName, creds.roomCode, creds)
+      } else if (pendingJoinRef.current) {
+        sendJoin(pendingJoinRef.current.name, pendingJoinRef.current.code, null)
+      }
+    }
+
+    socket.onmessage = (event) => {
+      if (socketRef.current !== socket) return
+      try {
+        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: any }
+        handleEvent(ev, data)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to parse WebSocket message:', err)
+      }
+    }
+
+    socket.onclose = () => {
+      if (socketRef.current !== socket) return
+      setStatus('closed')
+      if (intentionalCloseRef.current) return
+      if (credsRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttemptsRef.current += 1
+        reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY_MS)
+      } else if (credsRef.current) {
+        setReconnectExhausted(true)
+      }
+    }
+
+    socket.onerror = () => {
+      // eslint-disable-next-line no-console
+      console.error('WebSocket connection error')
     }
   }
 
-  function handleAnswer(answer: string) {
-    console.log('answered:', answer)
-    setState('answered')
+  useEffect(() => {
+    connect()
+    return () => {
+      intentionalCloseRef.current = true
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+      socketRef.current?.close()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    setTimeout(() => {
-      setState('waiting')
-    }, 2000)
+  function handleJoin(name: string, code: string): void {
+    setJoinError(null)
+    setJoining(true)
+    const socket = socketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      sendJoin(name, code, null)
+    } else {
+      pendingJoinRef.current = { name, code }
+      if (!socket || socket.readyState === WebSocket.CLOSED) connect()
+    }
   }
 
-  switch (state) {
-    case 'enter-code':
-      return (
-        <main className="app">
-          <h1>Brain Wiz</h1>
-          <JoinScreen onJoin={handleJoin} />
-        </main>
-      )
+  function handleAnswer(answerId: string): void {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN) return
+    setSelectedAnswerId(answerId)
+    socket.send(
+      JSON.stringify({
+        event: EVENTS.ANSWER_SUBMIT,
+        data: { answerId, timestamp: Date.now() },
+      })
+    )
+  }
 
-    case 'joining':
+  const disconnected = status === 'closed'
+  const banner = disconnected ? (
+    <div className="banner">
+      {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
+    </div>
+  ) : null
+
+  if (!joined) {
+    if (joining) {
       return (
         <main className="app">
+          {banner}
           <LoadingComp />
         </main>
       )
-
-    case 'waiting':
-      return (
-        <main className="app">
-          <WaitingScreen />
-        </main>
-      )
-
-    case 'question':
-      return (
-        <main className="app">
-          <QuestionScreen onAnswer={handleAnswer} />
-        </main>
-      )
-
-    case 'answered':
-      return (
-        <main className="app">
-          <AnsweredScreen />
-        </main>
-      )
-
-    case 'results':
-      return (
-        <main className="app">
-          <ResultsScreen />
-        </main>
-      )
-
-    default:
-      return null
+    }
+    return (
+      <main className="app">
+        {banner}
+        <JoinScreen
+          initialCode={credsRef.current?.roomCode || urlCode}
+          error={joinError}
+          onJoin={handleJoin}
+        />
+      </main>
+    )
   }
+
+  const phase: GamePhase = roomState?.phase ?? 'lobby'
+  const myPlayerId = playerIdRef.current
+
+  if (phase === 'lobby') {
+    return (
+      <main className="app">
+        {banner}
+        <Waiting
+          playerName={credsRef.current?.playerName ?? ''}
+          roomCode={credsRef.current?.roomCode ?? ''}
+        />
+      </main>
+    )
+  }
+
+  if (phase === 'round-intro') {
+    return (
+      <main className="app">
+        {banner}
+        <RoundIntro index={round?.index ?? roomState?.round ?? 1} total={round?.total ?? 0} />
+      </main>
+    )
+  }
+
+  if (phase === 'playing' || phase === 'reveal') {
+    if (!question) {
+      return (
+        <main className="app">
+          {banner}
+          <div className="card">
+            <h2>Preparing next question…</h2>
+          </div>
+        </main>
+      )
+    }
+    const myResult = reveal && myPlayerId ? (reveal.playerAnswers[myPlayerId] ?? null) : null
+    return (
+      <main className="app">
+        {banner}
+        <Answer
+          question={question}
+          selectedAnswerId={selectedAnswerId}
+          phase={phase === 'reveal' ? 'reveal' : 'playing'}
+          result={myResult}
+          correctAnswerIds={reveal?.correctAnswerIds ?? []}
+          secondsRemaining={secondsRemaining}
+          onAnswer={handleAnswer}
+        />
+      </main>
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        {banner}
+        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
+      </main>
+    )
+  }
+
+  if (phase === 'game-over' || finalScores !== null) {
+    return (
+      <main className="app">
+        {banner}
+        <GameOver
+          players={roomState?.players ?? []}
+          finalScores={finalScores ?? {}}
+          myPlayerId={myPlayerId}
+        />
+      </main>
+    )
+  }
+
+  return (
+    <main className="app">
+      {banner}
+      <div className="card">
+        <h2>Loading…</h2>
+      </div>
+    </main>
+  )
 }
