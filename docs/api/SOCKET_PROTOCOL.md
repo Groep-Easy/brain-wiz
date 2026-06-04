@@ -77,7 +77,10 @@ subprotocols: the marker `WS_SUBPROTOCOL` and the host token. Example client
 connect (JS):
 
 ```js
-const socket = new WebSocket('ws://localhost:3000/?role=host&code=ABCD', [WS_SUBPROTOCOL, hostToken])
+const socket = new WebSocket('ws://localhost:3000/?role=host&code=ABCD', [
+  WS_SUBPROTOCOL,
+  hostToken,
+])
 ```
 
 - `role=host`, `code` = room join code; `hostToken` = the token returned by

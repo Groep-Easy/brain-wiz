@@ -72,7 +72,9 @@ export function parseConnectParams(url: string | undefined): ConnectParams {
 }
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
+export class SocketGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(SocketGateway.name)
 
   public constructor(
@@ -123,7 +125,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     if (params.role === 'host') {
       if (!params.code) return
       if (!headerToken) {
-        this.logger.warn('Rejected WS connection: host attempted auth without Sec-WebSocket-Protocol token')
+        this.logger.warn(
+          'Rejected WS connection: host attempted auth without Sec-WebSocket-Protocol token'
+        )
         ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
         return
       }
@@ -132,7 +136,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   /** Authenticate a host connection, throttling brute-force attempts per IP. */
-  private connectHost(code: string, hostToken: string, connectionId: string, client: IdentifiedSocket, ip: string): void {
+  private connectHost(
+    code: string,
+    hostToken: string,
+    connectionId: string,
+    client: IdentifiedSocket,
+    ip: string
+  ): void {
     if (this.hostAuth.isLockedOut(ip)) {
       this.logger.warn(`Host auth locked out for ${ip || 'unknown IP'}`)
       client.close?.()
@@ -170,17 +180,30 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
    * the client can measure round-trip latency.
    */
   @SubscribeMessage(EVENTS.PING)
-  public handlePing(@MessageBody() payload: PingPayload | undefined, @ConnectedSocket() client?: IdentifiedSocket): WsResponse<PongPayload> | undefined {
+  public handlePing(
+    @MessageBody() payload: PingPayload | undefined,
+    @ConnectedSocket() client?: IdentifiedSocket
+  ): WsResponse<PongPayload> | undefined {
     if (!this.rateLimiter.allow(client?.connectionId)) return undefined
     const t = typeof payload?.t === 'number' ? payload.t : 0
     return { event: EVENTS.PONG, data: { t, serverTime: Date.now() } }
   }
 
   @SubscribeMessage(EVENTS.PLAYER_JOIN)
-  public handlePlayerJoin(@MessageBody() payload: PlayerJoinPayload | undefined, @ConnectedSocket() client: IdentifiedSocket): void {
+  public handlePlayerJoin(
+    @MessageBody() payload: PlayerJoinPayload | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): void {
     if (!this.rateLimiter.allow(client.connectionId)) return
     if (!payload?.roomCode || !payload?.playerName) return
-    void this.lobby.joinClient(client, client.connectionId ?? '', payload.roomCode, payload.playerName, payload.playerId, payload.playerToken)
+    void this.lobby.joinClient(
+      client,
+      client.connectionId ?? '',
+      payload.roomCode,
+      payload.playerName,
+      payload.playerId,
+      payload.playerToken
+    )
   }
 
   @SubscribeMessage(EVENTS.PLAYER_LEAVE)

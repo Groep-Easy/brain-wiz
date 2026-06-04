@@ -16,7 +16,7 @@
     "lint:fix": "eslint src tests config scripts --fix",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"config/**/*.ts\" \"scripts/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"config/**/*.ts\" \"scripts/**/*.ts\" \"docs/**/*.md\"",
-    "test": "tsc && cd dist && node --env-file=../.env --test",
+    "test": "npm run lint && tsc && cd dist && node --env-file=../.env --test",
     "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",
