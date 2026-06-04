@@ -8,6 +8,7 @@ import {
   PLAYER_JOIN_REJECTED,
   QUESTION_SHOW,
   ROOM_STATE_UPDATE,
+  ANSWER_SUBMIT,
 } from '../shared/events/socket-events'
 /**
  * @file App.tsx
@@ -61,6 +62,7 @@ function ResultsScreen() {
 export function App(): React.JSX.Element | null {
   const [state, setState] = useState<GameState>('enter-code')
   const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [submittedAnswer, setSubmittedAnswer] = useState<string | null>(null)
 
   const socket = useRef(new WebSocket('ws://localhost:3000'))
   let playerId = useRef(null)
@@ -105,13 +107,19 @@ export function App(): React.JSX.Element | null {
     }
   }
 
-  function handleAnswer(answer: string) {
-    console.log('answered:', answer)
-    setState('answered')
+  function handleAnswer(answerId: string, answerText: string) {
+    socket.current.send(
+      JSON.stringify({
+        event: ANSWER_SUBMIT,
+        data: {
+          answerId,
+          timestamp: Date.now(),
+        },
+      })
+    )
 
-    setTimeout(() => {
-      setState('waiting')
-    }, 2000)
+    setSubmittedAnswer(answerText)
+    setState('answered')
   }
 
   switch (state) {
@@ -143,7 +151,7 @@ export function App(): React.JSX.Element | null {
           <h2>{question?.text}</h2>
           <div>
             {question?.answers.map((a) => (
-              <button key={a.id} onClick={() => handleAnswer(a.id)}>
+              <button key={a.id} onClick={() => handleAnswer(a.id, a.text)}>
                 {a.text}
               </button>
             ))}
@@ -155,6 +163,9 @@ export function App(): React.JSX.Element | null {
     case 'answered':
       return (
         <main className="app">
+          <h2>Answer submitted</h2>
+          <p>You submitted:</p>
+          <strong>{submittedAnswer}</strong>
           <AnsweredScreen />
         </main>
       )
