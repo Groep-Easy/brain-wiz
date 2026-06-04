@@ -46,6 +46,11 @@ export class ClientService {
     return this.clients.save(client)
   }
 
+  public async addScore(client: Client, delta: number): Promise<Client> {
+    client.totalScore += delta
+    return this.clients.save(client)
+  }
+
   public async remove(client: Client): Promise<void> {
     await this.clients.remove(client)
   }

@@ -8,8 +8,31 @@
  * also logs every frame and can fire arbitrary `{ event, data }` frames.
  */
 import { useRef, useState } from 'react'
-import { PING, PLAYER_JOIN, PLAYER_JOIN_ACK, PLAYER_LEAVE } from '../../shared/events/socket-events'
-import { parsePayload, rttNote, type Direction, type LogEntry, type Status } from './console-utils'
+import {
+  ANSWER_ACK,
+  ANSWER_SUBMIT,
+  PING,
+  PLAYER_JOIN,
+  PLAYER_JOIN_ACK,
+  PLAYER_LEAVE,
+  QUESTION_REVEAL,
+  QUESTION_SHOW,
+} from '../../shared/events/socket-events'
+import type {
+  AnswerAckPayload,
+  PlayerJoinAckPayload,
+  QuestionRevealPayload,
+  QuestionShowPayload,
+  QuestionState,
+} from '../../shared/types'
+import {
+  parseFrame,
+  parsePayload,
+  rttNote,
+  type Direction,
+  type LogEntry,
+  type Status,
+} from './console-utils'
 import './console.css'
 
 const DEFAULT_URL = 'ws://localhost:3000'
@@ -22,6 +45,8 @@ export function Console(): React.JSX.Element {
   const [payload, setPayload] = useState('{}')
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
+  const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
   const idRef = useRef(0)
@@ -39,21 +64,41 @@ export function Console(): React.JSX.Element {
     setLog((prev) => [entry, ...prev])
   }
 
-  function capturePlayerId(raw: string): void {
-    try {
-      const frame = JSON.parse(raw) as {
-        event?: string
-        data?: { playerId?: string; reconnectToken?: string }
-      }
-      if (frame.event === PLAYER_JOIN_ACK && typeof frame.data?.playerId === 'string') {
-        playerIdRef.current = frame.data.playerId
-        if (typeof frame.data.reconnectToken === 'string') {
-          reconnectTokenRef.current = frame.data.reconnectToken
+  /** Track game state we care about from incoming frames (join, question, reveal). */
+  function capture(raw: string): void {
+    const frame = parseFrame(raw)
+    if (!frame) {
+      return
+    }
+    switch (frame.event) {
+      case PLAYER_JOIN_ACK: {
+        const data = frame.data as Partial<PlayerJoinAckPayload>
+        if (typeof data?.playerId === 'string') {
+          playerIdRef.current = data.playerId
+          if (typeof data.reconnectToken === 'string') {
+            reconnectTokenRef.current = data.reconnectToken
+          }
+          append('info', `joined as ${data.playerId}`)
         }
-        append('info', `joined as ${frame.data.playerId}`)
+        break
       }
-    } catch {
-      // not JSON — ignore
+      case QUESTION_SHOW: {
+        setQuestion((frame.data as QuestionShowPayload).question)
+        setReveal(null)
+        break
+      }
+      case QUESTION_REVEAL: {
+        setReveal(frame.data as QuestionRevealPayload)
+        break
+      }
+      case ANSWER_ACK: {
+        const data = frame.data as AnswerAckPayload
+        append(
+          'info',
+          data.accepted ? 'answer accepted' : `answer rejected: ${data.reason ?? 'unknown'}`
+        )
+        break
+      }
     }
   }
 
@@ -72,7 +117,7 @@ export function Console(): React.JSX.Element {
     socket.onmessage = (event): void => {
       const raw = String(event.data)
       append('in', raw + rttNote(raw))
-      capturePlayerId(raw)
+      capture(raw)
     }
     socket.onclose = (): void => {
       setStatus('closed')
@@ -130,6 +175,14 @@ export function Console(): React.JSX.Element {
     send(PLAYER_LEAVE, '')
   }
 
+  function submitAnswer(answerId: string): void {
+    send(ANSWER_SUBMIT, JSON.stringify({ answerId, timestamp: Date.now() }))
+  }
+
+  // Once revealed, look up this player's own outcome to show next to the options.
+  const myResult =
+    reveal && playerIdRef.current ? reveal.playerAnswers[playerIdRef.current] : undefined
+
   return (
     <main className="console">
       <h1>Client WebSocket debug console</h1>
@@ -152,8 +205,18 @@ export function Console(): React.JSX.Element {
       </section>
 
       <section className="row">
-        <input aria-label="room code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="room code" />
-        <input aria-label="player name" value={name} onChange={(e) => setName(e.target.value)} placeholder="your name" />
+        <input
+          aria-label="room code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="room code"
+        />
+        <input
+          aria-label="player name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="your name"
+        />
         <button onClick={connectAndJoin}>Connect &amp; join</button>
         <button onClick={leave}>Leave</button>
         <button onClick={connectAndJoin} disabled={!playerIdRef.current}>
@@ -178,6 +241,37 @@ export function Console(): React.JSX.Element {
         <button onClick={() => send(eventName, payload)}>Send</button>
         <button onClick={() => setLog([])}>Clear</button>
       </section>
+
+      {question && (
+        <section className="question">
+          <p className="question-text">{question.text}</p>
+          <div className="row">
+            {question.answers.map((answer) => {
+              const correct = reveal?.correctAnswerIds.includes(answer.id) ?? false
+              return (
+                <button
+                  key={answer.id}
+                  onClick={() => submitAnswer(answer.id)}
+                  disabled={reveal !== null}
+                  data-correct={correct ? 'true' : undefined}
+                >
+                  {answer.text}
+                  {correct ? ' ✓' : ''}
+                </button>
+              )
+            })}
+          </div>
+          {reveal && (
+            <p className="reveal-result">
+              {myResult
+                ? myResult.isTimeout
+                  ? 'You timed out'
+                  : `You answered ${myResult.isCorrect ? 'correctly' : 'incorrectly'} — ${myResult.pointsAwarded} pts`
+                : 'No result recorded for you'}
+            </p>
+          )}
+        </section>
+      )}
 
       <ul className="log">
         {log.map((entry) => (

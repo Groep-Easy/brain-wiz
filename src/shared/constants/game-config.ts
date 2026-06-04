@@ -43,6 +43,9 @@ export const TIMER = Object.freeze({
   QUESTION_SECONDS: 30,
   REVEAL_SECONDS: 5,
   ROUND_INTRO_SECONDS: 3,
+  // Max time the engine waits for ScoringService to signal ROUND_SCORED before
+  // proceeding anyway (fallback so a scoring failure can't hang the loop).
+  SCORED_AWAIT_TIMEOUT_MS: 5_000,
 })
 
 export const SCORING = Object.freeze({

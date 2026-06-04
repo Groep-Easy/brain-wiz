@@ -11,10 +11,12 @@
  * receives and can fire arbitrary `{ event, data }` frames.
  */
 import { useRef, useState } from 'react'
-import { PING } from '../../shared/events/socket-events'
+import { PING, QUESTION_REVEAL, QUESTION_SHOW } from '../../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
+import type { QuestionRevealPayload, QuestionShowPayload, QuestionState } from '../../shared/types'
 import {
   buildWsUrl,
+  parseFrame,
   parsePayload,
   rttNote,
   wsToHttp,
@@ -34,6 +36,8 @@ export function Console(): React.JSX.Element {
   const [payload, setPayload] = useState('{}')
   const [code, setCode] = useState('')
   const [hostToken, setHostToken] = useState('')
+  const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
   const idRef = useRef(0)
@@ -47,6 +51,20 @@ export function Console(): React.JSX.Element {
       time: new Date().toLocaleTimeString(),
     }
     setLog((prev) => [entry, ...prev])
+  }
+
+  /** Mirror the question/reveal flow onto the host's big-screen view. */
+  function capture(raw: string): void {
+    const frame = parseFrame(raw)
+    if (!frame) {
+      return
+    }
+    if (frame.event === QUESTION_SHOW) {
+      setQuestion((frame.data as QuestionShowPayload).question)
+      setReveal(null)
+    } else if (frame.event === QUESTION_REVEAL) {
+      setReveal(frame.data as QuestionRevealPayload)
+    }
   }
 
   function connect(target: string, protocols?: string[]): void {
@@ -63,6 +81,7 @@ export function Console(): React.JSX.Element {
     socket.onmessage = (event): void => {
       const raw = String(event.data)
       append('in', raw + rttNote(raw))
+      capture(raw)
     }
     socket.onclose = (): void => {
       setStatus('closed')
@@ -110,7 +129,6 @@ export function Console(): React.JSX.Element {
       append('info', 'create a room first')
       return
     }
-    // Token rides in the WS subprotocol (out of the URL/logs), not the query.
     connect(buildWsUrl(url, { role: 'host', code }), [WS_SUBPROTOCOL, hostToken])
   }
 
@@ -158,7 +176,12 @@ export function Console(): React.JSX.Element {
 
       <section className="row">
         <button onClick={() => void createRoom()}>Create room</button>
-        <input aria-label="room code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="code" />
+        <input
+          aria-label="room code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="code"
+        />
         <button onClick={connectAsHost} disabled={!code || !hostToken}>
           Connect as host
         </button>
@@ -184,6 +207,39 @@ export function Console(): React.JSX.Element {
         <button onClick={() => send(eventName, payload)}>Send</button>
         <button onClick={() => setLog([])}>Clear</button>
       </section>
+
+      {question && (
+        <section className="question">
+          <p className="question-text">{question.text}</p>
+          <div className="row">
+            {question.answers.map((answer) => {
+              const correct = reveal?.correctAnswerIds.includes(answer.id) ?? false
+              return (
+                <span
+                  key={answer.id}
+                  className="answer-chip"
+                  data-correct={correct ? 'true' : undefined}
+                >
+                  {answer.text}
+                  {correct ? ' ✓' : ''}
+                </span>
+              )
+            })}
+          </div>
+          {reveal && (
+            <ul className="reveal-players">
+              {Object.entries(reveal.playerAnswers).map(([playerId, result]) => (
+                <li key={playerId}>
+                  <code>{playerId}</code> —{' '}
+                  {result.isTimeout
+                    ? 'timed out'
+                    : `${result.isCorrect ? 'correct' : 'wrong'}, ${result.pointsAwarded} pts`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <ul className="log">
         {log.map((entry) => (

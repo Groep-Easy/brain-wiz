@@ -5,6 +5,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { GameEngineService } from '../../src/server/room/game/game-engine.service'
+import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
 import * as EVENTS from '../../src/shared/events/socket-events'
 import { ROUNDS } from '../../src/shared/constants/game-config'
@@ -109,6 +110,7 @@ interface MakeEngineResult {
   finishCalls: RoomStatusEnum[]
   presentCalls: number[]
   room: FakeRoom
+  bus: GameEventBus
 }
 
 function makeEngine(timer: PhaseTimerLike): MakeEngineResult {
@@ -141,6 +143,11 @@ function makeEngine(timer: PhaseTimerLike): MakeEngineResult {
       void presentCalls.push(round.roundIndex),
   }
 
+  const bus = new GameEventBus()
+  bus.on('ROUND_WINDOW_CLOSED').subscribe((e) => {
+    bus.publish({ type: 'ROUND_SCORED', roomId: e.roomId, roundId: e.roundId })
+  })
+
   class TestEngine extends GameEngineService {
     protected override createTimer(): PhaseTimerLike {
       return timer
@@ -152,9 +159,10 @@ function makeEngine(timer: PhaseTimerLike): MakeEngineResult {
     clients as never,
     roundBuilder as never,
     roundRepo as never,
-    presenter
+    presenter,
+    bus
   )
-  return { engine, broadcaster, finishCalls, presentCalls, room }
+  return { engine, broadcaster, finishCalls, presentCalls, room, bus }
 }
 
 describe('GameEngineService', () => {
@@ -185,6 +193,20 @@ describe('GameEngineService', () => {
 
     assert.equal(broadcaster.events.filter((e) => e === EVENTS.GAME_OVER).length, 0)
     assert.deepEqual(finishCalls, [RoomStatusEnum.ABANDONED])
+  })
+
+  it('ends the question phase early when ALL_PLAYERS_ANSWERED fires', async () => {
+    const { timer, startedPromise } = manualTimer()
+    const { engine, broadcaster, bus } = makeEngine(timer)
+
+    const p = engine.run('room-1')
+    await startedPromise
+
+    bus.publish({ type: 'ALL_PLAYERS_ANSWERED', roomId: 'room-1', roundId: 'round-0' })
+
+    engine.abort('room-1')
+    await p
+    assert.ok(broadcaster.events.includes(EVENTS.ROUND_START))
   })
 
   it('ignores a second run() for a room already running', async () => {

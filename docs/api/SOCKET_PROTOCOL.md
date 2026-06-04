@@ -1,8 +1,8 @@
 # Brain Wiz — WebSocket & room API
 
 How the **host display** and the **phone client** talk to the server. This is the
-contract as it exists today — events that are defined but not yet wired are
-called out explicitly in [Reserved events](#reserved-events-not-yet-implemented).
+contract as it exists today — all defined events are now live. See
+[Reserved events](#reserved-events-not-yet-implemented) for the current status.
 
 - Transport: native **`ws`** WebSocket (not Socket.io).
 - Server owns **all** state. Clients send actions; the server validates and
@@ -105,32 +105,36 @@ socket, **S→all** server→everyone in the room (host + all clients).
 
 ### 3a. Client → server (inbound)
 
-| Event          | Dir | Payload                                             | Notes                                                                                                              |
-| -------------- | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `PLAYER_JOIN`  | C→S | `{ roomCode, playerName, playerId?, playerToken? }` | Fresh join, or reconnect when `playerId` + `playerToken` are supplied. Missing `roomCode`/`playerName` is ignored. |
-| `PLAYER_LEAVE` | C→S | _none_                                              | Deliberate leave; removes the player.                                                                              |
-| `PING`         | C→S | `{ t: number }`                                     | Liveness/latency probe. `t` is the client's timestamp.                                                             |
+| Event           | Dir | Payload                                             | Notes                                                                                                                                                   |
+| --------------- | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLAYER_JOIN`   | C→S | `{ roomCode, playerName, playerId?, playerToken? }` | Fresh join, or reconnect when `playerId` + `playerToken` are supplied. Missing `roomCode`/`playerName` is ignored.                                      |
+| `PLAYER_LEAVE`  | C→S | _none_                                              | Deliberate leave; removes the player.                                                                                                                   |
+| `PING`          | C→S | `{ t: number }`                                     | Liveness/latency probe. `t` is the client's timestamp.                                                                                                  |
+| `ANSWER_SUBMIT` | C→S | `{ answerId, timestamp }`                           | Submit the chosen answer for the active round. Only valid during the `playing` phase; late/duplicate/invalid submissions are rejected via `ANSWER_ACK`. `timestamp` is **advisory only** — the server times answers from its own clock for scoring (anti-cheat), so it can't be gamed. |
 
 The host sends **no** events over the socket. Host actions (create / start a
 game) go through REST.
 
 ### 3b. Server → client/host (outbound)
 
-| Event                  | Dir   | Payload                                  | When                                                                                                                                         |
-| ---------------------- | ----- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ROOM_STATE_UPDATE`    | S→all | `{ room: RoomState }`                    | On host connect, and after any roster/state change. This is the full snapshot — **re-render from it**.                                       |
-| `PLAYER_JOIN_ACK`      | S→C   | `{ playerId, roomCode, reconnectToken }` | Join/reconnect accepted. **Store `playerId` and `reconnectToken`** (see [Reconnecting](#reconnecting)).                                      |
-| `PLAYER_JOIN_REJECTED` | S→C   | `{ reason: string }`                     | Join refused. See [reject reasons](#reject-reasons).                                                                                         |
-| `PLAYER_DISCONNECTED`  | S→all | `{ playerId }`                           | A player's socket dropped (grace window started).                                                                                            |
-| `PLAYER_RECONNECTED`   | S→all | `{ playerId }`                           | A player came back within the grace window.                                                                                                  |
-| `GAME_START`           | S→all | _none_                                   | Host started the game; a `ROOM_STATE_UPDATE` follows, then the round loop begins. See [The game loop](#6-the-game-loop-round-state-machine). |
-| `GAME_PHASE_CHANGE`    | S→all | `{ phase: GamePhase }`                   | The active round entered a new phase (`round-intro` → `playing` → `reveal`). A fresh `ROOM_STATE_UPDATE` carrying the same phase follows it. |
-| `ROUND_START`          | S→all | `{ round: RoundSummary }`                | A new round began. Carries round index, total, type, and time limit (not the question content).                                              |
-| `TIMER_TICK`           | S→all | `{ secondsRemaining: number }`           | Once per second during every timed phase, counting down. Hits `0` at expiry.                                                                 |
-| `TIMER_EXPIRED`        | S→all | _none_                                   | The **question** phase's clock ran out. (Intro/reveal phases don't emit this — they just transition.)                                        |
-| `ROUND_END`            | S→all | `{ scores: ScoreMap }`                   | The round finished. `scores` = each player's cumulative total at round end.                                                                  |
-| `GAME_OVER`            | S→all | `{ finalScores: ScoreMap }`              | All rounds played; the room is finished. Carries each player's final cumulative total.                                                       |
-| `PONG`                 | S→C   | `{ t, serverTime }`                      | Reply to `PING`. `t` is echoed; `serverTime` = server `Date.now()`.                                                                          |
+| Event                  | Dir   | Payload                                        | When                                                                                                                                                   |
+| ---------------------- | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ROOM_STATE_UPDATE`    | S→all | `{ room: RoomState }`                          | On host connect, and after any roster/state change. This is the full snapshot — **re-render from it**.                                                 |
+| `PLAYER_JOIN_ACK`      | S→C   | `{ playerId, roomCode, reconnectToken }`       | Join/reconnect accepted. **Store `playerId` and `reconnectToken`** (see [Reconnecting](#reconnecting)).                                                |
+| `PLAYER_JOIN_REJECTED` | S→C   | `{ reason: string }`                           | Join refused. See [reject reasons](#reject-reasons).                                                                                                   |
+| `PLAYER_DISCONNECTED`  | S→all | `{ playerId }`                                 | A player's socket dropped (grace window started).                                                                                                      |
+| `PLAYER_RECONNECTED`   | S→all | `{ playerId }`                                 | A player came back within the grace window.                                                                                                            |
+| `GAME_START`           | S→all | _none_                                         | Host started the game; a `ROOM_STATE_UPDATE` follows, then the round loop begins. See [The game loop](#6-the-game-loop-round-state-machine).           |
+| `GAME_PHASE_CHANGE`    | S→all | `{ phase: GamePhase }`                         | The active round entered a new phase (`round-intro` → `playing` → `reveal`). A fresh `ROOM_STATE_UPDATE` carrying the same phase follows it.           |
+| `ROUND_START`          | S→all | `{ round: RoundSummary }`                      | A new round began. Carries round index, total, type, and time limit (not the question content).                                                        |
+| `QUESTION_SHOW`        | S→all | `{ question: QuestionState }`                  | The question went live (`playing` phase). `QuestionState.answers` are shuffled options with stable ids; correctness is never included.                 |
+| `ANSWER_ACK`           | S→C   | `{ received, accepted, reason? }`              | Outcome of an `ANSWER_SUBMIT`. `accepted:false` with `reason` of `window-closed` \| `invalid-answer` \| `already-answered` \| `server-error`.          |
+| `TIMER_TICK`           | S→all | `{ secondsRemaining: number }`                 | Once per second during every timed phase, counting down. Hits `0` at expiry.                                                                           |
+| `TIMER_EXPIRED`        | S→all | _none_                                         | The **question** phase's clock ran out. (Intro/reveal phases don't emit this — they just transition.)                                                  |
+| `QUESTION_REVEAL`      | S→all | `{ roundId, correctAnswerIds, playerAnswers }` | Round answering closed (all answered or timer expired). Per-player `{ answerId, isCorrect, pointsAwarded, isTimeout }`. Drives the host reveal screen. |
+| `ROUND_END`            | S→all | `{ scores: ScoreMap }`                         | The round finished. `scores` = each player's cumulative total at round end.                                                                            |
+| `GAME_OVER`            | S→all | `{ finalScores: ScoreMap }`                    | All rounds played; the room is finished. Carries each player's final cumulative total.                                                                 |
+| `PONG`                 | S→C   | `{ t, serverTime }`                            | Reply to `PING`. `t` is echoed; `serverTime` = server `Date.now()`.                                                                                    |
 
 #### Reject reasons
 
@@ -147,6 +151,13 @@ GamePhase    = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 
 RoundSummary = { index: number; total: number; type: RoundType; timeLimitSeconds: number }
 RoundType    = 'quiz' | 'collab-puzzle' | 'head-to-head'
 ScoreMap     = Record<string /* playerId */, number /* cumulative total */>
+
+QuestionState         = { id: string; text: string; answers: Answer[]; timeLimit: number }
+Answer                = { id: string; text: string }
+AnswerSubmitPayload   = { answerId: string; timestamp: number /* advisory; server uses its own clock for scoring */ }
+AnswerAckPayload      = { received: true; accepted: boolean; reason?: 'window-closed' | 'invalid-answer' | 'already-answered' | 'server-error' }
+PlayerAnswerResult    = { answerId: string | null; isCorrect: boolean; pointsAwarded: number; isTimeout: boolean }
+QuestionRevealPayload = { roundId: string; correctAnswerIds: string[]; playerAnswers: Record<string, PlayerAnswerResult> }
 ```
 
 > The `GamePhase` type lists every phase the design allows, but the engine
@@ -234,13 +245,15 @@ ROUND_START                         { round: RoundSummary }
   TIMER_TICK …                      every 1s for ROUND_INTRO_SECONDS (3s)
   ─ phase: playing ─────────────────────────────────────────────
   GAME_PHASE_CHANGE  { phase: 'playing' }      +  ROOM_STATE_UPDATE
-  (QUESTION_SHOW)                   ← reserved; presenter is still a stub
-  TIMER_TICK …                      every 1s for QUESTION_SECONDS (30s)
-  TIMER_EXPIRED                     question clock hit 0
+  QUESTION_SHOW      { question: QuestionState }
+  (clients send ANSWER_SUBMIT → ANSWER_ACK)
+  TIMER_TICK …                      every 1s until expiry OR all connected answered
+  TIMER_EXPIRED                     answering window closed
   ─ phase: reveal ──────────────────────────────────────────────
   GAME_PHASE_CHANGE  { phase: 'reveal' }       +  ROOM_STATE_UPDATE
+  QUESTION_REVEAL    { roundId, correctAnswerIds, playerAnswers }
   TIMER_TICK …                      every 1s for REVEAL_SECONDS (5s)
-ROUND_END                           { scores: ScoreMap }
+ROUND_END                           { scores: ScoreMap }   ← carries real time-decay points
 ```
 
 After the last round:
@@ -259,10 +272,10 @@ Notes for the UI:
   an explicit `TIMER_EXPIRED`.
 - Phase durations come from `TIMER` in `game-config.ts`
   (`ROUND_INTRO_SECONDS`, `QUESTION_SECONDS`, `REVEAL_SECONDS`).
-- **Scoring isn't wired yet.** There is no `ANSWER_SUBMIT` handler and no
-  scoring slice, so `ScoreMap` values in `ROUND_END`/`GAME_OVER` are currently
-  all `0`. The shapes are stable; the numbers will become real when answering
-  lands.
+- **Scores are real time-decay points.** `ANSWER_SUBMIT` is handled; each
+  correct answer earns `basePoints × (timeRemaining / timeLimit)`, rounded to
+  the nearest integer. Wrong answers and timeouts score `0`. `ScoreMap` values
+  in `ROUND_END`/`GAME_OVER` reflect cumulative totals.
 
 ### Failure / teardown
 
@@ -319,20 +332,12 @@ HOST                         SERVER                         CLIENT (phone)
 
 ## Reserved events (not yet implemented)
 
-The game-flow and timer events (`GAME_PHASE_CHANGE`, `ROUND_START`, `ROUND_END`,
-`GAME_OVER`, `TIMER_TICK`, `TIMER_EXPIRED`) are now wired — see
-[The game loop](#6-the-game-loop-round-state-machine).
+The game-flow, timer, and quiz-answering events (`GAME_PHASE_CHANGE`,
+`ROUND_START`, `ROUND_END`, `GAME_OVER`, `TIMER_TICK`, `TIMER_EXPIRED`,
+`QUESTION_SHOW`, `QUESTION_REVEAL`, `ANSWER_SUBMIT`, `ANSWER_ACK`) are all now
+wired — see [The game loop](#6-the-game-loop-round-state-machine) and
+[Events](#3-events).
 
-What's left are the **quiz-content and answer** events. They exist in
-`socket-events.ts` but have **no live handler/broadcast yet** — don't rely on
-them:
-
-| Event             | Dir   | Why it's not live                                                                                                                                       |
-| ----------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `QUESTION_SHOW`   | S→all | The engine reaches the `playing` phase, but the `RoundPresenter` is a stub (`StubRoundPresenter` just logs). The question-display slice will emit this. |
-| `QUESTION_REVEAL` | S→all | Paired with `QUESTION_SHOW`; lands with the same slice.                                                                                                 |
-| `ANSWER_SUBMIT`   | C→S   | No gateway handler yet — submitting an answer is silently ignored.                                                                                      |
-| `ANSWER_ACK`      | S→C   | Lands with `ANSWER_SUBMIT` (and unblocks real scoring).                                                                                                 |
-
-This document will grow as those land. When in doubt, the code in
-`src/server/socket/`, `src/server/room/game/`, and `src/shared/` is authoritative.
+There are no events currently in a reserved/unimplemented state. When in doubt,
+the code in `src/server/socket/`, `src/server/room/game/`, and `src/shared/` is
+authoritative.
