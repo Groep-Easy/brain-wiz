@@ -8,7 +8,7 @@
  * - Exports QrcodeService for use by other feature modules
  */
 import { Module } from '@nestjs/common'
-import { QrcodeService } from './qrcode.service.js'
+import { QrcodeService } from './qrcode.service'
 
 @Module({
   providers: [QrcodeService],

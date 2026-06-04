@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
-import { Question } from '../entities/question.entity.js'
-import type { CreateQuestionDto } from './dto/create-question.dto.js'
+import { Question } from '../entities/question.entity'
+import type { CreateQuestionDto } from './dto/create-question.dto'
 
 const MAX_ANSWERS = 2
 

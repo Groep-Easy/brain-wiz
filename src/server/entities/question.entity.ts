@@ -13,8 +13,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import { DifficultyEnum, QuestionThemeEnum } from './enums.js'
-import type { Round } from './round.entity.js'
+import { DifficultyEnum, QuestionThemeEnum } from './enums'
+import type { Round } from './round.entity'
 
 const MIN_ANSWERS = 1
 const MAX_ANSWERS = 2

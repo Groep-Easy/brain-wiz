@@ -4,8 +4,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
-import type { HeartbeatSocket } from '../../src/server/socket/socket.types.js'
+import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor'
+import type { HeartbeatSocket } from '../../src/server/socket/socket.types'
 
 interface FakeWs {
   isAlive?: boolean

@@ -3,7 +3,7 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { QrcodeService } from '../../src/server/qrcode/qrcode.service.js'
+import { QrcodeService } from '../../src/server/qrcode/qrcode.service'
 
 describe('QrcodeService.generateSvg', () => {
   it('returns an SVG string for a join URL', async () => {

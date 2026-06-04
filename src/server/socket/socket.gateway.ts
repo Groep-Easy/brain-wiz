@@ -23,22 +23,22 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import * as EVENTS from '../../shared/events/socket-events.js'
-import { ROOM, WS } from '../../shared/constants/game-config.js'
-import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index.js'
-import { LobbyService } from '../room/lobby/lobby.service.js'
-import { RateLimiter } from './rate-limiter.js'
-import { HostAuthThrottle } from './host-auth-throttle.js'
-import { HeartbeatMonitor } from './heartbeat-monitor.js'
-import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin.js'
+import * as EVENTS from '../../shared/events/socket-events'
+import { ROOM, WS } from '../../shared/constants/game-config'
+import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index'
+import { LobbyService } from '../room/lobby/lobby.service'
+import { RateLimiter } from './rate-limiter'
+import { HostAuthThrottle } from './host-auth-throttle'
+import { HeartbeatMonitor } from './heartbeat-monitor'
+import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin'
 import {
   clientIp,
   parseHostTokenFromHeaders,
   selectSubprotocol,
   INVALID_TOKEN_CLOSE_CODE,
   INVALID_TOKEN_CLOSE_REASON,
-} from './socket-handshake.js'
-import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types.js'
+} from './socket-handshake'
+import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types'
 
 /** Named sentinel to avoid magic-number lint errors when testing for missing query */
 const NO_QUERY_INDEX = -1

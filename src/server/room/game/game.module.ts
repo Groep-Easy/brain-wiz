@@ -6,13 +6,13 @@
  * (stubbed) round-content presenter.
  */
 import { Module } from '@nestjs/common'
-import { RealtimeModule } from '../../realtime/realtime.module.js'
-import { RoomModule } from '../room.module.js'
-import { ClientModule } from '../../client/client.module.js'
-import { DatabaseModule } from '../../database/index.js'
-import { GameEngineService } from './game-engine.service.js'
-import { RoundBuilder } from './round-builder.js'
-import { ROUND_PRESENTER, StubRoundPresenter } from './round-presenter.js'
+import { RealtimeModule } from '../../realtime/realtime.module'
+import { RoomModule } from '../room.module'
+import { ClientModule } from '../../client/client.module'
+import { DatabaseModule } from '../../database/index'
+import { GameEngineService } from './game-engine.service'
+import { RoundBuilder } from './round-builder'
+import { ROUND_PRESENTER, StubRoundPresenter } from './round-presenter'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],

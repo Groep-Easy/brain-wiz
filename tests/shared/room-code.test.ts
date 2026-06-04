@@ -4,8 +4,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { generateRoomCode, isValidRoomCode } from '../../src/shared/utils/room-code.js'
-import { ROOM } from '../../src/shared/constants/game-config.js'
+import { generateRoomCode, isValidRoomCode } from '../../src/shared/utils/room-code'
+import { ROOM } from '../../src/shared/constants/game-config'
 
 describe('generateRoomCode', () => {
   it('returns correct length', () => {

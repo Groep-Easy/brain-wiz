@@ -7,8 +7,8 @@
  * question team replaces with a binding that emits QUESTION_SHOW.
  */
 import { Logger } from '@nestjs/common'
-import type { Round } from '../../entities/round.entity.js'
-import { RoundPresenter } from './game.types.js'
+import type { Round } from '../../entities/round.entity'
+import { RoundPresenter } from './game.types'
 
 export const ROUND_PRESENTER = Symbol('ROUND_PRESENTER')
 

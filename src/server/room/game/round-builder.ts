@@ -9,12 +9,12 @@ import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
-import { Question } from '../../entities/question.entity.js'
-import { Round } from '../../entities/round.entity.js'
-import { Room } from '../../entities/room.entity.js'
-import { RoundStatusEnum, ContentTypeEnum } from '../../entities/enums.js'
-import { TIMER } from '../../../shared/constants/game-config.js'
-import { NotEnoughQuestionsError } from './game.errors.js'
+import { Question } from '../../entities/question.entity'
+import { Round } from '../../entities/round.entity'
+import { Room } from '../../entities/room.entity'
+import { RoundStatusEnum, ContentTypeEnum } from '../../entities/enums'
+import { TIMER } from '../../../shared/constants/game-config'
+import { NotEnoughQuestionsError } from './game.errors'
 
 @Injectable()
 export class RoundBuilder {

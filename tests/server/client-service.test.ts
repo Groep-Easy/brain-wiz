@@ -5,8 +5,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { ClientService } from '../../src/server/client/client.service.js'
-import { Client } from '../../src/server/entities/client.entity.js'
+import { ClientService } from '../../src/server/client/client.service'
+import { Client } from '../../src/server/entities/client.entity'
 
 interface FakeClientRepo {
   repo: Repository<Client>

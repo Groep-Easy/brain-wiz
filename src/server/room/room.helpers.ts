@@ -5,9 +5,9 @@
  * Keeping this pure (no DB, no sockets) makes the wire shape trivially testable
  * and gives the broadcaster a single, consistent payload to send.
  */
-import { RoomStatusEnum } from '../entities/enums.js'
-import type { GamePhase, Player, RoomState } from '../../shared/types/index.js'
-import type { RoomStateSource, PlayerSource } from './room.types.js'
+import { RoomStatusEnum } from '../entities/enums'
+import type { GamePhase, Player, RoomState } from '../../shared/types/index'
+import type { RoomStateSource, PlayerSource } from './room.types'
 
 /**
  * Map the persisted room status to the wire game phase. `active` becomes

@@ -8,21 +8,21 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
-import type { GameEngineService } from '../../src/server/room/game/game-engine.service.js'
-import { RoomService } from '../../src/server/room/room.service.js'
-import { ClientService } from '../../src/server/client/client.service.js'
-import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry.js'
-import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster.js'
-import { RoomNotFoundError } from '../../src/server/room/room.errors.js'
+import { LobbyService } from '../../src/server/room/lobby/lobby.service'
+import type { GameEngineService } from '../../src/server/room/game/game-engine.service'
+import { RoomService } from '../../src/server/room/room.service'
+import { ClientService } from '../../src/server/client/client.service'
+import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
+import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
+import { RoomNotFoundError } from '../../src/server/room/room.errors'
 import {
   NotEnoughPlayersError,
   InvalidHostTokenError,
-} from '../../src/server/room/lobby/lobby.errors.js'
-import { Room } from '../../src/server/entities/room.entity.js'
-import { Client } from '../../src/server/entities/client.entity.js'
-import * as EVENTS from '../../src/shared/events/socket-events.js'
-import { ROOM, PLAYER } from '../../src/shared/constants/game-config.js'
+} from '../../src/server/room/lobby/lobby.errors'
+import { Room } from '../../src/server/entities/room.entity'
+import { Client } from '../../src/server/entities/client.entity'
+import * as EVENTS from '../../src/shared/events/socket-events'
+import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {

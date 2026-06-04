@@ -5,13 +5,13 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { RoundBuilder } from '../../src/server/room/game/round-builder.js'
-import { NotEnoughQuestionsError } from '../../src/server/room/game/game.errors.js'
-import { Question } from '../../src/server/entities/question.entity.js'
-import { Round } from '../../src/server/entities/round.entity.js'
-import { Room } from '../../src/server/entities/room.entity.js'
-import { RoundStatusEnum, ContentTypeEnum } from '../../src/server/entities/enums.js'
-import { TIMER } from '../../src/shared/constants/game-config.js'
+import { RoundBuilder } from '../../src/server/room/game/round-builder'
+import { NotEnoughQuestionsError } from '../../src/server/room/game/game.errors'
+import { Question } from '../../src/server/entities/question.entity'
+import { Round } from '../../src/server/entities/round.entity'
+import { Room } from '../../src/server/entities/room.entity'
+import { RoundStatusEnum, ContentTypeEnum } from '../../src/server/entities/enums'
+import { TIMER } from '../../src/shared/constants/game-config'
 
 function fakeQuestionRepo(count: number): Repository<Question> {
   const questions = Array.from({ length: count }, (_, i) =>

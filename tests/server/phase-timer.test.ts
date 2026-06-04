@@ -4,8 +4,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { PhaseTimer } from '../../src/server/room/game/phase-timer.js'
-import { TimerOutcome } from '../../src/server/room/game/game.types.js'
+import { PhaseTimer } from '../../src/server/room/game/phase-timer'
+import { TimerOutcome } from '../../src/server/room/game/game.types'
 
 describe('PhaseTimer', () => {
   it('expires after N seconds, ticking down to 0', async (t) => {

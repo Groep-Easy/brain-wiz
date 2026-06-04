@@ -4,14 +4,14 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
-import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
-import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
-import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
-import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
-import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
-import { PONG } from '../../src/shared/events/socket-events.js'
-import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
+import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway'
+import { RateLimiter } from '../../src/server/socket/rate-limiter'
+import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle'
+import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor'
+import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake'
+import type { LobbyService } from '../../src/server/room/lobby/lobby.service'
+import { PONG } from '../../src/shared/events/socket-events'
+import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config'
 
 interface Call {
   method: string
