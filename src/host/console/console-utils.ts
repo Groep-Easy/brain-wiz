@@ -48,6 +48,26 @@ export function wsToHttp(wsUrl: string): string {
   return wsUrl.replace(/^ws/i, 'http').replace(/\/+$/, '')
 }
 
+/** A decoded `{ event, data }` wire frame. */
+export interface SocketFrame {
+  event: string
+  data: unknown
+}
+
+/** Parse a raw WebSocket frame into `{ event, data }`, or null if it isn't valid
+ *  JSON with a string `event`. */
+export function parseFrame(raw: string): SocketFrame | null {
+  try {
+    const frame = JSON.parse(raw) as { event?: unknown; data?: unknown }
+    if (typeof frame.event === 'string') {
+      return { event: frame.event, data: frame.data }
+    }
+  } catch {
+    // not JSON — nothing to decode
+  }
+  return null
+}
+
 /** Parse a raw payload string as JSON, falling back to the raw string. */
 export function parsePayload(rawData: string): unknown {
   const trimmed = rawData.trim()

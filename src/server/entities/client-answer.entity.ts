@@ -25,6 +25,7 @@ import type { Round } from './round.entity'
 @Entity('client_answers')
 @Index('idx_client_answers_round', ['roundId'])
 @Index('idx_client_answers_answered', ['answeredAt'])
+@Index('idx_client_answers_unique_submission', ['clientId', 'roundId'], { unique: true })
 export class ClientAnswer {
   @PrimaryGeneratedColumn('uuid')
   public id!: string

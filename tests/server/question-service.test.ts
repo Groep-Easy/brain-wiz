@@ -21,11 +21,6 @@ interface FakeRepo {
   save: (q: Question) => Promise<Question>
 }
 
-interface FakeRoomService {
-  findById: (id: string) => Promise<any>
-  appendUsedQuestionsId: (roomId: string, questionId: string) => Promise<void>
-}
-
 interface FakeRegistry {
   lookup: (socket: ClientSocket) => ReturnType<ConnectionRegistry['lookup']>
 }
@@ -34,22 +29,30 @@ interface FakeBroadcaster {
   emitToRoom: (...args: unknown[]) => void
 }
 
+interface FakeRoomService {
+  findById: (id: string) => Promise<{ usedQuestionsIds: string[] } | null>
+  appendUsedQuestionsId: (roomId: string, questionId: string) => Promise<void>
+}
+
+/** A room mock whose used-question list is empty, so any question is eligible. */
+function fakeRoomService(): FakeRoomService {
+  return {
+    findById: async () => ({ usedQuestionsIds: [] }),
+    appendUsedQuestionsId: async () => undefined,
+  }
+}
+
 function makeService(
   repo: Partial<FakeRepo>,
   registry: Partial<FakeRegistry> = {},
   broadcaster: Partial<FakeBroadcaster> = {},
   roomService: Partial<FakeRoomService> = {}
 ): QuestionService {
-  const fakeRoomService = {
-    findById: async (id: string) => ({ id, usedQuestionsIds: [] }),
-    appendUsedQuestionsId: async () => undefined,
-    ...roomService,
-  }
   return new QuestionService(
     repo as never,
     registry as never,
     broadcaster as never,
-    fakeRoomService as never
+    roomService as never
   )
 }
 
@@ -121,7 +124,12 @@ describe('QuestionService.sendQuestionToRoom', () => {
     const broadcaster: FakeBroadcaster = {
       emitToRoom: (...args) => emitted.push(args),
     }
-    const service = makeService({ find: async () => [sampleQuestion] }, registry, broadcaster)
+    const service = makeService(
+      { find: async () => [sampleQuestion] },
+      registry,
+      broadcaster,
+      fakeRoomService()
+    )
 
     await service.sendQuestionToRoom(socket)
 
@@ -156,7 +164,7 @@ describe('QuestionService.sendQuestionToRoom', () => {
     const broadcaster: FakeBroadcaster = {
       emitToRoom: (...args) => emitted.push(args),
     }
-    const service = makeService({ find: async () => [] }, registry, broadcaster)
+    const service = makeService({ find: async () => [] }, registry, broadcaster, fakeRoomService())
 
     await service.sendQuestionToRoom(socket)
 

@@ -13,6 +13,9 @@ import * as EVENTS from '../../../shared/events/socket-events.js'
 
 export const ROUND_PRESENTER = Symbol('ROUND_PRESENTER')
 
+/** Midpoint of `Math.random()`'s [0, 1) range; used as the shuffle comparator pivot. */
+const SHUFFLE_PIVOT = 0.5
+
 @Injectable()
 export class StubRoundPresenter implements RoundPresenter {
   private readonly logger = new Logger(StubRoundPresenter.name)
@@ -60,7 +63,7 @@ export class RealRoundPresenter implements RoundPresenter {
     ]
 
     // Simple deterministic shuffle so it's consistent for this broadcast but randomized for users
-    const shuffledAnswers = [...answersList].sort(() => Math.random() - 0.5)
+    const shuffledAnswers = [...answersList].sort(() => Math.random() - SHUFFLE_PIVOT)
 
     this.logger.log(`Broadcasting question for round ${round.roundIndex} to room ${roomId}`)
 

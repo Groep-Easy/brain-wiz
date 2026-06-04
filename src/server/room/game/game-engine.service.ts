@@ -35,6 +35,9 @@ import {
 import { PhaseTimer } from './phase-timer'
 import { RoundBuilder } from './round-builder'
 import { ROUND_PRESENTER } from './round-presenter'
+import { GameEventBus } from './game-event-bus'
+import { firstValueFrom } from 'rxjs'
+import { filter, first, timeout } from 'rxjs/operators'
 
 const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',
@@ -59,7 +62,8 @@ export class GameEngineService {
     private readonly clients: ClientService,
     private readonly roundBuilder: RoundBuilder,
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
-    @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter
+    @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
+    private readonly bus: GameEventBus
   ) {}
 
   /** Overridable so tests can inject a controllable timer. */
@@ -104,6 +108,7 @@ export class GameEngineService {
       await this.abandonQuietly(roomId)
     } finally {
       game.timer.cancel()
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId })
       this.games.delete(roomId)
       this.leaderboardOrderByRoom.delete(roomId)
     }
@@ -134,10 +139,25 @@ export class GameEngineService {
 
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
-    if (await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)) {
+
+    let didEndEarly = false
+    const earlySub = this.bus
+      .on('ALL_PLAYERS_ANSWERED')
+      .pipe(filter((e) => e.roomId === room.id && e.roundId === round.id))
+      .subscribe(() => {
+        didEndEarly = true
+        game.timer.endEarly()
+      })
+
+    const didAbort = await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)
+    earlySub.unsubscribe()
+    if (didAbort) {
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
       return
     }
     this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+
+    await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
 
     if (await this.runPhase(room, game, GamePhase.REVEAL, TIMER.REVEAL_SECONDS)) {
       return
@@ -176,6 +196,29 @@ export class GameEngineService {
         this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining }),
     })
     return outcome === TimerOutcome.ABORTED
+  }
+
+  /** Close the answer window and wait for ScoringService to finish (with a
+   * fallback timeout) so QUESTION_REVEAL precedes the reveal phase and ROUND_END
+   * reflects this round's points. */
+  private async closeAndAwaitScore(
+    roomId: string,
+    roundId: string,
+    reason: 'expired' | 'all-answered'
+  ): Promise<void> {
+    const scored = firstValueFrom(
+      this.bus.on('ROUND_SCORED').pipe(
+        filter((e) => e.roomId === roomId && e.roundId === roundId),
+        first(),
+        timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
+      )
+    )
+    this.bus.publish({ type: 'ROUND_WINDOW_CLOSED', roomId, roundId, reason })
+    try {
+      await scored
+    } catch {
+      this.logger.warn(`ROUND_SCORED not received for round ${roundId}; proceeding`)
+    }
   }
 
   /** Emit the phase change and a fresh room-state snapshot carrying the live phase. */
@@ -231,7 +274,7 @@ export class GameEngineService {
     if (players.length === 0) {
       return []
     }
-    
+
     const previousLeaderboardOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
 
     const previousPositionByPlayerId = new Map(

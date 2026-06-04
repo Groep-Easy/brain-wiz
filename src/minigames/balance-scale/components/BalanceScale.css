@@ -76,20 +76,14 @@
 
 .balance-scale__item-emoji,
 .balance-scale__question-mark {
-  font-family:
-    'Segoe UI Emoji',
-    'Apple Color Emoji',
-    sans-serif;
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
   font-size: 30px;
   text-anchor: middle;
 }
 
 .balance-scale__item-label {
   fill: #1d2939;
-  font-family:
-    Inter,
-    system-ui,
-    sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 700;
   text-anchor: middle;
@@ -161,10 +155,7 @@
 }
 
 .scale-mechanics-mock__stack-emoji {
-  font-family:
-    'Segoe UI Emoji',
-    'Apple Color Emoji',
-    sans-serif;
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
 }
 
 .scale-mechanics-mock__equals {

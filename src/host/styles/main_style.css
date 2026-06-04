@@ -2,14 +2,14 @@
 
 /* Kleurenpalet (kleurenblind-veilig) */
 :root {
-  --dark:  #2A3135;  /* tekst, koppen        */
-  --navy:  #36435F;  /* secundair, hover     */
-  --red:   #BA162D;  /* accent, fout, gevaar */
-  --tan:   #CCB87B;  /* randen, zachte vlakken */
-  --teal:  #056C5C;  /* primair, knoppen     */
-  --bg:    #F7F5EF;  /* warme lichte achtergrond */
-  --surface: #FFFFFF;
-  --darkblue: #2C57A8;
+  --dark: #2a3135; /* tekst, koppen        */
+  --navy: #36435f; /* secundair, hover     */
+  --red: #ba162d; /* accent, fout, gevaar */
+  --tan: #ccb87b; /* randen, zachte vlakken */
+  --teal: #056c5c; /* primair, knoppen     */
+  --bg: #f7f5ef; /* warme lichte achtergrond */
+  --surface: #ffffff;
+  --darkblue: #2c57a8;
 }
 
 body {
@@ -19,7 +19,9 @@ body {
   color: var(--dark);
 }
 
-h1 { margin: 0; }
+h1 {
+  margin: 0;
+}
 
 /* Algemene knop */
 button,
@@ -44,7 +46,9 @@ button.primary,
 }
 
 button:hover,
-.btn:hover { opacity: 0.9; }
+.btn:hover {
+  opacity: 0.9;
+}
 
 /* Algemeen invoerveld */
 input {
@@ -63,7 +67,10 @@ input:focus {
   border-color: var(--teal);
 }
 
-.hint { color: var(--navy); font-size: 0.9rem; }
+.hint {
+  color: var(--navy);
+  font-size: 0.9rem;
+}
 
 .top {
   height: 10vh;
@@ -76,7 +83,10 @@ input:focus {
   background-color: white;
   border-radius: 25px;
 }
-.top-right, top-center, top-left {}
+.top-right,
+top-center,
+top-left {
+}
 .top-center {
   position: absolute;
   right: 50%;
@@ -121,10 +131,26 @@ input:focus {
   align-items: center;
   border-radius: 20px;
 }
-.answer1 {grid-row: 1; grid-column: 1; background-color: var(--teal);}
-.answer2 {grid-row: 1; grid-column: 2; background-color: var(--red);}
-.answer3 {grid-row: 2; grid-column: 1; background-color: var(--surface);}
-.answer4 {grid-row: 2; grid-column: 2; background-color: var(--darkblue);}
+.answer1 {
+  grid-row: 1;
+  grid-column: 1;
+  background-color: var(--teal);
+}
+.answer2 {
+  grid-row: 1;
+  grid-column: 2;
+  background-color: var(--red);
+}
+.answer3 {
+  grid-row: 2;
+  grid-column: 1;
+  background-color: var(--surface);
+}
+.answer4 {
+  grid-row: 2;
+  grid-column: 2;
+  background-color: var(--darkblue);
+}
 .bottom {
   height: 22vh;
   display: flex;

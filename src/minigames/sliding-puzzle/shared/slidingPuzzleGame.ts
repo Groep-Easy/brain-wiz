@@ -325,4 +325,3 @@ export function createSlidingPuzzle(input: SlidingPuzzleGenerationInput): Slidin
     initialBoard: createScrambledBoard(input.scrambleMoves),
   }
 }
-

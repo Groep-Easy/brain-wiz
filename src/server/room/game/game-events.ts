@@ -1,0 +1,58 @@
+/**
+ * @file game-events.ts
+ * @description Internal, in-process domain events for the game's decoupled bus.
+ * These NEVER cross the WebSocket — they only coordinate server-side services.
+ */
+
+/** An answer option as the presenter assigned it (the id↔correctness source of truth). */
+export interface RoundOption {
+  id: string
+  text: string
+  isCorrect: boolean
+}
+
+export interface RoundWindowOpened {
+  type: 'ROUND_WINDOW_OPENED'
+  roomId: string
+  roundId: string
+  questionId: string
+  shownAt: number
+  timeLimitSeconds: number
+  basePoints: number
+  options: RoundOption[]
+}
+
+export interface AllPlayersAnswered {
+  type: 'ALL_PLAYERS_ANSWERED'
+  roomId: string
+  roundId: string
+}
+
+export interface RoundWindowClosed {
+  type: 'ROUND_WINDOW_CLOSED'
+  roomId: string
+  roundId: string
+  reason: 'expired' | 'all-answered'
+}
+
+export interface RoundScored {
+  type: 'ROUND_SCORED'
+  roomId: string
+  roundId: string
+}
+
+/** The game was torn down (aborted/abandoned) while a round was in flight.
+ * Consumers must drop any per-room window/scoring state WITHOUT scoring or
+ * revealing — the engine has stopped waiting. Keyed by room only, since a torn
+ * down game has no meaningful current round to finish. */
+export interface RoundWindowAborted {
+  type: 'ROUND_WINDOW_ABORTED'
+  roomId: string
+}
+
+export type GameDomainEvent =
+  | RoundWindowOpened
+  | AllPlayersAnswered
+  | RoundWindowClosed
+  | RoundScored
+  | RoundWindowAborted

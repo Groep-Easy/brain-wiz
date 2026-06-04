@@ -34,7 +34,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
   transition: background-color 0.3s ease;
 }
 
@@ -88,7 +88,7 @@
 }
 
 .rank-up {
-  color: #10B981; /* emerald green */
+  color: #10b981; /* emerald green */
 }
 
 .rank-down {

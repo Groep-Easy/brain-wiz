@@ -47,5 +47,5 @@
     "config/**/*.ts",
     "scripts/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "src/client", "src/host"]
+  "exclude": ["node_modules", "dist", "src/client", "src/host", "src/minigames"]
 }

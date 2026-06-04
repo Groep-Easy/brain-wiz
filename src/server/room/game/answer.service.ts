@@ -1,0 +1,128 @@
+/**
+ * @file answer.service.ts
+ * @description Owns the in-memory open answer window for each room. Validates
+ * ANSWER_SUBMIT, persists one ClientAnswer per client per round (storing the
+ * chosen answerId), ACKs the socket, and signals the engine (via the bus) once
+ * every currently-connected client has answered.
+ */
+import { Injectable, Logger } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import type { Repository } from 'typeorm'
+import { ClientAnswer } from '../../entities/client-answer.entity'
+import { ConnectionRegistry } from '../lobby/connection-registry'
+import { RoomBroadcaster } from '../lobby/room-broadcaster'
+import { GameEventBus } from './game-event-bus'
+import type { RoundOption } from './game-events'
+import type { ClientSocket } from '../lobby/lobby.types'
+import type { AnswerAckPayload, AnswerSubmitPayload } from '../../../shared/types/index'
+import * as EVENTS from '../../../shared/events/socket-events'
+
+/** Postgres unique_violation SQLSTATE — raised when the (clientId, roundId)
+ *  unique index rejects a duplicate answer row. */
+const PG_UNIQUE_VIOLATION = '23505'
+
+interface OpenWindow {
+  roundId: string
+  shownAt: number
+  options: Map<string, RoundOption>
+  submitted: Set<string>
+}
+
+@Injectable()
+export class AnswerService {
+  private readonly logger = new Logger(AnswerService.name)
+  private readonly windows = new Map<string, OpenWindow>()
+
+  public constructor(
+    private readonly bus: GameEventBus,
+    private readonly registry: ConnectionRegistry,
+    private readonly broadcaster: RoomBroadcaster,
+    @InjectRepository(ClientAnswer) private readonly answers: Repository<ClientAnswer>
+  ) {
+    this.bus.on('ROUND_WINDOW_OPENED').subscribe((e) => {
+      this.windows.set(e.roomId, {
+        roundId: e.roundId,
+        shownAt: e.shownAt,
+        options: new Map(e.options.map((o) => [o.id, o])),
+        submitted: new Set<string>(),
+      })
+    })
+    this.bus.on('ROUND_WINDOW_CLOSED').subscribe((e) => {
+      this.windows.delete(e.roomId)
+    })
+    this.bus.on('ROUND_WINDOW_ABORTED').subscribe((e) => {
+      this.windows.delete(e.roomId)
+    })
+  }
+
+  public async submit(socket: ClientSocket, payload: AnswerSubmitPayload): Promise<void> {
+    const membership = this.registry.lookup(socket)
+    if (!membership || membership.role !== 'client') {
+      return
+    }
+    const { roomId, clientId } = membership
+
+    const window = this.windows.get(roomId)
+    if (!window) {
+      this.ack(socket, false, 'window-closed')
+      return
+    }
+    const option = window.options.get(payload.answerId)
+    if (!option) {
+      this.ack(socket, false, 'invalid-answer')
+      return
+    }
+    if (window.submitted.has(clientId)) {
+      this.ack(socket, false, 'already-answered')
+      return
+    }
+
+    window.submitted.add(clientId)
+    const row = this.answers.create({
+      clientId,
+      roundId: window.roundId,
+      answerValue: payload.answerId,
+      answeredAt: new Date(),
+      timeToAnswerMs: Date.now() - window.shownAt,
+      isTimeout: false,
+    })
+    try {
+      await this.answers.save(row)
+    } catch (error) {
+      if (this.isUniqueViolation(error)) {
+        this.ack(socket, false, 'already-answered')
+        return
+      }
+      window.submitted.delete(clientId)
+      this.logger.error(
+        `Failed to persist answer for client ${clientId} round ${window.roundId}: ${String(error)}`
+      )
+      this.ack(socket, false, 'server-error')
+      return
+    }
+    this.ack(socket, true)
+
+    if (this.allConnectedAnswered(roomId, window)) {
+      this.bus.publish({ type: 'ALL_PLAYERS_ANSWERED', roomId, roundId: window.roundId })
+    }
+  }
+
+  /** True when the error is a Postgres unique-constraint violation. */
+  private isUniqueViolation(error: unknown): boolean {
+    const candidate = error as { code?: string; driverError?: { code?: string } }
+    return (
+      candidate?.code === PG_UNIQUE_VIOLATION ||
+      candidate?.driverError?.code === PG_UNIQUE_VIOLATION
+    )
+  }
+
+  private allConnectedAnswered(roomId: string, window: OpenWindow): boolean {
+    const connected = this.registry.getClientSockets(roomId).length
+    return connected > 0 && window.submitted.size >= connected
+  }
+
+  private ack(socket: ClientSocket, accepted: boolean, reason?: AnswerAckPayload['reason']): void {
+    const data: AnswerAckPayload = { received: true, accepted, ...(reason ? { reason } : {}) }
+    this.broadcaster.emitToSocket(socket, EVENTS.ANSWER_ACK, data)
+  }
+}
