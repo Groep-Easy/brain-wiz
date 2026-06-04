@@ -54,12 +54,11 @@ export class Room {
   @Column('text', { default: '' })
   public qrCodeSvg!: string
 
-
   /**
    * Contains all the questions that are already asked
    */
 
-  @Column('uuid', {array:true, default: '{}'})
+  @Column('uuid', { array: true, default: '{}' })
   public usedQuestionsIds!: string[]
 
   /**
