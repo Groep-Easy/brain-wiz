@@ -1,4 +1,45 @@
-export type Side = 'left' | 'right'
+import {
+  ANSWERING_SCALE_PHASE,
+  EASY_SCALE_DIFFICULTY,
+  HARD_SCALE_DIFFICULTY,
+  LEFT_SIDE,
+  RIGHT_SIDE,
+  type ScaleDifficulty,
+  type ScalePhase,
+  type Side,
+} from './scaleGame.constants.js'
+import type {
+  ItemOption,
+  PlacedItem,
+  ScaleEquation,
+  ScalePuzzle,
+  ScalePuzzleGenerationInput,
+  ScalePuzzleRulesInput,
+  ScaleSlotPosition,
+} from './scaleGame.types.js'
+
+export {
+  ANSWERING_SCALE_PHASE,
+  EASY_SCALE_DIFFICULTY,
+  HARD_SCALE_DIFFICULTY,
+  LEFT_SIDE,
+  REVEAL_SCALE_PHASE,
+  RIGHT_SIDE,
+  SCALE_DIFFICULTIES,
+  SCALE_PHASES,
+  SCALE_SIDES,
+} from './scaleGame.constants.js'
+export type { ScaleDifficulty, ScalePhase, Side } from './scaleGame.constants.js'
+export type {
+  ItemOption,
+  ItemStack,
+  PlacedItem,
+  ScaleEquation,
+  ScalePuzzle,
+  ScalePuzzleGenerationInput,
+  ScalePuzzleRulesInput,
+  ScaleSlotPosition,
+} from './scaleGame.types.js'
 
 export type SideSign = typeof LEFT_SIDE_SIGN | typeof RIGHT_SIDE_SIGN
 
@@ -6,70 +47,6 @@ export type SideSign = typeof LEFT_SIDE_SIGN | typeof RIGHT_SIDE_SIGN
  * Pure balance-scale model and math.
  * No sockets, database calls, browser APIs, or asset loading in this file.
  */
-export interface ItemOption {
-  id: string
-  label: string
-  emoji: string
-  weight: number
-}
-
-export interface PlacedItem extends ItemOption {
-  side: Side
-  slot: number
-  isNew?: boolean
-}
-
-export interface ScaleSlotPosition {
-  side: Side
-  slot: number
-}
-
-export interface ItemStack {
-  item: ItemOption
-  count: number
-}
-
-export interface ScaleEquation {
-  id: string
-  left: ItemStack[]
-  right: ItemStack[]
-}
-
-export interface ScalePuzzle {
-  id: string
-  placed: PlacedItem[]
-  addTo: ScaleSlotPosition
-  options: ItemOption[]
-  equations: ScaleEquation[]
-  /**
-   * Keep server-side while players are answering.
-   * Client answer payload: { roomId, playerId, puzzleId, optionId }.
-   */
-  correctOptionId?: string
-}
-
-export interface ScalePuzzleRulesInput {
-  id: string
-  placed: PlacedItem[]
-  addTo: ScaleSlotPosition
-  options: ItemOption[]
-  equations?: ScaleEquation[]
-}
-
-export type ScaleDifficulty = 'easy' | 'hard'
-
-export interface ScalePuzzleGenerationInput {
-  id: string
-  difficulty: ScaleDifficulty
-  /**
-   * Later: load from DB/static content by room/round.
-   * Store image references here, not image binary data.
-   */
-  itemPool: ItemOption[]
-}
-
-export type ScalePhase = 'answering' | 'reveal'
-
 export const SVG_WIDTH = 800
 export const SVG_HEIGHT = 480
 export const PIVOT_X = 400
@@ -86,19 +63,19 @@ const LEFT_SIDE_SIGN = -1
 const RIGHT_SIDE_SIGN = 1
 
 const DIFFICULTY_ITEM_COUNT: Record<ScaleDifficulty, number> = {
-  easy: 3,
-  hard: 4,
+  [EASY_SCALE_DIFFICULTY]: 3,
+  [HARD_SCALE_DIFFICULTY]: 4,
 }
 
 const DIFFICULTY_EQUATION_COUNT: Record<ScaleDifficulty, number> = {
-  easy: 2,
-  hard: 3,
+  [EASY_SCALE_DIFFICULTY]: 2,
+  [HARD_SCALE_DIFFICULTY]: 3,
 }
 
 const GENERATED_SCALE_SLOT = 2
 
 export function sideSign(side: Side): SideSign {
-  return side === 'left' ? LEFT_SIDE_SIGN : RIGHT_SIDE_SIGN
+  return side === LEFT_SIDE ? LEFT_SIDE_SIGN : RIGHT_SIDE_SIGN
 }
 
 export function torqueOf(item: PlacedItem): number {
@@ -197,6 +174,130 @@ export function createMinimumEquations(items: ItemOption[]): ScaleEquation[] {
   }))
 }
 
+function createEasyEquations(items: ItemOption[]): ScaleEquation[] {
+  const sortedItems = [...items].sort((first, second) => first.weight - second.weight)
+  const [baseItem, mediumItem, heavyItem] = sortedItems
+
+  if (!baseItem || !mediumItem || !heavyItem) {
+    return createMinimumEquations(items)
+  }
+
+  return [
+    {
+      id: `${mediumItem.id}-equals-${baseItem.id}`,
+      left: [
+        {
+          item: baseItem,
+          count: mediumItem.weight / baseItem.weight,
+        },
+      ],
+      right: [
+        {
+          item: mediumItem,
+          count: 1,
+        },
+      ],
+    },
+    {
+      id: `${mediumItem.id}-${heavyItem.id}-equals-${baseItem.id}`,
+      left: [
+        {
+          item: baseItem,
+          count: (mediumItem.weight + heavyItem.weight) / baseItem.weight,
+        },
+      ],
+      right: [
+        {
+          item: mediumItem,
+          count: 1,
+        },
+        {
+          item: heavyItem,
+          count: 1,
+        },
+      ],
+    },
+  ]
+}
+
+function createHardEquations(items: ItemOption[]): ScaleEquation[] {
+  const sortedItems = [...items].sort((first, second) => first.weight - second.weight)
+  const [baseItem, secondItem, thirdItem, fourthItem] = sortedItems
+
+  if (!baseItem || !secondItem || !thirdItem || !fourthItem) {
+    return createMinimumEquations(items)
+  }
+
+  return [
+    {
+      id: `${secondItem.id}-equals-${baseItem.id}`,
+      left: [
+        {
+          item: baseItem,
+          count: secondItem.weight / baseItem.weight,
+        },
+      ],
+      right: [
+        {
+          item: secondItem,
+          count: 1,
+        },
+      ],
+    },
+    {
+      id: `${secondItem.id}-${thirdItem.id}-equals-${baseItem.id}`,
+      left: [
+        {
+          item: baseItem,
+          count: (secondItem.weight + thirdItem.weight) / baseItem.weight,
+        },
+      ],
+      right: [
+        {
+          item: secondItem,
+          count: 1,
+        },
+        {
+          item: thirdItem,
+          count: 1,
+        },
+      ],
+    },
+    {
+      id: `${secondItem.id}-${thirdItem.id}-${fourthItem.id}-equals-${baseItem.id}`,
+      left: [
+        {
+          item: baseItem,
+          count: (secondItem.weight + thirdItem.weight + fourthItem.weight) / baseItem.weight,
+        },
+      ],
+      right: [
+        {
+          item: secondItem,
+          count: 1,
+        },
+        {
+          item: thirdItem,
+          count: 1,
+        },
+        {
+          item: fourthItem,
+          count: 1,
+        },
+      ],
+    },
+  ]
+}
+
+function getStablePuzzleVariantIndex(id: string, variantCount: number): number {
+  const numericSuffix = id.match(/\d+$/)?.[0]
+  if (numericSuffix !== undefined) {
+    return Number(numericSuffix) % variantCount
+  }
+
+  return Array.from(id).reduce((sum, character) => sum + character.charCodeAt(0), 0) % variantCount
+}
+
 function toPlacedItem(item: ItemOption, side: Side, slot: number): PlacedItem {
   return {
     ...item,
@@ -218,9 +319,15 @@ function validateGeneratedPuzzleShape(puzzle: ScalePuzzle, difficulty: ScaleDiff
     scaleItemIds.add(puzzle.correctOptionId)
   }
 
-  if (scaleItemIds.size !== DIFFICULTY_ITEM_COUNT[difficulty]) {
+  if (scaleItemIds.size > DIFFICULTY_ITEM_COUNT[difficulty]) {
     throw new Error(
-      `Balance-scale ${difficulty} puzzle must use exactly ${DIFFICULTY_ITEM_COUNT[difficulty]} different scale item types`
+      `Balance-scale ${difficulty} puzzle must not use more than ${DIFFICULTY_ITEM_COUNT[difficulty]} different scale item types`
+    )
+  }
+
+  if (scaleItemIds.size < 2) {
+    throw new Error(
+      `Balance-scale ${difficulty} puzzle must use at least two different scale item types`
     )
   }
 
@@ -238,18 +345,58 @@ function generateEasyScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
     throw new Error('Easy balance-scale puzzle could not select exactly three item types')
   }
 
+  const variantIndex = getStablePuzzleVariantIndex(input.id, 4)
+  let placed: PlacedItem[]
+  let addTo: ScaleSlotPosition
+
+  if (variantIndex === 0) {
+    placed = [
+      toPlacedItem(mediumItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(mediumItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(lightItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 1) {
+    placed = [
+      toPlacedItem(mediumItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(mediumItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(heavyItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 2) {
+    placed = [
+      toPlacedItem(heavyItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(lightItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(heavyItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else {
+    placed = [
+      toPlacedItem(mediumItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(lightItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(lightItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  }
+
   const puzzle = createScalePuzzleFromRules({
     id: input.id,
-    placed: [
-      toPlacedItem(mediumItem, 'left', GENERATED_SCALE_SLOT),
-      toPlacedItem(heavyItem, 'right', GENERATED_SCALE_SLOT),
-    ],
-    addTo: {
-      side: 'left',
-      slot: GENERATED_SCALE_SLOT,
-    },
+    placed,
+    addTo,
     options: selectedItems,
-    equations: createMinimumEquations(selectedItems),
+    equations: createEasyEquations(selectedItems),
   })
 
   validateGeneratedPuzzleShape(puzzle, input.difficulty)
@@ -258,26 +405,112 @@ function generateEasyScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
 
 function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle {
   const selectedItems = getSortedPuzzleItems(input)
-  const [baseItem, secondItem, thirdItem] = selectedItems
-  const lastItem = selectedItems[selectedItems.length - 1]
+  const [baseItem, secondItem, thirdItem, fourthItem] = selectedItems
 
-  if (!baseItem || !secondItem || !thirdItem || !lastItem) {
+  if (!baseItem || !secondItem || !thirdItem || !fourthItem) {
     throw new Error('Hard balance-scale puzzle could not select enough item types')
+  }
+
+  const variantIndex = getStablePuzzleVariantIndex(input.id, 8)
+  let placed: PlacedItem[]
+  let addTo: ScaleSlotPosition
+
+  if (variantIndex === 0) {
+    placed = [
+      toPlacedItem(fourthItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(thirdItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 1) {
+    placed = [
+      toPlacedItem(fourthItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(thirdItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(fourthItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 2) {
+    placed = [
+      toPlacedItem(fourthItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 3) {
+    placed = [
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(thirdItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: RIGHT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 4) {
+    placed = [
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(thirdItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: LEFT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 5) {
+    placed = [
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(fourthItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: LEFT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else if (variantIndex === 6) {
+    placed = [
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(thirdItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: LEFT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
+  } else {
+    placed = [
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(secondItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+      toPlacedItem(fourthItem, RIGHT_SIDE, GENERATED_SCALE_SLOT),
+    ]
+    addTo = {
+      side: LEFT_SIDE,
+      slot: GENERATED_SCALE_SLOT,
+    }
   }
 
   const puzzle = createScalePuzzleFromRules({
     id: input.id,
-    placed: [
-      toPlacedItem(lastItem, 'left', GENERATED_SCALE_SLOT),
-      toPlacedItem(baseItem, 'left', GENERATED_SCALE_SLOT),
-      toPlacedItem(thirdItem, 'right', GENERATED_SCALE_SLOT),
-    ],
-    addTo: {
-      side: 'right',
-      slot: GENERATED_SCALE_SLOT,
-    },
+    placed,
+    addTo,
     options: selectedItems,
-    equations: createMinimumEquations(selectedItems),
+    equations: createHardEquations(selectedItems),
   })
 
   validateGeneratedPuzzleShape(puzzle, input.difficulty)
@@ -290,7 +523,7 @@ export function generateScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuz
    * Persist puzzle by roomId/roundId, then broadcast public data to host/client.
    * Player answers/results should live outside ScalePuzzle.
    */
-  if (input.difficulty === 'easy') {
+  if (input.difficulty === EASY_SCALE_DIFFICULTY) {
     return generateEasyScalePuzzle(input)
   }
 
@@ -314,7 +547,7 @@ export function getCorrectOption(puzzle: ScalePuzzle): ItemOption | undefined {
 }
 
 export function getDisplayedItems(puzzle: ScalePuzzle, phase: ScalePhase): PlacedItem[] {
-  if (phase === 'answering') {
+  if (phase === ANSWERING_SCALE_PHASE) {
     return puzzle.placed
   }
 

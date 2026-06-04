@@ -1,17 +1,20 @@
 import { useMemo, useState, type JSX } from 'react'
 import { BalanceScale } from '../components/BalanceScale.js'
-import type {
-  ItemOption,
-  ItemStack,
-  ScaleDifficulty,
-  ScaleEquation,
-  ScalePhase,
-} from '../shared/scaleGame.js'
+import type { ItemOption } from '../shared/scaleGame.js'
+import {
+  ANSWERING_SCALE_PHASE,
+  EASY_SCALE_DIFFICULTY,
+  HARD_SCALE_DIFFICULTY,
+  REVEAL_SCALE_PHASE,
+  type ScaleDifficulty,
+  type ScalePhase,
+} from '../shared/scaleGame.constants.js'
+import type { EquationClueProps, EquationSideProps } from './ScaleMechanicsMock.types.js'
 import { getSampleScalePuzzle } from './samplePuzzle.js'
 
 export function ScaleMechanicsMock(): JSX.Element {
-  const [phase, setPhase] = useState<ScalePhase>('answering')
-  const [difficulty, setDifficulty] = useState<ScaleDifficulty>('easy')
+  const [phase, setPhase] = useState<ScalePhase>(ANSWERING_SCALE_PHASE)
+  const [difficulty, setDifficulty] = useState<ScaleDifficulty>(EASY_SCALE_DIFFICULTY)
   const [puzzleIndex, setPuzzleIndex] = useState(0)
   const [selectedOptionId, setSelectedOptionId] = useState<string | undefined>(undefined)
   const puzzle = useMemo(
@@ -21,32 +24,32 @@ export function ScaleMechanicsMock(): JSX.Element {
 
   function chooseDifficulty(nextDifficulty: ScaleDifficulty): void {
     setDifficulty(nextDifficulty)
-    setPhase('answering')
+    setPhase(ANSWERING_SCALE_PHASE)
     setSelectedOptionId(undefined)
     setPuzzleIndex((currentIndex) => currentIndex + 1)
   }
 
   function chooseAnswer(optionId: string): void {
     setSelectedOptionId(optionId)
-    setPhase('reveal')
+    setPhase(REVEAL_SCALE_PHASE)
   }
 
   return (
     <main className="scale-mechanics-mock">
       <div className="scale-mechanics-mock__bar">
         <button
-          className={getMockButtonClass(difficulty === 'easy')}
+          className={getMockButtonClass(difficulty === EASY_SCALE_DIFFICULTY)}
           onClick={() => {
-            chooseDifficulty('easy')
+            chooseDifficulty(EASY_SCALE_DIFFICULTY)
           }}
           type="button"
         >
           Easy
         </button>
         <button
-          className={getMockButtonClass(difficulty === 'hard')}
+          className={getMockButtonClass(difficulty === HARD_SCALE_DIFFICULTY)}
           onClick={() => {
-            chooseDifficulty('hard')
+            chooseDifficulty(HARD_SCALE_DIFFICULTY)
           }}
           type="button"
         >
@@ -54,10 +57,10 @@ export function ScaleMechanicsMock(): JSX.Element {
         </button>
         <button
           className="scale-mechanics-mock__button"
-          disabled={phase === 'reveal'}
+          disabled={phase === REVEAL_SCALE_PHASE}
           onClick={() => {
             setSelectedOptionId(undefined)
-            setPhase('reveal')
+            setPhase(REVEAL_SCALE_PHASE)
           }}
           type="button"
         >
@@ -66,7 +69,7 @@ export function ScaleMechanicsMock(): JSX.Element {
         <button
           className="scale-mechanics-mock__button"
           onClick={() => {
-            setPhase('answering')
+            setPhase(ANSWERING_SCALE_PHASE)
             setSelectedOptionId(undefined)
             setPuzzleIndex((currentIndex) => currentIndex + 1)
           }}
@@ -91,7 +94,7 @@ export function ScaleMechanicsMock(): JSX.Element {
               puzzle.correctOptionId,
               phase
             )}
-            disabled={phase === 'reveal'}
+            disabled={phase === REVEAL_SCALE_PHASE}
             key={option.id}
             onClick={() => {
               chooseAnswer(option.id)
@@ -107,7 +110,7 @@ export function ScaleMechanicsMock(): JSX.Element {
   )
 }
 
-function EquationClue({ equation }: { equation: ScaleEquation }): JSX.Element {
+function EquationClue({ equation }: EquationClueProps): JSX.Element {
   return (
     <div className="scale-mechanics-mock__equation">
       <EquationSide stacks={equation.left} />
@@ -117,7 +120,7 @@ function EquationClue({ equation }: { equation: ScaleEquation }): JSX.Element {
   )
 }
 
-function EquationSide({ stacks }: { stacks: ItemStack[] }): JSX.Element {
+function EquationSide({ stacks }: EquationSideProps): JSX.Element {
   return (
     <span className="scale-mechanics-mock__equation-side">
       {stacks.map((stack) => (
@@ -145,11 +148,15 @@ function getAnswerButtonClass(
 ): string {
   const classes = ['scale-mechanics-mock__answer']
 
-  if (phase === 'reveal' && option.id === correctOptionId) {
+  if (phase === REVEAL_SCALE_PHASE && option.id === correctOptionId) {
     classes.push('scale-mechanics-mock__answer--correct')
   }
 
-  if (phase === 'reveal' && option.id === selectedOptionId && option.id !== correctOptionId) {
+  if (
+    phase === REVEAL_SCALE_PHASE &&
+    option.id === selectedOptionId &&
+    option.id !== correctOptionId
+  ) {
     classes.push('scale-mechanics-mock__answer--wrong')
   }
 

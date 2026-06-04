@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type JSX } from 'react'
 import {
-  DEFAULT_SCRAMBLE_MOVES,
-  FALLBACK_BOARD_SIZE,
-  SOLVE_STEP_MS,
   createScrambledBoard,
   getTileBackgroundPosition,
   isAdjacent,
@@ -10,16 +7,22 @@ import {
   moveTile,
   solveBoard,
   type SlidingPuzzleBoard,
-  type SlidingPuzzlePuzzle,
 } from '../shared/slidingPuzzleGame.js'
+import {
+  DEFAULT_SCRAMBLE_MOVES,
+  FALLBACK_BOARD_SIZE,
+  SOLVE_STEP_MS,
+} from '../shared/slidingPuzzleGame.constants.js'
+import {
+  NO_SOLUTION_PUZZLE_STATUS,
+  PLAYING_PUZZLE_STATUS,
+  SCRAMBLED_PUZZLE_STATUS,
+  SOLVED_PUZZLE_STATUS,
+  SOLVING_PUZZLE_STATUS,
+  type PuzzleStatus,
+} from './SlidingPuzzle.constants.js'
+import type { SlidingPuzzleProps } from './SlidingPuzzle.types.js'
 import './SlidingPuzzle.css'
-
-export interface SlidingPuzzleProps {
-  puzzle: SlidingPuzzlePuzzle
-  showLocalControls?: boolean
-}
-
-type PuzzleStatus = 'Scrambled' | 'Playing' | 'Solved' | 'Solving' | 'No solution'
 
 function getTileImageStyle(imageUrl: string, value: number): CSSProperties {
   return {
@@ -37,7 +40,7 @@ export function SlidingPuzzle({
   const [board, setBoard] = useState<SlidingPuzzleBoard>(() => puzzle.initialBoard)
   const [boardSize, setBoardSize] = useState(FALLBACK_BOARD_SIZE)
   const [moveCount, setMoveCount] = useState(0)
-  const [status, setStatus] = useState<PuzzleStatus>('Scrambled')
+  const [status, setStatus] = useState<PuzzleStatus>(SCRAMBLED_PUZZLE_STATUS)
   const [isSolving, setIsSolving] = useState(false)
 
   function clearSolveTimer(): void {
@@ -51,7 +54,7 @@ export function SlidingPuzzle({
     clearSolveTimer()
     setBoard(nextBoard)
     setMoveCount(0)
-    setStatus('Scrambled')
+    setStatus(SCRAMBLED_PUZZLE_STATUS)
     setIsSolving(false)
   }
 
@@ -64,7 +67,7 @@ export function SlidingPuzzle({
 
     setBoard(nextBoard)
     setMoveCount((currentMoveCount) => currentMoveCount + 1)
-    setStatus(isSolved(nextBoard) ? 'Solved' : 'Playing')
+    setStatus(isSolved(nextBoard) ? SOLVED_PUZZLE_STATUS : PLAYING_PUZZLE_STATUS)
   }
 
   function handleScramble(): void {
@@ -79,25 +82,25 @@ export function SlidingPuzzle({
     const solutionPath = solveBoard(board)
 
     if (!solutionPath) {
-      setStatus('No solution')
+      setStatus(NO_SOLUTION_PUZZLE_STATUS)
       return
     }
 
     if (solutionPath.length === 0) {
-      setStatus('Solved')
+      setStatus(SOLVED_PUZZLE_STATUS)
       return
     }
 
     let stepIndex = 0
 
     clearSolveTimer()
-    setStatus('Solving')
+    setStatus(SOLVING_PUZZLE_STATUS)
     setIsSolving(true)
     solveTimerRef.current = window.setInterval(() => {
       const nextBoard = solutionPath[stepIndex]
       if (!nextBoard) {
         clearSolveTimer()
-        setStatus('Solved')
+        setStatus(SOLVED_PUZZLE_STATUS)
         setIsSolving(false)
         return
       }
@@ -164,9 +167,11 @@ export function SlidingPuzzle({
             aria-label={puzzle.image.alt}
             className="puzzle-board"
             role="grid"
-            style={{
-              '--puzzle-board-size': `${boardSize}px`,
-            } as CSSProperties}
+            style={
+              {
+                '--puzzle-board-size': `${boardSize}px`,
+              } as CSSProperties
+            }
           >
             {board.map((value, index) => {
               if (value === 0) {
@@ -221,7 +226,7 @@ export function SlidingPuzzle({
                 onClick={handleSolve}
                 type="button"
               >
-                {isSolving ? 'Solving' : 'Solve'}
+                {isSolving ? SOLVING_PUZZLE_STATUS : 'Solve'}
               </button>
             </div>
           ) : null}

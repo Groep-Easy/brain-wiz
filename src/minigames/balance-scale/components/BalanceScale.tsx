@@ -10,30 +10,16 @@ import {
   getDisplayedItems,
   getSlotX,
   type PlacedItem,
-  type ScalePhase,
-  type ScalePuzzle,
-  type Side,
 } from '../shared/scaleGame.js'
+import { ANSWERING_SCALE_PHASE, type Side } from '../shared/scaleGame.constants.js'
+import type {
+  BalanceScaleProps,
+  ItemCardProps,
+  ItemLayout,
+  QuestionLayout,
+  QuestionMarkerProps,
+} from './BalanceScale.types.js'
 import './BalanceScale.css'
-
-export interface BalanceScaleProps {
-  puzzle: ScalePuzzle
-  phase: ScalePhase
-  debugPivot?: boolean
-}
-
-interface ItemCardProps {
-  item: PlacedItem
-  angle: number
-  stackOffsetX: number
-}
-
-interface QuestionMarkerProps {
-  side: Side
-  slot: number
-  angle: number
-  stackOffsetX: number
-}
 
 const CARD_Y = PIVOT_Y - 84
 const CARD_WIDTH = 86
@@ -52,11 +38,13 @@ export function BalanceScale({
   const previousPuzzleId = useRef<string | null>(null)
   const displayedItems = useMemo(() => getDisplayedItems(puzzle, phase), [phase, puzzle])
   const itemLayouts = useMemo(
-    () => getItemLayouts(displayedItems, phase === 'answering' ? puzzle.addTo : undefined),
+    () =>
+      getItemLayouts(displayedItems, phase === ANSWERING_SCALE_PHASE ? puzzle.addTo : undefined),
     [displayedItems, phase, puzzle.addTo]
   )
   const questionLayout = useMemo(
-    () => getQuestionLayout(displayedItems, phase === 'answering' ? puzzle.addTo : undefined),
+    () =>
+      getQuestionLayout(displayedItems, phase === ANSWERING_SCALE_PHASE ? puzzle.addTo : undefined),
     [displayedItems, phase, puzzle.addTo]
   )
   const targetAngle = useMemo(() => angleForItems(displayedItems), [displayedItems])
@@ -175,13 +163,7 @@ function ItemCard({ item, angle, stackOffsetX }: ItemCardProps): JSX.Element {
   return (
     <g className="balance-scale__item" transform={`translate(${slotX} ${CARD_Y})`}>
       <title>{`${item.label}, weight ${item.weight}`}</title>
-      <line
-        className="balance-scale__item-connector"
-        x1="0"
-        x2={stackOffsetX}
-        y1="84"
-        y2="44"
-      />
+      <line className="balance-scale__item-connector" x1="0" x2={stackOffsetX} y1="84" y2="44" />
       <g transform={`translate(${stackOffsetX} 0) rotate(${-angle})`}>
         <g
           className={
@@ -215,13 +197,7 @@ function QuestionMarker({ side, slot, angle, stackOffsetX }: QuestionMarkerProps
 
   return (
     <g className="balance-scale__question" transform={`translate(${slotX} ${CARD_Y})`}>
-      <line
-        className="balance-scale__item-connector"
-        x1="0"
-        x2={stackOffsetX}
-        y1="84"
-        y2="44"
-      />
+      <line className="balance-scale__item-connector" x1="0" x2={stackOffsetX} y1="84" y2="44" />
       <g transform={`translate(${stackOffsetX} 0) rotate(${-angle})`}>
         <rect
           className="balance-scale__question-bg"
@@ -237,18 +213,6 @@ function QuestionMarker({ side, slot, angle, stackOffsetX }: QuestionMarkerProps
       </g>
     </g>
   )
-}
-
-interface ItemLayout {
-  item: PlacedItem
-  key: string
-  stackOffsetX: number
-}
-
-interface QuestionLayout {
-  side: Side
-  slot: number
-  stackOffsetX: number
 }
 
 function getItemLayouts(
@@ -281,7 +245,9 @@ function getQuestionLayout(
 
   const slotCounts = getSlotCounts(items, questionSlot)
   const slotKey = getSlotKey(questionSlot.side, questionSlot.slot)
-  const occurrenceIndex = items.filter((item) => getSlotKey(item.side, item.slot) === slotKey).length
+  const occurrenceIndex = items.filter(
+    (item) => getSlotKey(item.side, item.slot) === slotKey
+  ).length
 
   return {
     side: questionSlot.side,

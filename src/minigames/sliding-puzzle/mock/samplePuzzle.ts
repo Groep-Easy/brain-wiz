@@ -1,9 +1,9 @@
 import {
-  DEFAULT_SCRAMBLE_MOVES,
   createSlidingPuzzle,
   type SlidingPuzzleImage,
   type SlidingPuzzlePuzzle,
 } from '../shared/slidingPuzzleGame.js'
+import { DEFAULT_SCRAMBLE_MOVES } from '../shared/slidingPuzzleGame.constants.js'
 
 const LOCAL_TEST_IMAGE_URL = new URL('./images/local-test-puzzle.svg', import.meta.url).href
 

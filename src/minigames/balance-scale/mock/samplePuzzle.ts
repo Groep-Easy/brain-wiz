@@ -1,12 +1,12 @@
+import { generateScalePuzzle, type ItemOption, type ScalePuzzle } from '../shared/scaleGame.js'
 import {
-  generateScalePuzzle,
-  type ItemOption,
+  EASY_SCALE_DIFFICULTY,
+  HARD_SCALE_DIFFICULTY,
   type ScaleDifficulty,
-  type ScalePuzzle,
-} from '../shared/scaleGame.js'
+} from '../shared/scaleGame.constants.js'
 
 export const SAMPLE_ITEM_POOLS: Record<ScaleDifficulty, ItemOption[][]> = {
-  easy: [
+  [EASY_SCALE_DIFFICULTY]: [
     [
       {
         id: 'apple',
@@ -108,7 +108,7 @@ export const SAMPLE_ITEM_POOLS: Record<ScaleDifficulty, ItemOption[][]> = {
       },
     ],
   ],
-  hard: [
+  [HARD_SCALE_DIFFICULTY]: [
     [
       {
         id: 'apple',
@@ -244,7 +244,7 @@ export const SAMPLE_ITEM_POOLS: Record<ScaleDifficulty, ItemOption[][]> = {
 
 export function getSampleScalePuzzle(
   sampleIndex: number,
-  difficulty: ScaleDifficulty = 'easy'
+  difficulty: ScaleDifficulty = EASY_SCALE_DIFFICULTY
 ): ScalePuzzle {
   const pools = SAMPLE_ITEM_POOLS[difficulty]
   const itemPool = pools[sampleIndex % pools.length]

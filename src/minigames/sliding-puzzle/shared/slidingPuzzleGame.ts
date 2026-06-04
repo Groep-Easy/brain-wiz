@@ -1,58 +1,41 @@
+import {
+  BOARD_SIZE,
+  DEFAULT_SCRAMBLE_MOVES,
+  FIRST_INDEX,
+  HEAP_CHILD_FACTOR,
+  HEAP_LEFT_CHILD_OFFSET,
+  HEAP_PARENT_OFFSET,
+  HEAP_RIGHT_CHILD_OFFSET,
+  INVERSION_PARITY_DIVISOR,
+  SOLVED_BOARD,
+  TILE_BACKGROUND_STEP_PERCENT,
+} from './slidingPuzzleGame.constants.js'
+import type {
+  HeapNode,
+  MinHeap,
+  SlidingPuzzleGenerationInput,
+  SlidingPuzzlePuzzle,
+} from './slidingPuzzleGame.types.js'
+
 export type SlidingPuzzleBoard = number[]
 
-export interface SlidingPuzzleImage {
-  id: string
-  url: string
-  alt: string
-}
-
-export interface SlidingPuzzlePuzzle {
-  id: string
-  image: SlidingPuzzleImage
-  initialBoard: SlidingPuzzleBoard
-}
-
-export interface SlidingPuzzleGenerationInput {
-  id: string
-  image: SlidingPuzzleImage
-  scrambleMoves?: number
-}
-
-interface HeapNode {
-  board: SlidingPuzzleBoard
-  key: string
-  moves: number
-  previous?: HeapNode
-  priority: number
-}
-
-interface MinHeap {
-  readonly length: number
-  push(node: HeapNode): void
-  pop(): HeapNode | undefined
-}
+export type {
+  SlidingPuzzleGenerationInput,
+  SlidingPuzzleImage,
+  SlidingPuzzlePuzzle,
+} from './slidingPuzzleGame.types.js'
+export {
+  BOARD_SIZE,
+  DEFAULT_SCRAMBLE_MOVES,
+  FALLBACK_BOARD_SIZE,
+  SOLVE_STEP_MS,
+  SOLVED_BOARD,
+} from './slidingPuzzleGame.constants.js'
 
 /**
  * Pure sliding-puzzle model and board math.
  * Keep sockets, DB rows, room/player ids, and image loading outside this file.
  */
-export const BOARD_SIZE = 3
-const TILE_COUNT = BOARD_SIZE * BOARD_SIZE
-export const SOLVED_BOARD: SlidingPuzzleBoard = Array.from({ length: TILE_COUNT }, (_value, index) =>
-  index + 1 === TILE_COUNT ? 0 : index + 1
-)
-export const DEFAULT_SCRAMBLE_MOVES = 80
-export const SOLVE_STEP_MS = 180
-export const FALLBACK_BOARD_SIZE = 320
-
-const FIRST_INDEX = 0
-const TILE_BACKGROUND_STEP_PERCENT = 50
-const INVERSION_PARITY_DIVISOR = 2
-const HEAP_LEFT_CHILD_OFFSET = 1
-const HEAP_RIGHT_CHILD_OFFSET = 1
-const HEAP_PARENT_OFFSET = 1
-const HEAP_CHILD_FACTOR = 2
-
 export function getBoardKey(board: SlidingPuzzleBoard): string {
   return board.join(',')
 }
@@ -342,3 +325,4 @@ export function createSlidingPuzzle(input: SlidingPuzzleGenerationInput): Slidin
     initialBoard: createScrambledBoard(input.scrambleMoves),
   }
 }
+
