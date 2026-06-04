@@ -12,6 +12,8 @@ import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
+import type { QuestionService } from '../../src/server/questions/question.service.js'
+
 
 interface Call {
   method: string
@@ -49,6 +51,13 @@ interface GatewayDeps {
   heartbeat?: HeartbeatMonitor
 }
 
+function fakeQuestionService(): QuestionService {
+  return {
+    getRandomQuestion: async () => null,
+    sendQuestionToRoom: async () => undefined,
+  } as unknown as QuestionService
+}
+
 /** Build a gateway with permissive defaults unless deps are supplied. */
 function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGateway {
   return new SocketGateway(
@@ -56,6 +65,7 @@ function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGatew
     deps.rateLimiter ?? new RateLimiter(),
     deps.hostAuth ?? new HostAuthThrottle(),
     deps.heartbeat ?? new HeartbeatMonitor(),
+    fakeQuestionService(),
     ALLOWED
   )
 }
