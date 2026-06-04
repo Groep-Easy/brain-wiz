@@ -1,5 +1,5 @@
 /* main_style.css - algemene stijl voor alle pagina's. Voor nu simpel. */
- 
+
 /* Kleurenpalet (kleurenblind-veilig) */
 :root {
   --dark:  #2A3135;  /* tekst, koppen        */
@@ -9,17 +9,18 @@
   --teal:  #056C5C;  /* primair, knoppen     */
   --bg:    #F7F5EF;  /* warme lichte achtergrond */
   --surface: #FFFFFF;
+  --darkblue: #2C57A8;
 }
- 
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
   background: var(--bg);
   color: var(--dark);
 }
- 
+
 h1 { margin: 0; }
- 
+
 /* Algemene knop */
 button,
 .btn {
@@ -32,7 +33,7 @@ button,
   cursor: pointer;
   text-decoration: none;
 }
- 
+
 /* Primaire knop */
 button.primary,
 .btn.primary,
@@ -41,10 +42,10 @@ button.primary,
   border-color: var(--teal);
   color: #fff;
 }
- 
+
 button:hover,
 .btn:hover { opacity: 0.9; }
- 
+
 /* Algemeen invoerveld */
 input {
   width: 100%;
@@ -56,10 +57,78 @@ input {
   color: var(--dark);
   box-sizing: border-box;
 }
- 
+
 input:focus {
   outline: none;
   border-color: var(--teal);
 }
- 
+
 .hint { color: var(--navy); font-size: 0.9rem; }
+
+.top {
+  height: 10vh;
+  position: relative;
+  border: 3px var(--tan);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2%;
+  background-color: white;
+  border-radius: 25px;
+}
+.top-right, top-center, top-left {}
+.top-center {
+  position: absolute;
+  right: 50%;
+  transform: translateX(50%);
+}
+.question {
+  height: 10vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.image {
+  height: 25vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.imageanswer {
+  height: 3vh;
+}
+.answers {
+  height: 30vh;
+  width: 95%;
+  position: static;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+  place-items: center;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  display: grid;
+  gap: 0;
+  background-color: var(--navy);
+  border-radius: 25px;
+}
+.answer {
+  height: 90%;
+  width: 98%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+}
+.answer1 {grid-row: 1; grid-column: 1; background-color: var(--teal);}
+.answer2 {grid-row: 1; grid-column: 2; background-color: var(--red);}
+.answer3 {grid-row: 2; grid-column: 1; background-color: var(--surface);}
+.answer4 {grid-row: 2; grid-column: 2; background-color: var(--darkblue);}
+.bottom {
+  height: 22vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25%;
+}
