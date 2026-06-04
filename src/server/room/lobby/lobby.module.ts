@@ -1,22 +1,29 @@
-/**
- * @file lobby.module.ts
- * @description Lobby submodule. Wires the lobby orchestrator with its
- * collaborators (room + client data, in-memory socket registry, broadcaster)
- * and both adapters: the HTTP RoomsController and the WS SocketGateway.
- */
 import { Module } from '@nestjs/common'
 import { RoomModule } from '../room.module.js'
 import { ClientModule } from '../../client/client.module.js'
+import { RealtimeModule } from '../../realtime/realtime.module.js'
+import { GameModule } from '../game/game.module.js'
 import { LobbyService } from './lobby.service.js'
-import { ConnectionRegistry } from './connection-registry.js'
-import { RoomBroadcaster } from './room-broadcaster.js'
 import { SocketGateway } from '../../socket/socket.gateway.js'
+import { RateLimiter } from '../../socket/rate-limiter.js'
+import { HostAuthThrottle } from '../../socket/host-auth-throttle.js'
+import { HeartbeatMonitor } from '../../socket/heartbeat-monitor.js'
+import { WS_ALLOWED_ORIGINS } from '../../socket/socket.origin.js'
 import { RoomsController } from './room.controller.js'
+import { config } from '../../../config/server.js'
+import { QuestionModule } from '../../question/question.module.js'
 
 @Module({
-  imports: [RoomModule, ClientModule],
+  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule],
   controllers: [RoomsController],
-  providers: [LobbyService, ConnectionRegistry, RoomBroadcaster, SocketGateway],
+  providers: [
+    LobbyService,
+    HeartbeatMonitor,
+    { provide: RateLimiter, useFactory: (): RateLimiter => new RateLimiter() },
+    { provide: HostAuthThrottle, useFactory: (): HostAuthThrottle => new HostAuthThrottle() },
+    { provide: WS_ALLOWED_ORIGINS, useValue: config.CORS_ORIGINS },
+    SocketGateway,
+  ],
   exports: [LobbyService],
 })
 export class LobbyModule {}

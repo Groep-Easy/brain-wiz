@@ -5,7 +5,7 @@
  * the current process health snapshot.
  */
 import { Controller, Get } from '@nestjs/common'
-import { HealthService, type HealthStatus } from './health.service.js'
+import { HealthService, type HealthStatus } from './health.service'
 
 @Controller('health')
 export class HealthController {

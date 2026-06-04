@@ -1,0 +1,102 @@
+[
+  {
+    "text": "Which of these are primary colors?",
+    "theme": "art",
+    "difficulty": "easy",
+    "correctAnswers": ["Red", "Blue"],
+    "wrongAnswers": [],
+    "imagePath": "/images/colors.jpg",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What is the capital of France?",
+    "theme": "geography",
+    "difficulty": "easy",
+    "correctAnswers": ["Paris"],
+    "wrongAnswers": ["London"],
+    "imagePath": "/images/paris.jpg",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which of these elements are noble gases?",
+    "theme": "science",
+    "difficulty": "medium",
+    "correctAnswers": ["Helium", "Neon"],
+    "wrongAnswers": [],
+    "imagePath": "/images/elements.jpg",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Who wrote 'Hamlet'?",
+    "theme": "culture",
+    "difficulty": "medium",
+    "correctAnswers": ["William Shakespeare"],
+    "wrongAnswers": ["Charles Dickens"],
+    "imagePath": "/images/hamlet.jpg",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which planets are gas giants?",
+    "theme": "science",
+    "difficulty": "hard",
+    "correctAnswers": ["Jupiter", "Saturn"],
+    "wrongAnswers": [],
+    "imagePath": "/images/planets.jpg",
+    "timeLimitSeconds": 25,
+    "basePoints": 2000
+  },
+  {
+    "text": "What is the largest ocean on Earth?",
+    "theme": "geography",
+    "difficulty": "easy",
+    "correctAnswers": ["Pacific Ocean"],
+    "wrongAnswers": ["Atlantic Ocean"],
+    "imagePath": "/images/ocean.jpg",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which of these are programming languages?",
+    "theme": "technology",
+    "difficulty": "easy",
+    "correctAnswers": ["Python", "JavaScript"],
+    "wrongAnswers": [],
+    "imagePath": "/images/code.jpg",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "In what year did World War II end?",
+    "theme": "history",
+    "difficulty": "medium",
+    "correctAnswers": ["1945"],
+    "wrongAnswers": ["1939"],
+    "imagePath": "/images/ww2.jpg",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which of these are mammals?",
+    "theme": "science",
+    "difficulty": "easy",
+    "correctAnswers": ["Whale", "Bat"],
+    "wrongAnswers": [],
+    "imagePath": "/images/mammals.jpg",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Who painted the Mona Lisa?",
+    "theme": "art",
+    "difficulty": "medium",
+    "correctAnswers": ["Leonardo da Vinci"],
+    "wrongAnswers": ["Vincent van Gogh"],
+    "imagePath": "/images/monalisa.jpg",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  }
+]

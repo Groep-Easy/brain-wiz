@@ -6,11 +6,11 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { RoomService } from '../../src/server/room/room.service.js'
-import { RoomNotInLobbyError } from '../../src/server/room/room.errors.js'
-import { Room } from '../../src/server/entities/room.entity.js'
-import { RoomStatusEnum } from '../../src/server/entities/enums.js'
-import { ROOM } from '../../src/shared/constants/game-config.js'
+import { RoomService } from '../../src/server/room/room.service'
+import { RoomNotInLobbyError } from '../../src/server/room/room.errors'
+import { Room } from '../../src/server/entities/room.entity'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
+import { ROOM } from '../../src/shared/constants/game-config'
 
 interface FakeRoomRepo {
   repo: Repository<Room>
@@ -118,5 +118,25 @@ describe('RoomService.startRoom', () => {
     const service = new RoomService(repo)
     const room = Object.assign(new Room(), { id: 'r1', status: RoomStatusEnum.ACTIVE })
     await assert.rejects(async () => service.startRoom(room), RoomNotInLobbyError)
+  })
+})
+
+describe('RoomService.finishRoom / setCurrentRound', () => {
+  it('setCurrentRound persists the new index', async () => {
+    const { repo } = makeFakeRepo()
+    const service = new RoomService(repo)
+    const room = await service.createRoom()
+    const updated = await service.setCurrentRound(room, 3)
+    assert.equal(updated.currentRoundIndex, 3)
+  })
+
+  it('finishRoom sets status and finishedAt', async () => {
+    const { repo } = makeFakeRepo()
+    const service = new RoomService(repo)
+    const room = await service.createRoom()
+    await service.startRoom(room)
+    const finished = await service.finishRoom(room, RoomStatusEnum.FINISHED)
+    assert.equal(finished.status, RoomStatusEnum.FINISHED)
+    assert.ok(finished.finishedAt instanceof Date)
   })
 })

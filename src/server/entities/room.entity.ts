@@ -13,9 +13,9 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums.js'
-import type { Client } from './client.entity.js'
-import type { Round } from './round.entity.js'
+import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums'
+import type { Client } from './client.entity'
+import type { Round } from './round.entity'
 
 /**
  * Room entity - represents a multiplayer game session
@@ -43,8 +43,23 @@ export class Room {
    * Used by host display to show QR for players to scan
    * CONSTRAINT: NOT NULL
    */
-  @Column('varchar', { length: 512 })
+  @Column('varchar', { length: 512, default: '' })
   public qrCodePayload!: string
+
+  /**
+   * QR code as SVG string
+   * Generated when room is created
+   * Stored so the host display can render it without regeneration
+   */
+  @Column('text', { default: '' })
+  public qrCodeSvg!: string
+
+  /**
+   * Contains all the questions that are already asked
+   */
+
+  @Column('uuid', { array: true, default: '{}' })
+  public usedQuestionsIds!: string[]
 
   /**
    * Current status of the room
