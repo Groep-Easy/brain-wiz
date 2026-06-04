@@ -7,6 +7,7 @@
 /** The subset of a `ws` socket the server needs to push messages. */
 export interface ClientSocket {
   send(data: string): void
+  close?(): void
 }
 
 export type ConnectionRole = 'host' | 'client'

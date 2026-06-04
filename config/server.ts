@@ -50,6 +50,22 @@ function parseNodeEnv(): 'development' | 'production' | 'test' {
 }
 
 /**
+ * Parse base URL for QR code and join links
+ */
+function parseBaseUrl(port: number): string {
+  const raw = process.env['BASE_URL'] ?? `http://localhost:${port}`
+
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    throw new Error(`Invalid BASE_URL: must be a valid URL, got "${raw}"`)
+  }
+
+  return url.toString().replace(/\/$/, '')
+}
+
+/**
  * Local Vite dev servers (see vite.client.config.ts / vite.host.config.ts).
  * Allowed by default in development/test so the host display and phone client
  * can call the server (e.g. POST /rooms) from their own origin.
@@ -74,17 +90,34 @@ function parseCorsOrigins(env: 'development' | 'production' | 'test'): string[] 
   return env === 'production' ? [] : [...DEFAULT_DEV_CORS_ORIGINS]
 }
 
+function parseApiKey(env: 'development' | 'production' | 'test'): string {
+  const key = process.env['ADMIN_API_KEY']
+  if (!key) {
+    if (env === 'production') {
+      throw new Error('ADMIN_API_KEY is required in production')
+    }
+    return 'dev-secret-key'
+  }
+  return key
+}
+
 // Load configurations with validation
 const nodeEnv = parseNodeEnv()
 const port = parsePort()
 const corsOrigins = parseCorsOrigins(nodeEnv)
+const adminApiKey = parseApiKey(nodeEnv)
 
 // Database config is validated here - will throw if invalid
 const databaseConfig = getDatabaseConfig()
 
+// Base URL validated on startup
+const baseUrl = parseBaseUrl(port)
+
 export const config = Object.freeze({
   PORT: port,
   NODE_ENV: nodeEnv,
+  BASE_URL: baseUrl,
   CORS_ORIGINS: Object.freeze(corsOrigins),
+  ADMIN_API_KEY: adminApiKey,
   DATABASE: databaseConfig,
 })
