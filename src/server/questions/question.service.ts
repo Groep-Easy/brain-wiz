@@ -21,29 +21,25 @@ export class QuestionService {
     private readonly broadcaster: RoomBroadcaster,
   ) {}
 
-  /**
-   * Get a question by ID
-   */
-  public async getQuestionById(id: string): Promise<Question | null> {
-    return this.questionRepo.findOne({ where: { id } })
+  // gets random question from the database
+  public async getRandomQuestion(): Promise<Question | null> {
+    const questions = await this.questionRepo.find()
+    if (questions.length === 0) return null
+    
+    const randomIndex = Math.floor(Math.random() * questions.length)
+    return questions[randomIndex] ?? null
   }
 
-  /**
-   * Fetch a question and broadcast it to every socket in the host's room.
-   * Called when the host sends GAME_START.
-   *
-   * - correctAnswer is intentionally excluded from the payload so clients
-   *   cannot read it from the wire. It is revealed later via QUESTION_REVEAL.
-   */
-  public async sendQuestionToRoom(hostSocket: ClientSocket, questionId: string): Promise<void> {
+  // when called sends the question to the host of the room
+  public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
     const membership = this.registry.lookup(hostSocket)
     if (!membership || membership.role !== 'host') return
 
-    const question = await this.getQuestionById(questionId)
+    const question = await this.getRandomQuestion()
     if (!question) return
 
     this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
-      question: {text: question.text},
+      question: question.text,
     })
   }
 }

@@ -113,12 +113,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(EVENTS.QUESTION_SHOW)
-  public handleQuestionShow(
-    @ConnectedSocket() client: IdentifiedSocket,
-    @MessageBody() payload: { questionId: string } | undefined
-  ): void {
-    if (!payload?.questionId) return
-    void this.questionService.sendQuestionToRoom(client, payload.questionId)
+  public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
+    void this.questionService.sendQuestionToRoom(client)
   }
 
 }
