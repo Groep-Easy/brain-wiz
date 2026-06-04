@@ -47,6 +47,7 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
 export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
   private readonly games = new Map<string, RunningGame>()
+  private readonly leaderboardOrderByRoom = new Map<string, string[]>()
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
@@ -100,6 +101,7 @@ export class GameEngineService {
     } finally {
       game.timer.cancel()
       this.games.delete(roomId)
+      this.leaderboardOrderByRoom.delete(roomId)
     }
   }
 
@@ -218,16 +220,45 @@ export class GameEngineService {
 
   private async buildLeaderboard(roomId: string): Promise<LeaderboardEntry[]> {
     const roster = await this.clients.findByRoom(roomId)
+    const previousOrder = this.leaderboardOrderByRoom.get(roomId) ?? []
+    const previousIndexById = new Map(previousOrder.map((clientId, index) => [clientId, index]))
 
-    return [...roster]
-      .sort((a, b) => b.totalScore - a.totalScore || a.displayName.localeCompare(b.displayName))
-      .map((client, index) => ({
-        playerId: client.id,
-        name: client.displayName,
-        score: client.totalScore,
-        rank: index + 1,
-        connected: client.isConnected,
-      }))
+    const sorted = [...roster].sort((a, b) => {
+      const scoreDifference = b.totalScore - a.totalScore
+      if (scoreDifference !== 0) {
+        return scoreDifference
+      }
+
+      const previousA = previousIndexById.get(a.id)
+      const previousB = previousIndexById.get(b.id)
+
+      if (previousA !== undefined && previousB !== undefined) {
+        return previousA - previousB
+      }
+
+      if (previousA !== undefined) {
+        return -1
+      }
+
+      if (previousB !== undefined) {
+        return 1
+      }
+
+      return a.joinedAt.getTime() - b.joinedAt.getTime()
+    })
+
+    this.leaderboardOrderByRoom.set(
+      roomId,
+      sorted.map((client) => client.id)
+    )
+
+    return sorted.map((client, index) => ({
+      playerId: client.id,
+      name: client.displayName,
+      score: client.totalScore,
+      rank: index + 1,
+      connected: client.isConnected,
+    }))
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

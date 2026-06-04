@@ -197,7 +197,13 @@ describe('GameEngineService', () => {
     assert.equal(leaderboardPayloads.length, 5)
     const leaderboardPayload = leaderboardPayloads[0] as {
       round: unknown
-      leaderboard: Array<{ playerId: string; name: string; score: number; rank: number; connected: boolean }>
+      leaderboard: Array<{
+        playerId: string
+        name: string
+        score: number
+        rank: number
+        connected: boolean
+      }>
     }
 
     assert.equal(leaderboardPayload.leaderboard.length, 1)
