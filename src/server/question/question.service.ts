@@ -7,6 +7,7 @@ import { ConnectionRegistry } from '../room/lobby/connection-registry.js'
 import { RoomBroadcaster } from '../room/lobby/room-broadcaster.js'
 import * as EVENTS from '../../shared/events/socket-events.js'
 import type { ClientSocket } from '../room/lobby/lobby.types.js'
+import { RoomService } from '../room/room.service.js'
 
 const MAX_ANSWERS = 2
 
@@ -15,7 +16,8 @@ export class QuestionService {
   public constructor(
     @InjectRepository(Question) private readonly questions: Repository<Question>,
     private readonly registry: ConnectionRegistry,
-    private readonly broadcaster: RoomBroadcaster
+    private readonly broadcaster: RoomBroadcaster,
+    private readonly roomService: RoomService
   ) {}
 
   public async createQuestion(dto: CreateQuestionDto): Promise<string> {
@@ -49,13 +51,14 @@ export class QuestionService {
     }
   }
 
-  // gets random question from the database
-  public async getRandomQuestion(): Promise<Question | null> {
+  // gets random unused question from the database
+  public async getRandomQuestion(usedIds: string[]): Promise<Question | null> {
     const questions = await this.questions.find()
-    if (questions.length === 0) return null
+    const unusedQuestions = questions.filter((q) => !usedIds.includes(q.id))
+    if (unusedQuestions.length === 0) return null
 
-    const randomIndex = Math.floor(Math.random() * questions.length)
-    return questions[randomIndex] ?? null
+    const randomIndex = Math.floor(Math.random() * unusedQuestions.length)
+    return unusedQuestions[randomIndex] ?? null
   }
 
   // when called sends the question to the host of the room
@@ -63,8 +66,23 @@ export class QuestionService {
     const membership = this.registry.lookup(hostSocket)
     if (!membership || membership.role !== 'host') return
 
-    const question = await this.getRandomQuestion()
+    const room = await this.roomService.findById(membership.roomId)
+    if (!room) return
+
+    console.log('room id:', room.id)
+    console.log('usedQuestionIds before:', room.usedQuestionsIds)
+
+    const question = await this.getRandomQuestion(room.usedQuestionsIds)
     if (!question) return
+
+    room.usedQuestionsIds = [...room.usedQuestionsIds, question.id]
+    console.log('question id to save:', question.id)
+    await this.roomService.appendUsedQuestionsId(membership.roomId, question.id)
+    console.log('usedQuestionIds after:', room.usedQuestionsIds)
+
+
+    // const question = await this.getRandomQuestion()
+    // if (!question) return
 
     this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
       question: question.text,

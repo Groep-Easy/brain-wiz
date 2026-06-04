@@ -101,4 +101,11 @@ export class RoomService {
     }
     throw new Error('Unable to generate a unique room code')
   }
+
+  public async appendUsedQuestionsId(roomId: string, questionId: string): Promise<void> {
+    await this.rooms.query(
+      `UPDATE rooms SET "usedQuestionsIds" = array_append("usedQuestionsIds", $1) WHERE id = $2`,
+      [questionId, roomId]
+    )
+  }
 }
