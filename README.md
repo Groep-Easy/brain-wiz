@@ -28,17 +28,21 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 1. Clone the repository.
 2. Open the repository folder in VS Code.
 3. Install extensions when prompted.
-4. Install dependencies:
+4. Install docker + docker-buildx
+5. Activate docker buildx
+   `DOCKER_BUILDKIT=1`
+6. Install dependencies:
    ```bash
    npm install --package-lock-only
    npm ci
    ```
-5. Setup your environment and database:
+7. Setup your environment and database:
    ```bash
    cp .env.example .env
-   ./scripts/start.sh
+   docker compose build
+   docker compose up -d
    ```
-   _(Make sure Docker is running on your machine. The start script will spin up Postgres, wait for readiness, run migrations, and start the app.)_
+   _(Make sure Docker is running on your machine before running `docker compose`)_
 
 ## Workspace configuration
 
