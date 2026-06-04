@@ -70,18 +70,25 @@ socket.onopen = () => {
 
 ### Host (display)
 
-The host authenticates **on the upgrade URL** with query params and then only
-listens:
+The host authenticates on upgrade using the `Sec-WebSocket-Protocol` header
+only. Tokens MUST NOT be sent in the URL query string (they leak to access
+logs, browser history, referrers and proxies). The server requires two
+subprotocols: the marker `WS_SUBPROTOCOL` and the host token. Example client
+connect (JS):
 
-```
-ws://localhost:3000/?role=host&code=ABCD&hostToken=<token>
+```js
+const socket = new WebSocket('ws://localhost:3000/?role=host&code=ABCD', [WS_SUBPROTOCOL, hostToken])
 ```
 
-- `role=host`, `code` = room join code, `hostToken` = the token returned by
+- `role=host`, `code` = room join code; `hostToken` = the token returned by
   `POST /rooms` (see [REST](#5-rest-room-lifecycle)).
 - On success the host immediately receives a `ROOM_STATE_UPDATE`.
-- If the code or token is wrong, the host is **not** registered (it silently
-  receives nothing) and will be dropped by the idle timeout.
+- If the code or token is wrong, the host is **not** registered and will be
+  dropped by the idle timeout.
+
+Security policy: any connection that supplies a `hostToken` in the URL query
+string is rejected immediately. The server closes such sockets with WebSocket
+close code `4001` and reason `"Unauthorized: invalid token transport"`.
 
 > ⚠️ Connection rules every socket must respect — see
 > [Connection rules & limits](#4-connection-rules--limits).
