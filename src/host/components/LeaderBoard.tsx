@@ -5,7 +5,7 @@
  * host team's page. The server team's WebSocket debug console lives separately
  * at /console (see console/Console.tsx) so the two don't collide.
  */
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import '../styles/leaderboard.css'
 
 type Player = {
@@ -20,6 +20,38 @@ export function LeaderBoard(): React.JSX.Element {
     { name: 'Player 3', score: 200 },
   ])
 
+  const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
+  const previousPositions = useRef<Map<string, number>>(new Map())
+
+  useLayoutEffect(() => {
+    const currentPositions = new Map<string, number>()
+
+    itemRefs.current.forEach((el, name) => {
+      currentPositions.set(name, el.getBoundingClientRect().top)
+    })
+
+    itemRefs.current.forEach((el, name) => {
+      const previousTop = previousPositions.current.get(name)
+      const currentTop = currentPositions.get(name)
+
+      if (previousTop !== undefined && currentTop !== undefined) {
+        const deltaY = previousTop - currentTop
+
+        if (deltaY !== 0) {
+          el.style.transition = 'none'
+          el.style.transform = `translateY(${deltaY}px)`
+
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 800ms ease'
+            el.style.transform = ''
+          })
+        }
+      }
+    })
+
+    previousPositions.current = currentPositions
+  }, [players])
+
   function updateScores() {
     setPlayers((prev) =>
       prev.map((player) => ({
@@ -33,9 +65,19 @@ export function LeaderBoard(): React.JSX.Element {
 
   return (
     <>
-      <ul id="leaderboard">
+      <ul>
         {sortedPlayers.map((player, index) => (
-          <li key={player.name} className={`player ${index === 0 ? 'first' : ''}`}>
+          <li
+            key={player.name}
+            ref={(el) => {
+              if (el) {
+                itemRefs.current.set(player.name, el)
+              } else {
+                itemRefs.current.delete(player.name)
+              }
+            }}
+            className={`player ${index === 0 ? 'first' : ''}`}
+          >
             <span className="name">{player.name}</span>
             <span className="score">{player.score}</span>
           </li>

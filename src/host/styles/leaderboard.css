@@ -2,18 +2,20 @@
   background-color: var(--surface);
   color: var(--dark);
 
-  margin: 10px 0;
-  padding: 15px 20px;
-  border-radius: 15px;
+  margin: 10px 10px;
+  padding: 15px 15px;
+  border-radius: 15px 15px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  /* will-change: transform; */
 }
 
 .first {
   background-color: var(--teal);
   color: var(--surface);
+}
+
+ul {
+  padding: 0%;
 }
