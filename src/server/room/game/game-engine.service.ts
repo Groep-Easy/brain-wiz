@@ -43,6 +43,10 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.LEADERBOARD]: 'leaderboard',
 }
 
+const FIRST_RANK = 1
+const NO_RANK_CHANGE = 0
+const NEW_PLAYER_POSITION = Number.MAX_SAFE_INTEGER
+
 @Injectable()
 export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
@@ -226,26 +230,23 @@ export class GameEngineService {
       previousLeaderboardOrder.map((playerId, position) => [playerId, position])
     )
 
-    const newPlayerPosition = Number.MAX_SAFE_INTEGER
-
     const leaderboard = [...players].sort((firstPlayer, secondPlayer) => {
       const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
 
-      if (scoreOrder !== 0) {
+      if (scoreOrder !== NO_RANK_CHANGE) {
         return scoreOrder
       }
 
       const firstPlayerPreviousPosition =
-        previousPositionByPlayerId.get(firstPlayer.id) ?? newPlayerPosition
+        previousPositionByPlayerId.get(firstPlayer.id) ?? NEW_PLAYER_POSITION
 
       const secondPlayerPreviousPosition =
-        previousPositionByPlayerId.get(secondPlayer.id) ?? newPlayerPosition
+        previousPositionByPlayerId.get(secondPlayer.id) ?? NEW_PLAYER_POSITION
 
-      const previousLeaderboardOrder =
-        firstPlayerPreviousPosition - secondPlayerPreviousPosition
+      const previousPositionOrder = firstPlayerPreviousPosition - secondPlayerPreviousPosition
 
-      if (previousLeaderboardOrder !== 0) {
-        return previousLeaderboardOrder
+      if (previousPositionOrder !== NO_RANK_CHANGE) {
+        return previousPositionOrder
       }
 
       return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
@@ -256,13 +257,22 @@ export class GameEngineService {
       leaderboard.map((player) => player.id)
     )
 
-    return leaderboard.map((player, index) => ({
-      playerId: player.id,
-      name: player.displayName,
-      score: player.totalScore,
-      rank: index + 1,
-      connected: player.isConnected,
-    }))
+    return leaderboard.map((player, index) => {
+      const rank = index + FIRST_RANK
+      const previousPosition = previousPositionByPlayerId.get(player.id)
+      const previousRank = previousPosition === undefined ? null : previousPosition + FIRST_RANK
+      const rankChange = previousRank === null ? NO_RANK_CHANGE : previousRank - rank
+
+      return {
+        playerId: player.id,
+        name: player.displayName,
+        score: player.totalScore,
+        rank,
+        previousRank,
+        rankChange,
+        connected: player.isConnected,
+      }
+    })
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

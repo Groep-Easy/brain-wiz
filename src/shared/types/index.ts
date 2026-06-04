@@ -84,6 +84,8 @@ export interface LeaderboardEntry {
   name: string
   score: number
   rank: number
+  previousRank: number | null
+  rankChange: number
   connected: boolean
 }
 
