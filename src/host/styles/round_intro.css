@@ -1,0 +1,21 @@
+.round-intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--navy);
+  color: #fff;
+}
+.round-intro-card {
+  text-align: center;
+}
+.round-intro-eyebrow {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin: 0 0 0.5rem;
+}
+.round-intro-title {
+  font-size: clamp(2rem, 6vw, 4.5rem);
+}

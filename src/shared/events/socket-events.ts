@@ -48,6 +48,8 @@ export const QUESTION_REVEAL = 'QUESTION_REVEAL'
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
+/** Server → all:    how many have answered.  Payload: { answered, total }      */
+export const ANSWER_COUNT_UPDATE = 'ANSWER_COUNT_UPDATE'
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
 /** Server → all:    tick.                 Payload: { secondsRemaining: number } */

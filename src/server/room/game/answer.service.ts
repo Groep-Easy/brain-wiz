@@ -102,6 +102,11 @@ export class AnswerService {
     }
     this.ack(socket, true)
 
+    this.broadcaster.emitToRoom(roomId, EVENTS.ANSWER_COUNT_UPDATE, {
+      answered: window.submitted.size,
+      total: this.registry.getClientSockets(roomId).length,
+    })
+
     if (this.allConnectedAnswered(roomId, window)) {
       this.bus.publish({ type: 'ALL_PLAYERS_ANSWERED', roomId, roundId: window.roundId })
     }

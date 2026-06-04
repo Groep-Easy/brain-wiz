@@ -1,50 +1,78 @@
-import '../styles/main_style.css'
+import type { QuestionState, QuestionRevealPayload } from '../../shared/types/index'
+import { computeAnswerStats } from '../../shared/utils/answer-stats'
+import '../styles/question.css'
 
-interface QuestionProps {
+const SHAPES = ['▲', '◆', '●', '■']
+const TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan']
+
+interface QuestionScreenProps {
   gameCode: string
-  theme: string
-  currentQuestion: string
-  answers: string[]
-  amountAnswers: number
-  timer: number
+  question: QuestionState
+  secondsRemaining: number
+  answeredCount: number
+  totalPlayers: number
+  reveal: QuestionRevealPayload | null
 }
 
 export function Question({
   gameCode,
-  theme,
-  currentQuestion,
-  answers,
-  amountAnswers,
-  timer,
-}: QuestionProps): React.JSX.Element {
+  question,
+  secondsRemaining,
+  answeredCount,
+  totalPlayers,
+  reveal,
+}: QuestionScreenProps): React.JSX.Element {
+  const timerPct =
+    question.timeLimit > 0
+      ? Math.max(0, Math.min(100, (secondsRemaining / question.timeLimit) * 100))
+      : 0
+
+  const revealed = reveal !== null
+  const summary = revealed ? computeAnswerStats(question, reveal) : null
+  const stats = summary?.stats ?? null
+
   return (
     <main className="host-question-page">
-      <div className="top">
-        <div className="top-left">
-          <p>Game code: {gameCode}</p>
+      <header className="hq-top">
+        <span className="hq-code">Code: {gameCode}</span>
+        <span className="hq-status">
+          {revealed
+            ? `${summary?.correctPlayers ?? 0} of ${summary?.totalAnswered ?? 0} got it right`
+            : `${answeredCount} / ${totalPlayers} answered`}
+        </span>
+      </header>
+
+      {!revealed && (
+        <div className="hq-timer">
+          <div className="hq-timer-bar" style={{ width: `${timerPct}%` }} />
+          <span className="hq-timer-label">{secondsRemaining}s</span>
         </div>
-        <div className="top-center">{theme} Quiz</div>
-        <div className="top-right">
-          <button>Toggle sound</button>
-          <button>Settings</button>
-        </div>
-      </div>
-      <div className="question">
-        <h1>{currentQuestion}</h1>
-      </div>
-      <div className="image">
-        <img alt="" />
-      </div>
-      <div className="imageanswer"> </div>
-      <div className="answers">
-        {answers[0] && <div className="answer answer1">{answers[0]}</div>}
-        {answers[1] && <div className="answer answer2">{answers[1]}</div>}
-        {answers[2] && <div className="answer answer3">{answers[2]}</div>}
-        {answers[3] && <div className="answer answer4">{answers[3]}</div>}
-      </div>
-      <div className="bottom">
-        <p>Answers: {amountAnswers}</p>
-        <p>{timer}s left!</p>
+      )}
+
+      <h1 className="hq-question">{question.text}</h1>
+
+      <div className="hq-answers">
+        {question.answers.map((answer, i) => {
+          const stat = stats?.[i]
+          const isCorrect = stat?.correct ?? false
+          const dim = revealed && !isCorrect
+          return (
+            <div
+              key={answer.id}
+              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${
+                dim ? 'is-dim' : ''
+              } ${revealed && isCorrect ? 'is-correct' : ''}`}
+            >
+              {revealed && (
+                <div className="hq-tile-bar" style={{ width: `${(stat?.fraction ?? 0) * 100}%` }} />
+              )}
+              <span className="hq-tile-shape">{SHAPES[i] ?? ''}</span>
+              <span className="hq-tile-text">{answer.text}</span>
+              {revealed && <span className="hq-tile-count">{stat?.count ?? 0}</span>}
+              {revealed && isCorrect && <span className="hq-tile-check">✓</span>}
+            </div>
+          )
+        })}
       </div>
     </main>
   )
