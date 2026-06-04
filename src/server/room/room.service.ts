@@ -89,6 +89,22 @@ export class RoomService {
     return this.rooms.save(room)
   }
 
+  public async appendUsedQuestionsId(roomId: string, questionId: string): Promise<void> {
+    if (typeof this.rooms.query === 'function') {
+      await this.rooms.query(
+        `UPDATE rooms SET "usedQuestionsIds" = array_append("usedQuestionsIds", $1) WHERE id = $2`,
+        [questionId, roomId]
+      )
+    } else {
+      // Fallback for tests/fakes
+      const room = await this.findById(roomId)
+      if (room) {
+        room.usedQuestionsIds = [...(room.usedQuestionsIds || []), questionId]
+        await this.rooms.save(room)
+      }
+    }
+  }
+
   private async generateUniqueJoinCode(): Promise<string> {
     for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
       const code = generateRoomCode()
@@ -100,12 +116,5 @@ export class RoomService {
       }
     }
     throw new Error('Unable to generate a unique room code')
-  }
-
-  public async appendUsedQuestionsId(roomId: string, questionId: string): Promise<void> {
-    await this.rooms.query(
-      `UPDATE rooms SET "usedQuestionsIds" = array_append("usedQuestionsIds", $1) WHERE id = $2`,
-      [questionId, roomId]
-    )
   }
 }

@@ -3,7 +3,7 @@
  * @owner server-squad
  */
 import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import * as assert from 'node:assert/strict'
 import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
 import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
 import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
@@ -41,6 +41,7 @@ function fakeLobby(
     leaveClient: record('leaveClient'),
     handleDisconnect: record('handleDisconnect'),
     isConnectionRegistered: (): boolean => registered,
+    sendQuestionToRoom: record('sendQuestionToRoom'), // stub to avoid type errors
   } as unknown as LobbyService
   return { service, calls }
 }

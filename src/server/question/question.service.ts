@@ -3,22 +3,37 @@ import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
 import { Question } from '../entities/question.entity.js'
 import type { CreateQuestionDto } from './dto/create-question.dto.js'
-import { ConnectionRegistry } from '../room/lobby/connection-registry.js'
-import { RoomBroadcaster } from '../room/lobby/room-broadcaster.js'
-import * as EVENTS from '../../shared/events/socket-events.js'
-import type { ClientSocket } from '../room/lobby/lobby.types.js'
-import { RoomService } from '../room/room.service.js'
 
 const MAX_ANSWERS = 2
+const MAX_USED_IDS = 1000
 
 @Injectable()
 export class QuestionService {
   public constructor(
-    @InjectRepository(Question) private readonly questions: Repository<Question>,
-    private readonly registry: ConnectionRegistry,
-    private readonly broadcaster: RoomBroadcaster,
-    private readonly roomService: RoomService
+    @InjectRepository(Question) private readonly questions: Repository<Question>
   ) {}
+
+  private validateUsedIds(usedIds: string[]): void {
+    if (!Array.isArray(usedIds)) {
+      throw new BadRequestException('usedIds must be an array')
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    for (const id of usedIds) {
+      if (typeof id !== 'string' || !uuidRegex.test(id)) {
+        throw new BadRequestException(`Invalid UUID in usedIds: ${id}`)
+      }
+    }
+
+    const uniqueIds = new Set(usedIds)
+    if (uniqueIds.size !== usedIds.length) {
+      throw new BadRequestException('usedIds contains duplicates')
+    }
+
+    if (usedIds.length > MAX_USED_IDS) {
+      throw new BadRequestException(`usedIds exceeds maximum size of ${MAX_USED_IDS}`)
+    }
+  }
 
   public async createQuestion(dto: CreateQuestionDto): Promise<string> {
     const wrongAnswers = dto.wrongAnswers || []
@@ -52,31 +67,19 @@ export class QuestionService {
   }
 
   // gets random unused question from the database
-  public async getRandomQuestion(usedIds: string[]): Promise<Question | null> {
-    const questions = await this.questions.find()
-    const unusedQuestions = questions.filter((q) => !usedIds.includes(q.id))
+  public async getRandomQuestion(usedIds: string[] = []): Promise<Question | null> {
+    this.validateUsedIds(usedIds)
+
+    const queryBuilder = this.questions.createQueryBuilder('question')
+
+    if (usedIds.length > 0) {
+      queryBuilder.where('question.id NOT IN (:...usedIds)', { usedIds })
+    }
+
+    const unusedQuestions = await queryBuilder.getMany()
     if (unusedQuestions.length === 0) return null
 
     const randomIndex = Math.floor(Math.random() * unusedQuestions.length)
     return unusedQuestions[randomIndex] ?? null
-  }
-
-  // when called sends the question to the host of the room
-  public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
-    const membership = this.registry.lookup(hostSocket)
-    if (!membership || membership.role !== 'host') return
-
-    const room = await this.roomService.findById(membership.roomId)
-    if (!room) return
-
-    const question = await this.getRandomQuestion(room.usedQuestionsIds)
-    if (!question) return
-
-    room.usedQuestionsIds = [...room.usedQuestionsIds, question.id]
-    await this.roomService.appendUsedQuestionsId(membership.roomId, question.id)
-
-    this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
-      question: question.text,
-    })
   }
 }

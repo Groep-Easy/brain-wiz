@@ -23,6 +23,8 @@ import { Room } from '../../src/server/entities/room.entity'
 import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '../../src/shared/events/socket-events'
 import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
+import { QuestionService } from '../../src/server/question/question.service.js'
+import type { Question } from '../../src/server/entities/question.entity.js'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
@@ -86,7 +88,16 @@ function recordingSocket(): {
   return { sent, send: (d: string): void => void sent.push(JSON.parse(d)) }
 }
 
-function makeLobby(): LobbyService {
+function fakeQuestionService(questionsList: Question[] = []): QuestionService {
+  return {
+    getRandomQuestion: async (usedIds: string[] = []) => {
+      const unused = questionsList.filter((q) => !usedIds.includes(q.id))
+      return unused[0] ?? null
+    },
+  } as unknown as QuestionService
+}
+
+function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
   const registry = new ConnectionRegistry()
@@ -95,7 +106,7 @@ function makeLobby(): LobbyService {
     run: (): void => undefined,
     abort: (): void => undefined,
   } as unknown as GameEngineService
-  return new LobbyService(rooms, clients, registry, broadcaster, noopEngine)
+  return new LobbyService(rooms, clients, registry, broadcaster, noopEngine, fakeQuestionService(questions))
 }
 
 function eventsOf(socket: { sent: Array<{ event: string }> }): string[] {
@@ -437,7 +448,7 @@ describe('LobbyService abort-on-empty', () => {
       run: (): void => undefined,
       abort: (id: string): void => void aborted.push(id),
     } as unknown as GameEngineService
-    const lobby = new LobbyService(rooms, clients, registry, broadcaster, gameEngine)
+    const lobby = new LobbyService(rooms, clients, registry, broadcaster, gameEngine, fakeQuestionService())
     return { lobby, rooms, clients, registry, aborted }
   }
 
@@ -474,5 +485,49 @@ describe('LobbyService.getRoomState', () => {
     const state = await lobby.getRoomState(code)
     assert.equal(state?.code, code)
     assert.equal(state?.phase, 'lobby')
+  })
+})
+
+describe('LobbyService.sendQuestionToRoom', () => {
+  const sampleQuestion = {
+    id: 'q-1',
+    text: 'Test Question 1',
+  } as unknown as Question
+
+  it('broadcasts the question text to the room and appends question ID to room.usedQuestionsIds when called by a host', async () => {
+    const lobby = makeLobby([sampleQuestion])
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+
+    await lobby.sendQuestionToRoom(host)
+
+    const ack = host.sent.find((m) => m.event === EVENTS.QUESTION_SHOW)
+    assert.ok(ack)
+    assert.equal((ack.data as { question: string }).question, sampleQuestion.text)
+
+    // Verify duplication avoidance: calling it again with the same question list returns nothing since the only question was already used
+    host.sent = []
+    await lobby.sendQuestionToRoom(host)
+    assert.equal(host.sent.length, 0)
+  })
+
+  it('does nothing when the socket is not registered as a host', async () => {
+    const lobby = makeLobby([sampleQuestion])
+    const client = recordingSocket()
+
+    await lobby.sendQuestionToRoom(client)
+    assert.equal(client.sent.length, 0)
+  })
+
+  it('does nothing when there are no questions available', async () => {
+    const lobby = makeLobby([])
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+    host.sent = [] // clear connection state update event
+
+    await lobby.sendQuestionToRoom(host)
+    assert.equal(host.sent.length, 0)
   })
 })

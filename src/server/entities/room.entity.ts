@@ -58,7 +58,7 @@ export class Room {
    * Contains all the questions that are already asked
    */
 
-  @Column('uuid', { array: true, default: '{}' })
+  @Column('uuid', { array: true, default: () => 'ARRAY[]::uuid[]' })
   public usedQuestionsIds!: string[]
 
   /**

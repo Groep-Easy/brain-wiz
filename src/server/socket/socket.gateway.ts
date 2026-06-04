@@ -219,6 +219,11 @@ export class SocketGateway
     void this.lobby.leaveClient(client)
   }
 
+  @SubscribeMessage(EVENTS.QUESTION_SHOW)
+  public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
+    void this.lobby.sendQuestionToRoom(client)
+  }
+  
   @SubscribeMessage(EVENTS.ANSWER_SUBMIT)
   public handleAnswerSubmit(
     @MessageBody() payload: AnswerSubmitPayload | undefined,
