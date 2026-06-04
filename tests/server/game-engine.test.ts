@@ -182,6 +182,34 @@ describe('GameEngineService', () => {
     assert.equal(broadcaster.events[broadcaster.events.length - 1], EVENTS.GAME_OVER)
   })
 
+  it('emits LEADERBOARD_SHOW after each round end with sorted leaderboard payload', async () => {
+    const { engine, broadcaster } = makeEngine(autoExpireTimer())
+
+    await engine.run('room-1')
+
+    const leaderboardCount = broadcaster.events.filter((e) => e === EVENTS.LEADERBOARD_SHOW).length
+    assert.equal(leaderboardCount, 5)
+
+    const leaderboardPayloads = broadcaster.eventPayloads.filter(
+      (_payload, index) => broadcaster.events[index] === EVENTS.LEADERBOARD_SHOW
+    )
+
+    assert.equal(leaderboardPayloads.length, 5)
+    const leaderboardPayload = leaderboardPayloads[0] as {
+      round: unknown
+      leaderboard: Array<{ playerId: string; name: string; score: number; rank: number; connected: boolean }>
+    }
+
+    assert.equal(leaderboardPayload.leaderboard.length, 1)
+    assert.deepEqual(leaderboardPayload.leaderboard[0], {
+      playerId: 'p1',
+      name: 'Player 1',
+      score: 0,
+      rank: 1,
+      connected: true,
+    })
+  })
+
   it('abort() mid-round stops the loop, abandons the room, emits no GAME_OVER', async () => {
     const { timer, startedPromise } = manualTimer()
     const { engine, broadcaster, finishCalls } = makeEngine(timer)
