@@ -106,7 +106,14 @@ function makeLobby(questions: Question[] = []): LobbyService {
     run: (): void => undefined,
     abort: (): void => undefined,
   } as unknown as GameEngineService
-  return new LobbyService(rooms, clients, registry, broadcaster, noopEngine, fakeQuestionService(questions))
+  return new LobbyService(
+    rooms,
+    clients,
+    registry,
+    broadcaster,
+    noopEngine,
+    fakeQuestionService(questions)
+  )
 }
 
 function eventsOf(socket: { sent: Array<{ event: string }> }): string[] {
@@ -448,7 +455,14 @@ describe('LobbyService abort-on-empty', () => {
       run: (): void => undefined,
       abort: (id: string): void => void aborted.push(id),
     } as unknown as GameEngineService
-    const lobby = new LobbyService(rooms, clients, registry, broadcaster, gameEngine, fakeQuestionService())
+    const lobby = new LobbyService(
+      rooms,
+      clients,
+      registry,
+      broadcaster,
+      gameEngine,
+      fakeQuestionService()
+    )
     return { lobby, rooms, clients, registry, aborted }
   }
 

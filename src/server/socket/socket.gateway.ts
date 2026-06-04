@@ -223,7 +223,7 @@ export class SocketGateway
   public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
     void this.lobby.sendQuestionToRoom(client)
   }
-  
+
   @SubscribeMessage(EVENTS.ANSWER_SUBMIT)
   public handleAnswerSubmit(
     @MessageBody() payload: AnswerSubmitPayload | undefined,
