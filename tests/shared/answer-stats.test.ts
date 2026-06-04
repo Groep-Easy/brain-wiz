@@ -18,9 +18,7 @@ const QUESTION: QuestionState = {
   ],
 }
 
-function reveal(
-  playerAnswers: QuestionRevealPayload['playerAnswers']
-): QuestionRevealPayload {
+function reveal(playerAnswers: QuestionRevealPayload['playerAnswers']): QuestionRevealPayload {
   return { roundId: 'r1', correctAnswerIds: ['a'], playerAnswers }
 }
 
