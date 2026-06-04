@@ -24,6 +24,7 @@ import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '../../src/shared/events/socket-events'
 import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
 import { QuestionService } from '../../src/server/question/question.service.js'
+import type { Question } from '../../src/server/entities/question.entity.js'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
@@ -87,7 +88,7 @@ function recordingSocket(): {
   return { sent, send: (d: string): void => void sent.push(JSON.parse(d)) }
 }
 
-function fakeQuestionService(questionsList: any[] = []): QuestionService {
+function fakeQuestionService(questionsList: Question[] = []): QuestionService {
   return {
     getRandomQuestion: async (usedIds: string[] = []) => {
       const unused = questionsList.filter((q) => !usedIds.includes(q.id))
@@ -96,7 +97,7 @@ function fakeQuestionService(questionsList: any[] = []): QuestionService {
   } as unknown as QuestionService
 }
 
-function makeLobby(questions: any[] = []): LobbyService {
+function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
   const registry = new ConnectionRegistry()
@@ -491,7 +492,7 @@ describe('LobbyService.sendQuestionToRoom', () => {
   const sampleQuestion = {
     id: 'q-1',
     text: 'Test Question 1',
-  }
+  } as unknown as Question
 
   it('broadcasts the question text to the room and appends question ID to room.usedQuestionsIds when called by a host', async () => {
     const lobby = makeLobby([sampleQuestion])

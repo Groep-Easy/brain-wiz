@@ -14,21 +14,21 @@ import type { Question } from '../../src/server/entities/question.entity.js'
 
 function makeService(questionsList: Question[]): QuestionService {
   const repo = {
-    createQueryBuilder: () => {
+    createQueryBuilder: (): unknown => {
       let list = [...questionsList]
       const qb = {
-        where: (_condition: string, params: { usedIds: string[] }) => {
+        where: (_condition: string, params: { usedIds: string[] }): unknown => {
           if (params && params.usedIds) {
             list = list.filter((q) => !params.usedIds.includes(q.id))
           }
           return qb
         },
-        getMany: async () => list,
+        getMany: async (): Promise<Question[]> => list,
       }
-      return qb as any
+      return qb
     },
   }
-  return new QuestionService(repo as any)
+  return new QuestionService(repo as unknown as import('typeorm').Repository<Question>)
 }
 
 const sampleQuestion: Question = {
