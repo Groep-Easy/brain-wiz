@@ -10,30 +10,30 @@ import 'reflect-metadata'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
-import { Round } from '../../entities/round.entity.js'
-import { Room } from '../../entities/room.entity.js'
-import { RoomStatusEnum, RoundStatusEnum } from '../../entities/enums.js'
-import { RoomService } from '../room.service.js'
-import { ClientService } from '../../client/client.service.js'
-import { RoomBroadcaster } from '../lobby/room-broadcaster.js'
-import { toRoomState } from '../room.helpers.js'
-import * as EVENTS from '../../../shared/events/socket-events.js'
-import { ROUNDS, TIMER } from '../../../shared/constants/game-config.js'
+import { Round } from '../../entities/round.entity'
+import { Room } from '../../entities/room.entity'
+import { RoomStatusEnum, RoundStatusEnum } from '../../entities/enums'
+import { RoomService } from '../room.service'
+import { ClientService } from '../../client/client.service'
+import { RoomBroadcaster } from '../lobby/room-broadcaster'
+import { toRoomState } from '../room.helpers'
+import * as EVENTS from '../../../shared/events/socket-events'
+import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
 import type {
   GamePhase as WireGamePhase,
   RoundSummary,
   ScoreMap,
-} from '../../../shared/types/index.js'
+} from '../../../shared/types/index'
 import {
   GamePhase,
   RoundPresenter,
   TimerOutcome,
   type PhaseTimerLike,
   type RunningGame,
-} from './game.types.js'
-import { PhaseTimer } from './phase-timer.js'
-import { RoundBuilder } from './round-builder.js'
-import { ROUND_PRESENTER } from './round-presenter.js'
+} from './game.types'
+import { PhaseTimer } from './phase-timer'
+import { RoundBuilder } from './round-builder'
+import { ROUND_PRESENTER } from './round-presenter'
 
 const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',

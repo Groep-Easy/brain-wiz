@@ -71,15 +71,26 @@ function makeGateway(service: LobbyService, deps: GatewayDeps = {}): SocketGatew
 
 function socket(): {
   send(d: string): void
-  close(): void
+  close(code?: number, reason?: string): void
   closed: boolean
   connectionId?: string
+  lastClose?: { code?: number; reason?: string }
 } {
-  const s = {
+  const s: {
+    send(d: string): void
+    close(code?: number, reason?: string): void
+    closed: boolean
+    connectionId?: string
+    lastClose?: { code?: number; reason?: string }
+  } = {
     send: (): void => undefined,
     closed: false,
-    close: (): void => {
+    close: (code?: number, reason?: string): void => {
       s.closed = true
+      const lastClose: { code?: number; reason?: string } = {}
+      if (code !== undefined) lastClose.code = code
+      if (reason !== undefined) lastClose.reason = reason.toString()
+      s.lastClose = lastClose
     },
   }
   return s
@@ -102,9 +113,9 @@ describe('SocketGateway ping/pong', () => {
 })
 
 describe('parseConnectParams', () => {
-  it('extracts role, code and host token from the upgrade URL', () => {
+  it('extracts role and code from the upgrade URL', () => {
     const params = parseConnectParams('/?role=host&code=ABCD&hostToken=secret')
-    assert.deepEqual(params, { role: 'host', code: 'ABCD', hostToken: 'secret' })
+    assert.deepEqual(params, { role: 'host', code: 'ABCD' })
   })
   it('returns an empty object for a missing URL', () => {
     assert.deepEqual(parseConnectParams(undefined), {})
@@ -120,11 +131,14 @@ describe('SocketGateway connection handling', () => {
     assert.ok((s.connectionId ?? '').length > 0)
   })
 
-  it('registers a host when the URL carries a valid host role', () => {
+  it('registers a host when the request carries a valid host role and header token', () => {
     const { service, calls } = fakeLobby()
     const gateway = makeGateway(service)
     const s = socket()
-    gateway.handleConnection(s, { url: '/?role=host&code=ABCD&hostToken=secret' })
+    gateway.handleConnection(s, {
+      url: '/?role=host&code=ABCD',
+      headers: { origin: ALLOWED_ORIGIN, 'sec-websocket-protocol': `${WS_SUBPROTOCOL}, secret` },
+    })
     const call = calls.find((c) => c.method === 'connectHost')
     assert.ok(call)
     assert.deepEqual(call.args.slice(0, 2), ['ABCD', 'secret'])
@@ -280,7 +294,7 @@ describe('SocketGateway host authentication', () => {
   } {
     return {
       url: '/?role=host&code=ABCD',
-      headers: { origin: ALLOWED_ORIGIN, 'sec-websocket-protocol': `${WS_SUBPROTOCOL}, sekret` },
+      headers: { origin: ALLOWED_ORIGIN, 'sec-websocket-protocol': `${WS_SUBPROTOCOL}, secret` },
       socket: { remoteAddress },
     }
   }
@@ -292,7 +306,7 @@ describe('SocketGateway host authentication', () => {
     gateway.handleConnection(s, hostRequest('1.2.3.4'))
     const call = calls.find((c) => c.method === 'connectHost')
     assert.ok(call)
-    assert.deepEqual(call.args.slice(0, 2), ['ABCD', 'sekret'])
+    assert.deepEqual(call.args.slice(0, 2), ['ABCD', 'secret'])
     assert.equal(call.args[3], s)
   })
 

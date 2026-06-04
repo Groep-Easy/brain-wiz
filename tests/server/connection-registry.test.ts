@@ -5,7 +5,7 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry.js'
+import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
 
 /** Minimal fake socket — only identity matters to the registry. */
 function fakeSocket(): { send(data: string): void } {

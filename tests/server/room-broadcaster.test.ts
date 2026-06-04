@@ -4,10 +4,10 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry.js'
-import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster.js'
-import { ROOM_STATE_UPDATE, PLAYER_LEAVE } from '../../src/shared/events/socket-events.js'
-import type { RoomState } from '../../src/shared/types/index.js'
+import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
+import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
+import { ROOM_STATE_UPDATE, PLAYER_LEAVE } from '../../src/shared/events/socket-events'
+import type { RoomState } from '../../src/shared/types/index'
 
 function recordingSocket(): { sent: string[]; send(data: string): void } {
   const sent: string[] = []

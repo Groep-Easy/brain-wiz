@@ -10,9 +10,9 @@
  */
 import { Module, OnApplicationBootstrap, OnApplicationShutdown, Logger } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { AppDataSource } from './data-source.js'
-import { QuestionSeederService } from './question-seeder.service.js'
-import * as entities from '../entities/index.js'
+import { AppDataSource } from './data-source'
+import { QuestionSeederService } from './question-seeder.service'
+import * as entities from '../entities/index'
 
 /**
  * Database initialization service

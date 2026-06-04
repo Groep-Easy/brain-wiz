@@ -13,9 +13,9 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums.js'
-import type { Client } from './client.entity.js'
-import type { Round } from './round.entity.js'
+import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums'
+import type { Client } from './client.entity'
+import type { Round } from './round.entity'
 
 /**
  * Room entity - represents a multiplayer game session

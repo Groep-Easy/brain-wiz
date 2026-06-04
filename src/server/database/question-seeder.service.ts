@@ -1,7 +1,7 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { Question } from '../entities/question.entity.js'
+import { Question } from '../entities/question.entity'
 import * as fs from 'fs'
 import * as path from 'path'
 

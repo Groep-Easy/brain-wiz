@@ -14,12 +14,12 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import { RoundStatusEnum, ContentTypeEnum } from './enums.js'
-import type { Room } from './room.entity.js'
-import type { Question } from './question.entity.js'
-import type { CodingChallenge } from './coding-challenge.entity.js'
-import type { Puzzle } from './puzzle.entity.js'
-import type { ClientAnswer } from './client-answer.entity.js'
+import { RoundStatusEnum, ContentTypeEnum } from './enums'
+import type { Room } from './room.entity'
+import type { Question } from './question.entity'
+import type { CodingChallenge } from './coding-challenge.entity'
+import type { Puzzle } from './puzzle.entity'
+import type { ClientAnswer } from './client-answer.entity'
 
 /**
  * Round entity - represents one content item (question/challenge/puzzle) in a game

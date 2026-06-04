@@ -9,7 +9,7 @@ import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { type Repository } from 'typeorm'
-import { Client } from '../entities/client.entity.js'
+import { Client } from '../entities/client.entity'
 
 @Injectable()
 export class ClientService {

@@ -4,7 +4,8 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
+      DB_HOST: db
+      NODE_ENV: production
     ports:
       - '3000:3000'
     container_name: server
@@ -17,10 +18,8 @@ services:
     container_name: postgres-db
     env_file:
       - .env
-    # Expose Postgres on the host via 5433 to avoid conflicts with any local
-    # Postgres instance on 5432. The app and tests use DB_PORT=5433 in .env.
     ports:
-      - "5433:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

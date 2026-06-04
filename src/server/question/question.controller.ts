@@ -1,7 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
-import { QuestionService } from './question.service.js'
-import { CreateQuestionDto } from './dto/create-question.dto.js'
-import { ApiKeyGuard } from '../utils/api-key.guard.js'
+import { QuestionService } from './question.service'
+import { CreateQuestionDto } from './dto/create-question.dto'
+import { ApiKeyGuard } from '../utils/api-key.guard'
 
 @Controller('questions')
 @UseGuards(ApiKeyGuard)

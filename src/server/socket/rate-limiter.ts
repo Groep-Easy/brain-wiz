@@ -9,8 +9,8 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { RATE_LIMIT } from '../../shared/constants/game-config.js'
-import type { RateLimitWindow } from './socket.types.js'
+import { RATE_LIMIT } from '../../shared/constants/game-config'
+import type { RateLimitWindow } from './socket.types'
 
 @Injectable()
 export class RateLimiter {

@@ -7,10 +7,10 @@
  */
 import 'reflect-metadata'
 import { Injectable, Logger } from '@nestjs/common'
-import { ConnectionRegistry } from './connection-registry.js'
-import type { ClientSocket } from './lobby.types.js'
-import { ROOM_STATE_UPDATE } from '../../../shared/events/socket-events.js'
-import type { RoomState } from '../../../shared/types/index.js'
+import { ConnectionRegistry } from './connection-registry'
+import type { ClientSocket } from './lobby.types'
+import { ROOM_STATE_UPDATE } from '../../../shared/events/socket-events'
+import type { RoomState } from '../../../shared/types/index'
 
 @Injectable()
 export class RoomBroadcaster {
