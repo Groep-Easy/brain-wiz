@@ -1,0 +1,55 @@
+.qs-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 500px;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.qs-title {
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  text-align: center;
+  color: var(--dark);
+  margin: 0;
+}
+
+.qs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.qs-answer {
+  padding: 1.2rem;
+  border-radius: 16px;
+  border: none;
+  font-size: clamp(1rem, 4vw, 1.4rem);
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.qs-answer:nth-child(4n + 1) {
+  background: var(--teal);
+}
+
+.qs-answer:nth-child(4n + 2) {
+  background: var(--red);
+}
+
+.qs-answer:nth-child(4n + 3) {
+  background: var(--darkblue);
+}
+
+.qs-answer:nth-child(4n + 4) {
+  background: var(--navy);
+}
+
+.qs-answer:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}

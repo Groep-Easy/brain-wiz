@@ -1,5 +1,6 @@
 import { LoadingComp } from './components/LoadingComp'
 import { JoinScreen } from './components/JoinScreen'
+import { QuestionScreen } from './components/QuestionScreen'
 import { useState } from 'react'
 import { useRef } from 'react'
 import {
@@ -29,17 +30,17 @@ function WaitingScreen() {
   )
 }
 
-function QuestionScreen({ onAnswer }: { onAnswer: (a: string) => void }) {
-  return (
-    <div className="screen">
-      <h2>Question</h2>
-      <button onClick={() => onAnswer('A')}>A</button>
-      <button onClick={() => onAnswer('B')}>B</button>
-      <button onClick={() => onAnswer('C')}>C</button>
-      <button onClick={() => onAnswer('D')}>D</button>
-    </div>
-  )
-}
+// function QuestionScreen({ onAnswer }: { onAnswer: (a: string) => void }) {
+//   return (
+//     <div className="screen">
+//       <h2>Question</h2>
+//       <button onClick={() => onAnswer('A')}>A</button>
+//       <button onClick={() => onAnswer('B')}>B</button>
+//       <button onClick={() => onAnswer('C')}>C</button>
+//       <button onClick={() => onAnswer('D')}>D</button>
+//     </div>
+//   )
+// }
 
 function AnsweredScreen() {
   return (
@@ -139,24 +140,12 @@ export function App(): React.JSX.Element | null {
       )
 
     case 'waiting':
-      return (
-        <main className="app">
-          <WaitingScreen />
-        </main>
-      )
+      return <LoadingComp></LoadingComp>
 
     case 'question':
       return (
         <main className="app">
-          <h2>{question?.text}</h2>
-          <div>
-            {question?.answers.map((a) => (
-              <button key={a.id} onClick={() => handleAnswer(a.id, a.text)}>
-                {a.text}
-              </button>
-            ))}
-          </div>
-          {/* <QuestionScreen onAnswer={handleAnswer} /> */}
+          {question && <QuestionScreen question={question} onAnswer={handleAnswer} />}
         </main>
       )
 
