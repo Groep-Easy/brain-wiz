@@ -69,20 +69,11 @@ export class QuestionService {
     const room = await this.roomService.findById(membership.roomId)
     if (!room) return
 
-    console.log('room id:', room.id)
-    console.log('usedQuestionIds before:', room.usedQuestionsIds)
-
     const question = await this.getRandomQuestion(room.usedQuestionsIds)
     if (!question) return
 
     room.usedQuestionsIds = [...room.usedQuestionsIds, question.id]
-    console.log('question id to save:', question.id)
     await this.roomService.appendUsedQuestionsId(membership.roomId, question.id)
-    console.log('usedQuestionIds after:', room.usedQuestionsIds)
-
-
-    // const question = await this.getRandomQuestion()
-    // if (!question) return
 
     this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
       question: question.text,
