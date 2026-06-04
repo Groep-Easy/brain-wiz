@@ -55,6 +55,13 @@ export class Room {
   public qrCodeSvg!: string
 
   /**
+   * Contains all the questions that are already asked
+   */
+
+  @Column('uuid', { array: true, default: '{}' })
+  public usedQuestionsIds!: string[]
+
+  /**
    * Current status of the room
    * CONSTRAINT: NOT NULL, default 'lobby'
    */
