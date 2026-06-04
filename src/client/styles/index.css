@@ -5,6 +5,14 @@
     sans-serif;
   line-height: 1.5;
   color-scheme: light dark;
+  --dark: #2a3135; /* tekst, koppen        */
+  --navy: #36435f; /* secundair, hover     */
+  --red: #ba162d; /* accent, fout, gevaar */
+  --tan: #ccb87b; /* randen, zachte vlakken */
+  --teal: #056c5c; /* primair, knoppen     */
+  --bg: #f7f5ef; /* warme lichte achtergrond */
+  --surface: #ffffff;
+  --darkblue: #2c57a8;
 }
 
 * {
@@ -24,4 +32,48 @@ body {
   min-height: 100vh;
   padding: 1rem;
   text-align: center;
+  background: var(--bg);
+  color: var(--teal);
+}
+
+.screen {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.join-form label {
+  font-size: 0.9rem;
+  color: var(--navy);
+  margin-bottom: -0.4rem;
+}
+
+.join-form input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--tan);
+  font-size: 1rem;
+  background: var(--surface);
+  color: var(--dark);
+}
+
+.join-form button {
+  margin-top: 0.5rem;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--teal);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
 }
