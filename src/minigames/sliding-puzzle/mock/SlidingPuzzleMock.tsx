@@ -1,11 +1,15 @@
 import { useMemo, useState, type JSX } from 'react'
 import { SlidingPuzzle } from '../components/SlidingPuzzle.js'
 import { getSampleSlidingPuzzle } from './samplePuzzle.js'
+import localTestPuzzleUrl from './images/local-test-puzzle.svg?url'
 import './SlidingPuzzleMock.css'
 
 export function SlidingPuzzleMock(): JSX.Element {
   const [puzzleIndex, setPuzzleIndex] = useState(0)
-  const puzzle = useMemo(() => getSampleSlidingPuzzle(puzzleIndex), [puzzleIndex])
+  const puzzle = useMemo(
+    () => getSampleSlidingPuzzle(puzzleIndex, localTestPuzzleUrl),
+    [puzzleIndex]
+  )
 
   return (
     <main className="sliding-puzzle-mock">

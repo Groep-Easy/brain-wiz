@@ -73,6 +73,16 @@ const DIFFICULTY_EQUATION_COUNT: Record<ScaleDifficulty, number> = {
 }
 
 const GENERATED_SCALE_SLOT = 2
+const MIN_SCALE_ITEM_TYPES = 2
+const EASY_SCALE_VARIANT_COUNT = 4
+const HARD_SCALE_VARIANT_COUNT = 8
+const EASY_LIGHT_DUPLICATE_ANSWER_VARIANT = 2
+const HARD_THIRD_MISSING_ANSWER_VARIANT = 2
+const HARD_FOURTH_MISSING_ANSWER_VARIANT = 3
+const HARD_BASE_DUPLICATE_ANSWER_VARIANT = 4
+const HARD_SECOND_DUPLICATE_ANSWER_VARIANT = 5
+const HARD_THIRD_DUPLICATE_ANSWER_VARIANT = 6
+const NUMERIC_SUFFIX_PATTERN = /\d+$/
 
 export function sideSign(side: Side): SideSign {
   return side === LEFT_SIDE ? LEFT_SIDE_SIGN : RIGHT_SIDE_SIGN
@@ -290,7 +300,7 @@ function createHardEquations(items: ItemOption[]): ScaleEquation[] {
 }
 
 function getStablePuzzleVariantIndex(id: string, variantCount: number): number {
-  const numericSuffix = id.match(/\d+$/)?.[0]
+  const numericSuffix = NUMERIC_SUFFIX_PATTERN.exec(id)?.[0]
   if (numericSuffix !== undefined) {
     return Number(numericSuffix) % variantCount
   }
@@ -325,7 +335,7 @@ function validateGeneratedPuzzleShape(puzzle: ScalePuzzle, difficulty: ScaleDiff
     )
   }
 
-  if (scaleItemIds.size < 2) {
+  if (scaleItemIds.size < MIN_SCALE_ITEM_TYPES) {
     throw new Error(
       `Balance-scale ${difficulty} puzzle must use at least two different scale item types`
     )
@@ -345,7 +355,7 @@ function generateEasyScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
     throw new Error('Easy balance-scale puzzle could not select exactly three item types')
   }
 
-  const variantIndex = getStablePuzzleVariantIndex(input.id, 4)
+  const variantIndex = getStablePuzzleVariantIndex(input.id, EASY_SCALE_VARIANT_COUNT)
   let placed: PlacedItem[]
   let addTo: ScaleSlotPosition
 
@@ -369,7 +379,7 @@ function generateEasyScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: RIGHT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 2) {
+  } else if (variantIndex === EASY_LIGHT_DUPLICATE_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(heavyItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(lightItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
@@ -411,7 +421,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
     throw new Error('Hard balance-scale puzzle could not select enough item types')
   }
 
-  const variantIndex = getStablePuzzleVariantIndex(input.id, 8)
+  const variantIndex = getStablePuzzleVariantIndex(input.id, HARD_SCALE_VARIANT_COUNT)
   let placed: PlacedItem[]
   let addTo: ScaleSlotPosition
 
@@ -437,7 +447,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: RIGHT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 2) {
+  } else if (variantIndex === HARD_THIRD_MISSING_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(fourthItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
@@ -448,7 +458,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: RIGHT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 3) {
+  } else if (variantIndex === HARD_FOURTH_MISSING_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
@@ -459,7 +469,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: RIGHT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 4) {
+  } else if (variantIndex === HARD_BASE_DUPLICATE_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
@@ -470,7 +480,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: LEFT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 5) {
+  } else if (variantIndex === HARD_SECOND_DUPLICATE_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(secondItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
@@ -481,7 +491,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
       side: LEFT_SIDE,
       slot: GENERATED_SCALE_SLOT,
     }
-  } else if (variantIndex === 6) {
+  } else if (variantIndex === HARD_THIRD_DUPLICATE_ANSWER_VARIANT) {
     placed = [
       toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
       toPlacedItem(baseItem, LEFT_SIDE, GENERATED_SCALE_SLOT),
