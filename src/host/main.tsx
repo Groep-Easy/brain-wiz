@@ -10,7 +10,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { App } from './App'
 import { Console } from './console/Console'
-import { LeaderBoard } from './components/LeaderBoard.tsx'
+import { LeaderBoard } from './components/LeaderBoard'
+import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechanicsMock'
+import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 import './styles/index.css'
 
 const container = document.getElementById('root')
@@ -25,6 +27,8 @@ createRoot(container).render(
         <Route path="/" element={<App />} />
         <Route path="/console" element={<Console />} />
         <Route path="/screens/leaderboard" element={<LeaderBoard />} />
+        <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
+        <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
