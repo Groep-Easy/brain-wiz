@@ -1,7 +1,14 @@
-import { LoadingComp } from "./components/LoadingComp"
-import { JoinScreen } from "./components/JoinScreen"
+import { LoadingComp } from './components/LoadingComp'
+import { JoinScreen } from './components/JoinScreen'
 import { useState } from 'react'
 import { useRef } from 'react'
+import {
+  PLAYER_JOIN,
+  PLAYER_JOIN_ACK,
+  PLAYER_JOIN_REJECTED,
+  QUESTION_SHOW,
+  ROOM_STATE_UPDATE,
+} from '../shared/events/socket-events'
 /**
  * @file App.tsx
  * @owner client-squad
@@ -9,13 +16,9 @@ import { useRef } from 'react'
  * screen — socket wiring and the join/lobby UI land in a later slice.
  */
 
-type GameState =
-  | 'enter-code'
-  | 'joining'
-  | 'waiting'
-  | 'question'
-  | 'answered'
-  | 'results'
+import type { QuestionState } from '../shared/types'
+
+type GameState = 'enter-code' | 'joining' | 'waiting' | 'question' | 'answered' | 'results'
 
 function WaitingScreen() {
   return (
@@ -57,42 +60,48 @@ function ResultsScreen() {
 
 export function App(): React.JSX.Element | null {
   const [state, setState] = useState<GameState>('enter-code')
-  const socket = useRef(new WebSocket("ws://localhost:3000"))
+  const [question, setQuestion] = useState<QuestionState | null>(null)
+
+  const socket = useRef(new WebSocket('ws://localhost:3000'))
   let playerId = useRef(null)
   let reconnectToken = useRef(null)
 
   socket.current.onmessage = (e) => {
     const { event, data } = JSON.parse(e.data)
     switch (event) {
-      case "PLAYER_JOIN_ACK":
-        setState("waiting")
+      case PLAYER_JOIN_ACK:
+        setState('waiting')
         playerId.current = data.playerId
         reconnectToken.current = data.reconnectToken
         break
-      case "PLAYER_JOIN_REJECTED":
-        setState("enter-code")
+      case PLAYER_JOIN_REJECTED:
+        setState('enter-code')
         alert(data.reason)
         break
-      case "ROOM_STATE_UPDATE":
+      case ROOM_STATE_UPDATE:
+        break
+      case QUESTION_SHOW:
+        setQuestion(data.question)
+        setState('question')
         break
     }
   }
 
   function handleJoin() {
-    var player_name = document.getElementById("name").value
-    var room_code = document.getElementById("room").value
+    const player_name = document.getElementById('name').value
+    const room_code = document.getElementById('room').value
 
     if (player_name && room_code) {
       socket.current.send(
         JSON.stringify({
-          event: "PLAYER_JOIN",
+          event: PLAYER_JOIN,
           data: {
             roomCode: room_code,
-            playerName: player_name
-          }
+            playerName: player_name,
+          },
         })
       )
-      setState("joining")
+      setState('joining')
     }
   }
 
@@ -131,7 +140,15 @@ export function App(): React.JSX.Element | null {
     case 'question':
       return (
         <main className="app">
-          <QuestionScreen onAnswer={handleAnswer} />
+          <h2>{question?.text}</h2>
+          <div>
+            {question?.answers.map((a) => (
+              <button key={a.id} onClick={() => handleAnswer(a.id)}>
+                {a.text}
+              </button>
+            ))}
+          </div>
+          {/* <QuestionScreen onAnswer={handleAnswer} /> */}
         </main>
       )
 
