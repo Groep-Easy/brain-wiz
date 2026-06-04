@@ -23,7 +23,7 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import { QuestionService } from '../questions/question.service.js'
+import { QuestionService } from '../question/question.service.js'
 import * as EVENTS from '../../shared/events/socket-events.js'
 import { ROOM, WS } from '../../shared/constants/game-config.js'
 import type { PingPayload, PlayerJoinPayload, PongPayload } from '../../shared/types/index.js'

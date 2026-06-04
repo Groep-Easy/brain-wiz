@@ -11,13 +11,11 @@ import { HeartbeatMonitor } from '../../socket/heartbeat-monitor.js'
 import { WS_ALLOWED_ORIGINS } from '../../socket/socket.origin.js'
 import { RoomsController } from './room.controller.js'
 import { config } from '../../../../config/server.js'
-import { QuestionService } from '../../questions/question.service.js'
-import { Question } from '../../entities/question.entity.js'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { RoomBroadcaster } from './room-broadcaster.js'
+// import { QuestionService } from '../../questions/question.service.js'
+import { QuestionModule } from '../../question/question.module.js'
 
 @Module({
-  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, TypeOrmModule.forFeature([Question])],
+  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule],
   controllers: [RoomsController],
   providers: [
     LobbyService,
@@ -26,8 +24,6 @@ import { RoomBroadcaster } from './room-broadcaster.js'
     { provide: HostAuthThrottle, useFactory: (): HostAuthThrottle => new HostAuthThrottle() },
     { provide: WS_ALLOWED_ORIGINS, useValue: config.CORS_ORIGINS },
     SocketGateway,
-    RoomBroadcaster,
-    QuestionService
   ],
   exports: [LobbyService],
 })

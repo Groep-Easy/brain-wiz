@@ -12,7 +12,7 @@ import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
-import type { QuestionService } from '../../src/server/questions/question.service.js'
+import type { QuestionService } from '../../src/server/question/question.service.js'
 
 
 interface Call {
