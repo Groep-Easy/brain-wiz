@@ -1,0 +1,19 @@
+.player {
+  background-color: var(--surface);
+  color: var(--dark);
+
+  margin: 10px 0;
+  padding: 15px 20px;
+  border-radius: 15px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* will-change: transform; */
+}
+
+.first {
+  background-color: var(--teal);
+  color: var(--surface);
+}
