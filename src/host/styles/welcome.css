@@ -1,23 +1,30 @@
 /* welcome.css */
 
 .welcome-screen {
+  position: fixed;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
-  width: 100%;
+  padding: 24px;
+  overflow-y: auto;
+  background: linear-gradient(160deg, var(--teal) 0%, var(--navy) 100%);
 }
 
 .welcome-card {
   background: var(--surface);
-  border: 1px solid var(--tan);
-  border-radius: 24px;
-  padding: 48px;
-  max-width: 450px;
+  border: none;
+  border-radius: 28px;
+  padding: 56px 48px;
+  max-width: 460px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.8s ease-out;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  animation: fadeIn 0.6s ease-out;
+}
+
+.welcome-card h1 {
+  font-size: 3.4rem;
 }
 
 @keyframes fadeIn {

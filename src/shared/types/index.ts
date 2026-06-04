@@ -143,6 +143,12 @@ export interface AnswerAckPayload {
   reason?: 'window-closed' | 'invalid-answer' | 'already-answered' | 'server-error'
 }
 
+/** Server → all: how many connected players have answered (ANSWER_COUNT_UPDATE). */
+export interface AnswerCountUpdatePayload {
+  answered: number
+  total: number
+}
+
 /** One player's result inside QUESTION_REVEAL.playerAnswers. */
 export interface PlayerAnswerResult {
   answerId: string | null

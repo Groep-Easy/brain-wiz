@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Player, RoomState, LeaderboardEntry, ScoreMap } from '../shared/types/index'
+import type {
+  RoomState,
+  LeaderboardEntry,
+  ScoreMap,
+  QuestionState,
+  QuestionRevealPayload,
+  RoundSummary,
+} from '../shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
+import { RoundIntro } from './screens/RoundIntro'
+import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import './styles/index.css'
@@ -19,9 +28,11 @@ export function App(): React.JSX.Element {
   const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
-  const [currentQuestion, setCurrentQuestion] = useState<string>('')
-  const [currentAnswers, setCurrentAnswers] = useState<string[]>([])
-  const [amountAnswers, setAmountAnswers] = useState<number>(0)
+  const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
+  const [answeredCount, setAnsweredCount] = useState<number>(0)
+  const [totalPlayers, setTotalPlayers] = useState<number>(0)
+  const [round, setRound] = useState<RoundSummary | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
@@ -48,9 +59,11 @@ export function App(): React.JSX.Element {
     socket.onopen = () => {
       setStatus('open')
       // Reset game states
-      setCurrentQuestion('')
-      setCurrentAnswers([])
-      setAmountAnswers(0)
+      setQuestion(null)
+      setReveal(null)
+      setAnsweredCount(0)
+      setTotalPlayers(0)
+      setRound(null)
       setLeaderboard([])
       setFinalScores(null)
     }
@@ -65,8 +78,12 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.GAME_PHASE_CHANGE:
-            if (roomState) {
-              setRoomState({ ...roomState, phase: data.phase })
+            setRoomState((prev) => (prev ? { ...prev, phase: data.phase } : prev))
+            break
+
+          case EVENTS.ROUND_START:
+            if (data.round) {
+              setRound(data.round)
             }
             break
 
@@ -76,10 +93,19 @@ export function App(): React.JSX.Element {
 
           case EVENTS.QUESTION_SHOW:
             if (data.question) {
-              setCurrentQuestion(data.question.text)
-              setCurrentAnswers(data.question.answers?.map((a: { text: string }) => a.text) ?? [])
-              setAmountAnswers(0)
+              setQuestion(data.question)
+              setReveal(null)
+              setAnsweredCount(0)
             }
+            break
+
+          case EVENTS.ANSWER_COUNT_UPDATE:
+            setAnsweredCount(data.answered)
+            setTotalPlayers(data.total)
+            break
+
+          case EVENTS.QUESTION_REVEAL:
+            setReveal(data)
             break
 
           case EVENTS.LEADERBOARD_SHOW:
@@ -197,15 +223,30 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'round-intro' || phase === 'playing' || phase === 'reveal') {
+  if (phase === 'round-intro') {
+    return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
+  }
+
+  if (phase === 'playing' || phase === 'reveal') {
+    if (!question) {
+      return (
+        <main className="app">
+          <div className="welcome-screen">
+            <div className="welcome-card">
+              <p>Preparing next question…</p>
+            </div>
+          </div>
+        </main>
+      )
+    }
     return (
       <Question
         gameCode={code}
-        theme="General Knowledge" // Fallback theme text, can be dynamic later
-        currentQuestion={currentQuestion || 'Preparing next question...'}
-        answers={currentAnswers}
-        amountAnswers={amountAnswers}
-        timer={secondsRemaining}
+        question={question}
+        secondsRemaining={secondsRemaining}
+        answeredCount={answeredCount}
+        totalPlayers={totalPlayers}
+        reveal={phase === 'reveal' ? reveal : null}
       />
     )
   }
@@ -219,39 +260,12 @@ export function App(): React.JSX.Element {
   }
 
   if (phase === 'game-over' || finalScores !== null) {
-    // Map final scores to sorted entries
-    const playersMap = new Map(roomState.players.map((p) => [p.id, p.name]))
-    const sortedScores = Object.entries(finalScores || {})
-      .map(([playerId, score]) => ({
-        playerId,
-        name: playersMap.get(playerId) || 'Unknown Player',
-        score,
-      }))
-      .sort((a, b) => b.score - a.score)
-
     return (
-      <main className="app">
-        <div className="game-over-screen">
-          <div className="game-over-card">
-            <h1>Game Over</h1>
-            <p className="subtitle">Final Standings</p>
-            <div className="divider"></div>
-            <ul className="final-scores-list">
-              {sortedScores.map((score, index) => (
-                <li key={score.playerId} className={`final-score-item ${index === 0 ? 'winner' : ''}`}>
-                  <span>
-                    #{index + 1} {score.name}
-                  </span>
-                  <span>{score.score} pts</span>
-                </li>
-              ))}
-            </ul>
-            <button className="primary-btn" onClick={handleCloseLobby}>
-              Back to Main Menu
-            </button>
-          </div>
-        </div>
-      </main>
+      <GameOver
+        players={roomState.players}
+        finalScores={finalScores || {}}
+        onBackToMenu={handleCloseLobby}
+      />
     )
   }
 

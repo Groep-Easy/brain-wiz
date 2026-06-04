@@ -39,6 +39,17 @@ function makeAckCapture(): { acks: Array<{ event: string; data: AnswerAckPayload
   }
 }
 
+function makeRoomCapture(): {
+  rooms: Array<{ roomId: string; event: string; data: unknown }>
+  emitToRoom: (roomId: string, event: string, data?: unknown) => void
+} {
+  const rooms: Array<{ roomId: string; event: string; data: unknown }> = []
+  return {
+    rooms,
+    emitToRoom: (roomId, event, data): void => void rooms.push({ roomId, event, data }),
+  }
+}
+
 function makeAnswerRepo(): {
   rows: unknown[]
   create: (x: unknown) => unknown
@@ -91,6 +102,8 @@ describe('AnswerService', () => {
   let bus: GameEventBus
   let registry: ReturnType<typeof makeRegistry>
   let ack: ReturnType<typeof makeAckCapture>
+  let roomCapture: ReturnType<typeof makeRoomCapture>
+  let broadcaster: ReturnType<typeof makeAckCapture> & ReturnType<typeof makeRoomCapture>
   let repo: ReturnType<typeof makeAnswerRepo>
   let service: AnswerService
 
@@ -98,8 +111,10 @@ describe('AnswerService', () => {
     bus = new GameEventBus()
     registry = makeRegistry()
     ack = makeAckCapture()
+    roomCapture = makeRoomCapture()
+    broadcaster = { ...ack, ...roomCapture }
     repo = makeAnswerRepo()
-    service = new AnswerService(bus, registry as never, ack as never, repo as never)
+    service = new AnswerService(bus, registry as never, broadcaster as never, repo as never)
   })
 
   it('accepts a valid answer, persists it (storing the answerId), and ACKs accepted', async () => {
@@ -168,7 +183,7 @@ describe('AnswerService', () => {
 
   it('maps a DB unique-violation on save to already-answered', async () => {
     const failing = makeFailingAnswerRepo({ code: '23505' })
-    service = new AnswerService(bus, registry as never, ack as never, failing as never)
+    service = new AnswerService(bus, registry as never, broadcaster as never, failing as never)
     openWindow(bus)
     await service.submit(SOCK_A, submit('round-1:0'))
     assert.equal(ack.acks[ack.acks.length - 1]?.data.reason, 'already-answered')
@@ -191,7 +206,7 @@ describe('AnswerService', () => {
         return x
       },
     }
-    service = new AnswerService(bus, registry as never, ack as never, flaky as never)
+    service = new AnswerService(bus, registry as never, broadcaster as never, flaky as never)
     openWindow(bus)
 
     await service.submit(SOCK_A, submit('round-1:0'))
@@ -200,5 +215,22 @@ describe('AnswerService', () => {
     await service.submit(SOCK_A, submit('round-1:0'))
     assert.equal(ack.acks[ack.acks.length - 1]?.data.accepted, true)
     assert.equal(saved.length, 1)
+  })
+
+  it('broadcasts ANSWER_COUNT_UPDATE to the room after a successful submit', async () => {
+    openWindow(bus)
+    await service.submit(SOCK_A, submit('round-1:0'))
+
+    const rooms = roomCapture.rooms.filter((r) => r.event === EVENTS.ANSWER_COUNT_UPDATE)
+    assert.equal(rooms.length, 1)
+    assert.equal(rooms[0]?.roomId, 'room-1')
+    assert.deepEqual(rooms[0]?.data, { answered: 1, total: 2 })
+  })
+
+  it('does not broadcast ANSWER_COUNT_UPDATE when the window is closed', async () => {
+    await service.submit(SOCK_A, submit('round-1:0'))
+
+    const rooms = roomCapture.rooms.filter((r) => r.event === EVENTS.ANSWER_COUNT_UPDATE)
+    assert.equal(rooms.length, 0)
   })
 })
