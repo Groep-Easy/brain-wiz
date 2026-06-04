@@ -9,6 +9,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
 import { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
+import type { GameEngineService } from '../../src/server/room/game/game-engine.service.js'
 import { RoomService } from '../../src/server/room/room.service.js'
 import { ClientService } from '../../src/server/client/client.service.js'
 import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry.js'
@@ -90,7 +91,11 @@ function makeLobby(): LobbyService {
   const clients = new ClientService(fakeClientRepo())
   const registry = new ConnectionRegistry()
   const broadcaster = new RoomBroadcaster(registry)
-  return new LobbyService(rooms, clients, registry, broadcaster)
+  const noopEngine = {
+    run: (): void => undefined,
+    abort: (): void => undefined,
+  } as unknown as GameEngineService
+  return new LobbyService(rooms, clients, registry, broadcaster, noopEngine)
 }
 
 function eventsOf(socket: { sent: Array<{ event: string }> }): string[] {
@@ -412,6 +417,49 @@ describe('LobbyService.startGame', () => {
     await lobby.joinClient(recordingSocket(), 's1', code, 'Alice')
     await lobby.joinClient(recordingSocket(), 's2', code, 'Bob')
     await assert.rejects(async () => lobby.startGame(code, 'bad-token'), InvalidHostTokenError)
+  })
+})
+
+describe('LobbyService abort-on-empty', () => {
+  function setup(): {
+    lobby: LobbyService
+    rooms: RoomService
+    clients: ClientService
+    registry: ConnectionRegistry
+    aborted: string[]
+  } {
+    const rooms = new RoomService(fakeRoomRepo())
+    const clients = new ClientService(fakeClientRepo())
+    const registry = new ConnectionRegistry()
+    const broadcaster = new RoomBroadcaster(registry)
+    const aborted: string[] = []
+    const gameEngine = {
+      run: (): void => undefined,
+      abort: (id: string): void => void aborted.push(id),
+    } as unknown as GameEngineService
+    const lobby = new LobbyService(rooms, clients, registry, broadcaster, gameEngine)
+    return { lobby, rooms, clients, registry, aborted }
+  }
+
+  it('aborts the game when the last connected player disconnects mid-game', async () => {
+    const { lobby, rooms, registry, aborted } = setup()
+    const { code, hostToken, roomId } = await lobby.createRoom()
+
+    const s1 = recordingSocket()
+    const s2 = recordingSocket()
+    await lobby.joinClient(s1, 'conn-1', code, 'Alice')
+    await lobby.joinClient(s2, 'conn-2', code, 'Bob')
+    await lobby.startGame(code, hostToken)
+
+    await lobby.handleDisconnect(s1)
+    assert.deepEqual(aborted, [])
+
+    await lobby.handleDisconnect(s2)
+    assert.deepEqual(aborted, [roomId])
+
+    const room = await rooms.findById(roomId)
+    assert.ok(room)
+    void registry
   })
 })
 

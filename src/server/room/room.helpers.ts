@@ -26,7 +26,11 @@ export function roomStatusToPhase(status: RoomStatusEnum): GamePhase {
   }
 }
 
-export function toRoomState(room: RoomStateSource, clients: PlayerSource[]): RoomState {
+export function toRoomState(
+  room: RoomStateSource,
+  clients: PlayerSource[],
+  livePhase?: GamePhase
+): RoomState {
   const players: Player[] = clients.map((c) => ({
     id: c.id,
     name: c.displayName,
@@ -36,7 +40,7 @@ export function toRoomState(room: RoomStateSource, clients: PlayerSource[]): Roo
   return {
     code: room.joinCode,
     players,
-    phase: roomStatusToPhase(room.status),
+    phase: livePhase ?? roomStatusToPhase(room.status),
     round: room.currentRoundIndex,
   }
 }

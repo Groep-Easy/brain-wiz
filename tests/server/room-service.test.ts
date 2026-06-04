@@ -120,3 +120,23 @@ describe('RoomService.startRoom', () => {
     await assert.rejects(async () => service.startRoom(room), RoomNotInLobbyError)
   })
 })
+
+describe('RoomService.finishRoom / setCurrentRound', () => {
+  it('setCurrentRound persists the new index', async () => {
+    const { repo } = makeFakeRepo()
+    const service = new RoomService(repo)
+    const room = await service.createRoom()
+    const updated = await service.setCurrentRound(room, 3)
+    assert.equal(updated.currentRoundIndex, 3)
+  })
+
+  it('finishRoom sets status and finishedAt', async () => {
+    const { repo } = makeFakeRepo()
+    const service = new RoomService(repo)
+    const room = await service.createRoom()
+    await service.startRoom(room)
+    const finished = await service.finishRoom(room, RoomStatusEnum.FINISHED)
+    assert.equal(finished.status, RoomStatusEnum.FINISHED)
+    assert.ok(finished.finishedAt instanceof Date)
+  })
+})
