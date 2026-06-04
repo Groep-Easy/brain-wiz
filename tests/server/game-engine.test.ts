@@ -12,19 +12,25 @@ import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums
 
 interface RecordingBroadcaster {
   events: string[]
+  eventPayloads: unknown[]
   stateBroadcasts: unknown[]
-  emitToRoom: (_roomId: string, event: string) => void
+  emitToRoom: (_roomId: string, event: string, payload?: unknown) => void
   broadcastRoomState: (_roomId: string, state: unknown) => void
   emitToSocket: () => void
 }
 
 function recordingBroadcaster(): RecordingBroadcaster {
   const events: string[] = []
+  const eventPayloads: unknown[] = []
   const stateBroadcasts: unknown[] = []
   return {
     events,
+    eventPayloads,
     stateBroadcasts,
-    emitToRoom: (_roomId: string, event: string): void => void events.push(event),
+    emitToRoom: (_roomId: string, event: string, payload?: unknown): void => {
+      events.push(event)
+      eventPayloads.push(payload)
+    },
     broadcastRoomState: (_roomId: string, state: unknown): void => void stateBroadcasts.push(state),
     emitToSocket: (): void => undefined,
   }
@@ -129,7 +135,9 @@ function makeEngine(timer: PhaseTimerLike): MakeEngineResult {
     },
   }
   const clients = {
-    findByRoom: async (): Promise<unknown[]> => [{ id: 'p1', totalScore: 0 }],
+    findByRoom: async (): Promise<unknown[]> => [
+      { id: 'p1', totalScore: 0, displayName: 'Player 1', isConnected: true },
+    ],
   }
   const roundBuilder = {
     buildRounds: async (): Promise<unknown[]> =>
@@ -165,7 +173,7 @@ describe('GameEngineService', () => {
 
     const count = (e: string): number => broadcaster.events.filter((x) => x === e).length
     assert.equal(count(EVENTS.ROUND_START), 5)
-    assert.equal(count(EVENTS.GAME_PHASE_CHANGE), 15)
+    assert.equal(count(EVENTS.GAME_PHASE_CHANGE), 20)
     assert.equal(count(EVENTS.TIMER_EXPIRED), 5)
     assert.equal(count(EVENTS.ROUND_END), 5)
     assert.equal(count(EVENTS.GAME_OVER), 1)
