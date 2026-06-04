@@ -12,7 +12,7 @@ export enum GamePhase {
   INTRO = 'intro',
   QUESTION = 'question',
   REVEAL = 'reveal',
-  lEADERBOARD = 'leaderboard',
+  LEADERBOARD = 'leaderboard',
 }
 
 /** Why a PhaseTimer resolved. */
