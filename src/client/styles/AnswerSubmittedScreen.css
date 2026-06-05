@@ -1,0 +1,59 @@
+.as-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1rem;
+  min-height: 100vh;
+  padding: 1.5rem;
+
+  text-align: center;
+  background: var(--bg);
+  color: var(--navy);
+}
+
+.as-check {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--teal);
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.as-title {
+  margin: 0;
+  color: var(--dark);
+  font-size: 1.6rem;
+}
+
+.as-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--navy);
+}
+
+.as-answer {
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+
+  background: var(--surface);
+  border: 2px solid var(--tan);
+
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.as-waiting {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: var(--navy);
+}

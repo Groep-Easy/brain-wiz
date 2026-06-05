@@ -1,6 +1,7 @@
 import { LoadingComp } from './components/LoadingComp'
 import { JoinScreen } from './components/JoinScreen'
 import { QuestionScreen } from './components/QuestionScreen'
+import { AnswerSubmittedScreen } from './components/AnswerSubmittedScreen'
 import { useState } from 'react'
 import { useRef } from 'react'
 import {
@@ -152,10 +153,7 @@ export function App(): React.JSX.Element | null {
     case 'answered':
       return (
         <main className="app">
-          <h2>Answer submitted</h2>
-          <p>You submitted:</p>
-          <strong>{submittedAnswer}</strong>
-          <AnsweredScreen />
+          <AnswerSubmittedScreen answer={submittedAnswer} />
         </main>
       )
 
