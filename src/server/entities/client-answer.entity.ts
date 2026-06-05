@@ -13,8 +13,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm'
-import type { Client } from './client.entity.js'
-import type { Round } from './round.entity.js'
+import type { Client } from './client.entity'
+import type { Round } from './round.entity'
 
 /**
  * ClientAnswer entity - records one player's answer to one round

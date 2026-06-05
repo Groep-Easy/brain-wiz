@@ -10,8 +10,9 @@
  */
 import { Module, OnApplicationBootstrap, OnApplicationShutdown, Logger } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { AppDataSource } from './data-source.js'
-import * as entities from '../entities/index.js'
+import { AppDataSource } from './data-source'
+import { QuestionSeederService } from './question-seeder.service'
+import * as entities from '../entities/index'
 
 /**
  * Database initialization service
@@ -32,7 +33,8 @@ import * as entities from '../entities/index.js'
       entities.ClientAnswer,
     ]),
   ],
-  exports: [TypeOrmModule],
+  providers: [QuestionSeederService],
+  exports: [TypeOrmModule, QuestionSeederService],
 })
 export class DatabaseModule implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(DatabaseModule.name)

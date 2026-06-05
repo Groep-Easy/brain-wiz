@@ -10,6 +10,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { App } from './App'
 import { Console } from './console/Console'
+import { LeaderBoard } from './components/LeaderBoard.tsx'
 import './styles/index.css'
 
 const container = document.getElementById('root')
@@ -23,7 +24,8 @@ createRoot(container).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/console" element={<Console />} />
+        <Route path="/screens/leaderboard" element={<LeaderBoard />} />
       </Routes>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 )
