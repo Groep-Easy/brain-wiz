@@ -1,0 +1,94 @@
+/* main_style.css - algemene stijl voor alle pagina's. Voor nu simpel. */
+
+/* Kleurenpalet (kleurenblind-veilig) */
+:root {
+  --dark: #2a3135; /* tekst, koppen        */
+  --navy: #36435f; /* secundair, hover     */
+  --red: #ba162d; /* accent, fout, gevaar */
+  --tan: #ccb87b; /* randen, zachte vlakken */
+  --teal: #056c5c; /* primair, knoppen     */
+  --bg: #f7f5ef; /* warme lichte achtergrond */
+  --surface: #ffffff;
+  --darkblue: #2c57a8;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--dark);
+}
+
+h1 {
+  margin: 0;
+}
+
+/* Algemene knop */
+button,
+.btn {
+  font-size: 1rem;
+  padding: 12px 16px;
+  border: 1px solid var(--tan);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--dark);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* Primaire knop */
+button.primary,
+.btn.primary,
+.start-btn {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+button:hover,
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Algemeen invoerveld */
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid var(--tan);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--dark);
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.hint {
+  color: var(--navy);
+  font-size: 0.9rem;
+}
+
+.top {
+  height: 10vh;
+  position: relative;
+  border: 3px var(--tan);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2%;
+  background-color: white;
+  border-radius: 25px;
+}
+.top-right,
+top-center,
+top-left {
+}
+.top-center {
+  position: absolute;
+  right: 50%;
+  transform: translateX(50%);
+}

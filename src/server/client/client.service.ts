@@ -9,7 +9,7 @@ import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { type Repository } from 'typeorm'
-import { Client } from '../entities/client.entity.js'
+import { Client } from '../entities/client.entity'
 
 @Injectable()
 export class ClientService {
@@ -43,6 +43,11 @@ export class ClientService {
   public async updateSocket(client: Client, socketId: string): Promise<Client> {
     client.socketId = socketId
     client.isConnected = true
+    return this.clients.save(client)
+  }
+
+  public async addScore(client: Client, delta: number): Promise<Client> {
+    client.totalScore += delta
     return this.clients.save(client)
   }
 

@@ -8,20 +8,23 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
-import { RoomService } from '../../src/server/room/room.service.js'
-import { ClientService } from '../../src/server/client/client.service.js'
-import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry.js'
-import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster.js'
-import { RoomNotFoundError } from '../../src/server/room/room.errors.js'
+import { LobbyService } from '../../src/server/room/lobby/lobby.service'
+import type { GameEngineService } from '../../src/server/room/game/game-engine.service'
+import { RoomService } from '../../src/server/room/room.service'
+import { ClientService } from '../../src/server/client/client.service'
+import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
+import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
+import { RoomNotFoundError } from '../../src/server/room/room.errors'
 import {
   NotEnoughPlayersError,
   InvalidHostTokenError,
-} from '../../src/server/room/lobby/lobby.errors.js'
-import { Room } from '../../src/server/entities/room.entity.js'
-import { Client } from '../../src/server/entities/client.entity.js'
-import * as EVENTS from '../../src/shared/events/socket-events.js'
-import { ROOM } from '../../src/shared/constants/game-config.js'
+} from '../../src/server/room/lobby/lobby.errors'
+import { Room } from '../../src/server/entities/room.entity'
+import { Client } from '../../src/server/entities/client.entity'
+import * as EVENTS from '../../src/shared/events/socket-events'
+import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
+import { QuestionService } from '../../src/server/question/question.service.js'
+import type { Question } from '../../src/server/entities/question.entity.js'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
@@ -85,12 +88,32 @@ function recordingSocket(): {
   return { sent, send: (d: string): void => void sent.push(JSON.parse(d)) }
 }
 
-function makeLobby(): LobbyService {
+function fakeQuestionService(questionsList: Question[] = []): QuestionService {
+  return {
+    getRandomQuestion: async (usedIds: string[] = []) => {
+      const unused = questionsList.filter((q) => !usedIds.includes(q.id))
+      return unused[0] ?? null
+    },
+  } as unknown as QuestionService
+}
+
+function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
   const registry = new ConnectionRegistry()
   const broadcaster = new RoomBroadcaster(registry)
-  return new LobbyService(rooms, clients, registry, broadcaster)
+  const noopEngine = {
+    run: (): void => undefined,
+    abort: (): void => undefined,
+  } as unknown as GameEngineService
+  return new LobbyService(
+    rooms,
+    clients,
+    registry,
+    broadcaster,
+    noopEngine,
+    fakeQuestionService(questions)
+  )
 }
 
 function eventsOf(socket: { sent: Array<{ event: string }> }): string[] {
@@ -187,6 +210,62 @@ describe('LobbyService.joinClient', () => {
   })
 })
 
+describe('LobbyService.joinClient input validation', () => {
+  it('rejects a malformed room code before any lookup', async () => {
+    const lobby = makeLobby()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', 'AB', 'Alice') // too short
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal((ack?.data as { reason: string }).reason, 'Invalid room code')
+  })
+
+  it('rejects an over-long display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'x'.repeat(50))
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal(
+      (ack?.data as { reason: string }).reason,
+      `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
+    )
+  })
+
+  it('rejects a blank (whitespace-only) display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, '   ')
+    assert.ok(eventsOf(client).includes(EVENTS.PLAYER_JOIN_REJECTED))
+  })
+
+  it('trims the display name and dedupes against the trimmed value', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    await lobby.joinClient(recordingSocket(), 's1', code, '  Alice  ')
+    const state = await lobby.getRoomState(code)
+    assert.equal(state?.players[0]?.name, 'Alice')
+    const dup = recordingSocket()
+    await lobby.joinClient(dup, 's2', code, 'Alice')
+    assert.ok(eventsOf(dup).includes(EVENTS.PLAYER_JOIN_REJECTED))
+  })
+})
+
+describe('LobbyService room teardown clears the host token', () => {
+  it('drops the host token once the room has no live sockets', async () => {
+    const lobby = makeLobby()
+    const { code, hostToken } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+
+    // No host socket connected; the lone client leaving empties the room.
+    await lobby.leaveClient(client)
+
+    // Token is gone, so a host can no longer authenticate against this room.
+    await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+  })
+})
+
 describe('LobbyService.leaveClient', () => {
   it('removes the player and broadcasts updated state', async () => {
     const lobby = makeLobby()
@@ -227,21 +306,79 @@ describe('LobbyService disconnect + reconnect grace', () => {
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const first = recordingSocket()
     await lobby.joinClient(first, 'sock-1', code, 'Alice')
-    const playerId = (
-      first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
-        playerId: string
-      }
-    ).playerId
+    const ack = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      playerId: string
+      reconnectToken: string
+    }
+    const { playerId, reconnectToken } = ack
     await lobby.handleDisconnect(first)
 
     const second = recordingSocket()
-    await lobby.joinClient(second, 'sock-2', code, 'Alice', playerId)
+    await lobby.joinClient(second, 'sock-2', code, 'Alice', playerId, reconnectToken)
 
     assert.ok(eventsOf(host).includes(EVENTS.PLAYER_RECONNECTED))
     assert.equal(lobby.hasPendingRemoval(playerId), false)
     const state = await lobby.getRoomState(code)
     assert.equal(state?.players.length, 1)
     assert.equal(state?.players[0]?.connected, true)
+  })
+
+  it('issues a reconnect token on a fresh join', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      reconnectToken?: string
+    }
+    assert.ok(ack.reconnectToken && ack.reconnectToken.length > 0)
+  })
+
+  it('rejects a reconnect that presents a wrong (or missing) reconnect token', async () => {
+    const lobby = makeLobby()
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+    const first = recordingSocket()
+    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    const playerId = (
+      first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as { playerId: string }
+    ).playerId
+    await lobby.handleDisconnect(first)
+
+    // Attacker knows the (broadcast) playerId but not the secret token.
+    const attacker = recordingSocket()
+    await lobby.joinClient(attacker, 'sock-evil', code, 'Mallory', playerId, 'wrong-token')
+
+    assert.ok(eventsOf(attacker).includes(EVENTS.PLAYER_JOIN_REJECTED))
+    assert.equal(eventsOf(attacker).includes(EVENTS.PLAYER_RECONNECTED), false)
+    // The legitimate player can still be reclaimed and isn't yet removed.
+    assert.equal(lobby.hasPendingRemoval(playerId), true)
+  })
+
+  it('rotates the reconnect token on each reconnect (no replay of the old one)', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const first = recordingSocket()
+    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    const ack1 = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      playerId: string
+      reconnectToken: string
+    }
+    await lobby.handleDisconnect(first)
+
+    const second = recordingSocket()
+    await lobby.joinClient(second, 'sock-2', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    const ack2 = second.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
+      reconnectToken: string
+    }
+    assert.notEqual(ack2.reconnectToken, ack1.reconnectToken)
+
+    // The original token must no longer be accepted.
+    await lobby.handleDisconnect(second)
+    const replay = recordingSocket()
+    await lobby.joinClient(replay, 'sock-3', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    assert.ok(eventsOf(replay).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
   it('expireGrace removes a client that never reconnected', async () => {
@@ -301,6 +438,56 @@ describe('LobbyService.startGame', () => {
   })
 })
 
+describe('LobbyService abort-on-empty', () => {
+  function setup(): {
+    lobby: LobbyService
+    rooms: RoomService
+    clients: ClientService
+    registry: ConnectionRegistry
+    aborted: string[]
+  } {
+    const rooms = new RoomService(fakeRoomRepo())
+    const clients = new ClientService(fakeClientRepo())
+    const registry = new ConnectionRegistry()
+    const broadcaster = new RoomBroadcaster(registry)
+    const aborted: string[] = []
+    const gameEngine = {
+      run: (): void => undefined,
+      abort: (id: string): void => void aborted.push(id),
+    } as unknown as GameEngineService
+    const lobby = new LobbyService(
+      rooms,
+      clients,
+      registry,
+      broadcaster,
+      gameEngine,
+      fakeQuestionService()
+    )
+    return { lobby, rooms, clients, registry, aborted }
+  }
+
+  it('aborts the game when the last connected player disconnects mid-game', async () => {
+    const { lobby, rooms, registry, aborted } = setup()
+    const { code, hostToken, roomId } = await lobby.createRoom()
+
+    const s1 = recordingSocket()
+    const s2 = recordingSocket()
+    await lobby.joinClient(s1, 'conn-1', code, 'Alice')
+    await lobby.joinClient(s2, 'conn-2', code, 'Bob')
+    await lobby.startGame(code, hostToken)
+
+    await lobby.handleDisconnect(s1)
+    assert.deepEqual(aborted, [])
+
+    await lobby.handleDisconnect(s2)
+    assert.deepEqual(aborted, [roomId])
+
+    const room = await rooms.findById(roomId)
+    assert.ok(room)
+    void registry
+  })
+})
+
 describe('LobbyService.getRoomState', () => {
   it('returns null for an unknown code', async () => {
     const lobby = makeLobby()
@@ -312,5 +499,49 @@ describe('LobbyService.getRoomState', () => {
     const state = await lobby.getRoomState(code)
     assert.equal(state?.code, code)
     assert.equal(state?.phase, 'lobby')
+  })
+})
+
+describe('LobbyService.sendQuestionToRoom', () => {
+  const sampleQuestion = {
+    id: 'q-1',
+    text: 'Test Question 1',
+  } as unknown as Question
+
+  it('broadcasts the question text to the room and appends question ID to room.usedQuestionsIds when called by a host', async () => {
+    const lobby = makeLobby([sampleQuestion])
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+
+    await lobby.sendQuestionToRoom(host)
+
+    const ack = host.sent.find((m) => m.event === EVENTS.QUESTION_SHOW)
+    assert.ok(ack)
+    assert.equal((ack.data as { question: string }).question, sampleQuestion.text)
+
+    // Verify duplication avoidance: calling it again with the same question list returns nothing since the only question was already used
+    host.sent = []
+    await lobby.sendQuestionToRoom(host)
+    assert.equal(host.sent.length, 0)
+  })
+
+  it('does nothing when the socket is not registered as a host', async () => {
+    const lobby = makeLobby([sampleQuestion])
+    const client = recordingSocket()
+
+    await lobby.sendQuestionToRoom(client)
+    assert.equal(client.sent.length, 0)
+  })
+
+  it('does nothing when there are no questions available', async () => {
+    const lobby = makeLobby([])
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+    host.sent = [] // clear connection state update event
+
+    await lobby.sendQuestionToRoom(host)
+    assert.equal(host.sent.length, 0)
   })
 })

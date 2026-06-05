@@ -5,8 +5,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
-import { ClientService } from '../../src/server/client/client.service.js'
-import { Client } from '../../src/server/entities/client.entity.js'
+import { ClientService } from '../../src/server/client/client.service'
+import { Client } from '../../src/server/entities/client.entity'
 
 interface FakeClientRepo {
   repo: Repository<Client>
@@ -112,5 +112,30 @@ describe('ClientService mutations', () => {
     await service.remove(client)
     assert.deepEqual(removed, [client])
     assert.equal(store.length, 0)
+  })
+})
+
+function fakeRepo(): { saved: Client[]; save: (c: Client) => Promise<Client> } {
+  const saved: Client[] = []
+  return {
+    saved,
+    save: async (c: Client): Promise<Client> => {
+      saved.push(c)
+      return c
+    },
+  }
+}
+
+describe('ClientService.addScore', () => {
+  it('increments totalScore by the delta and persists', async () => {
+    const repo = fakeRepo()
+    const service = new ClientService(repo as never)
+    const client = { id: 'p1', totalScore: 100 } as Client
+
+    const result = await service.addScore(client, 250)
+
+    assert.equal(result.totalScore, 350)
+    assert.equal(repo.saved.length, 1)
+    assert.equal(repo.saved[0]?.totalScore, 350)
   })
 })

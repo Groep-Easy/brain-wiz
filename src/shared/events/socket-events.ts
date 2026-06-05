@@ -34,6 +34,8 @@ export const GAME_PHASE_CHANGE = 'GAME_PHASE_CHANGE'
 export const ROUND_START = 'ROUND_START'
 /** Server → all:    round ended.          Payload: { scores: ScoreMap }      */
 export const ROUND_END = 'ROUND_END'
+/** Server → all:    leaderboard shown.    Payload: { round, leaderboard }    */
+export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
 
@@ -46,6 +48,8 @@ export const QUESTION_REVEAL = 'QUESTION_REVEAL'
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
+/** Server → all:    how many have answered.  Payload: { answered, total }      */
+export const ANSWER_COUNT_UPDATE = 'ANSWER_COUNT_UPDATE'
 
 // ── Timer ─────────────────────────────────────────────────────────────────────
 /** Server → all:    tick.                 Payload: { secondsRemaining: number } */

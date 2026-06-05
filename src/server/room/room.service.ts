@@ -9,24 +9,33 @@ import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { In, type Repository } from 'typeorm'
-import { Room } from '../entities/room.entity.js'
-import { GameModeEnum, RoomStatusEnum } from '../entities/enums.js'
-import { generateRoomCode } from '../../shared/utils/room-code.js'
-import { ROUNDS, TIMER } from '../../shared/constants/game-config.js'
-import { RoomNotInLobbyError } from './room.errors.js'
+import { Room } from '../entities/room.entity'
+import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
+import { generateRoomCode } from '../../shared/utils/room-code'
+import { ROUNDS, TIMER } from '../../shared/constants/game-config'
+import { RoomNotInLobbyError } from './room.errors'
+import { QrcodeService } from '../qrcode/qrcode.service'
+import { config } from '../../config/server'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
 
 @Injectable()
 export class RoomService {
-  public constructor(@InjectRepository(Room) private readonly rooms: Repository<Room>) {}
+  public constructor(
+    @InjectRepository(Room) private readonly rooms: Repository<Room>,
+    private readonly qrcodeService?: QrcodeService
+  ) {}
 
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()
+    const qrCodePayload = `${config.BASE_URL}/join?code=${joinCode}`
+    const qrCodeSvg = this.qrcodeService ? await this.qrcodeService.generateSvg(qrCodePayload) : ''
+
     const room = this.rooms.create({
       joinCode,
-      qrCodePayload: `/join/${joinCode}`,
+      qrCodePayload,
+      qrCodeSvg,
       status: RoomStatusEnum.LOBBY,
       selectedGameModes: [GameModeEnum.QUESTIONS],
       selectedThemes: [],
@@ -35,6 +44,7 @@ export class RoomService {
       defaultTimeLimitSeconds: TIMER.QUESTION_SECONDS,
       currentRoundIndex: 0,
     })
+
     return this.rooms.save(room)
   }
 
@@ -61,6 +71,38 @@ export class RoomService {
     room.status = RoomStatusEnum.ACTIVE
     room.startedAt = new Date()
     return this.rooms.save(room)
+  }
+
+  /** Persist progress through the round sequence. */
+  public async setCurrentRound(room: Room, roundIndex: number): Promise<Room> {
+    room.currentRoundIndex = roundIndex
+    return this.rooms.save(room)
+  }
+
+  /** Terminal transition. `finishedAt` is required by the entity for these states. */
+  public async finishRoom(
+    room: Room,
+    status: RoomStatusEnum.FINISHED | RoomStatusEnum.ABANDONED
+  ): Promise<Room> {
+    room.status = status
+    room.finishedAt = new Date()
+    return this.rooms.save(room)
+  }
+
+  public async appendUsedQuestionsId(roomId: string, questionId: string): Promise<void> {
+    if (typeof this.rooms.query === 'function') {
+      await this.rooms.query(
+        `UPDATE rooms SET "usedQuestionsIds" = array_append("usedQuestionsIds", $1) WHERE id = $2`,
+        [questionId, roomId]
+      )
+    } else {
+      // Fallback for tests/fakes
+      const room = await this.findById(roomId)
+      if (room) {
+        room.usedQuestionsIds = [...(room.usedQuestionsIds || []), questionId]
+        await this.rooms.save(room)
+      }
+    }
   }
 
   private async generateUniqueJoinCode(): Promise<string> {

@@ -1,0 +1,398 @@
+# Brain Wiz — WebSocket & room API
+
+How the **host display** and the **phone client** talk to the server. This is the
+contract as it exists today — all defined events are now live. See
+[Reserved events](#reserved-events-not-yet-implemented) for the current status.
+
+- Transport: native **`ws`** WebSocket (not Socket.io).
+- Server owns **all** state. Clients send actions; the server validates and
+  broadcasts. The host is a **read-only subscriber** — it never sends game events.
+- Source of truth for names/payloads:
+  - Event names → `src/shared/events/socket-events.ts`
+  - Payload types → `src/shared/types/index.ts`
+  - Gateway (inbound handlers) → `src/server/socket/socket.gateway.ts`
+  - REST room routes → `src/server/room/lobby/room.controller.ts`
+  - Game/round loop (outbound game events) → `src/server/room/game/game-engine.service.ts`
+  - Timings/round count → `src/shared/constants/game-config.ts` (`TIMER`, `ROUNDS`)
+
+---
+
+## 1. The wire format
+
+Every WebSocket message — both directions — is a JSON envelope:
+
+```json
+{
+  "event": "EVENT_NAME",
+  "data": {
+    /* payload, may be omitted */
+  }
+}
+```
+
+- `event` is always one of the constants in `socket-events.ts`. **Never hardcode
+  the string** — import the constant.
+- `data` is the typed payload for that event (see the tables below). Some events
+  carry no payload.
+
+```js
+// sending
+socket.send(JSON.stringify({ event: 'PLAYER_JOIN', data: { roomCode, playerName } }))
+
+// receiving
+socket.onmessage = (e) => {
+  const { event, data } = JSON.parse(e.data)
+  // switch on event…
+}
+```
+
+---
+
+## 2. Connecting
+
+Default server URL (local dev): `ws://localhost:3000`
+
+### Client (phone)
+
+Open a plain socket, then send `PLAYER_JOIN`:
+
+```js
+const socket = new WebSocket('ws://localhost:3000')
+socket.onopen = () => {
+  socket.send(
+    JSON.stringify({
+      event: 'PLAYER_JOIN',
+      data: { roomCode: 'ABCD', playerName: 'Alice' },
+    })
+  )
+}
+```
+
+### Host (display)
+
+The host authenticates on upgrade using the `Sec-WebSocket-Protocol` header
+only. Tokens MUST NOT be sent in the URL query string (they leak to access
+logs, browser history, referrers and proxies). The server requires two
+subprotocols: the marker `WS_SUBPROTOCOL` and the host token. Example client
+connect (JS):
+
+```js
+const socket = new WebSocket('ws://localhost:3000/?role=host&code=ABCD', [
+  WS_SUBPROTOCOL,
+  hostToken,
+])
+```
+
+- `role=host`, `code` = room join code; `hostToken` = the token returned by
+  `POST /rooms` (see [REST](#5-rest-room-lifecycle)).
+- On success the host immediately receives a `ROOM_STATE_UPDATE`.
+- If the code or token is wrong, the host is **not** registered and will be
+  dropped by the idle timeout.
+
+Security policy: any connection that supplies a `hostToken` in the URL query
+string is rejected immediately. The server closes such sockets with WebSocket
+close code `4001` and reason `"Unauthorized: invalid token transport"`.
+
+> ⚠️ Connection rules every socket must respect — see
+> [Connection rules & limits](#4-connection-rules--limits).
+
+---
+
+## 3. Events
+
+Direction key: **C→S** client→server, **H→S** host→server, **S→C** server→one
+socket, **S→all** server→everyone in the room (host + all clients).
+
+### 3a. Client → server (inbound)
+
+| Event           | Dir | Payload                                             | Notes                                                                                                                                                                                                                                                                                  |
+| --------------- | --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLAYER_JOIN`   | C→S | `{ roomCode, playerName, playerId?, playerToken? }` | Fresh join, or reconnect when `playerId` + `playerToken` are supplied. Missing `roomCode`/`playerName` is ignored.                                                                                                                                                                     |
+| `PLAYER_LEAVE`  | C→S | _none_                                              | Deliberate leave; removes the player.                                                                                                                                                                                                                                                  |
+| `PING`          | C→S | `{ t: number }`                                     | Liveness/latency probe. `t` is the client's timestamp.                                                                                                                                                                                                                                 |
+| `ANSWER_SUBMIT` | C→S | `{ answerId, timestamp }`                           | Submit the chosen answer for the active round. Only valid during the `playing` phase; late/duplicate/invalid submissions are rejected via `ANSWER_ACK`. `timestamp` is **advisory only** — the server times answers from its own clock for scoring (anti-cheat), so it can't be gamed. |
+
+The host sends **no** events over the socket. Host actions (create / start a
+game) go through REST.
+
+### 3b. Server → client/host (outbound)
+
+| Event                  | Dir   | Payload                                                    | When                                                                                                                                                         |
+| ---------------------- | ----- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ROOM_STATE_UPDATE`    | S→all | `{ room: RoomState }`                                      | On host connect, and after any roster/state change. This is the full snapshot — **re-render from it**.                                                       |
+| `PLAYER_JOIN_ACK`      | S→C   | `{ playerId, roomCode, reconnectToken }`                   | Join/reconnect accepted. **Store `playerId` and `reconnectToken`** (see [Reconnecting](#reconnecting)).                                                      |
+| `PLAYER_JOIN_REJECTED` | S→C   | `{ reason: string }`                                       | Join refused. See [reject reasons](#reject-reasons).                                                                                                         |
+| `PLAYER_DISCONNECTED`  | S→all | `{ playerId }`                                             | A player's socket dropped (grace window started).                                                                                                            |
+| `PLAYER_RECONNECTED`   | S→all | `{ playerId }`                                             | A player came back within the grace window.                                                                                                                  |
+| `GAME_START`           | S→all | _none_                                                     | Host started the game; a `ROOM_STATE_UPDATE` follows, then the round loop begins. See [The game loop](#6-the-game-loop-round-state-machine).                 |
+| `GAME_PHASE_CHANGE`    | S→all | `{ phase: GamePhase }`                                     | The active round entered a new phase (`round-intro` → `playing` → `reveal` → `leaderboard`). A fresh `ROOM_STATE_UPDATE` carrying the same phase follows it. |
+| `ROUND_START`          | S→all | `{ round: RoundSummary }`                                  | A new round began. Carries round index, total, type, and time limit (not the question content).                                                              |
+| `QUESTION_SHOW`        | S→all | `{ question: QuestionState }`                              | The question went live (`playing` phase). `QuestionState.answers` are shuffled options with stable ids; correctness is never included.                       |
+| `ANSWER_ACK`           | S→C   | `{ received, accepted, reason? }`                          | Outcome of an `ANSWER_SUBMIT`. `accepted:false` with `reason` of `window-closed` \| `invalid-answer` \| `already-answered` \| `server-error`.                |
+| `TIMER_TICK`           | S→all | `{ secondsRemaining: number }`                             | Once per second during every timed phase, counting down. Hits `0` at expiry.                                                                                 |
+| `TIMER_EXPIRED`        | S→all | _none_                                                     | The **question** phase's clock ran out. (Intro/reveal phases don't emit this — they just transition.)                                                        |
+| `QUESTION_REVEAL`      | S→all | `{ roundId, correctAnswerIds, playerAnswers }`             | Round answering closed (all answered or timer expired). Per-player `{ answerId, isCorrect, pointsAwarded, isTimeout }`. Drives the host reveal screen.       |
+| `ROUND_END`            | S→all | `{ scores: ScoreMap }`                                     | The round finished. `scores` = each player's cumulative total at round end.                                                                                  |
+| `LEADERBOARD_SHOW`     | S→all | `{ round: RoundSummary, leaderboard: LeaderboardEntry[] }` | Shows the ranked leaderboard after a round ends, before the next round starts.                                                                               |
+| `GAME_OVER`            | S→all | `{ finalScores: ScoreMap }`                                | All rounds played; the room is finished. Carries each player's final cumulative total.                                                                       |
+| `PONG`                 | S→C   | `{ t, serverTime }`                                        | Reply to `PING`. `t` is echoed; `serverTime` = server `Date.now()`.                                                                                          |
+
+#### Reject reasons
+
+`PLAYER_JOIN_REJECTED.reason` is one of:
+`Room not found` · `Game already started` · `Invalid reconnect token` ·
+`Room is full` · `Display name is taken`.
+
+### Payload shapes
+
+```ts
+RoomState    = { code: string; players: Player[]; phase: GamePhase; round: number }
+Player       = { id: string; name: string; connected: boolean; score: number }
+GamePhase    = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
+RoundSummary = { index: number; total: number; type: RoundType; timeLimitSeconds: number }
+RoundType    = 'quiz' | 'collab-puzzle' | 'head-to-head'
+ScoreMap     = Record<string /* playerId */, number /* cumulative total */>
+
+QuestionState         = { id: string; text: string; answers: Answer[]; timeLimit: number }
+Answer                = { id: string; text: string }
+AnswerSubmitPayload   = { answerId: string; timestamp: number /* advisory; server uses its own clock for scoring */ }
+AnswerAckPayload      = { received: true; accepted: boolean; reason?: 'window-closed' | 'invalid-answer' | 'already-answered' | 'server-error' }
+PlayerAnswerResult    = { answerId: string | null; isCorrect: boolean; pointsAwarded: number; isTimeout: boolean }
+QuestionRevealPayload = { roundId: string; correctAnswerIds: string[]; playerAnswers: Record<string, PlayerAnswerResult> }
+LeaderboardEntry      = { playerId: string; name: string; score: number; rank: number; previousRank: number | null; rankChange: number; connected: boolean }
+```
+
+> The `GamePhase` type lists every phase the design allows, but the engine
+> currently only drives a room through **`round-intro` → `playing` → `reveal`**
+> (per round). `lobby` is the pre-start state; `leaderboard`/`game-over` are not
+> emitted yet — end-of-game is signalled by the `GAME_OVER` **event** instead.
+> Likewise `RoundType` is always `'quiz'` for now (quiz-only MVP).
+> `rank` is always sequential (`1`, `2`, `3`, ...). Players with the same score do not
+> share a rank. If scores are equal, the server keeps the previous leaderboard order, so
+> the player who reached that score first stays above the player who caught up later.
+> On the first leaderboard, join order is used as fallback.
+> `previousRank` is `null` on the first leaderboard. `rankChange` is positive
+> when a player moved up, negative when a player moved down, and `0` when the player
+> stayed in the same position or appears for the first time.
+
+(Full definitions in `src/shared/types/index.ts`.)
+
+### 3c. Source map (where each event is emitted / handled)
+
+For every wired game-flow, timer, and quiz-answering event, the authoritative
+emit (or inbound handler) site. Line numbers are indicative — the file is the
+contract.
+
+| Event               | Dir   | Source                                                                            |
+| ------------------- | ----- | --------------------------------------------------------------------------------- |
+| `ANSWER_SUBMIT`     | C→S   | handler `socket/socket.gateway.ts:222` → `room/game/answer.service.ts` (`submit`) |
+| `ANSWER_ACK`        | S→C   | `room/game/answer.service.ts:126` (`ack`)                                         |
+| `QUESTION_SHOW`     | S→all | `room/game/round-presenter.impl.ts:46` (`RoundPresenterImpl.present`)             |
+| `QUESTION_REVEAL`   | S→all | `room/game/scoring.service.ts:101` (`scoreRound`)                                 |
+| `GAME_PHASE_CHANGE` | S→all | `room/game/game-engine.service.ts:213` (`enterPhase`)                             |
+| `ROUND_START`       | S→all | `room/game/game-engine.service.ts:126` (`runRound`)                               |
+| `ROUND_END`         | S→all | `room/game/game-engine.service.ts:159` (`runRound`)                               |
+| `GAME_OVER`         | S→all | `room/game/game-engine.service.ts:95` (game loop, non-aborted only)               |
+| `TIMER_TICK`        | S→all | `room/game/game-engine.service.ts:179` (`timePhase` `onTick`)                     |
+| `TIMER_EXPIRED`     | S→all | `room/game/game-engine.service.ts:150` (`runRound`, question phase only)          |
+
+All paths are relative to `src/server/`. Event-name constants live in
+`src/shared/events/socket-events.ts`; payload types in `src/shared/types/index.ts`.
+
+Implementation notes worth knowing when consuming these:
+
+- **`QUESTION_SHOW`** options are shuffled (Fisher-Yates) with stable per-round
+  ids `"<roundId>:<index>"`; `question.id` is the **round id** and `timeLimit`
+  is the round's `timeLimitSeconds`. Correctness is never sent.
+- **`ANSWER_SUBMIT`** is honoured only for client sockets while a window is open;
+  exactly one answer per `(clientId, roundId)` is persisted (in-memory guard +
+  DB unique index). The server derives answer time from its own clock.
+- **`QUESTION_REVEAL`** includes every roster member — non-submitters appear with
+  `answerId: null, isTimeout: true, pointsAwarded: 0`.
+- **`TIMER_EXPIRED`** fires for the question phase on both natural timeout and
+  early end (all connected players answered); it is **not** sent if the game
+  aborts mid-phase, and intro/reveal phases never emit it.
+- **`GAME_OVER`** is sent only after the last round of a non-aborted game; an
+  abandoned game marks the room `ABANDONED` and emits nothing.
+
+---
+
+## 4. Connection rules & limits
+
+These are enforced by the gateway — build the UIs to cooperate with them.
+
+| Rule                  | Behaviour                                                                                                                                                                                                                       | What you must do                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Origin allow-list** | The server rejects (closes) a socket whose browser `Origin` isn't allow-listed. Allowed origins mirror the HTTP CORS list (`CORS_ORIGINS`; dev defaults: `http://localhost:5173` for client, `http://localhost:5174` for host). | Serve the apps from an allowed origin. In prod, add your origin to `CORS_ORIGINS`. |
+| **Idle timeout**      | A socket that connects but never authenticates (host) or joins (client) within **30s** (`ROOM.JOIN_TIMEOUT_MS`) is closed.                                                                                                      | Send `PLAYER_JOIN` (or connect as host with valid params) promptly after `onopen`. |
+| **Rate limit**        | Max **20 inbound messages/second per connection** (`RATE_LIMIT`). Excess messages are **dropped silently** (a dropped `PING` simply gets no `PONG`).                                                                            | Don't spam. Keep `PING` to ~once/sec.                                              |
+| **Reconnect auth**    | Reclaiming an existing `playerId` requires the matching `reconnectToken`. A wrong/missing token is rejected with `Invalid reconnect token`.                                                                                     | Persist the token from `PLAYER_JOIN_ACK` and send it back on reconnect.            |
+
+### Reconnecting
+
+1. On every `PLAYER_JOIN_ACK`, save `playerId` **and** `reconnectToken`.
+2. To reconnect (e.g. after a dropped socket, within the grace window), open a
+   new socket and send `PLAYER_JOIN` with the stored `playerId` **and**
+   `playerToken`:
+   ```js
+   socket.send(
+     JSON.stringify({
+       event: 'PLAYER_JOIN',
+       data: { roomCode, playerName, playerId, playerToken: reconnectToken },
+     })
+   )
+   ```
+3. The token **rotates** on each successful reconnect — always overwrite your
+   stored copy from the newest `PLAYER_JOIN_ACK`. The previous token will no
+   longer work.
+
+> Tokens are held in server memory: a **server restart invalidates all reconnect
+> (and host) tokens**. After a restart, players must join fresh and the host must
+> create a new room.
+
+---
+
+## 5. REST: room lifecycle
+
+The host uses HTTP for room creation and starting the game.
+
+| Method & path             | Body            | Returns / errors                                                                                             |
+| ------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
+| `POST /rooms`             | _none_          | `{ code, hostToken }` — create a lobby. **Keep `hostToken` secret; never send it to players.**               |
+| `GET /rooms/:code`        | _none_          | `RoomState`, or `404` if unknown.                                                                            |
+| `POST /rooms/:code/start` | `{ hostToken }` | `RoomState` on success. `404` unknown room · `403` bad host token · `409` too few players / already started. |
+
+Typical host flow:
+
+```
+POST /rooms                       → { code, hostToken }
+open WS ?role=host&code&hostToken → receive ROOM_STATE_UPDATE
+…players join over WS…
+POST /rooms/:code/start {hostToken} → GAME_START + ROOM_STATE_UPDATE broadcast
+```
+
+---
+
+## 6. The game loop (round state machine)
+
+`POST /rooms/:code/start` flips the room out of the lobby, broadcasts
+`GAME_START`, and kicks off a **server-authoritative loop** (`GameEngineService`).
+The host and clients are pure subscribers — they never advance the state; they
+react to the events the engine emits. The engine plays a fixed number of rounds
+(`ROUNDS.COUNT`, currently **5**), all quiz rounds for the MVP.
+
+### Per-round sequence
+
+For each round the engine emits, in order:
+
+```
+ROUND_START                         { round: RoundSummary }
+  ─ phase: round-intro ─────────────────────────────────────────
+  GAME_PHASE_CHANGE  { phase: 'round-intro' }  +  ROOM_STATE_UPDATE
+  TIMER_TICK …                      every 1s for ROUND_INTRO_SECONDS (3s)
+  ─ phase: playing ─────────────────────────────────────────────
+  GAME_PHASE_CHANGE  { phase: 'playing' }      +  ROOM_STATE_UPDATE
+  QUESTION_SHOW      { question: QuestionState }
+  (clients send ANSWER_SUBMIT → ANSWER_ACK)
+  TIMER_TICK …                      every 1s until expiry OR all connected answered
+  TIMER_EXPIRED                     answering window closed
+  ─ phase: reveal ──────────────────────────────────────────────
+  GAME_PHASE_CHANGE  { phase: 'reveal' }       +  ROOM_STATE_UPDATE
+  QUESTION_REVEAL    { roundId, correctAnswerIds, playerAnswers }
+  TIMER_TICK …                      every 1s for REVEAL_SECONDS (5s)
+  ROUND_END                         { scores: ScoreMap }   ← carries real time-decay points
+  ─ phase: leaderboard ─────────────────────────────────────────
+  GAME_PHASE_CHANGE  { phase: 'leaderboard' }  +  ROOM_STATE_UPDATE
+  LEADERBOARD_SHOW                  { round: RoundSummary, leaderboard: LeaderboardEntry[] }
+  TIMER_TICK …                      every 1s for LEADERBOARD_SECONDS (10s)
+```
+
+After the last round:
+
+```
+GAME_OVER                           { finalScores: ScoreMap }
+```
+
+Notes for the UI:
+
+- **Every `GAME_PHASE_CHANGE` is immediately followed by a `ROOM_STATE_UPDATE`**
+  whose `room.phase` equals the new phase. You can drive the screen off either
+  one — `ROOM_STATE_UPDATE` remains the full re-render snapshot.
+- **`TIMER_TICK` counts down** (`secondsRemaining`) and fires during _every_
+  timed phase — intro, question, reveal, and leaderboard. Only the question phase ends with
+  an explicit `TIMER_EXPIRED`.
+- Phase durations come from `TIMER` in `game-config.ts`
+  (`ROUND_INTRO_SECONDS`, `QUESTION_SECONDS`, `REVEAL_SECONDS`, `LEADERBOARD_SECONDS`).
+- **Scores are real time-decay points.** `ANSWER_SUBMIT` is handled; each
+  correct answer earns `basePoints × (timeRemaining / timeLimit)`, rounded to
+  the nearest integer. Wrong answers and timeouts score `0`. `ScoreMap` values
+  in `ROUND_END`/`GAME_OVER` and scores in `LEADERBOARD_SHOW` reflect cumulative
+  totals.
+
+### Failure / teardown
+
+- The loop is **fire-and-forget and never throws** at the caller. If something
+  fails mid-game (e.g. fewer than `ROUNDS.COUNT` questions are seeded, which
+  raises `NotEnoughQuestionsError`), the engine **abandons the room quietly** —
+  the room is marked `ABANDONED` and **no client-facing event is sent**.
+  ⚠️ This means `POST .../start` can return `200` and broadcast `GAME_START`,
+  yet no `ROUND_START` ever arrives. Don't assume `GAME_START` guarantees a
+  round will follow; gate the screen on the first `ROUND_START`/`GAME_PHASE_CHANGE`.
+- If the room is torn down (everyone leaves) the in-flight phase is cancelled
+  and the loop exits.
+
+---
+
+## 7. End-to-end flow (happy path)
+
+```
+HOST                         SERVER                         CLIENT (phone)
+ │  POST /rooms                 │                                │
+ │ ───────────────────────────>│                                │
+ │  {code, hostToken}           │                                │
+ │ <───────────────────────────│                                │
+ │  WS ?role=host&code&token    │                                │
+ │ ───────────────────────────>│                                │
+ │  ROOM_STATE_UPDATE           │                                │
+ │ <───────────────────────────│        WS connect              │
+ │                              │ <──────────────────────────────│
+ │                              │   PLAYER_JOIN {code, name}     │
+ │                              │ <──────────────────────────────│
+ │                              │   PLAYER_JOIN_ACK {id, token}  │
+ │                              │ ──────────────────────────────>│
+ │  ROOM_STATE_UPDATE  (S→all)  │   ROOM_STATE_UPDATE  (S→all)   │
+ │ <────────────────────────────────────────────────────────────│
+ │  POST /rooms/:code/start     │                                │
+ │ ───────────────────────────>│                                │
+ │  GAME_START (S→all) + ROOM_STATE_UPDATE                       │
+ │ <────────────────────────────────────────────────────────────│
+ │            ┌── per round (×ROUNDS.COUNT) ──────────────┐      │
+ │  ROUND_START                                           │      │
+ │  GAME_PHASE_CHANGE + ROOM_STATE_UPDATE  (intro)        │      │
+ │  TIMER_TICK …                                          │      │
+ │  GAME_PHASE_CHANGE + ROOM_STATE_UPDATE  (playing)      │      │
+ │  TIMER_TICK … → TIMER_EXPIRED                          │      │
+ │  GAME_PHASE_CHANGE + ROOM_STATE_UPDATE  (reveal)       │      │
+ │  TIMER_TICK …                                          │      │
+ │  ROUND_END                                             │      │
+ │  GAME_PHASE_CHANGE + ROOM_STATE_UPDATE (leaderboard)   │      │
+ │  LEADERBOARD_SHOW                                      │      │
+ │  TIMER_TICK …                                          │      │
+ │            └────────────────────────────────────────────┘     │
+ │  GAME_OVER (S→all)                                            │
+ │ <────────────────────────────────────────────────────────────│
+```
+
+---
+
+## Reserved events (not yet implemented)
+
+The game-flow, timer, quiz-answering, and leaderboard events
+(`GAME_PHASE_CHANGE`, `ROUND_START`, `ROUND_END`, `LEADERBOARD_SHOW`,
+`GAME_OVER`, `TIMER_TICK`, `TIMER_EXPIRED`, `QUESTION_SHOW`, `QUESTION_REVEAL`,
+`ANSWER_SUBMIT`, `ANSWER_ACK`) are all now wired — see
+[The game loop](#6-the-game-loop-round-state-machine) and [Events](#3-events).
+
+There are no events currently in a reserved/unimplemented state. When in doubt,
+the code in `src/server/socket/`, `src/server/room/game/`, and `src/shared/` is
+authoritative.

@@ -1,0 +1,248 @@
+.balance-scale {
+  width: min(100%, 980px);
+  margin: 0 auto;
+}
+
+.balance-scale__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.balance-scale__foot {
+  filter: drop-shadow(0 14px 22px rgb(25 33 44 / 16%));
+}
+
+.balance-scale__fulcrum {
+  fill: #344054;
+  stroke: #1d2939;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.balance-scale__base {
+  fill: #1d2939;
+}
+
+.balance-scale__foot-marker {
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.balance-scale__rotating-group {
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.balance-scale__beam {
+  stroke: #344054;
+  stroke-linecap: round;
+  stroke-width: 18;
+}
+
+.balance-scale__beam-pivot-ring {
+  stroke-linecap: round;
+  stroke-width: 6;
+}
+
+.balance-scale__pivot-debug line {
+  stroke: #ff2bd6;
+  stroke-dasharray: 5 6;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.balance-scale__item-connector {
+  stroke: #667085;
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.balance-scale__item-card-bg {
+  fill: #ffffff;
+  stroke: #98a2b3;
+  stroke-width: 3;
+}
+
+.balance-scale__item-card {
+  filter: drop-shadow(0 8px 12px rgb(25 33 44 / 14%));
+}
+
+.balance-scale__item-card--new {
+  animation: balance-scale-drop-in 380ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.balance-scale__item-emoji,
+.balance-scale__question-mark {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-size: 30px;
+  text-anchor: middle;
+}
+
+.balance-scale__item-label {
+  fill: #1d2939;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.balance-scale__question-bg {
+  fill: #fff7ed;
+  stroke: #fb923c;
+  stroke-dasharray: 8 7;
+  stroke-width: 4;
+}
+
+.balance-scale__question-mark {
+  fill: #c2410c;
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.scale-mechanics-mock {
+  min-height: 100vh;
+  padding: 24px;
+  background: #f8fafc;
+  color: #182230;
+}
+
+.scale-mechanics-mock__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.scale-mechanics-mock__equations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: min(100%, 980px);
+  margin: 0 auto 16px;
+}
+
+.scale-mechanics-mock__equation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgb(15 23 42 / 8%);
+  color: #182230;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.scale-mechanics-mock__equation-side,
+.scale-mechanics-mock__stack {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.scale-mechanics-mock__stack-count {
+  min-width: 1.1em;
+  color: #475467;
+  text-align: right;
+}
+
+.scale-mechanics-mock__stack-emoji {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.scale-mechanics-mock__equals {
+  color: #ff2bd6;
+  font-size: 20px;
+}
+
+.scale-mechanics-mock__answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: min(100%, 980px);
+  margin: 10px auto 18px;
+}
+
+.scale-mechanics-mock__answer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 118px;
+  border: 1px solid #98a2b3;
+  border-radius: 8px;
+  padding: 9px 13px;
+  background: #ffffff;
+  color: #182230;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.scale-mechanics-mock__answer:hover:not(:disabled) {
+  border-color: #475467;
+}
+
+.scale-mechanics-mock__answer:disabled {
+  cursor: not-allowed;
+}
+
+.scale-mechanics-mock__answer--correct {
+  border-color: #16a34a;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.scale-mechanics-mock__answer--wrong {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #b42318;
+}
+
+.scale-mechanics-mock__button {
+  min-width: 96px;
+  border: 1px solid #98a2b3;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: #ffffff;
+  color: #182230;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.scale-mechanics-mock__button:hover:not(:disabled) {
+  border-color: #475467;
+}
+
+.scale-mechanics-mock__button--active {
+  border-color: #ff2bd6;
+  background: #fff0fb;
+  color: #9f147e;
+}
+
+.scale-mechanics-mock__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+@keyframes balance-scale-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
