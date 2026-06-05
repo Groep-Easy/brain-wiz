@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test'
 import * as assert from 'node:assert/strict'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DatabaseModule } from '../../src/server/database/database.module.js'
-import { getDatabaseConfig } from '../../config/database.js'
+import { DatabaseModule } from '../../src/server/database/database.module'
+import { getDatabaseConfig } from '../../src/config/database'
 
 describe('DatabaseModule', () => {
   it('should compile and load configuration successfully', async () => {

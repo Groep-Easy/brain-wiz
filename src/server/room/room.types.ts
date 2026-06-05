@@ -2,7 +2,7 @@
  * @file room.types.ts
  * @description Shapes consumed by the room → wire RoomState mappers.
  */
-import { RoomStatusEnum } from '../entities/enums.js'
+import { RoomStatusEnum } from '../entities/enums'
 
 /** The room fields needed to build a wire `RoomState`. */
 export interface RoomStateSource {

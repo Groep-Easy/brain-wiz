@@ -4,8 +4,8 @@
  * the Client entity and exports ClientService for the lobby orchestrator.
  */
 import { Module } from '@nestjs/common'
-import { DatabaseModule } from '../database/index.js'
-import { ClientService } from './client.service.js'
+import { DatabaseModule } from '../database/index'
+import { ClientService } from './client.service'
 
 @Module({
   imports: [DatabaseModule],
