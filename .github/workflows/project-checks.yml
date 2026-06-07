@@ -1,6 +1,9 @@
 name: Project checks
 
 on:
+  push:
+    branches:
+      - feat/ci-test-pipeline
   pull_request:
     branches:
       - develop
