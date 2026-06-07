@@ -18,6 +18,7 @@
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint:fix && npm run format && tsc && cd dist && node --env-file=../.env --test",
+    "test:project-checks": "tsc && cd dist && node --env-file=../.env --test",
     "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",

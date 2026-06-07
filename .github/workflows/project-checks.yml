@@ -1,0 +1,50 @@
+name: Project checks
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+jobs:
+  test:
+    name: Run project checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create test environment file
+        run: |
+          cat > .env << EOF
+          NODE_ENV=test
+          PORT=3000
+          BASE_URL=http://localhost:3000
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USERNAME=postgres
+          DB_PASSWORD=postgrespassword
+          DB_NAME=brain_wiz_test
+          EOF
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:project-checks
+
+      - name: Run build
+        run: npm run build
