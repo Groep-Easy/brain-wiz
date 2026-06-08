@@ -198,9 +198,15 @@ export function App(): React.JSX.Element {
             {status === 'connecting' ? (
               <p>Connecting to server...</p>
             ) : (
-              <button className="primary-btn" onClick={handleCreateRoom}>
-                Host Game
-              </button>
+              <>
+                <button className="primary-btn" onClick={handleCreateRoom}>
+                  Host Game
+                </button>
+                <div className="space"></div>
+                <button className="primary-btn" onClick={handleCreateRoom}>
+                  Join Game
+                </button>
+              </>
             )}
           </div>
         </div>
