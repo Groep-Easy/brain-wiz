@@ -6,18 +6,15 @@
  */
 import { useRef, useLayoutEffect, useMemo } from 'react'
 import type { LeaderboardEntry } from '../../shared/types/index'
+import type { RoadmapEntry } from '../../shared/types/index'
 import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
 }
 
-type RoadmapMessage = [playerPos: number, totalQuestions: number, ...rest: (string | number)[]]
-
-const TEST_MESSAGE: RoadmapMessage = [1, 5, 'General', 5]
-
 interface RoadmapProps {
-  message?: RoadmapMessage
+  roadmap?: RoadmapEntry[]
 }
 
 export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Element {
@@ -53,9 +50,12 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
     previousPositions.current = currentPositions
   }, [leaderboard])
 
-  function Roadmap({ message = TEST_MESSAGE }: RoadmapProps) {
+  function Roadmap({ roadmap }: RoadmapProps) {
+    if (!roadmap || roadmap.length < 2) {
+      return null
+    }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const [playerPos, total, ...rest] = message
+      const [playerPos, total, ...rest] = roadmap
 
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
@@ -108,7 +108,7 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
         themeMap,
         timeline,
       }
-    }, [message])
+    }, [roadmap])
 
     const themeStartSet = useMemo(() => new Set(themeStarts.map((t) => t.index)), [themeStarts])
 
