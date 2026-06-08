@@ -157,6 +157,21 @@ export function App(): React.JSX.Element {
     }
   }
 
+  const handleJoinGame = async () => {
+    try {
+      const res = await fetch(`http://localhost:5173`, { method: 'POST' }) // TODO: get the right address for clients joining game
+      if (!res.ok) {
+        alert('Failed to join game on server')
+        return
+      }
+      const body = (await res.json()) as { code: string; hostToken: string }
+      setCode(body.code)
+      setHostToken(body.hostToken)
+    } catch (err) {
+      alert(`Error joining game: ${String(err)}`)
+    }
+  }
+
   const handleStartGame = async () => {
     if (!code || !hostToken) return
     try {
@@ -203,7 +218,7 @@ export function App(): React.JSX.Element {
                   Host Game
                 </button>
                 <div className="space"></div>
-                <button className="primary-btn" onClick={handleCreateRoom}>
+                <button className="primary-btn" onClick={handleJoinGame}>
                   Join Game
                 </button>
               </>
