@@ -10,9 +10,24 @@ on:
       - master
 
 jobs:
-  test:
+  project-checks:
     name: Run project checks
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: localdevsecret
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout repository
@@ -29,15 +44,15 @@ jobs:
 
       - name: Create test environment file
         run: |
-          cat > .env << EOF
+          cat > .env << 'EOF'
           NODE_ENV=test
           PORT=3000
           BASE_URL=http://localhost:3000
           DB_HOST=localhost
           DB_PORT=5432
           DB_USERNAME=postgres
-          DB_PASSWORD=postgrespassword
-          DB_NAME=brain_wiz_test
+          DB_PASSWORD=localdevsecret
+          DB_NAME=postgres
           EOF
 
       - name: Check formatting
