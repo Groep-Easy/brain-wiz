@@ -18,8 +18,7 @@ state and talks to phones and the host over WebSockets.
 - **Shared:** constants, types, and pure utilities imported by all three contexts
 
 The repository is a monorepo with three runtime contexts plus shared code. See
-[`docs/architecture/OVERVIEW.md`](docs/architecture/OVERVIEW.md) for how they fit
-together.
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how they fit together.
 
 ## Quick start
 
@@ -43,14 +42,12 @@ For prerequisites, the manual setup path, and troubleshooting, see
 
 ## Documentation
 
-| Doc                                                    | What it covers                                       |
-| ------------------------------------------------------ | ---------------------------------------------------- |
-| [Getting started](docs/onboarding/GETTING_STARTED.md)  | Prerequisites, setup, daily commands, team rules     |
-| [Architecture overview](docs/architecture/OVERVIEW.md) | Runtime contexts, communication model, build steps   |
-| [WebSocket protocol](docs/api/SOCKET_PROTOCOL.md)      | Event names, payloads, and the room/game wire format |
-| [REST API](docs/api/REST_API.md)                       | HTTP endpoints for content management (questions)    |
-| [QR-code flow](docs/api/QRCODE_FLOW.md)                | How room join codes and QR codes are generated       |
-| [Round types](docs/game-design/ROUND_TYPES.md)         | Game round / minigame design                         |
+Full documentation lives in [`docs/`](docs/README.md). Start there for the
+complete index. Highlights:
+
+- [Getting started](docs/onboarding/GETTING_STARTED.md) — prerequisites, setup, daily commands
+- [Architecture overview](docs/ARCHITECTURE.md) — how the system fits together
+- [WebSocket protocol](docs/api/SOCKET_PROTOCOL.md) — the room/game wire format
 
 ## Prerequisites
 
