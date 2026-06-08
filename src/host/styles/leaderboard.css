@@ -101,14 +101,12 @@
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
-  height: 90px;
+  right: 0;
 
-  display: flex;
-  align-items: flex-end;
+  height: 160px;
 
-  z-index: 50;
-  pointer-events: none;
+  overflow: hidden;
+  justify-content: center;
 }
 
 .questionNode {
@@ -136,4 +134,5 @@
 .themeLabel {
   font-size: 20px;
   fill: var(--navy);
+  font-weight: 400;
 }

@@ -14,20 +14,7 @@ interface LeaderBoardProps {
 
 type RoadmapMessage = [playerPos: number, totalQuestions: number, ...rest: (string | number)[]]
 
-const TEST_MESSAGE: RoadmapMessage = [
-  15,
-  18,
-  'History',
-  3,
-  'Biology',
-  4,
-  'Math',
-  5,
-  'Geography',
-  3,
-  'Physics',
-  3,
-]
+const TEST_MESSAGE: RoadmapMessage = [1, 5, 'General', 5]
 
 interface RoadmapProps {
   message?: RoadmapMessage
@@ -66,12 +53,12 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
     previousPositions.current = currentPositions
   }, [leaderboard])
 
-  /* Roadmap */
   function Roadmap({ message = TEST_MESSAGE }: RoadmapProps) {
-    const { nodes, themeStarts, playerPos, total } = useMemo(() => {
+    const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
       const [playerPos, total, ...rest] = message
 
       const themeStarts: { index: number; theme: string }[] = []
+      const themeMap = new Map<number, string>()
 
       let i = 0
       let cursor = 1
@@ -80,74 +67,131 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
         const theme = rest[i] as string
         const count = rest[i + 1] as number
 
-        themeStarts.push({ index: cursor, theme })
+        themeStarts.push({
+          index: cursor,
+          theme,
+        })
+
+        themeMap.set(cursor, theme)
 
         cursor += count
         i += 2
       }
 
-      const nodes = Array.from({ length: total }, (_, idx) => idx + 1)
+      type TimelineItem =
+        | {
+            type: 'node'
+            questionNumber: number
+          }
+        | {
+            type: 'dot'
+          }
 
-      return { nodes, themeStarts, playerPos, total }
+      const timeline: TimelineItem[] = []
+
+      for (let q = 1; q <= total; q++) {
+        timeline.push({
+          type: 'node',
+          questionNumber: q,
+        })
+
+        if (q < total) {
+          timeline.push({ type: 'dot' })
+          timeline.push({ type: 'dot' })
+        }
+      }
+
+      return {
+        playerPos,
+        total,
+        themeStarts,
+        themeMap,
+        timeline,
+      }
     }, [message])
 
-    const width = 1920
-    const height = 180
-    const amplitude = 35
-    const midY = height / 2
+    const themeStartSet = useMemo(() => new Set(themeStarts.map((t) => t.index)), [themeStarts])
 
-    const getY = (i: number) => midY + Math.sin((i / (total - 1)) * Math.PI * 2) * amplitude
+    const STEP = 70
+    const PADDING = 100
 
-    const isThemeStart = (i: number) => themeStarts.some((t) => t.index === i)
+    const WIDTH = Math.max(1920, PADDING * 2 + (timeline.length - 1) * STEP)
+
+    const HEIGHT = 180
+    const AMPLITUDE = 35
+    const MID_Y = HEIGHT / 2
+
+    const WAVELENGTH = 630
+
+    const getY = (x: number) => MID_Y + AMPLITUDE * Math.sin((x / WAVELENGTH) * Math.PI * 2)
+
+    const getNodeClass = (questionNumber: number) => {
+      if (questionNumber < playerPos) {
+        return 'oldNode'
+      }
+
+      if (questionNumber === playerPos) {
+        return 'playerNode'
+      }
+
+      if (questionNumber === total) {
+        return 'lastNode'
+      }
+      return 'questionNode'
+    }
+
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    useLayoutEffect(() => {
+      const container = containerRef.current
+
+      if (!container) return
+
+      const viewportWidth = container.clientWidth
+
+      const playerTimelineIndex = (playerPos - 1) * 3
+      const playerX = PADDING + playerTimelineIndex * STEP
+
+      const targetScrollLeft = playerX - viewportWidth / 3
+
+      const maxScrollLeft = container.scrollWidth - viewportWidth
+
+      container.scrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft))
+    }, [playerPos])
 
     return (
-      <div className="roadmap-container">
-        <svg width="100%" viewBox={`0 0 ${width} ${height}`}>
-          {nodes.map((node, idx) => {
-            const padding = 40
-            const usableWidth = width - padding * 2
+      <div
+        style={{
+          overflowX: 'auto',
+          width: '100%',
+        }}
+        ref={containerRef}
+      >
+        <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+          {timeline.map((item, index) => {
+            const x = PADDING + index * STEP
+            const y = getY(x)
 
-            const x = padding + (idx / (total - 1)) * usableWidth
-            const y = getY(idx)
+            if (item.type === 'dot') {
+              return <circle key={`dot-${index}`} cx={x} cy={y} r={4} className="miniDot" />
+            }
 
-            let className = 'questionNode'
-
-            if (node === playerPos) className = 'playerNode'
-            else if (node === total) className = 'lastNode'
-            else if (node < playerPos) className = 'oldNode'
+            const isThemeNode = themeStartSet.has(item.questionNumber)
 
             return (
-              <g key={node}>
-                <circle cx={x} cy={y} r={isThemeStart(node) ? 12 : 8} className={className} />
+              <g key={item.questionNumber}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={isThemeNode ? 12 : 8}
+                  className={getNodeClass(item.questionNumber)}
+                />
 
-                {isThemeStart(node) && (
+                {isThemeNode && (
                   <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
-                    {themeStarts.find((t) => t.index === node)?.theme}
+                    {themeMap.get(item.questionNumber)}
                   </text>
                 )}
-
-                {idx < nodes.length - 1 &&
-                  (() => {
-                    const nextX = ((idx + 1) / (total - 1)) * width
-                    const nextY = getY(idx + 1)
-
-                    const dots = [1 / 3, 2 / 3]
-
-                    return dots.map((t, i) => {
-                      const dx = x + (nextX - x) * t
-                      const dy = y + (nextY - y) * t
-
-                      return (
-                        <circle
-                          key={`${node}-dot-${i}`}
-                          cx={dx}
-                          cy={dy}
-                          r={4}
-                          className="miniDot"
-                        />
-                      )
-                    })
-                  })()}
               </g>
             )
           })}
@@ -157,41 +201,45 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
   }
 
   return (
-    <div className="leaderboard-screen">
-      <header className="leaderboard-header">
-        <h1>Leaderboard</h1>
-      </header>
-      <ul className="leaderboard-list">
-        {leaderboard.map((entry, index) => (
-          <li
-            key={entry.playerId}
-            ref={(el) => {
-              if (el) {
-                itemRefs.current.set(entry.name, el)
-              } else {
-                itemRefs.current.delete(entry.name)
-              }
-            }}
-            className={`player-row ${index === 0 ? 'first-place' : ''}`}
-          >
-            <div className="player-info">
-              <span className="rank">#{entry.rank}</span>
-              <span className="name">{entry.name}</span>
-            </div>
-            <div className="player-stats">
-              <span className="score">{entry.score} pts</span>
-              {entry.rankChange !== 0 && (
-                <span className={`rank-change ${entry.rankChange > 0 ? 'rank-up' : 'rank-down'}`}>
-                  {entry.rankChange > 0
-                    ? `▲ ${entry.rankChange}`
-                    : `▼ ${Math.abs(entry.rankChange)}`}
-                </span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-      <Roadmap />
-    </div>
+    <>
+      <div className="leaderboard-screen">
+        <header className="leaderboard-header">
+          <h1>Leaderboard</h1>
+        </header>
+        <ul className="leaderboard-list">
+          {leaderboard.map((entry, index) => (
+            <li
+              key={entry.playerId}
+              ref={(el) => {
+                if (el) {
+                  itemRefs.current.set(entry.name, el)
+                } else {
+                  itemRefs.current.delete(entry.name)
+                }
+              }}
+              className={`player-row ${index === 0 ? 'first-place' : ''}`}
+            >
+              <div className="player-info">
+                <span className="rank">#{entry.rank}</span>
+                <span className="name">{entry.name}</span>
+              </div>
+              <div className="player-stats">
+                <span className="score">{entry.score} pts</span>
+                {entry.rankChange !== 0 && (
+                  <span className={`rank-change ${entry.rankChange > 0 ? 'rank-up' : 'rank-down'}`}>
+                    {entry.rankChange > 0
+                      ? `▲ ${entry.rankChange}`
+                      : `▼ ${Math.abs(entry.rankChange)}`}
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="roadmap-container">
+        <Roadmap />
+      </div>
+    </>
   )
 }
