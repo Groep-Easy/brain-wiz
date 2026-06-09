@@ -53,7 +53,16 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
 
 ## Deployment to uva server
 1. Log in on the eduvpn of school.
-2.
+2. First time connect to the uva server:
+   - copy the file ssh key that is given by the group
+   - `chmod 400 <ssh_key_file>`
+3. Connect to server:
+   `ssh -i <ssh_key_file> <name>@<ip>`
+3. Setup the deployment script or if the script changed:
+   - Copy the `deploy-uva.sh` script in the the home directory
+   - `chmod +x deploy-uva.sh`
+4. deploy the app:
+   `./deploy-uva.sh`
 
 ## Workspace configuration
 
