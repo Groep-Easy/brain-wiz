@@ -14,6 +14,7 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
+import { JoinScreen } from '../client/components/JoinScreen'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
@@ -159,7 +160,7 @@ export function App(): React.JSX.Element {
 
   const handleJoinGame = async () => {
     try {
-      const res = await fetch(`http://localhost:5173`, { method: 'POST' }) // TODO: get the right address for clients joining game
+      const res = await fetch(`?????????????????????????????????????`, { method: 'POST' }) // TODO: get the right address for clients joining game
       if (!res.ok) {
         alert('Failed to join game on server')
         return
