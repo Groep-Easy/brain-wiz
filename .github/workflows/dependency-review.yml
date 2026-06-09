@@ -1,13 +1,15 @@
 name: Dependency review
 
 on:
-  push:
-    branches:
-      - feat/ci-test-pipeline
   pull_request:
     branches:
       - develop
       - master
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
 
 permissions:
   contents: read
