@@ -51,6 +51,10 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
    immediately, remove the file from history (see maintainers), and have all
    collaborators re-clone the repository after the history has been rewritten.
 
+## Deployment to uva server
+1. Log in on the eduvpn of school.
+2.
+
 ## Workspace configuration
 
 This repository includes strict, shared settings so everyone uses the same formatting and Git behavior:
