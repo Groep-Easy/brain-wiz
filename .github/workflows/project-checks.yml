@@ -258,14 +258,29 @@ jobs:
           DB_LOGGING_ENABLED=${DB_LOGGING_ENABLED}
           EOF
 
+      - name: Install coverage report tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov
+
       - name: Generate coverage report
         run: npm run test:coverage
 
-      - name: Upload coverage report
+      - name: Generate HTML coverage report
+        run: genhtml coverage/lcov.info --output-directory coverage/html
+
+      - name: Upload LCOV coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-lcov-report
           path: coverage/lcov.info
+          if-no-files-found: error
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-report
+          path: coverage/html
           if-no-files-found: error
 
   build:
