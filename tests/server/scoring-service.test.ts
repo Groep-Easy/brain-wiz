@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { ScoringService } from '../../src/server/room/game/scoring.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import * as EVENTS from '../../src/shared/events/socket-events'
-import type { QuestionRevealPayload } from '../../src/shared/types/index'
+import type { QuestionRevealPayload, RoundRevealPayload } from '../../src/shared/types/index'
 
 interface AnswerRow {
   clientId: string
@@ -19,7 +19,8 @@ interface AnswerRow {
 
 function setup(
   rows: AnswerRow[],
-  roster: Array<{ id: string; totalScore: number }>
+  roster: Array<{ id: string; totalScore: number }>,
+  minigames?: unknown
 ): {
   bus: GameEventBus
   emits: Array<{ event: string; data: unknown }>
@@ -50,7 +51,13 @@ function setup(
     },
   }
 
-  new ScoringService(bus, broadcaster as never, answerRepo as never, clientService as never)
+  new ScoringService(
+    bus,
+    broadcaster as never,
+    answerRepo as never,
+    clientService as never,
+    minigames as never
+  )
   return { bus, emits, saved, scores }
 }
 
@@ -59,6 +66,8 @@ function openAndClose(bus: GameEventBus): void {
     type: 'ROUND_WINDOW_OPENED',
     roomId: 'room-1',
     roundId: 'round-1',
+    roundType: 'quiz',
+    scoringMode: 'quiz',
     questionId: 'q1',
     shownAt: 0,
     timeLimitSeconds: 30,
@@ -139,6 +148,8 @@ describe('ScoringService', () => {
       type: 'ROUND_WINDOW_OPENED',
       roomId: 'room-1',
       roundId: 'round-1',
+      roundType: 'quiz',
+      scoringMode: 'quiz',
       questionId: 'q1',
       shownAt: 0,
       timeLimitSeconds: 30,
@@ -162,5 +173,59 @@ describe('ScoringService', () => {
       undefined
     )
     assert.equal(ctx.scores['pA'], undefined)
+  })
+
+  it('scores procedural minigame submissions through the registry', async () => {
+    const minigames = {
+      get: (): unknown => ({
+        scoreSubmission: (): unknown => ({
+          isCorrect: true,
+          pointsAwarded: 450,
+          breakdown: { correctTiles: 4 },
+          publicSolution: { board: [1, 2, 3, 4, 5, 6, 7, 8, 0] },
+        }),
+      }),
+    }
+    const ctx = setup(
+      [
+        {
+          clientId: 'pA',
+          roundId: 'round-1',
+          answerValue: JSON.stringify({ board: [1, 2, 3, 4, 5, 6, 7, 8, 0] }),
+          timeToAnswerMs: 1000,
+        },
+      ],
+      [{ id: 'pA', totalScore: 0 }],
+      minigames
+    )
+
+    ctx.bus.publish({
+      type: 'ROUND_WINDOW_OPENED',
+      roomId: 'room-1',
+      roundId: 'round-1',
+      roundType: 'sliding-puzzle',
+      scoringMode: 'minigame',
+      shownAt: 0,
+      timeLimitSeconds: 30,
+      privateState: { solutionBoard: [] },
+      scoringConfig: { pointsPerCorrectTile: 100 },
+    })
+    ctx.bus.publish({
+      type: 'ROUND_WINDOW_CLOSED',
+      roomId: 'room-1',
+      roundId: 'round-1',
+      reason: 'expired',
+    })
+    await new Promise<void>((r) => {
+      setImmediate(r)
+    })
+
+    assert.equal(ctx.scores['pA'], 450)
+    const reveal = ctx.emits.find((e) => e.event === EVENTS.ROUND_REVEAL)
+    assert.ok(reveal)
+    const data = reveal?.data as RoundRevealPayload
+    assert.equal(data.type, 'sliding-puzzle')
+    assert.equal(data.playerResults['pA']?.pointsAwarded, 450)
+    assert.deepEqual(data.playerResults['pA']?.breakdown, { correctTiles: 4 })
   })
 })

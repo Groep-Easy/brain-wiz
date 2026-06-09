@@ -255,7 +255,7 @@ export class GameEngineService {
     return {
       index: round.roundIndex,
       total: ROUNDS.COUNT,
-      type: 'quiz',
+      type: round.gameType ?? 'quiz',
       timeLimitSeconds: round.timeLimitSeconds,
     }
   }

@@ -4,10 +4,12 @@ import {
   SOLVED_BOARD,
   createScrambledBoard,
   createSlidingPuzzle,
+  countCorrectTiles,
   getLegalTileIndexes,
   isAdjacent,
   isSolvable,
   moveTile,
+  scoreSlidingPuzzleBoard,
   solveBoard,
 } from '../../../src/minigames/sliding-puzzle/shared/slidingPuzzleGame.js'
 
@@ -54,5 +56,44 @@ describe('slidingPuzzleGame', () => {
     assert.equal(puzzle.id, 'test-puzzle')
     assert.equal(puzzle.image.id, 'image-1')
     assert.equal(isSolvable(puzzle.initialBoard), true)
+  })
+
+  it('uses the same initial board for the same seed', () => {
+    const input = {
+      id: 'seeded-puzzle',
+      seed: 'room-1:round-1:sliding-puzzle',
+      image: {
+        id: 'image-1',
+        url: '/images/image-1.png',
+        alt: 'Test image',
+      },
+      scrambleMoves: 20,
+    }
+
+    assert.deepEqual(
+      createSlidingPuzzle(input).initialBoard,
+      createSlidingPuzzle(input).initialBoard
+    )
+  })
+
+  it('scores correct tile positions and gives a speed bonus only when solved', () => {
+    const partialBoard = [1, 2, 3, 4, 5, 6, 0, 7, 8]
+    assert.equal(countCorrectTiles(partialBoard), 6)
+
+    const partialScore = scoreSlidingPuzzleBoard(
+      partialBoard,
+      { pointsPerCorrectTile: 100, solveSpeedBonus: 300, timeLimitMs: 30000 },
+      1000
+    )
+    assert.equal(partialScore.pointsAwarded, 600)
+    assert.equal(partialScore.speedBonus, 0)
+
+    const solvedScore = scoreSlidingPuzzleBoard(
+      SOLVED_BOARD,
+      { pointsPerCorrectTile: 100, solveSpeedBonus: 300, timeLimitMs: 30000 },
+      0
+    )
+    assert.equal(solvedScore.pointsAwarded, 1100)
+    assert.equal(solvedScore.speedBonus, 300)
   })
 })

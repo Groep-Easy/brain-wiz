@@ -31,6 +31,7 @@ import type {
   PingPayload,
   PlayerJoinPayload,
   PongPayload,
+  RoundSubmitPayload,
 } from '../../shared/types/index'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
@@ -232,5 +233,15 @@ export class SocketGateway
     if (!this.rateLimiter.allow(client.connectionId)) return
     if (!payload?.answerId) return
     void this.answerService.submit(client, payload)
+  }
+
+  @SubscribeMessage(EVENTS.ROUND_SUBMIT)
+  public handleRoundSubmit(
+    @MessageBody() payload: RoundSubmitPayload | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): void {
+    if (!this.rateLimiter.allow(client.connectionId)) return
+    if (!payload?.roundId || !payload?.type) return
+    void this.answerService.submitRound(client, payload)
   }
 }

@@ -15,6 +15,7 @@ import {
   BeforeUpdate,
 } from 'typeorm'
 import { RoundStatusEnum, ContentTypeEnum } from './enums'
+import type { RoundType } from '../../shared/types/index'
 import type { Room } from './room.entity'
 import type { Question } from './question.entity'
 import type { CodingChallenge } from './coding-challenge.entity'
@@ -85,6 +86,29 @@ export class Round {
    */
   @Column('enum', { enum: ContentTypeEnum })
   public contentType!: ContentTypeEnum
+
+  /**
+   * Gameplay type used by the live engine. `quiz` maps to question-backed
+   * rounds; procedural minigames use `contentType = puzzle` plus state below.
+   */
+  @Column('varchar', { length: 64, default: 'quiz' })
+  public gameType: RoundType = 'quiz'
+
+  /** Server-created seed for a single procedural game instance. */
+  @Column('varchar', { length: 128, nullable: true })
+  public seed: string | null = null
+
+  /** Public procedural setup sent to every player in the room. */
+  @Column('jsonb', { nullable: true })
+  public publicState: Record<string, unknown> | null = null
+
+  /** Hidden solution/state used only by the server for validation/scoring. */
+  @Column('jsonb', { nullable: true })
+  public privateState: Record<string, unknown> | null = null
+
+  /** Server-owned point rules for this generated round. */
+  @Column('jsonb', { nullable: true })
+  public scoringConfig: Record<string, unknown> | null = null
 
   /**
    * Time limit for answering this round (seconds)
@@ -165,7 +189,16 @@ export class Round {
       (id) => id !== null && id !== undefined
     ).length
 
-    if (contentCount !== 1) {
+    const isProceduralMinigame = this.gameType !== 'quiz'
+
+    if (isProceduralMinigame) {
+      if (this.contentType !== ContentTypeEnum.PUZZLE) {
+        throw new Error('procedural minigame rounds must use contentType PUZZLE')
+      }
+      if (!this.seed || !this.publicState || !this.privateState || !this.scoringConfig) {
+        throw new Error('procedural minigame rounds require seed and generated state')
+      }
+    } else if (contentCount !== 1) {
       throw new Error(
         `Round must have exactly one content item. ` +
           `Found: question=${this.questionId ? '✓' : '✗'}, ` +
@@ -181,7 +214,7 @@ export class Round {
     if (this.contentType === ContentTypeEnum.CODING_CHALLENGE && !this.codingChallengeId) {
       throw new Error('contentType is CODING_CHALLENGE but codingChallengeId is null')
     }
-    if (this.contentType === ContentTypeEnum.PUZZLE && !this.puzzleId) {
+    if (!isProceduralMinigame && this.contentType === ContentTypeEnum.PUZZLE && !this.puzzleId) {
       throw new Error('contentType is PUZZLE but puzzleId is null')
     }
 

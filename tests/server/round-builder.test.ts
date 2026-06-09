@@ -37,13 +37,36 @@ function fakeRoomRepo(): Repository<Room> {
   return { save: async (r: Room): Promise<Room> => r } as unknown as Repository<Room>
 }
 
+function fakeMinigameRegistry(): unknown {
+  return {
+    get: (type: string): unknown =>
+      type === 'sliding-puzzle' || type === 'balance-scale'
+        ? {
+            type,
+            createRound: (input: { seed: string }): unknown => ({
+              type,
+              seed: input.seed,
+              publicState: { setup: type },
+              privateState: { solution: type },
+              scoringConfig: { points: 100 },
+            }),
+          }
+        : undefined,
+  }
+}
+
 function makeRoom(): Room {
   return Object.assign(new Room(), { id: 'room-1', totalRounds: 4 })
 }
 
 describe('RoundBuilder', () => {
-  it('builds `count` PENDING quiz rounds with sequential indices and distinct questions', async () => {
-    const builder = new RoundBuilder(fakeQuestionRepo(10), fakeRoundRepo(), fakeRoomRepo())
+  it('builds the default mixed sequence with shared procedural round state', async () => {
+    const builder = new RoundBuilder(
+      fakeQuestionRepo(10),
+      fakeRoundRepo(),
+      fakeRoomRepo(),
+      fakeMinigameRegistry() as never
+    )
     const room = makeRoom()
     const rounds = await builder.buildRounds(room, 5)
 
@@ -53,16 +76,40 @@ describe('RoundBuilder', () => {
       [0, 1, 2, 3, 4]
     )
     assert.ok(rounds.every((r: Round) => r.status === RoundStatusEnum.PENDING))
-    assert.ok(rounds.every((r: Round) => r.contentType === ContentTypeEnum.QUESTION))
+    assert.deepEqual(
+      rounds.map((r: Round) => r.gameType),
+      ['quiz', 'balance-scale', 'sliding-puzzle', 'quiz', 'balance-scale']
+    )
+    assert.deepEqual(
+      rounds.map((r: Round) => r.contentType),
+      [
+        ContentTypeEnum.QUESTION,
+        ContentTypeEnum.PUZZLE,
+        ContentTypeEnum.PUZZLE,
+        ContentTypeEnum.QUESTION,
+        ContentTypeEnum.PUZZLE,
+      ]
+    )
     assert.ok(rounds.every((r: Round) => r.timeLimitSeconds === TIMER.QUESTION_SECONDS))
-    assert.ok(rounds.every((r: Round) => typeof r.question?.id === 'string'))
-    const ids = new Set(rounds.map((r: Round) => r.question?.id))
-    assert.equal(ids.size, 5, 'questions must be distinct')
+    const quizRounds = rounds.filter((r: Round) => r.gameType === 'quiz')
+    assert.ok(quizRounds.every((r: Round) => typeof r.question?.id === 'string'))
+    const ids = new Set(quizRounds.map((r: Round) => r.question?.id))
+    assert.equal(ids.size, 2, 'quiz questions must be distinct')
+    const proceduralRounds = rounds.filter((r: Round) => r.gameType !== 'quiz')
+    assert.ok(proceduralRounds.every((r: Round) => r.seed))
+    assert.ok(proceduralRounds.every((r: Round) => r.publicState))
+    assert.ok(proceduralRounds.every((r: Round) => r.privateState))
+    assert.ok(proceduralRounds.every((r: Round) => r.scoringConfig))
     assert.equal(room.totalRounds, 5, 'totalRounds aligned with count')
   })
 
   it('throws NotEnoughQuestionsError when the pool is too small', async () => {
-    const builder = new RoundBuilder(fakeQuestionRepo(3), fakeRoundRepo(), fakeRoomRepo())
+    const builder = new RoundBuilder(
+      fakeQuestionRepo(1),
+      fakeRoundRepo(),
+      fakeRoomRepo(),
+      fakeMinigameRegistry() as never
+    )
     await assert.rejects(async () => builder.buildRounds(makeRoom(), 5), NotEnoughQuestionsError)
   })
 })
