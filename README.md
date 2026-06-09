@@ -103,3 +103,23 @@ npm run validate
 ```
 
 This consistent workflow helps all contributors stay aligned and prevents unnecessary Git conflicts.
+
+## Generate the database schema
+
+1. `docker compose up` make sure docker is running
+2. Go to `http://localhost:5050`
+3. On the left panel right click on server and click on register server and then server
+4. Fill in the form:
+General:
+Name: Brainwisdb
+
+Connection:
+Host name/ Address : see docker-compose service name (default: db)
+Port: see .env DB_PORT
+Username: see .env DB_USERNAME
+Password: see .env DB_PASSWORD
+
+5. Open the toggle of server
+6. right click on postgres
+7. click on ERD for database
+8. download the image
