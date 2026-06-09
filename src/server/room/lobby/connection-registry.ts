@@ -10,7 +10,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { safeEqual } from '../../socket/secure-compare'
+import { safeEqual } from '../../socket/helpers/index'
 import type { ClientSocket, Membership } from './lobby.types'
 
 @Injectable()

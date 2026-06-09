@@ -11,16 +11,11 @@
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { HOST_AUTH } from '../../shared/constants/game-config'
-
-interface Record {
-  failures: number
-  firstFailureAt: number
-  lockedUntil: number
-}
+import { HostAuthRecord } from './socket.types'
 
 @Injectable()
 export class HostAuthThrottle {
-  private readonly _records = new Map<string, Record>()
+  private readonly _records = new Map<string, HostAuthRecord>()
 
   /** Clock seam so tests can advance time deterministically. */
   public constructor(private readonly now: () => number = Date.now) {}
