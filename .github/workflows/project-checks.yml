@@ -267,7 +267,9 @@ jobs:
         run: npm run test:coverage
 
       - name: Generate HTML coverage report
-        run: genhtml coverage/lcov.info --output-directory coverage/html
+        run: |
+          cd dist
+          genhtml ../coverage/lcov.info --output-directory ../coverage/html
 
       - name: Upload LCOV coverage report
         uses: actions/upload-artifact@v4
