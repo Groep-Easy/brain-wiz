@@ -6,6 +6,7 @@
  * together, nothing else.
  */
 import 'reflect-metadata'
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
@@ -27,6 +28,15 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Brain-wiz server endpoints API')
+    .setDescription('')
+    .setVersion(process.env["SERVER_API_VERSION"] ?? "1.0")
+    .addTag('')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, documentFactory);
+
   // TODO: serve the static host display (src/host) and phone client (src/client).
   // Old Express mounts were `app.use('/host', express.static('src/host'))` and
   // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
@@ -37,7 +47,7 @@ async function bootstrap(): Promise<void> {
   // eslint-disable-next-line no-console
   console.log(`Brain Wiz running on http://0.0.0.0:${config.PORT}`)
   // eslint-disable-next-line no-console
-  console.log(`Host display: http://localhost:${config.PORT}/host`)
+  console.log(`API endpoints: ${config.BASE_URL}/api`)
 }
 
 void bootstrap()
