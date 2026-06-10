@@ -8,9 +8,10 @@ REPO_URL="https://github.com/Groep-Easy/brain-wiz.git"
 SCRIPT_NAME="deploy.sh"
 
 function print_usage() {
-    echo "Usage: ./$SCRIPT_NAME [prod|dev]"
-    echo "  prod : Deploys from master to ~/brain-wiz"
-    echo "  dev  : Deploys from develop to ~/brain-wiz-dev with alternate ports"
+    echo "Usage: ./$SCRIPT_NAME [prod|dev|branch <branch-name>]"
+    echo "  prod              : Deploys from master to ~/brain-wiz"
+    echo "  dev               : Deploys from develop to ~/brain-wiz-dev (alt ports)"
+    echo "  branch <name>     : Deploys from <name> to ~/brain-wiz-branch (alt ports)"
     exit 1
 }
 
@@ -21,6 +22,9 @@ if [ "$#" -eq 0 ]; then
     ENV="prod"
 elif [ "$#" -eq 1 ]; then
     ENV="$1"
+elif [ "$#" -eq 2 ] && [ "$1" == "branch" ]; then
+    ENV="branch"
+    CUSTOM_BRANCH="$2"
 else
     print_usage
 fi
@@ -30,6 +34,9 @@ if [ "$ENV" == "prod" ]; then
 elif [ "$ENV" == "dev" ]; then
     REPO_DIR="$HOME/brain-wiz-dev"
     BRANCH="develop"
+elif [ "$ENV" == "branch" ]; then
+    REPO_DIR="$HOME/brain-wiz-branch"
+    BRANCH="${CUSTOM_BRANCH}"
 else
     echo "ERROR: Invalid environment '$ENV'"
     print_usage
@@ -149,24 +156,34 @@ fi
 # 5. Setup Docker Overrides (Dev only)
 # -------------------------------------------------------------------------
 echo "[5/8] Preparing Docker Compose..."
-if [ "$ENV" == "dev" ]; then
-    echo "      Creating docker-compose.override.yml for DEV environment..."
+if [ "$ENV" == "dev" ] || [ "$ENV" == "branch" ]; then
+    PREFIX="dev"
+    [ "$ENV" == "branch" ] && PREFIX="branch"
+    echo "      Creating docker-compose.override.yml for ${ENV} environment..."
     cat <<EOF > docker-compose.override.yml
 services:
   brain-wiz:
-    container_name: dev-server
+    container_name: ${PREFIX}-server
   nginx:
-    container_name: dev-nginx-proxy
+    container_name: ${PREFIX}-nginx-proxy
     ports:
       - "3001:3000"
   db:
-    container_name: dev-postgres-db
+    container_name: ${PREFIX}-postgres-db
     ports:
       - "5433:5432"
   pgadmin:
-    container_name: dev-pgadmin
+    container_name: ${PREFIX}-pgadmin
     ports:
       - "5051:80"
+  loki:
+    container_name: ${PREFIX}-loki
+  promtail:
+    container_name: ${PREFIX}-promtail
+  grafana:
+    container_name: ${PREFIX}-grafana
+    ports:
+      - "3201:3000"
 EOF
 else
     # Ensure no override file exists from a dirty state
@@ -178,9 +195,9 @@ fi
 # -------------------------------------------------------------------------
 echo "[6/8] Freeing Required Ports..."
 if [ "$ENV" == "prod" ]; then
-    REQUIRED_PORTS=(3000 5432 5050)
+    REQUIRED_PORTS=(3000 5432 5050 3100 3200)
 else
-    REQUIRED_PORTS=(3001 5433 5051)
+    REQUIRED_PORTS=(3001 5433 5051 3201)
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
