@@ -51,6 +51,25 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
    immediately, remove the file from history (see maintainers), and have all
    collaborators re-clone the repository after the history has been rewritten.
 
+## Server Access
+
+To easily connect to the remote UVA server without a password prompt, we recommend storing the SSH key in your local `~/.ssh/` directory (e.g. `~/.ssh/brain-wiz-ssh`) rather than in the repository.
+
+Add the following to your `~/.ssh/config`:
+
+```ssh-config
+Host brain
+  HostName 83.96.203.127
+  User ubuntu
+  IdentityFile ~/.ssh/brain-wiz-ssh
+  IdentitiesOnly yes
+```
+
+Ensure the key has the correct permissions (`chmod 400 ~/.ssh/brain-wiz-ssh`), then simply run:
+```bash
+ssh brain
+```
+
 ## Workspace configuration
 
 This repository includes strict, shared settings so everyone uses the same formatting and Git behavior:
