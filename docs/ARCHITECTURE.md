@@ -10,7 +10,7 @@ This document is not the source of truth this will always be the code under [`sr
 
 ## The big picture
 
-Brain Wiz is a local multiplayer game. A host display (a TV or laptop screen)
+Brain Wiz is a multiplayer game. A host display (a TV or laptop screen)
 shows the game to the room, and players can join from their phones using a room
 code. A single **Node.js server** owns all game state and talks to every device
 over an websocket connection.
