@@ -41,7 +41,7 @@ async function bootstrap(): Promise<void> {
   // /host must be mounted BEFORE /client to prevent the catch-all from
   // swallowing /host/* sub-paths.
   // ---------------------------------------------------------------------------
-  const distDir = path.join(__dirname, '..', '..')   // resolves to dist/
+  const distDir = path.join(__dirname, '..')   // __dirname = dist/server → .. = dist/
 
   const hostDist   = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
