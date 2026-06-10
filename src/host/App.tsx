@@ -11,6 +11,7 @@ import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
 import { RoundIntro } from './screens/RoundIntro'
+import { QuestionIntro } from './screens/QuestionIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
@@ -239,7 +240,7 @@ export function App(): React.JSX.Element {
   }
 
   if (phase === 'reveal-question') {
-    
+    return <QuestionIntro question={question?.text}/>
   }
 
   if (phase === 'playing' || phase === 'reveal') {
