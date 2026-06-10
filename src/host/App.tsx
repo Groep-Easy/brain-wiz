@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   RoomState,
   LeaderboardEntry,
+  RoadmapEntry,
   ScoreMap,
   QuestionState,
   QuestionRevealPayload,
@@ -17,7 +18,6 @@ import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
-
 
 const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
 const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
@@ -35,6 +35,7 @@ export function App(): React.JSX.Element {
   const [totalPlayers, setTotalPlayers] = useState<number>(0)
   const [round, setRound] = useState<RoundSummary | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [roadmap, setRoadmap] = useState<RoadmapEntry | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -66,6 +67,7 @@ export function App(): React.JSX.Element {
       setTotalPlayers(0)
       setRound(null)
       setLeaderboard([])
+      setRoadmap(null)
       setFinalScores(null)
     }
 
@@ -112,6 +114,12 @@ export function App(): React.JSX.Element {
           case EVENTS.LEADERBOARD_SHOW:
             if (data.leaderboard) {
               setLeaderboard(data.leaderboard)
+            }
+            break
+
+          case EVENTS.ROADMAP_SHOW:
+            if (data.roadmap) {
+              setRoadmap(data.roadmap)
             }
             break
 
@@ -265,7 +273,7 @@ export function App(): React.JSX.Element {
   if (phase === 'leaderboard') {
     return (
       <main className="app">
-        <LeaderBoard leaderboard={leaderboard} />
+        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
       </main>
     )
   }

@@ -14,7 +14,19 @@ interface LeaderBoardProps {
 }
 
 interface RoadmapProps {
-  roadmap?: RoadmapEntry[]
+  roadmap?: RoadmapEntry
+}
+
+const themeAssets: Record<string, { icon: string }> = {
+  Random: { icon: '🎲' },
+  Movies: { icon: '🎬' },
+  Music: { icon: '🎵' },
+  Coding: { icon: '💻' },
+  Sports: { icon: '⚽' },
+  History: { icon: '📜' },
+  Math: { icon: '➗' },
+  Science: { icon: '🔬' },
+  Geography: { icon: '🌍' },
 }
 
 export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Element {
@@ -51,31 +63,28 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
   }, [leaderboard])
 
   function Roadmap({ roadmap }: RoadmapProps) {
-    if (!roadmap || roadmap.length < 2) {
+    if (!roadmap) {
       return null
     }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const [playerPos, total, ...rest] = roadmap
+      const { playerPos, themes } = roadmap
+
+      const total = themes.reduce((sum, theme) => sum + theme.questionCount, 0)
 
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
 
-      let i = 0
       let cursor = 1
 
-      while (i < rest.length) {
-        const theme = rest[i] as string
-        const count = rest[i + 1] as number
-
+      for (const themeEntry of themes) {
         themeStarts.push({
           index: cursor,
-          theme,
+          theme: themeEntry.theme,
         })
 
-        themeMap.set(cursor, theme)
+        themeMap.set(cursor, themeEntry.theme)
 
-        cursor += count
-        i += 2
+        cursor += themeEntry.questionCount
       }
 
       type TimelineItem =
@@ -144,20 +153,14 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
 
     useLayoutEffect(() => {
       const container = containerRef.current
-
       if (!container) return
 
       const viewportWidth = container.clientWidth
-
       const playerTimelineIndex = (playerPos - 1) * 3
       const playerX = PADDING + playerTimelineIndex * STEP
 
-      const targetScrollLeft = playerX - viewportWidth / 3
-
-      const maxScrollLeft = container.scrollWidth - viewportWidth
-
-      container.scrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft))
-    }, [playerPos])
+      container.scrollLeft = playerX - viewportWidth / 3
+    }, [])
 
     return (
       <div
@@ -183,14 +186,20 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
                 <circle
                   cx={x}
                   cy={y}
-                  r={isThemeNode ? 12 : 8}
+                  r={isThemeNode ? 18 : 12}
                   className={getNodeClass(item.questionNumber)}
                 />
 
                 {isThemeNode && (
-                  <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
-                    {themeMap.get(item.questionNumber)}
-                  </text>
+                  <g>
+                    <text x={x} y={y + 5} textAnchor="middle" fontSize={18}>
+                      {themeAssets[themeMap.get(item.questionNumber) ?? '']?.icon}
+                    </text>
+
+                    <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
+                      {themeMap.get(item.questionNumber)}
+                    </text>
+                  </g>
                 )}
               </g>
             )
