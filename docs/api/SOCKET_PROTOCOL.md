@@ -129,6 +129,7 @@ game) go through REST.
 | `ROUND_START`          | S→all | `{ round: RoundSummary }`                                  | A new round began. Carries round index, total, type, and time limit (not the question content).                                                              |
 | `QUESTION_SHOW`        | S→all | `{ question: QuestionState }`                              | The question went live (`playing` phase). `QuestionState.answers` are shuffled options with stable ids; correctness is never included.                       |
 | `ANSWER_ACK`           | S→C   | `{ received, accepted, reason? }`                          | Outcome of an `ANSWER_SUBMIT`. `accepted:false` with `reason` of `window-closed` \| `invalid-answer` \| `already-answered` \| `server-error`.                |
+| `ANSWER_COUNT_UPDATE`  | S→all | `{ answered: number, total: number }`                      | Pushed whenever a player submits a valid answer, showing progress.                                                                                           |
 | `TIMER_TICK`           | S→all | `{ secondsRemaining: number }`                             | Once per second during every timed phase, counting down. Hits `0` at expiry.                                                                                 |
 | `TIMER_EXPIRED`        | S→all | _none_                                                     | The **question** phase's clock ran out. (Intro/reveal phases don't emit this — they just transition.)                                                        |
 | `QUESTION_REVEAL`      | S→all | `{ roundId, correctAnswerIds, playerAnswers }`             | Round answering closed (all answered or timer expired). Per-player `{ answerId, isCorrect, pointsAwarded, isTimeout }`. Drives the host reveal screen.       |
@@ -187,6 +188,7 @@ contract.
 | ------------------- | ----- | --------------------------------------------------------------------------------- |
 | `ANSWER_SUBMIT`     | C→S   | handler `socket/socket.gateway.ts:222` → `room/game/answer.service.ts` (`submit`) |
 | `ANSWER_ACK`        | S→C   | `room/game/answer.service.ts:126` (`ack`)                                         |
+| `ANSWER_COUNT_UPDATE`| S→all | `room/game/answer.service.ts` (`handleAnswer`)                                    |
 | `QUESTION_SHOW`     | S→all | `room/game/round-presenter.impl.ts:46` (`RoundPresenterImpl.present`)             |
 | `QUESTION_REVEAL`   | S→all | `room/game/scoring.service.ts:101` (`scoreRound`)                                 |
 | `GAME_PHASE_CHANGE` | S→all | `room/game/game-engine.service.ts:213` (`enterPhase`)                             |
