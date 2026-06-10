@@ -68,7 +68,75 @@ Install the recommended extensions when prompted, or from
 - `christian-kohler.path-intellisense`
 - `streetsidesoftware.code-spell-checker`
 - `gruntfuggly.todo-tree`
-- `eamodio.gitlens` (optional)
+
+## Setup
+
+1. Clone the repository.
+2. Open the repository folder in VS Code.
+3. Install extensions when prompted.
+4. Install docker + docker-buildx
+5. Activate docker buildx
+   `DOCKER_BUILDKIT=1`
+6. Install dependencies:
+   ```bash
+   npm install --package-lock-only
+   npm ci
+   ```
+7. Setup your environment and database:
+   ```bash
+   cp .env.example .env
+   docker compose build
+   docker compose up -d
+   ```
+   _(Make sure Docker is running on your machine before running `docker compose`)_
+
+   Important: the `.env` file contains local secrets and must never be committed to
+   the repository. The project already ignores `.env` files via `.gitignore`.
+
+   If a secret is accidentally committed upstream, rotate the credential(s)
+   immediately, remove the file from history (see maintainers), and have all
+   collaborators re-clone the repository after the history has been rewritten.
+
+## Server Access
+
+To easily connect to the remote UVA server without a password prompt, we recommend storing the SSH key in your local `~/.ssh/` directory (e.g. `~/.ssh/brain-wiz-ssh`) rather than in the repository.
+
+Add the following to your `~/.ssh/config`:
+
+```ssh-config
+Host brain
+  HostName 83.96.203.127
+  User ubuntu
+  IdentityFile ~/.ssh/brain-wiz-ssh
+  IdentitiesOnly yes
+```
+
+Ensure the key has the correct permissions (`chmod 400 ~/.ssh/brain-wiz-ssh`), then simply run:
+```bash
+ssh brain
+```
+## Deployment to uva server
+1. Log in on the eduvpn of school.
+2. First time connect to the uva server:
+   - copy the file ssh key that is given by the group
+   - `chmod 400 <ssh_key_file>`
+3. Connect to server:
+   `ssh -i <ssh_key_file> <name>@<ip>`
+3. Setup the deployment script or if the script changed:
+   - Copy the `deploy-uva.sh` script in the the home directory
+   - `chmod +x deploy-uva.sh`
+4. deploy the app:
+   `./deploy-uva.sh`
+
+## Workspace configuration
+
+This repository includes strict, shared settings so everyone uses the same formatting and Git behavior:
+
+- `.editorconfig` for whitespace, tabs/spaces, and final newline rules
+- `.prettierrc` for consistent code formatting
+- `.eslintrc.json` for linting rules and quality enforcement
+- `.vscode/settings.json` for editor behavior in VS Code
+- `.gitattributes` to force LF line endings and prevent cross-platform Git conflicts
 
 ## Daily workflow
 

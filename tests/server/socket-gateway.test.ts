@@ -122,6 +122,34 @@ describe('parseConnectParams', () => {
   it('returns an empty object for a missing URL', () => {
     assert.deepEqual(parseConnectParams(undefined), {})
   })
+  it('returns an empty object for a URL with no query string', () => {
+    assert.deepEqual(parseConnectParams('/'), {})
+  })
+  it('returns an empty object for an empty query string', () => {
+    // The ? marker exists but nothing follows it
+    assert.deepEqual(parseConnectParams('/?'), {})
+  })
+  it('decodes URL-encoded role and code values', () => {
+    const params = parseConnectParams('/?role=host&code=AB%20CD')
+    assert.equal(params.code, 'AB CD')
+  })
+  it('ignores a param with an empty value (role= is treated as absent)', () => {
+    // parseConnectParams uses a truthy guard: `if (role) params.role = role`
+    // An empty string is falsy, so role='' is intentionally treated as missing.
+    const params = parseConnectParams('/?role=')
+    assert.equal(params.role, undefined)
+  })
+  it('does NOT expose hostToken — it is silently stripped from params', () => {
+    const params = parseConnectParams('/?role=host&code=ABCD&hostToken=s3cr3t')
+    assert.equal((params as Record<string, string>)['hostToken'], undefined)
+    assert.equal(params.role, 'host')
+    assert.equal(params.code, 'ABCD')
+  })
+  it('ignores unknown keys without crashing', () => {
+    const params = parseConnectParams('/?role=client&unknownKey=value')
+    assert.equal(params.role, 'client')
+    assert.equal((params as Record<string, string>)['unknownKey'], undefined)
+  })
 })
 
 describe('SocketGateway connection handling', () => {
