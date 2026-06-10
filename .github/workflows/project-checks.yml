@@ -73,7 +73,7 @@ jobs:
 
   tests:
     name: Run tests
-    uses: ./.github/workflows/database-checks.yml
+    uses: ./.github/workflows/database-runner.yml
     with:
       job-name: Run tests
       node-version: '22'
@@ -83,7 +83,7 @@ jobs:
   coverage:
     name: Generate coverage report
     needs: tests
-    uses: ./.github/workflows/database-checks.yml
+    uses: ./.github/workflows/database-runner.yml
     with:
       job-name: Generate coverage report
       node-version: '22'

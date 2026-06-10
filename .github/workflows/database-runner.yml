@@ -140,7 +140,7 @@ jobs:
 
       - name: Upload LCOV coverage report
         if: ${{ inputs.upload-coverage }}
-        uses: actions/upload-report@v4
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-lcov-report
           path: coverage/lcov.info
@@ -148,7 +148,7 @@ jobs:
 
       - name: Upload HTML coverage report
         if: ${{ inputs.upload-coverage }}
-        uses: actions/upload-report@v4
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-html-report
           path: coverage/html
