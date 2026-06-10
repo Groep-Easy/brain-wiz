@@ -10,7 +10,7 @@
  *  3. Keep types flat — nested shapes get their own type.
  */
 
-export type GamePhase = 'lobby' | 'round-intro' | 'reveal-question' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
+export type GamePhase = 'lobby' | 'round-intro' | 'question-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
 
 export type RoundType = 'quiz' | 'collab-puzzle' | 'head-to-head'
 

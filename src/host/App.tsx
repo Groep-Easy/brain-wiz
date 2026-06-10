@@ -239,7 +239,7 @@ export function App(): React.JSX.Element {
     return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
   }
 
-  if (phase === 'reveal-question') {
+  if (phase === 'question-intro') {
     return <QuestionIntro question={question?.text}/>
   }
 

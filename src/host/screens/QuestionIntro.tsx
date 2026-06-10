@@ -8,6 +8,13 @@ interface QuestionProps {
 
 export function QuestionIntro({question}: QuestionProps): React.JSX.Element {
   return (
-    <p>{question}</p>
+    <main className="round-intro">
+      <div className="round-intro-card">
+        <p className="round-intro-eyebrow">Get ready…</p>
+        <h1 className="round-intro-title">
+          {question}
+        </h1>
+      </div>
+    </main>
   )
 }

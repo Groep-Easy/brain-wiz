@@ -10,6 +10,7 @@ import { Round } from '../../entities/round.entity'
 /** A round's internal sub-phase. Maps to the shared wire `GamePhase`. */
 export enum GamePhase {
   INTRO = 'intro',
+  QUESTIONINTRO = 'question-intro',
   QUESTION = 'question',
   REVEAL = 'reveal',
   LEADERBOARD = 'leaderboard',

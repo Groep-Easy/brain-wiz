@@ -41,6 +41,7 @@ import { filter, first, timeout } from 'rxjs/operators'
 
 const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.INTRO]: 'round-intro',
+  [GamePhase.QUESTIONINTRO]: 'question-intro',
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
   [GamePhase.LEADERBOARD]: 'leaderboard',
@@ -134,6 +135,10 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
 
     if (await this.runPhase(room, game, GamePhase.INTRO, TIMER.ROUND_INTRO_SECONDS)) {
+      return
+    }
+
+    if (await this.runPhase(room, game, GamePhase.QUESTIONINTRO, TIMER.ROUND_INTRO_SECONDS)) {
       return
     }
 
