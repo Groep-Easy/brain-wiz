@@ -184,19 +184,19 @@ For every wired game-flow, timer, and quiz-answering event, the authoritative
 emit (or inbound handler) site. Line numbers are indicative — the file is the
 contract.
 
-| Event               | Dir   | Source                                                                            |
-| ------------------- | ----- | --------------------------------------------------------------------------------- |
-| `ANSWER_SUBMIT`     | C→S   | handler `socket/socket.gateway.ts:222` → `room/game/answer.service.ts` (`submit`) |
-| `ANSWER_ACK`        | S→C   | `room/game/answer.service.ts:126` (`ack`)                                         |
-| `ANSWER_COUNT_UPDATE`| S→all | `room/game/answer.service.ts` (`handleAnswer`)                                    |
-| `QUESTION_SHOW`     | S→all | `room/game/round-presenter.impl.ts:46` (`RoundPresenterImpl.present`)             |
-| `QUESTION_REVEAL`   | S→all | `room/game/scoring.service.ts:101` (`scoreRound`)                                 |
-| `GAME_PHASE_CHANGE` | S→all | `room/game/game-engine.service.ts:213` (`enterPhase`)                             |
-| `ROUND_START`       | S→all | `room/game/game-engine.service.ts:126` (`runRound`)                               |
-| `ROUND_END`         | S→all | `room/game/game-engine.service.ts:159` (`runRound`)                               |
-| `GAME_OVER`         | S→all | `room/game/game-engine.service.ts:95` (game loop, non-aborted only)               |
-| `TIMER_TICK`        | S→all | `room/game/game-engine.service.ts:179` (`timePhase` `onTick`)                     |
-| `TIMER_EXPIRED`     | S→all | `room/game/game-engine.service.ts:150` (`runRound`, question phase only)          |
+| Event                 | Dir   | Source                                                                            |
+| --------------------- | ----- | --------------------------------------------------------------------------------- |
+| `ANSWER_SUBMIT`       | C→S   | handler `socket/socket.gateway.ts:222` → `room/game/answer.service.ts` (`submit`) |
+| `ANSWER_ACK`          | S→C   | `room/game/answer.service.ts:126` (`ack`)                                         |
+| `ANSWER_COUNT_UPDATE` | S→all | `room/game/answer.service.ts` (`handleAnswer`)                                    |
+| `QUESTION_SHOW`       | S→all | `room/game/round-presenter.impl.ts:46` (`RoundPresenterImpl.present`)             |
+| `QUESTION_REVEAL`     | S→all | `room/game/scoring.service.ts:101` (`scoreRound`)                                 |
+| `GAME_PHASE_CHANGE`   | S→all | `room/game/game-engine.service.ts:213` (`enterPhase`)                             |
+| `ROUND_START`         | S→all | `room/game/game-engine.service.ts:126` (`runRound`)                               |
+| `ROUND_END`           | S→all | `room/game/game-engine.service.ts:159` (`runRound`)                               |
+| `GAME_OVER`           | S→all | `room/game/game-engine.service.ts:95` (game loop, non-aborted only)               |
+| `TIMER_TICK`          | S→all | `room/game/game-engine.service.ts:179` (`timePhase` `onTick`)                     |
+| `TIMER_EXPIRED`       | S→all | `room/game/game-engine.service.ts:150` (`runRound`, question phase only)          |
 
 All paths are relative to `src/server/`. Event-name constants live in
 `src/shared/events/socket-events.ts`; payload types in `src/shared/types/index.ts`.

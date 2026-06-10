@@ -7,18 +7,24 @@ In production (e.g. the UvA Server), Brain Wiz is deployed using Docker Compose 
 The application relies on Nginx to securely manage traffic before it ever touches the internal Node.js backend. This provides several critical layers of functionality:
 
 ### 1. SSL/HTTPS & Zero-Touch Certificates
+
 Nginx automatically handles SSL termination. The `deploy.sh` script generates a secure 2048-bit RSA self-signed wildcard certificate on boot. This ensures that both standard HTTP traffic and the game's WebSocket connections (`wss://`) are fully encrypted.
 
 ### 2. Port Management & Isolation
+
 Nginx binds to port `3000` on the host machine and safely proxies traffic to the internal Node.js Docker container. The Node backend itself runs on an isolated Docker network and is **never** directly exposed to the internet.
 
 ### 3. Security & Rate Limiting
+
 Nginx acts as a security buffer:
+
 - **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks.
 - **Error Pages**: Strips identifying server headers and serves custom HTML error pages located in `./nginx/errors/`.
 
 ### 4. Structured JSON Logging
+
 Nginx writes access logs in structured JSON format (not the default `combined` text format):
+
 - Fields (`status`, `method`, `remote_addr`, `request_time`, `request_id`, …) are first-class values — no regex parsing required.
 - Promtail promotes `status`, `method`, and `remote_addr` as indexed Loki labels for cheap filtering.
 - Query directly in Grafana: `{job="nginx"} | json | status = "429"`
@@ -26,12 +32,15 @@ Nginx writes access logs in structured JSON format (not the default `combined` t
 Logs are written to `/var/log/nginx/access.log` via the shared Docker volume `nginx_logs`.
 
 ### 5. Request ID Tracing
+
 Every request gets a unique `$request_id`, which is:
+
 - Returned to the client as `X-Request-ID` (users/support can quote it in bug reports).
 - Forwarded upstream as `X-Request-ID` so app logs can emit the same value.
 - Included in the JSON access log under `request_id`.
 
 Correlate across both nginx and app logs in Loki:
+
 ```
 {job="nginx"} | json | request_id = "abc123"
 ```
@@ -68,13 +77,13 @@ The branch deploy uses alternate ports so it never conflicts with a running prod
 
 The UvA server is only reachable while connected to the **UvA VPN** (Cisco AnyConnect / eduVPN). Once connected:
 
-| Service | URL |
-|---|---|
-| App (branch) | `https://<server-ip>:3001` |
-| Grafana (branch) | `http://<server-ip>:3201` |
-| pgAdmin (branch) | `http://<server-ip>:5051` |
-| App (prod) | `https://<server-ip>:3000` |
-| Grafana (prod) | `http://<server-ip>:3200` |
+| Service          | URL                        |
+| ---------------- | -------------------------- |
+| App (branch)     | `https://<server-ip>:3001` |
+| Grafana (branch) | `http://<server-ip>:3201`  |
+| pgAdmin (branch) | `http://<server-ip>:5051`  |
+| App (prod)       | `https://<server-ip>:3000` |
+| Grafana (prod)   | `http://<server-ip>:3200`  |
 
 > [!NOTE]
 > Browsers will show a privacy warning for `https://` because the certificate is self-signed. Click **Advanced → Proceed** to continue. Replace with a Let's Encrypt cert for a fully public deployment.
@@ -100,18 +109,18 @@ nginx (writes JSON)
 
 ### Recommended Grafana alerts
 
-| Alert | Why |
-|---|---|
-| Rate of `429`s spiking | Rate limiting is working, but you want to know |
-| Single IP hitting 50+ unique paths in 60 s | Scanner / bot behaviour |
-| Repeated `401`s from same `remote_addr` | Credential stuffing |
-| Upstream p99 response time degrading | Something is wrong upstream |
+| Alert                                      | Why                                            |
+| ------------------------------------------ | ---------------------------------------------- |
+| Rate of `429`s spiking                     | Rate limiting is working, but you want to know |
+| Single IP hitting 50+ unique paths in 60 s | Scanner / bot behaviour                        |
+| Repeated `401`s from same `remote_addr`    | Credential stuffing                            |
+| Upstream p99 response time degrading       | Something is wrong upstream                    |
 
 ### Files
 
-| File | Purpose |
-|---|---|
-| [`docker-compose.yml`](file:///Users/anton/Documents/Projects/brain-wiz/docker-compose.yml) | All services: app, nginx, db, pgadmin, Loki, Promtail, Grafana |
-| [`loki/promtail-config.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/promtail-config.yml) | Promtail scrape config (tails nginx access + error logs) |
-| [`loki/grafana-provisioning/datasources/loki.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/grafana-provisioning/datasources/loki.yml) | Auto-provisions Loki as Grafana default datasource |
-| [`deploy.sh`](file:///Users/anton/Documents/Projects/brain-wiz/deploy.sh) | Deployment script (`prod` / `dev` / `branch <name>`) |
+| File                                                                                                                                                | Purpose                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [`docker-compose.yml`](file:///Users/anton/Documents/Projects/brain-wiz/docker-compose.yml)                                                         | All services: app, nginx, db, pgadmin, Loki, Promtail, Grafana |
+| [`loki/promtail-config.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/promtail-config.yml)                                             | Promtail scrape config (tails nginx access + error logs)       |
+| [`loki/grafana-provisioning/datasources/loki.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/grafana-provisioning/datasources/loki.yml) | Auto-provisions Loki as Grafana default datasource             |
+| [`deploy.sh`](file:///Users/anton/Documents/Projects/brain-wiz/deploy.sh)                                                                           | Deployment script (`prod` / `dev` / `branch <name>`)           |
