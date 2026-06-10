@@ -26,6 +26,7 @@ import {
 import { fetchCatalog, fetchRoomFlow, storeRoomFlow, randomizeRoomFlow } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
+import brandLogo from '../assets/BrainWiz logo.png'
 import '../styles/flow_editor.css'
 
 export function FlowEditor(): React.JSX.Element {
@@ -219,6 +220,7 @@ export function FlowEditor(): React.JSX.Element {
   return (
     <div className="flow-editor">
       <header className="flow-editor-header">
+        <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
         <button className="back-btn" onClick={handleBack} aria-label="Back to lobby">
           ← Back
         </button>

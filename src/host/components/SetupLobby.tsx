@@ -4,14 +4,16 @@ import type { Player } from '../../shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
+import brandLogo from '../assets/BrainWiz logo.png'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
   roomCode: string
   hostToken: string
   players: Player[]
+  /** The server-owned game flow (from RoomState), shown read-only in the lobby. */
   gameFlow: StoredFlowItem[]
-  onStartGame: (timePerQuestion: number, questionCount: number) => void
+  onStartGame: (timePerQuestion: number) => void
   onCloseLobby: () => void
 }
 
@@ -25,7 +27,6 @@ export function SetupLobby({
 }: SetupLobbyProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'lobby' | 'settings'>('lobby')
   const [timePerQuestion, setTimePerQuestion] = useState(20)
-  const [questionCount, setQuestionCount] = useState(10)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
@@ -55,7 +56,7 @@ export function SetupLobby({
   }, [roomCode])
 
   const handleStart = () => {
-    onStartGame(timePerQuestion, questionCount)
+    onStartGame(timePerQuestion)
   }
 
   const handleKick = (playerName: string) => {
@@ -65,6 +66,7 @@ export function SetupLobby({
 
   return (
     <div className="host-lobby-container">
+      <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
       <header className="host-lobby-header">
         <button
           className="close-btn"
@@ -194,17 +196,6 @@ export function SetupLobby({
             onChange={(e) => setTimePerQuestion(Number(e.target.value))}
             min="5"
             max="120"
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="question-count">Number of questions</label>
-          <input
-            type="number"
-            id="question-count"
-            value={questionCount}
-            onChange={(e) => setQuestionCount(Number(e.target.value))}
-            min="1"
-            max="50"
           />
         </div>
       </section>
