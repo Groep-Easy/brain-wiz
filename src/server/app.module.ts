@@ -10,10 +10,11 @@
 import { Module } from '@nestjs/common'
 import { DatabaseModule } from './database/index'
 import { LobbyModule } from './room/lobby/lobby.module'
+import { SocketModule } from './socket/index'
 import { HealthModule } from './health/health.module'
 import { QuestionModule } from './question/question.module'
 
 @Module({
-  imports: [DatabaseModule, LobbyModule, HealthModule, QuestionModule],
+  imports: [DatabaseModule, LobbyModule, SocketModule, HealthModule, QuestionModule],
 })
 export class AppModule {}

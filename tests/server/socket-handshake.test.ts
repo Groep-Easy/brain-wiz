@@ -5,11 +5,11 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  WS_SUBPROTOCOL,
   clientIp,
   parseHostTokenFromHeaders,
   selectSubprotocol,
-} from '../../src/server/socket/socket-handshake'
+} from '../../src/server/socket/helpers/index'
+import { WS_SUBPROTOCOL } from '../../src/server/socket/socket.constants'
 
 describe('selectSubprotocol', () => {
   it('selects the marker when the client offers it', () => {

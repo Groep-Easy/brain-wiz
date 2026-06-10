@@ -4,7 +4,7 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { safeEqual } from '../../src/server/socket/secure-compare'
+import { safeEqual } from '../../src/server/socket/helpers/index'
 
 describe('safeEqual', () => {
   it('returns true for identical strings', () => {
