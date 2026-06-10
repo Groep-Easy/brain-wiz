@@ -1,0 +1,302 @@
+[
+    {
+        "text": "Who played Iron Man in the Marvel Cinematic Universe?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Robert Downey Jr."
+        ],
+        "wrongAnswers": [
+            "Chris Evans",
+            "Chris Hemsworth",
+            "Mark Ruffalo"
+        ],
+        "imagePath": "/images/ironman.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these movies were directed by Christopher Nolan?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Inception",
+            "Interstellar"
+        ],
+        "wrongAnswers": [
+            "Titanic",
+            "Avatar"
+        ],
+        "imagePath": "/images/nolan.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "In which TV series does Walter White appear?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Breaking Bad"
+        ],
+        "wrongAnswers": [
+            "The Sopranos",
+            "Ozark",
+            "Narcos"
+        ],
+        "imagePath": "/images/breakingbad.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is Baby Yoda's real name in The Mandalorian?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Grogu"
+        ],
+        "wrongAnswers": [
+            "Yoda Jr.",
+            "Mando",
+            "Koda"
+        ],
+        "imagePath": "/images/grogu.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which actor played Jack Sparrow?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Johnny Depp"
+        ],
+        "wrongAnswers": [
+            "Brad Pitt",
+            "Tom Cruise",
+            "Leonardo DiCaprio"
+        ],
+        "imagePath": "/images/jacksparrow.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are houses at Hogwarts?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Gryffindor",
+            "Slytherin"
+        ],
+        "wrongAnswers": [
+            "Winterfell",
+            "Mordor"
+        ],
+        "imagePath": "/images/hogwarts.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Who directed the movie Inception?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Christopher Nolan"
+        ],
+        "wrongAnswers": [
+            "James Cameron",
+            "Steven Spielberg",
+            "Quentin Tarantino"
+        ],
+        "imagePath": "/images/inception.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which streaming service originally released Stranger Things?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Netflix"
+        ],
+        "wrongAnswers": [
+            "Disney+",
+            "HBO",
+            "Prime Video"
+        ],
+        "imagePath": "/images/strangerthings.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these characters are members of the Avengers?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Thor",
+            "Hulk"
+        ],
+        "wrongAnswers": [
+            "Batman",
+            "Superman"
+        ],
+        "imagePath": "/images/avengers.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the name of Batman's city?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Gotham City"
+        ],
+        "wrongAnswers": [
+            "Metropolis",
+            "Star City",
+            "Central City"
+        ],
+        "imagePath": "/images/gotham.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Who is Luke Skywalker's father?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Darth Vader"
+        ],
+        "wrongAnswers": [
+            "Obi-Wan Kenobi",
+            "Han Solo",
+            "Yoda"
+        ],
+        "imagePath": "/images/starwars.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these movies won the Oscar for Best Picture?",
+        "theme": "films",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Titanic",
+            "The Lord of the Rings: The Return of the King"
+        ],
+        "wrongAnswers": [
+            "Transformers",
+            "Fast & Furious 7"
+        ],
+        "imagePath": "/images/oscar.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Who played Wolverine in the X-Men movies?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Hugh Jackman"
+        ],
+        "wrongAnswers": [
+            "Ryan Reynolds",
+            "Chris Pratt",
+            "Ben Affleck"
+        ],
+        "imagePath": "/images/wolverine.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these characters appear in Game of Thrones?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Jon Snow",
+            "Daenerys Targaryen"
+        ],
+        "wrongAnswers": [
+            "Harry Potter",
+            "Frodo Baggins"
+        ],
+        "imagePath": "/images/got.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What color pill does Neo choose in The Matrix?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Red"
+        ],
+        "wrongAnswers": [
+            "Blue",
+            "Green",
+            "Yellow"
+        ],
+        "imagePath": "/images/matrix.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which actor played Deadpool?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Ryan Reynolds"
+        ],
+        "wrongAnswers": [
+            "Chris Evans",
+            "Tom Holland",
+            "Chris Pratt"
+        ],
+        "imagePath": "/images/deadpool.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these movies are part of The Lord of the Rings trilogy?",
+        "theme": "films",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "The Fellowship of the Ring",
+            "The Return of the King"
+        ],
+        "wrongAnswers": [
+            "The Hobbit: An Unexpected Journey",
+            "Fantastic Beasts"
+        ],
+        "imagePath": "/images/lotr.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the name of the school in Harry Potter?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Hogwarts"
+        ],
+        "wrongAnswers": [
+            "Durmstrang",
+            "Beauxbatons",
+            "Narnia Academy"
+        ],
+        "imagePath": "/images/harrypotter.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these actors have played Spider-Man in live-action movies?",
+        "theme": "films",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Tobey Maguire",
+            "Tom Holland"
+        ],
+        "wrongAnswers": [
+            "Chris Hemsworth",
+            "Robert Pattinson"
+        ],
+        "imagePath": "/images/spiderman.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which animated movie features the character Simba?",
+        "theme": "films",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "The Lion King"
+        ],
+        "wrongAnswers": [
+            "Shrek",
+            "Frozen",
+            "Moana"
+        ],
+        "imagePath": "/images/lionking.jpg",
+        "timeLimitSeconds": 15
+    }
+]

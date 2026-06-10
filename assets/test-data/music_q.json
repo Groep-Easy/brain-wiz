@@ -1,0 +1,302 @@
+[
+    {
+        "text": "Who is known as the 'King of Pop'?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Michael Jackson"
+        ],
+        "wrongAnswers": [
+            "Elvis Presley",
+            "Prince",
+            "Justin Bieber"
+        ],
+        "imagePath": "/images/michael-jackson.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are musical instruments?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Guitar",
+            "Piano"
+        ],
+        "wrongAnswers": [
+            "Printer",
+            "Monitor"
+        ],
+        "imagePath": "/images/instruments.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which band performed the song 'Bohemian Rhapsody'?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Queen"
+        ],
+        "wrongAnswers": [
+            "The Beatles",
+            "ABBA",
+            "Coldplay"
+        ],
+        "imagePath": "/images/queen.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these artists are known for rap music?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Eminem",
+            "Drake"
+        ],
+        "wrongAnswers": [
+            "Mozart",
+            "Beethoven"
+        ],
+        "imagePath": "/images/rap.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "How many strings does a standard guitar have?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "6"
+        ],
+        "wrongAnswers": [
+            "4",
+            "5",
+            "8"
+        ],
+        "imagePath": "/images/guitar.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these artists were members of The Beatles?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "John Lennon",
+            "Paul McCartney"
+        ],
+        "wrongAnswers": [
+            "Mick Jagger",
+            "Freddie Mercury"
+        ],
+        "imagePath": "/images/beatles.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who composed 'The Four Seasons'?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Antonio Vivaldi"
+        ],
+        "wrongAnswers": [
+            "Mozart",
+            "Bach",
+            "Beethoven"
+        ],
+        "imagePath": "/images/vivaldi.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are music streaming platforms?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Spotify",
+            "Apple Music"
+        ],
+        "wrongAnswers": [
+            "Netflix",
+            "Steam"
+        ],
+        "imagePath": "/images/streaming.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which artist released the album '1989'?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Taylor Swift"
+        ],
+        "wrongAnswers": [
+            "Adele",
+            "Billie Eilish",
+            "Rihanna"
+        ],
+        "imagePath": "/images/taylor-swift.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are classical composers?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Mozart",
+            "Beethoven"
+        ],
+        "wrongAnswers": [
+            "Ed Sheeran",
+            "The Weeknd"
+        ],
+        "imagePath": "/images/composers.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the highest female singing voice type?",
+        "theme": "music",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Soprano"
+        ],
+        "wrongAnswers": [
+            "Alto",
+            "Tenor",
+            "Bass"
+        ],
+        "imagePath": "/images/soprano.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these artists are known for K-pop?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "BTS",
+            "BLACKPINK"
+        ],
+        "wrongAnswers": [
+            "Coldplay",
+            "Imagine Dragons"
+        ],
+        "imagePath": "/images/kpop.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who sang the hit song 'Shape of You'?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Ed Sheeran"
+        ],
+        "wrongAnswers": [
+            "Shawn Mendes",
+            "Justin Bieber",
+            "Harry Styles"
+        ],
+        "imagePath": "/images/ed-sheeran.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these instruments belong to the string family?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Violin",
+            "Cello"
+        ],
+        "wrongAnswers": [
+            "Trumpet",
+            "Flute"
+        ],
+        "imagePath": "/images/strings.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does DJ stand for?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Disc Jockey"
+        ],
+        "wrongAnswers": [
+            "Digital Jammer",
+            "Dance Jumper",
+            "Disc Jumper"
+        ],
+        "imagePath": "/images/dj.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these artists have won multiple Grammy Awards?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Beyoncé",
+            "Adele"
+        ],
+        "wrongAnswers": [
+            "Rebecca Black",
+            "Ice JJ Fish"
+        ],
+        "imagePath": "/images/grammys.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which band is known for the song 'Smells Like Teen Spirit'?",
+        "theme": "music",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Nirvana"
+        ],
+        "wrongAnswers": [
+            "Green Day",
+            "Metallica",
+            "Linkin Park"
+        ],
+        "imagePath": "/images/nirvana.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are genres of music?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Jazz",
+            "Rock"
+        ],
+        "wrongAnswers": [
+            "Photoshop",
+            "Bluetooth"
+        ],
+        "imagePath": "/images/genres.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Who was the lead singer of Queen?",
+        "theme": "music",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Freddie Mercury"
+        ],
+        "wrongAnswers": [
+            "David Bowie",
+            "Elton John",
+            "George Michael"
+        ],
+        "imagePath": "/images/freddie.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these artists are among the best-selling musicians of all time?",
+        "theme": "music",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "The Beatles",
+            "Elvis Presley"
+        ],
+        "wrongAnswers": [
+            "Imagine Dragons",
+            "Maroon 5"
+        ],
+        "imagePath": "/images/best-selling.jpg",
+        "timeLimitSeconds": 25
+    }
+]

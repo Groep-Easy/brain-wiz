@@ -1,0 +1,302 @@
+[
+    {
+        "text": "What is the largest animal on Earth?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Blue Whale"
+        ],
+        "wrongAnswers": [
+            "Elephant",
+            "Giraffe",
+            "Great White Shark"
+        ],
+        "imagePath": "/images/blue-whale.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are official languages of the United Nations?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "English",
+            "Arabic"
+        ],
+        "wrongAnswers": [
+            "Dutch",
+            "Swedish"
+        ],
+        "imagePath": "/images/un.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "How many days are there in a leap year?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "366"
+        ],
+        "wrongAnswers": [
+            "365",
+            "364",
+            "367"
+        ],
+        "imagePath": "/images/calendar.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are world-famous landmarks?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Eiffel Tower",
+            "Statue of Liberty"
+        ],
+        "wrongAnswers": [
+            "Big Ben Clock Shop",
+            "Hollywood Mall"
+        ],
+        "imagePath": "/images/landmarks.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the currency of Japan?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Yen"
+        ],
+        "wrongAnswers": [
+            "Won",
+            "Dollar",
+            "Euro"
+        ],
+        "imagePath": "/images/yen.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these inventions came before the year 1900?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Telephone",
+            "Light Bulb"
+        ],
+        "wrongAnswers": [
+            "Smartphone",
+            "Wi-Fi"
+        ],
+        "imagePath": "/images/inventions.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which country is famous for the pyramids of Giza?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Egypt"
+        ],
+        "wrongAnswers": [
+            "Greece",
+            "Turkey",
+            "India"
+        ],
+        "imagePath": "/images/pyramids.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are commonly spoken Romance languages?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Spanish",
+            "French"
+        ],
+        "wrongAnswers": [
+            "Russian",
+            "Japanese"
+        ],
+        "imagePath": "/images/languages.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the tallest land animal?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Giraffe"
+        ],
+        "wrongAnswers": [
+            "Elephant",
+            "Camel",
+            "Horse"
+        ],
+        "imagePath": "/images/giraffe.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries use the Euro?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Germany",
+            "Spain"
+        ],
+        "wrongAnswers": [
+            "United Kingdom",
+            "Switzerland"
+        ],
+        "imagePath": "/images/euro.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who painted the Mona Lisa?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Leonardo da Vinci"
+        ],
+        "wrongAnswers": [
+            "Vincent van Gogh",
+            "Pablo Picasso",
+            "Michelangelo"
+        ],
+        "imagePath": "/images/monalisa.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are considered natural wonders?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Grand Canyon",
+            "Great Barrier Reef"
+        ],
+        "wrongAnswers": [
+            "Golden Gate Bridge",
+            "Big Ben"
+        ],
+        "imagePath": "/images/natural-wonders.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "How many continents are there on Earth?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "7"
+        ],
+        "wrongAnswers": [
+            "5",
+            "6",
+            "8"
+        ],
+        "imagePath": "/images/world-map.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these beverages contain caffeine?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Coffee",
+            "Tea"
+        ],
+        "wrongAnswers": [
+            "Water",
+            "Milk"
+        ],
+        "imagePath": "/images/caffeine.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the most spoken native language in the world?",
+        "theme": "general",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Mandarin Chinese"
+        ],
+        "wrongAnswers": [
+            "English",
+            "Spanish",
+            "Hindi"
+        ],
+        "imagePath": "/images/mandarin.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these countries are members of the G7?",
+        "theme": "general",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Canada",
+            "Japan"
+        ],
+        "wrongAnswers": [
+            "India",
+            "Brazil"
+        ],
+        "imagePath": "/images/g7.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "What is the smallest prime number?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "2"
+        ],
+        "wrongAnswers": [
+            "1",
+            "3",
+            "5"
+        ],
+        "imagePath": "/images/prime-number.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are famous works of literature?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Don Quixote",
+            "Romeo and Juliet"
+        ],
+        "wrongAnswers": [
+            "Star Wars",
+            "The Matrix"
+        ],
+        "imagePath": "/images/literature.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the freezing point of water in Celsius?",
+        "theme": "general",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "0"
+        ],
+        "wrongAnswers": [
+            "32",
+            "100",
+            "-10"
+        ],
+        "imagePath": "/images/freezing-water.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these inventions revolutionized global communication?",
+        "theme": "general",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Internet",
+            "Telephone"
+        ],
+        "wrongAnswers": [
+            "Typewriter",
+            "Fax Machine"
+        ],
+        "imagePath": "/images/communication.jpg",
+        "timeLimitSeconds": 20
+    }
+]

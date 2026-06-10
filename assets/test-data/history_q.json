@@ -1,0 +1,303 @@
+[
+    {
+        "text": "In what year did World War II end?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "1945"
+        ],
+        "wrongAnswers": [
+            "1939",
+            "1941",
+            "1950"
+        ],
+        "imagePath": "/images/ww2.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Who discovered America in 1492?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Christopher Columbus"
+        ],
+        "wrongAnswers": [
+            "Ferdinand Magellan",
+            "Marco Polo",
+            "James Cook"
+        ],
+        "imagePath": "/images/columbus.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these ancient civilizations existed in Mesopotamia?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Sumerians",
+            "Babylonians"
+        ],
+        "wrongAnswers": [
+            "Aztecs",
+            "Vikings"
+        ],
+        "imagePath": "/images/mesopotamia.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who was the first Roman Emperor?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Augustus"
+        ],
+        "wrongAnswers": [
+            "Julius Caesar",
+            "Nero",
+            "Constantine"
+        ],
+        "imagePath": "/images/augustus.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which wall fell in 1989, symbolizing the end of the Cold War?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Berlin Wall"
+        ],
+        "wrongAnswers": [
+            "Great Wall of China",
+            "Hadrian's Wall",
+            "Western Wall"
+        ],
+        "imagePath": "/images/berlin-wall.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries were part of the Axis Powers during World War II?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Germany",
+            "Italy"
+        ],
+        "wrongAnswers": [
+            "Canada",
+            "Australia"
+        ],
+        "imagePath": "/images/axis.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who was the leader of France during much of the Napoleonic Wars?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Napoleon Bonaparte"
+        ],
+        "wrongAnswers": [
+            "Louis XIV",
+            "Charlemagne",
+            "Charles de Gaulle"
+        ],
+        "imagePath": "/images/napoleon.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "In which country did the Renaissance begin?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Italy"
+        ],
+        "wrongAnswers": [
+            "France",
+            "England",
+            "Germany"
+        ],
+        "imagePath": "/images/renaissance.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these were famous Egyptian pharaohs?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Tutankhamun",
+            "Ramesses II"
+        ],
+        "wrongAnswers": [
+            "Alexander the Great",
+            "Julius Caesar"
+        ],
+        "imagePath": "/images/pharaohs.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "When did World War I begin?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "1914"
+        ],
+        "wrongAnswers": [
+            "1918",
+            "1939",
+            "1905"
+        ],
+        "imagePath": "/images/ww1.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Who was the first person to walk on the Moon?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Neil Armstrong"
+        ],
+        "wrongAnswers": [
+            "Buzz Aldrin",
+            "Yuri Gagarin",
+            "John Glenn"
+        ],
+        "imagePath": "/images/moon.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these were major Allied Powers during World War II?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "United States",
+            "United Kingdom"
+        ],
+        "wrongAnswers": [
+            "Germany",
+            "Japan"
+        ],
+        "imagePath": "/images/allies.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who was known as the 'Maid of Orleans'?",
+        "theme": "history",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Joan of Arc"
+        ],
+        "wrongAnswers": [
+            "Marie Antoinette",
+            "Catherine the Great",
+            "Cleopatra"
+        ],
+        "imagePath": "/images/joan-of-arc.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which empire was ruled by Genghis Khan?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Mongol Empire"
+        ],
+        "wrongAnswers": [
+            "Roman Empire",
+            "Ottoman Empire",
+            "British Empire"
+        ],
+        "imagePath": "/images/genghis-khan.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these ancient wonders were located in Egypt?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Great Pyramid of Giza"
+        ],
+        "wrongAnswers": [
+            "Colossus of Rhodes",
+            "Temple of Artemis",
+            "Hanging Gardens of Babylon"
+        ],
+        "imagePath": "/images/pyramid.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What event started World War I?",
+        "theme": "history",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Assassination of Archduke Franz Ferdinand"
+        ],
+        "wrongAnswers": [
+            "German invasion of Poland",
+            "Russian Revolution",
+            "Battle of Verdun"
+        ],
+        "imagePath": "/images/franz-ferdinand.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these leaders were associated with the Soviet Union?",
+        "theme": "history",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Joseph Stalin",
+            "Vladimir Lenin"
+        ],
+        "wrongAnswers": [
+            "Winston Churchill",
+            "Franklin Roosevelt"
+        ],
+        "imagePath": "/images/soviet-union.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which civilization built Machu Picchu?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Inca"
+        ],
+        "wrongAnswers": [
+            "Maya",
+            "Aztec",
+            "Olmec"
+        ],
+        "imagePath": "/images/machu-picchu.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who was the famous queen of Ancient Egypt?",
+        "theme": "history",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Cleopatra"
+        ],
+        "wrongAnswers": [
+            "Nefertiti",
+            "Elizabeth I",
+            "Victoria"
+        ],
+        "imagePath": "/images/cleopatra.jpg",
+        "timeLimitSeconds": 15,
+        "basePoints": 1000
+    },
+    {
+        "text": "Which of these historical figures were Roman leaders?",
+        "theme": "history",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Julius Caesar",
+            "Augustus"
+        ],
+        "wrongAnswers": [
+            "Napoleon",
+            "Alexander Hamilton"
+        ],
+        "imagePath": "/images/rome.jpg",
+        "timeLimitSeconds": 20
+    }
+]
