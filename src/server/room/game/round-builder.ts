@@ -17,15 +17,10 @@ import { RoundStatusEnum, ContentTypeEnum } from '../../entities/enums'
 import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
 import type { RoundType } from '../../../shared/types/index'
 import { NotEnoughQuestionsError } from './game.errors'
+import type { ProceduralRoundSeedInput } from './game.types'
 import { MinigameRegistry } from './minigames/minigame-registry'
 
 const PROCEDURAL_ROUND_SEED_SEPARATOR = ':'
-
-interface ProceduralRoundSeedInput {
-  roomId: string
-  roundId: string
-  type: RoundType
-}
 
 function createProceduralRoundSeed({ roomId, roundId, type }: ProceduralRoundSeedInput): string {
   return [roomId, roundId, type].join(PROCEDURAL_ROUND_SEED_SEPARATOR)

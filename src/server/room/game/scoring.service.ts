@@ -195,7 +195,7 @@ export class ScoringService {
       roundId,
       type: ctx.roundType,
       playerResults,
-      ...(publicSolution !== undefined ? { publicSolution } : {}),
+      ...(!publicSolution ? { publicSolution } : {}),
     }
     this.broadcaster.emitToRoom(roomId, EVENTS.ROUND_REVEAL, reveal)
   }
