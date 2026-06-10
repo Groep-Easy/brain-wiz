@@ -60,12 +60,16 @@
   width: 60px;
 }
 
+.space {
+  height: 2px;
+}
+
 .primary-btn {
   background: var(--teal);
   color: #ffffff;
   font-size: 1.25rem;
   font-weight: 700;
-  padding: 16px 36px;
+  padding: 24px 36px;
   border: none;
   border-radius: 12px;
   cursor: pointer;
