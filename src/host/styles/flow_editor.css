@@ -25,6 +25,13 @@
   gap: 16px;
 }
 
+/* Brand logo at the top-left of the editor header. */
+.flow-editor-header .brand-logo {
+  height: clamp(36px, 4vw, 52px);
+  width: auto;
+  flex: 0 0 auto;
+}
+
 .flow-editor-header h1 {
   font-size: clamp(1.6rem, 3vw, 2.6rem);
   font-weight: 800;
