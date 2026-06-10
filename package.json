@@ -52,6 +52,7 @@
     "@nestjs/core": "^11.1.24",
     "@nestjs/platform-express": "^11.1.24",
     "@nestjs/platform-ws": "^11.1.24",
+    "@nestjs/swagger": "^11.4.4",
     "@nestjs/typeorm": "^11.0.1",
     "@nestjs/websockets": "^11.1.24",
     "class-transformer": "^0.5.1",
