@@ -6,12 +6,12 @@
  * together, nothing else.
  */
 import 'reflect-metadata'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { config } from '../config/server'
+import { setSwaggerConfig } from './config/swagger-doc';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -28,25 +28,10 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Brain-wiz server REST API endpoints')
-    .setVersion(process.env["SERVER_API_VERSION"] ?? "1.0")
-    .addTag('')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, documentFactory);
-
-  // TODO: serve the static host display (src/host) and phone client (src/client).
-  // Old Express mounts were `app.use('/host', express.static('src/host'))` and
-  // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
-  // (@nestjs/serve-static) or equivalent once the static assets are wired up.
-
-  await app.listen(config.PORT, '0.0.0.0')
+  setSwaggerConfig(app);
 
   // eslint-disable-next-line no-console
-  console.log(`Brain Wiz running on http://0.0.0.0:${config.PORT}`)
-  // eslint-disable-next-line no-console
-  console.log(`API endpoints: ${config.BASE_URL}/api`)
+  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
 }
 
 void bootstrap()
