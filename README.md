@@ -51,6 +51,24 @@ Install the recommended extensions from `.vscode/extensions.json` or manually in
    immediately, remove the file from history (see maintainers), and have all
    collaborators re-clone the repository after the history has been rewritten.
 
+## Server Access
+
+To easily connect to the remote UVA server without a password prompt, we recommend storing the SSH key in your local `~/.ssh/` directory (e.g. `~/.ssh/brain-wiz-ssh`) rather than in the repository.
+
+Add the following to your `~/.ssh/config`:
+
+```ssh-config
+Host brain
+  HostName 83.96.203.127
+  User ubuntu
+  IdentityFile ~/.ssh/brain-wiz-ssh
+  IdentitiesOnly yes
+```
+
+Ensure the key has the correct permissions (`chmod 400 ~/.ssh/brain-wiz-ssh`), then simply run:
+```bash
+ssh brain
+```
 ## Deployment to uva server
 1. Log in on the eduvpn of school.
 2. First time connect to the uva server:
@@ -116,3 +134,23 @@ npm run validate
 ```
 
 This consistent workflow helps all contributors stay aligned and prevents unnecessary Git conflicts.
+
+## Generate the database schema
+
+1. `docker compose up` make sure docker is running
+2. Go to `http://localhost:5050`
+3. On the left panel right click on server and click on register server and then server
+4. Fill in the form:
+- General:
+  - Name: Brainwisdb
+
+- Connection:
+  - Host name/ Address : see docker-compose service name (default: db)
+  - Port: see .env DB_PORT
+  - Username: see .env DB_USERNAME
+  - Password: see .env DB_PASSWORD
+
+5. Open the toggle of server
+6. right click on postgres
+7. click on ERD for database
+8. download the image
