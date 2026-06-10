@@ -6,6 +6,8 @@
  * together, nothing else.
  */
 import 'reflect-metadata'
+import * as path from 'path'
+import * as express from 'express'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
@@ -27,10 +29,77 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  // TODO: serve the static host display (src/host) and phone client (src/client).
-  // Old Express mounts were `app.use('/host', express.static('src/host'))` and
-  // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
-  // (@nestjs/serve-static) or equivalent once the static assets are wired up.
+  // ---------------------------------------------------------------------------
+  // Static frontends — served from the Vite build output.
+  // /       → Welcome page (links to both apps)
+  // /host   → Host display Vite app  (dist/host)
+  // /client → Player phone Vite app  (dist/client)
+  //
+  // Vite base paths (/host, /client) must match these mounts so built asset
+  // URLs are correct. See vite.host.config.ts and vite.client.config.ts.
+  //
+  // /host must be mounted BEFORE /client to prevent the catch-all from
+  // swallowing /host/* sub-paths.
+  // ---------------------------------------------------------------------------
+  const distDir = path.join(__dirname, '..', '..')   // resolves to dist/
+
+  const hostDist   = path.join(distDir, 'host')
+  const clientDist = path.join(distDir, 'client')
+
+  // Welcome page at /
+  app.use('/', (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (_req.path !== '/') { next(); return }
+    res.send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Wiz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+    body {
+      min-height: 100dvh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2rem;
+      background: #0f0f14;
+      font-family: system-ui, sans-serif;
+      color: #fff;
+    }
+    h1 { font-size: 2.5rem; letter-spacing: -0.03em }
+    p  { color: #888; font-size: 0.95rem }
+    .links { display: flex; gap: 1.25rem; flex-wrap: wrap; justify-content: center }
+    a {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 2rem; border-radius: 0.75rem; font-size: 1.1rem;
+      font-weight: 600; text-decoration: none; transition: opacity 0.15s;
+    }
+    a:hover { opacity: 0.85 }
+    .host   { background: #7c3aed; color: #fff }
+    .client { background: #0ea5e9; color: #fff }
+  </style>
+</head>
+<body>
+  <h1>🧠 Brain Wiz</h1>
+  <p>Choose your role to get started</p>
+  <div class="links">
+    <a class="host"   href="/host">📺 Game Host</a>
+    <a class="client" href="/client">📱 Player</a>
+  </div>
+</body>
+</html>`)
+  })
+
+  // Host display: /host and /host/* (SPA fallback)
+  app.use('/host', express.static(hostDist))
+  app.use('/host/*', (_req: express.Request, res: express.Response) => {
+    res.sendFile(path.join(hostDist, 'index.html'))
+  })
+
+  // Player client: /client and /client/* (SPA fallback)
+  app.use('/client', express.static(clientDist))
+  app.use('/client/*', (_req: express.Request, res: express.Response) => {
+    res.sendFile(path.join(clientDist, 'index.html'))
+  })
 
   await app.listen(config.PORT, '0.0.0.0')
 
