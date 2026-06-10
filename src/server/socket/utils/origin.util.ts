@@ -1,5 +1,5 @@
 /**
- * @file socket.origin.ts
+ * @file origin.util.ts
  * @owner server-squad
  * @description Origin allow-listing for the WebSocket upgrade.
  *
@@ -9,13 +9,8 @@
  * WebSocket hijacking: a browser always sends an `Origin` header, so a socket
  * opened from a page we don't trust is rejected. Non-browser clients (no Origin
  * header) are not subject to CSWSH and are allowed through.
- */
-
-/** DI token for the allow-listed origins (mirrors the HTTP CORS allow-list). */
-export const WS_ALLOWED_ORIGINS = 'WS_ALLOWED_ORIGINS'
-
-/**
- * Decide whether a WebSocket upgrade from `origin` may proceed.
+ *
+ * Decide whether a WebSocket upgrade from `origin` may proceed:
  * - missing origin → allowed (non-browser client, not a CSWSH vector)
  * - present origin → must be in the allow-list
  */
