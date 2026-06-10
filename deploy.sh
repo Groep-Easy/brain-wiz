@@ -195,9 +195,11 @@ fi
 # -------------------------------------------------------------------------
 echo "[6/8] Freeing Required Ports..."
 if [ "$ENV" == "prod" ]; then
-    REQUIRED_PORTS=(3000 5432 5050 3100 3200)
+    # Only ports actually bound on the host for prod:
+    # 5432 (postgres) and 3100 (loki) are internal-only — no host binding.
+    REQUIRED_PORTS=(3000 5050 3200)
 else
-    REQUIRED_PORTS=(3001 5433 5051 3201)
+    REQUIRED_PORTS=(3001 5051 3201)
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
@@ -273,7 +275,43 @@ $DOCKER_CMD pull
 echo "[8/8] Starting Containers..."
 $DOCKER_CMD up -d
 
+# -------------------------------------------------------------------------
+# Done — print all accessible URLs
+# -------------------------------------------------------------------------
+SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[ -z "$SERVER_IP" ] && SERVER_IP="<server-ip>"
+
+if [ "$ENV" == "prod" ]; then
+    APP_PORT=3000
+    GRAFANA_PORT=3200
+    PGADMIN_PORT=5050
+else
+    APP_PORT=3001
+    GRAFANA_PORT=3201
+    PGADMIN_PORT=5051
+fi
+
+echo ""
 echo "======================================"
 echo " Deployment completed successfully!"
-echo " Project: $COMPOSE_PROJECT_NAME"
+echo " Project : $COMPOSE_PROJECT_NAME"
+echo " Branch  : $BRANCH"
+echo "======================================"
+echo ""
+echo " App (game host / TV screen)"
+echo "   https://${SERVER_IP}:${APP_PORT}/host"
+echo ""
+echo " App (player — open on phone)"
+echo "   https://${SERVER_IP}:${APP_PORT}"
+echo ""
+echo " Grafana (logs and dashboards)"
+echo "   http://${SERVER_IP}:${GRAFANA_PORT}"
+echo "   Login: admin / changeme  (set GRAFANA_ADMIN_PASSWORD in .env to override)"
+echo ""
+echo " pgAdmin (database viewer)"
+echo "   http://${SERVER_IP}:${PGADMIN_PORT}"
+echo ""
+echo " NOTE: Browser will warn about the self-signed certificate."
+echo "       Click Advanced -> Proceed to continue."
+echo "       Connect via UvA VPN if accessing from off-campus."
 echo "======================================"

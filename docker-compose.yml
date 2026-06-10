@@ -40,9 +40,11 @@ services:
     container_name: postgres-db
     env_file:
       - .env
-    # Expose Postgres on the host via 5432. The app and tests use DB_PORT in .env.
-    ports:
-      - '5432:5432'
+    # PostgreSQL is intentionally NOT exposed on the host. The app connects
+    # via DB_HOST=db (Docker network) and pgAdmin resolves it the same way.
+    # Exposing it here causes port conflicts when prod + branch run together.
+    # Add a ports override in docker-compose.override.yml if you need direct
+    # psql access from the host for debugging.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -73,8 +75,9 @@ services:
     image: grafana/loki:3.5.0
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
-    ports:
-      - '3100:3100'
+    # Loki is accessed internally by Promtail (push) and Grafana (query).
+    # No host port needed — if you want to query Loki's API directly, use
+    # Grafana's explore view or add a ports override.
     volumes:
       - loki_data:/loki
     restart: unless-stopped
