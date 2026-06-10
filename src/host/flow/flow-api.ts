@@ -12,7 +12,7 @@ import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
 const BACKEND_HTTP_URL = (import.meta.env.VITE_WS_URL || 'ws://localhost:3000').replace(
   /^ws/i,
-  'http',
+  'http'
 )
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
@@ -63,7 +63,7 @@ export async function fetchRoomFlow(code: string): Promise<FlowItem[]> {
 export async function storeRoomFlow(
   code: string,
   hostToken: string,
-  flow: FlowItem[],
+  flow: FlowItem[]
 ): Promise<boolean> {
   try {
     const res = await fetch(`${BACKEND_HTTP_URL}/rooms/${code}/flow`, {
@@ -81,7 +81,7 @@ export async function storeRoomFlow(
 export async function randomizeRoomFlow(
   code: string,
   hostToken: string,
-  size?: number,
+  size?: number
 ): Promise<FlowItem[]> {
   const res = await fetch(`${BACKEND_HTTP_URL}/rooms/${code}/flow/randomize`, {
     method: 'POST',

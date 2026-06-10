@@ -15,9 +15,7 @@ import { BLOCK_SEED } from './block-seed-data'
 export class BlockSeederService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BlockSeederService.name)
 
-  public constructor(
-    @InjectRepository(GameBlock) private readonly blocks: Repository<GameBlock>
-  ) {}
+  public constructor(@InjectRepository(GameBlock) private readonly blocks: Repository<GameBlock>) {}
 
   public async onApplicationBootstrap(): Promise<void> {
     try {
