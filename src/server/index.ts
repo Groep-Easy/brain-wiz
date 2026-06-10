@@ -29,8 +29,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Brain-wiz server endpoints API')
-    .setDescription('')
+    .setTitle('Brain-wiz server REST API endpoints')
     .setVersion(process.env["SERVER_API_VERSION"] ?? "1.0")
     .addTag('')
     .build();
