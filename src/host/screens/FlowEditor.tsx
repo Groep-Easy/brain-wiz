@@ -9,7 +9,7 @@
  * changes via the `storage` event. A flow must keep at least MIN_FLOW_BLOCKS.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   PALETTE,
   MIN_FLOW_BLOCKS,
@@ -20,22 +20,25 @@ import {
   MIN_QUESTIONS_PER_BLOCK,
   MAX_QUESTIONS_PER_BLOCK,
   blockById,
-  loadFlow,
-  saveFlow,
-  randomFlow,
+  randomFlowFrom,
   nextUid,
-  type FlowItem,
-} from '../flow/blocks'
+} from '../flow/palette'
+import { fetchCatalog, fetchRoomFlow, storeRoomFlow, randomizeRoomFlow } from '../flow/flow-api'
+import type { BlockDef, FlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import '../styles/flow_editor.css'
 
 export function FlowEditor(): React.JSX.Element {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const code = searchParams.get('code') ?? ''
+  const token = searchParams.get('token') ?? ''
+  const serverBacked = code !== '' && token !== ''
   const trackRef = useRef<HTMLDivElement>(null)
-  const [flow, setFlow] = useState<FlowItem[]>(() => {
-    const existing = loadFlow()
-    return existing.length >= MIN_FLOW_BLOCKS ? existing : randomFlow()
-  })
+  const [flow, setFlow] = useState<FlowItem[]>([])
+  const [ready, setReady] = useState(false)
+  const skipNextSave = useRef(true)
+  const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)
   // The slot index a dragged block would be inserted at, or null when not dragging.
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   // Size picker shown when the host asks for a randomized flow.
@@ -47,7 +50,7 @@ export function FlowEditor(): React.JSX.Element {
   const setQuestions = (uid: string, value: number) => {
     const clamped = Math.min(
       MAX_QUESTIONS_PER_BLOCK,
-      Math.max(MIN_QUESTIONS_PER_BLOCK, Math.round(value) || MIN_QUESTIONS_PER_BLOCK),
+      Math.max(MIN_QUESTIONS_PER_BLOCK, Math.round(value) || MIN_QUESTIONS_PER_BLOCK)
     )
     setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, questions: clamped } : f)))
   }
@@ -56,13 +59,42 @@ export function FlowEditor(): React.JSX.Element {
   // fixed MAX_FLOW_COLUMNS means a full flow lands as exact rows.
   const { cells, count, logicalInsertForSlot } = useMemo(
     () => buildSerpentine(flow.length, MAX_FLOW_COLUMNS),
-    [flow.length],
+    [flow.length]
   )
 
-  // Persist whenever the flow changes; this notifies the lobby tab via `storage`.
   useEffect(() => {
-    saveFlow(flow)
-  }, [flow])
+    let active = true
+    void (async () => {
+      const [blocks, serverFlow] = await Promise.all([
+        fetchCatalog(),
+        serverBacked ? fetchRoomFlow(code) : Promise.resolve<FlowItem[]>([]),
+      ])
+      if (!active) return
+      setCatalog(blocks)
+      const initial =
+        serverFlow.length >= MIN_FLOW_BLOCKS
+          ? serverFlow
+          : randomFlowFrom(blocks, DEFAULT_FLOW_SIZE)
+      skipNextSave.current = true
+      setFlow(initial)
+      setReady(true)
+    })()
+    return () => {
+      active = false
+    }
+  }, [code, serverBacked])
+
+  useEffect(() => {
+    if (!ready || !serverBacked) return
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
+    const timer = setTimeout(() => {
+      void storeRoomFlow(code, token, flow)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [flow, ready, serverBacked, code, token])
 
   // Close the question-count popover when clicking outside it.
   useEffect(() => {
@@ -161,13 +193,19 @@ export function FlowEditor(): React.JSX.Element {
   const confirmShuffle = () => {
     if (sizePicker === null) return
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
-    setFlow(randomFlow(count))
     setSizePicker(null)
+    if (serverBacked) {
+      void randomizeRoomFlow(code, token, count)
+        .then((next) => {
+          skipNextSave.current = true
+          setFlow(next)
+        })
+        .catch(() => setFlow(randomFlowFrom(catalog, count)))
+    } else {
+      setFlow(randomFlowFrom(catalog, count))
+    }
   }
 
-  // Opened in a fresh tab from the lobby (no in-app history): close it.
-  // Opened via in-app navigation: step back instead. Either way the lobby
-  // already reflects the saved flow via the `storage` event.
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1)
@@ -200,32 +238,36 @@ export function FlowEditor(): React.JSX.Element {
         <aside className="palette">
           <h2>Themes</h2>
           <div className="palette-group">
-            {PALETTE.filter((b) => b.kind === 'theme').map((block) => (
-              <div
-                key={block.id}
-                className="palette-block theme"
-                draggable
-                onDragStart={(e) => onPaletteDragStart(e, block.id)}
-              >
-                <span className="block-icon">{block.icon}</span>
-                <span className="block-label">{block.label}</span>
-              </div>
-            ))}
+            {catalog
+              .filter((b) => b.kind === 'theme')
+              .map((block) => (
+                <div
+                  key={block.id}
+                  className="palette-block theme"
+                  draggable
+                  onDragStart={(e) => onPaletteDragStart(e, block.id)}
+                >
+                  <span className="block-icon">{block.icon}</span>
+                  <span className="block-label">{block.label}</span>
+                </div>
+              ))}
           </div>
 
           <h2>Mini-games</h2>
           <div className="palette-group">
-            {PALETTE.filter((b) => b.kind === 'minigame').map((block) => (
-              <div
-                key={block.id}
-                className="palette-block minigame"
-                draggable
-                onDragStart={(e) => onPaletteDragStart(e, block.id)}
-              >
-                <span className="block-icon">{block.icon}</span>
-                <span className="block-label">{block.label}</span>
-              </div>
-            ))}
+            {catalog
+              .filter((b) => b.kind === 'minigame')
+              .map((block) => (
+                <div
+                  key={block.id}
+                  className="palette-block minigame"
+                  draggable
+                  onDragStart={(e) => onPaletteDragStart(e, block.id)}
+                >
+                  <span className="block-icon">{block.icon}</span>
+                  <span className="block-label">{block.label}</span>
+                </div>
+              ))}
           </div>
         </aside>
 
