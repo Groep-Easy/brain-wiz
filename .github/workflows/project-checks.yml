@@ -10,6 +10,7 @@ on:
     branches:
       - develop
       - master
+      - feat/ci-test-pipeline
   workflow_dispatch:
 
 permissions:
