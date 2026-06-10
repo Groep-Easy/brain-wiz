@@ -1,6 +1,6 @@
 /**
  * @file FlowEditor.tsx
- * @owner host-squad
+ * @owner Dajo
  * @description Drag-and-drop editor for building a custom game flow. The host
  * drags theme and mini-game blocks from the palette into the flow canvas, where
  * they can be reordered or removed. The whole canvas is a drop target: the drop
