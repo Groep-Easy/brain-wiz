@@ -167,11 +167,10 @@ services:
   nginx:
     container_name: ${PREFIX}-nginx-proxy
     ports:
-      - "3001:3000"
+      - "3001:443"   # HTTPS on alternate port
+      - "3080:80"    # HTTP redirect on alternate port
   db:
     container_name: ${PREFIX}-postgres-db
-    ports:
-      - "5433:5432"
   pgadmin:
     container_name: ${PREFIX}-pgadmin
     ports:
@@ -195,11 +194,10 @@ fi
 # -------------------------------------------------------------------------
 echo "[6/8] Freeing Required Ports..."
 if [ "$ENV" == "prod" ]; then
-    # Only ports actually bound on the host for prod:
-    # 5432 (postgres) and 3100 (loki) are internal-only — no host binding.
-    REQUIRED_PORTS=(3000 5050 3200)
+    # Standard HTTP (80) and HTTPS (443) — no port number in browser URL.
+    REQUIRED_PORTS=(80 443 5050 3200)
 else
-    REQUIRED_PORTS=(3001 5051 3201)
+    REQUIRED_PORTS=(3001 3080 5051 3201)
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
@@ -282,11 +280,13 @@ SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 [ -z "$SERVER_IP" ] && SERVER_IP="<server-ip>"
 
 if [ "$ENV" == "prod" ]; then
-    APP_PORT=3000
+    APP_PORT=""          # standard 443, no port in URL
+    APP_PREFIX="https://${SERVER_IP}"
     GRAFANA_PORT=3200
     PGADMIN_PORT=5050
 else
     APP_PORT=3001
+    APP_PREFIX="https://${SERVER_IP}:${APP_PORT}"
     GRAFANA_PORT=3201
     PGADMIN_PORT=5051
 fi
@@ -299,13 +299,13 @@ echo " Branch  : $BRANCH"
 echo "======================================"
 echo ""
 echo " Welcome page (links to both apps)"
-echo "   https://${SERVER_IP}:${APP_PORT}"
+echo "   ${APP_PREFIX}"
 echo ""
 echo " Game Host (TV / main screen)"
-echo "   https://${SERVER_IP}:${APP_PORT}/host"
+echo "   ${APP_PREFIX}/host"
 echo ""
 echo " Player client (open on phone)"
-echo "   https://${SERVER_IP}:${APP_PORT}/client"
+echo "   ${APP_PREFIX}/client"
 echo ""
 echo " Grafana (logs and dashboards)"
 echo "   http://${SERVER_IP}:${GRAFANA_PORT}"
@@ -314,7 +314,6 @@ echo ""
 echo " pgAdmin (database viewer)"
 echo "   http://${SERVER_IP}:${PGADMIN_PORT}"
 echo ""
-echo " NOTE: Browser will warn about the self-signed certificate."
-echo "       Click Advanced -> Proceed to continue."
-echo "       Connect via UvA VPN if accessing from off-campus."
+echo " NOTE: Self-signed certificate -- click Advanced -> Proceed in browser."
+echo "       Requires UvA VPN for off-campus access."
 echo "======================================"
