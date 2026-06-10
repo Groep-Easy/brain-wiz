@@ -11,7 +11,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { config } from '../config/server'
-import { setSwaggerConfig } from './config/swagger-doc';
+import { setSwaggerConfig } from '../config/swagger-doc';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
