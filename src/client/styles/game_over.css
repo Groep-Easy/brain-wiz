@@ -11,7 +11,9 @@
   background: linear-gradient(160deg, var(--teal, #0f766e) 0%, var(--navy, #1e3a8a) 100%);
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
   color: #fff;
   font-family: sans-serif;
   box-sizing: border-box;
@@ -335,7 +337,7 @@
   animation-delay: 0.85s;
 }
 
-.go-rest-row:nth-child(n+5) {
+.go-rest-row:nth-child(n + 5) {
   animation-delay: 0.95s;
 }
 
@@ -402,7 +404,10 @@
   border-radius: 12px;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
   width: 100%;
   max-width: 300px;
 }
