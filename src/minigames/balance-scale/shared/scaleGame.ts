@@ -355,7 +355,7 @@ function generateEasyScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
     throw new Error('Easy balance-scale puzzle could not select exactly three item types')
   }
 
-  const variantIndex = getStablePuzzleVariantIndex(input.id, EASY_SCALE_VARIANT_COUNT)
+  const variantIndex = getStablePuzzleVariantIndex(input.seed ?? input.id, EASY_SCALE_VARIANT_COUNT)
   let placed: PlacedItem[]
   let addTo: ScaleSlotPosition
 
@@ -421,7 +421,7 @@ function generateHardScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuzzle
     throw new Error('Hard balance-scale puzzle could not select enough item types')
   }
 
-  const variantIndex = getStablePuzzleVariantIndex(input.id, HARD_SCALE_VARIANT_COUNT)
+  const variantIndex = getStablePuzzleVariantIndex(input.seed ?? input.id, HARD_SCALE_VARIANT_COUNT)
   let placed: PlacedItem[]
   let addTo: ScaleSlotPosition
 
