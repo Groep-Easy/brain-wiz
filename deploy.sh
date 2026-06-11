@@ -285,8 +285,8 @@ if [ "$ENV" == "prod" ]; then
     GRAFANA_PORT=3200
     PGADMIN_PORT=5050
 else
-    APP_PORT=3001
-    APP_PREFIX="https://${SERVER_IP}:${APP_PORT}"
+    APP_PORT=3001 # Kept for reference or actual bindings
+    APP_PREFIX="https://${SERVER_IP}"
     GRAFANA_PORT=3201
     PGADMIN_PORT=5051
 fi
