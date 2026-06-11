@@ -90,14 +90,15 @@ async function bootstrap(): Promise<void> {
   })
 
   // Host display: /host and /host/* (SPA fallback)
+  // Express v5 uses path-to-regexp v8+ which requires named wildcard params.
   app.use('/host', express.static(hostDist))
-  app.use('/host/*', (_req: express.Request, res: express.Response) => {
+  app.use('/host/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(hostDist, 'index.html'))
   })
 
   // Player client: /client and /client/* (SPA fallback)
   app.use('/client', express.static(clientDist))
-  app.use('/client/*', (_req: express.Request, res: express.Response) => {
+  app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
 
