@@ -22,7 +22,9 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* basename must match the Vite base / Express mount so React Router
+        resolves paths correctly: /client/game matches route path="/game" */}
+    <BrowserRouter basename="/client">
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/game" element={<Game />} />

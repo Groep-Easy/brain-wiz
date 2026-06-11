@@ -1,0 +1,66 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  # Promtail stores read-position checkpoints here so it doesn't re-ship
+  # lines after a restart. The path is inside the container.
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ---------------------------------------------------------------------------
+  # nginx structured JSON access log
+  # ---------------------------------------------------------------------------
+  - job_name: nginx_access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          log_type: access
+          # __path__ must match the bind-mount in docker-compose.observability.yml
+          __path__: /var/log/nginx/access.log
+
+    pipeline_stages:
+      # Parse the JSON so every field becomes a queryable Loki structured
+      # metadata key.  This lets you do {job="nginx"} | status = "429" in
+      # Grafana without regex.
+      - json:
+          expressions:
+            time:                   time
+            remote_addr:            remote_addr
+            method:                 method
+            uri:                    uri
+            status:                 status
+            bytes_sent:             bytes_sent
+            request_time:           request_time
+            upstream_response_time: upstream_response_time
+            http_user_agent:        http_user_agent
+            request_id:             request_id
+
+      # Promote status + method + remote_addr as indexed Loki labels so you
+      # can filter cheaply without touching the log line.
+      - labels:
+          status:
+          method:
+          remote_addr:
+
+      # Use the timestamp from the log line itself (not the shipping time).
+      - timestamp:
+          source: time
+          format: RFC3339
+
+  # ---------------------------------------------------------------------------
+  # nginx error log (plain text \u2014 no JSON pipeline needed)
+  # ---------------------------------------------------------------------------
+  - job_name: nginx_error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          log_type: error
+          __path__: /var/log/nginx/error.log

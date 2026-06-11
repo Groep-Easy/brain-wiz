@@ -1,28 +1,11 @@
 /**
- * @file blocks.ts
+ * @file palette.ts
  * @owner host-squad
- * @description Shared game-flow building blocks and persistence helpers used by
- * both the lobby (which shows a randomized default flow) and the flow editor
- * (which lets the host customize it). The flow is stored in localStorage so the
- * two — running in separate tabs — stay in sync via the `storage` event.
+ * @description The hardcoded building-block palette and pure flow helpers. The
+ * palette is the offline fallback for the server catalog (see flow-api.ts) and
+ * the resolver the lobby/editor use to render a placed block's label and icon.
  */
-
-export type BlockKind = 'theme' | 'minigame'
-
-export interface BlockDef {
-  id: string
-  label: string
-  kind: BlockKind
-  icon: string
-}
-
-/** A single block placed in a flow. `uid` is a per-instance id (a block type may appear twice). */
-export interface FlowItem {
-  uid: string
-  blockId: string
-  /** How many questions a quiz (theme) block contributes. Undefined = default. */
-  questions?: number
-}
+import type { BlockDef, FlowItem } from './types'
 
 /** Default number of questions for a quiz block, and the allowed range. */
 export const DEFAULT_QUESTIONS_PER_BLOCK = 5
@@ -39,8 +22,6 @@ export const PALETTE: BlockDef[] = [
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
 ]
-
-export const STORAGE_KEY = 'brainwiz.gameflow'
 
 /** A flow must always contain at least this many blocks. */
 export const MIN_FLOW_BLOCKS = 2
@@ -59,26 +40,16 @@ export const blockById = (id: string): BlockDef | undefined => PALETTE.find((b) 
 let uidCounter = 0
 export const nextUid = (): string => `f${Date.now()}-${uidCounter++}`
 
-/** Build a randomized flow from the available themes and mini-games. */
-export function randomFlow(size: number = DEFAULT_FLOW_SIZE): FlowItem[] {
+/** Build a randomized flow from a given set of blocks (defaults to the palette). */
+export function randomFlowFrom(blocks: BlockDef[], size: number = DEFAULT_FLOW_SIZE): FlowItem[] {
+  const pool = blocks.length > 0 ? blocks : PALETTE
   return Array.from({ length: size }, () => {
-    const block = PALETTE[Math.floor(Math.random() * PALETTE.length)]!
+    const block = pool[Math.floor(Math.random() * pool.length)]!
     return { uid: nextUid(), blockId: block.id }
   })
 }
 
-/** Read the saved flow, dropping any items whose block no longer exists. */
-export function loadFlow(): FlowItem[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as FlowItem[]
-    return parsed.filter((item) => blockById(item.blockId))
-  } catch {
-    return []
-  }
-}
-
-export function saveFlow(flow: FlowItem[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(flow))
+/** Build a randomized flow from the hardcoded palette (offline fallback). */
+export function randomFlow(size: number = DEFAULT_FLOW_SIZE): FlowItem[] {
+  return randomFlowFrom(PALETTE, size)
 }

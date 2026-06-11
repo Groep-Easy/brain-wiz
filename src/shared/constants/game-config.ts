@@ -55,9 +55,15 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'collab-puzzle', 'head-to-head'] as readonly RoundType[],
-  DEFAULT_SEQUENCE: ['quiz', 'collab-puzzle', 'quiz', 'head-to-head'] as readonly RoundType[],
-  // Number of rounds the engine plays per game (quiz-only MVP). When the
-  // theme/round-selection feature lands, this becomes derived per room.
-  COUNT: 1,
+  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale'] as readonly RoundType[],
+  DEFAULT_SEQUENCE: [
+    'quiz',
+    'balance-scale',
+    'sliding-puzzle',
+    'quiz',
+    'balance-scale',
+  ] as readonly RoundType[],
+  // Number of rounds the engine plays per game. When the theme/round-selection
+  // feature lands, this becomes derived per room.
+  COUNT: 5,
 })

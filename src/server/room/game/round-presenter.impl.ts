@@ -10,8 +10,9 @@ import { GameEventBus } from './game-event-bus'
 import type { RoundPresenter } from './game.types'
 import type { Round } from '../../entities/round.entity'
 import type { RoundOption } from './game-events'
-import type { Answer, QuestionShowPayload } from '../../../shared/types/index'
+import type { Answer, QuestionShowPayload, RoundContentPayload } from '../../../shared/types/index'
 import * as EVENTS from '../../../shared/events/socket-events'
+import { MinigameRegistry } from './minigames/minigame-registry'
 
 @Injectable()
 export class RoundPresenterImpl implements RoundPresenter {
@@ -19,10 +20,16 @@ export class RoundPresenterImpl implements RoundPresenter {
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
-    private readonly bus: GameEventBus
+    private readonly bus: GameEventBus,
+    private readonly minigames?: MinigameRegistry
   ) {}
 
   public async present(roomId: string, round: Round): Promise<void> {
+    if ((round.gameType ?? 'quiz') !== 'quiz') {
+      this.presentProcedural(roomId, round)
+      return
+    }
+
     const question = round.question
     if (!question) {
       this.logger.warn(
@@ -49,11 +56,48 @@ export class RoundPresenterImpl implements RoundPresenter {
       type: 'ROUND_WINDOW_OPENED',
       roomId,
       roundId: round.id,
+      roundType: 'quiz',
+      scoringMode: 'quiz',
       questionId: question.id,
       shownAt,
       timeLimitSeconds: round.timeLimitSeconds,
       basePoints: question.basePoints,
       options,
+    })
+  }
+
+  private presentProcedural(roomId: string, round: Round): void {
+    const adapter = this.minigames?.get(round.gameType)
+    if (!adapter) {
+      this.logger.warn(`No minigame adapter for round ${round.id} (${round.gameType})`)
+      return
+    }
+    if (!round.publicState || !round.privateState || !round.scoringConfig || !round.seed) {
+      this.logger.warn(`Procedural round ${round.id} is missing generated state`)
+      return
+    }
+
+    const shownAt = Date.now()
+    const answerChoices = adapter.getAnswerChoices?.(round.publicState)
+    const payload: RoundContentPayload = {
+      roundId: round.id,
+      type: adapter.type,
+      seed: round.seed,
+      publicState: round.publicState,
+      ...(answerChoices ? { answerChoices } : {}),
+      timeLimitSeconds: round.timeLimitSeconds,
+    }
+    this.broadcaster.emitToRoom(roomId, EVENTS.ROUND_CONTENT_SHOW, payload)
+    this.bus.publish({
+      type: 'ROUND_WINDOW_OPENED',
+      roomId,
+      roundId: round.id,
+      roundType: adapter.type,
+      scoringMode: 'minigame',
+      shownAt,
+      timeLimitSeconds: round.timeLimitSeconds,
+      privateState: round.privateState,
+      scoringConfig: round.scoringConfig,
     })
   }
 

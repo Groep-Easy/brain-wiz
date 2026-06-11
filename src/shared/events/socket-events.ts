@@ -26,7 +26,7 @@ export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
 export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────
-/** Host → server:   start game.           Payload: none                      */
+/** Server → all:    game started.         Payload: none                      */
 export const GAME_START = 'GAME_START'
 /** Server → all:    phase changed.        Payload: { phase: GamePhase }      */
 export const GAME_PHASE_CHANGE = 'GAME_PHASE_CHANGE'
@@ -36,16 +36,21 @@ export const ROUND_START = 'ROUND_START'
 export const ROUND_END = 'ROUND_END'
 /** Server → all:    leaderboard shown.    Payload: { round, leaderboard }    */
 export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
+/** Server → all:    roadmap shown.        Payload: { roadmap }               */
+export const ROADMAP_SHOW = 'ROADMAP_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
 
 // ── Quiz round ────────────────────────────────────────────────────────────────
 /** Server → all:    question live.        Payload: { question: QuestionState }          */
 export const QUESTION_SHOW = 'QUESTION_SHOW'
+export const ROUND_CONTENT_SHOW = 'ROUND_CONTENT_SHOW'
 /** Server → all:    answer reveal.        Payload: { correctAnswer, playerAnswers }     */
 export const QUESTION_REVEAL = 'QUESTION_REVEAL'
+export const ROUND_REVEAL = 'ROUND_REVEAL'
 /** Client → server: submit answer.        Payload: { answerId, timestamp }             */
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
+export const ROUND_SUBMIT = 'ROUND_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
 /** Server → all:    how many have answered.  Payload: { answered, total }      */

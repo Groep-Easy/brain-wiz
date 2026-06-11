@@ -14,6 +14,9 @@ const CLIENT_DEV_PORT = 5173
 export default defineConfig({
   root: 'src/client',
   plugins: [react()],
+  // base must match the Express mount point so built asset URLs are correct.
+  // Without this, /assets/foo.js 404s because it hits the root handler, not /client.
+  base: '/client',
   server: {
     port: CLIENT_DEV_PORT,
   },
