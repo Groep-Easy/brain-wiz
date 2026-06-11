@@ -10,14 +10,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm'
 export class AddQuestionThemes implements MigrationInterface {
   public name = 'AddQuestionThemes'
 
-  private static readonly NEW_VALUES = [
-    'coding',
-    'films',
-    'gaming',
-    'general',
-    'internet',
-    'music',
-  ]
+  private static readonly NEW_VALUES = ['coding', 'films', 'gaming', 'general', 'internet', 'music']
 
   private static readonly OLD_VALUES = [
     'history',
