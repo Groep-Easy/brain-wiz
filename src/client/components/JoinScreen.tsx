@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { validateDisplayName } from '../../shared/utils/display-name'
 import { CharacterPreview } from './CharacterPreview'
+import type { Character } from '../../shared/types/index'
 import '../styles/CharacterPreview.css'
 
 const FACE_COUNT = 4
@@ -48,12 +49,7 @@ const COLOR_PRESETS = [
 interface JoinScreenProps {
   initialCode?: string
   error?: string | null
-  onJoin: (name: string, code: string) => void
-}
-
-interface Character {
-  bodyColor: string
-  faceId: number
+  onJoin: (name: string, code: string, character: Character) => void
 }
 
 function getRandomColor(): string {
@@ -106,7 +102,7 @@ export function JoinScreen({
     const trimmedName = name.trim()
     const trimmedCode = code.trim().toUpperCase()
     if (trimmedName && trimmedCode) {
-      onJoin(trimmedName, trimmedCode)
+      onJoin(trimmedName, trimmedCode, character)
     }
   }
 
