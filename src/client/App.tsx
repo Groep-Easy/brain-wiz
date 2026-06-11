@@ -173,6 +173,41 @@ export function App(): React.JSX.Element {
     }
   }
 
+  function handleLeaveRoom(): void {
+    // 1. Tell the app this is an intentional disconnect so it doesn't try to reconnect
+    intentionalCloseRef.current = true
+
+    // 2. Clear saved credentials from local storage
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+
+    // 3. Clear all references
+    credsRef.current = null
+    playerIdRef.current = null
+    pendingJoinRef.current = null
+
+    // 4. Close the socket connection
+    if (socketRef.current) {
+      socketRef.current.close()
+      socketRef.current = null
+    }
+
+    // 5. Reset all React state to initial values
+    setJoined(false)
+    setJoining(false)
+    setRoomState(null)
+    setRound(null)
+    setQuestion(null)
+    setReveal(null)
+    setLeaderboard([])
+    setFinalScores(null)
+    setJoinError(null)
+    setStatus('closed')
+  }
+
   function connect(): void {
     intentionalCloseRef.current = false
     setStatus('connecting')
@@ -335,15 +370,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        {banner}
-        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <main className="app">
@@ -352,7 +378,17 @@ export function App(): React.JSX.Element {
           players={roomState?.players ?? []}
           finalScores={finalScores ?? {}}
           myPlayerId={myPlayerId}
+          onBackToMenu={handleLeaveRoom}
         />
+      </main>
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        {banner}
+        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
       </main>
     )
   }

@@ -262,14 +262,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        <LeaderBoard leaderboard={leaderboard} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <GameOver
@@ -277,6 +269,14 @@ export function App(): React.JSX.Element {
         finalScores={finalScores || {}}
         onBackToMenu={handleCloseLobby}
       />
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        <LeaderBoard leaderboard={leaderboard} />
+      </main>
     )
   }
 

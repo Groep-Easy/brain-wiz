@@ -36,7 +36,7 @@ export class RoundBuilder {
     }
 
     const built: Round[] = []
-    let index = 0
+    let index = 1
     for (const question of chosen) {
       const round = this.rounds.create({
         roomId: room.id,
