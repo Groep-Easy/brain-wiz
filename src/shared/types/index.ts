@@ -97,6 +97,18 @@ export interface LeaderboardEntry {
   connected: boolean
 }
 
+/** One theme segment in the roadmap. */
+export interface ThemeEntry {
+  theme: string
+  questionCount: number
+}
+
+/** Roadmap shown on the leaderboard screen. */
+export interface RoadmapEntry {
+  playerPos: number
+  themes: ThemeEntry[]
+}
+
 /** Server → all: game over (GAME_OVER). */
 export interface GameOverPayload {
   finalScores: ScoreMap
