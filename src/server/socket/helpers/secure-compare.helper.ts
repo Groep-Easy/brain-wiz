@@ -1,5 +1,5 @@
 /**
- * @file secure-compare.ts
+ * @file secure-compare.helper.ts
  * @owner server-squad
  * @description Constant-time string comparison for secrets (host/reconnect
  * tokens). Avoids the early-exit timing signal of `a === b`. Differing lengths

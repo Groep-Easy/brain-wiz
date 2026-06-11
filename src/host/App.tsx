@@ -23,6 +23,7 @@ import './styles/main_style.css'
 
 const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
 const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
+const JOIN_GAME_URL = 'http://localhost:5173'
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')
@@ -175,6 +176,10 @@ export function App(): React.JSX.Element {
     }
   }
 
+  const handleJoinGame = () => {
+    window.location.href = JOIN_GAME_URL;
+  }
+
   const handleStartGame = async () => {
     if (!code || !hostToken) return
     try {
@@ -216,9 +221,15 @@ export function App(): React.JSX.Element {
             {status === 'connecting' ? (
               <p>Connecting to server...</p>
             ) : (
-              <button className="primary-btn" onClick={handleCreateRoom}>
-                Host Game
-              </button>
+              <>
+                <button className="primary-btn" onClick={handleCreateRoom}>
+                  Host Game
+                </button>
+                <div className="space"></div>
+                <button className="primary-btn" onClick={handleJoinGame}>
+                  Join Game
+                </button>
+              </>
             )}
           </div>
         </div>

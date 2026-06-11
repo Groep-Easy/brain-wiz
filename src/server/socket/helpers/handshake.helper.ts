@@ -1,5 +1,5 @@
 /**
- * @file socket-handshake.ts
+ * @file handshake.helper.ts
  * @owner server-squad
  * @description Helpers for the WebSocket upgrade handshake.
  *
@@ -10,10 +10,8 @@
  * `WS_SUBPROTOCOL` plus the token itself. The server echoes only the marker
  * (never the token), and reads the token from the request header.
  */
-import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
-import type { UpgradeRequest } from './socket.types'
-
-export { WS_SUBPROTOCOL }
+import { WS_SUBPROTOCOL } from '../socket.constants'
+import type { UpgradeRequest } from '../socket.types'
 
 /**
  * `ws` handleProtocols hook. Called only when the client offers ≥1 subprotocol.
@@ -38,10 +36,6 @@ export function parseHostTokenFromHeaders(headers: UpgradeRequest['headers']): s
     .map((part) => part.trim())
     .find((part) => part.length > 0 && part !== WS_SUBPROTOCOL)
 }
-
-/** Close code and reason used when an invalid token transport is detected. */
-export const INVALID_TOKEN_CLOSE_CODE = 4001
-export const INVALID_TOKEN_CLOSE_REASON = 'Unauthorized: invalid token transport'
 
 /** Best-effort client IP for throttling/logging; '' when unavailable. */
 export function clientIp(request: UpgradeRequest | undefined): string {

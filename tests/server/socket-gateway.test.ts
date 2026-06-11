@@ -4,11 +4,12 @@
  */
 import { describe, it } from 'node:test'
 import * as assert from 'node:assert/strict'
-import { SocketGateway, parseConnectParams } from '../../src/server/socket/socket.gateway.js'
+import { SocketGateway } from '../../src/server/socket/socket.gateway.js'
+import { parseConnectParams } from '../../src/server/socket/helpers/index.js'
 import { RateLimiter } from '../../src/server/socket/rate-limiter.js'
 import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
 import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
-import { WS_SUBPROTOCOL } from '../../src/server/socket/socket-handshake.js'
+import { WS_SUBPROTOCOL } from '../../src/server/socket/socket.constants.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/events/socket-events.js'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.js'
@@ -120,6 +121,34 @@ describe('parseConnectParams', () => {
   })
   it('returns an empty object for a missing URL', () => {
     assert.deepEqual(parseConnectParams(undefined), {})
+  })
+  it('returns an empty object for a URL with no query string', () => {
+    assert.deepEqual(parseConnectParams('/'), {})
+  })
+  it('returns an empty object for an empty query string', () => {
+    // The ? marker exists but nothing follows it
+    assert.deepEqual(parseConnectParams('/?'), {})
+  })
+  it('decodes URL-encoded role and code values', () => {
+    const params = parseConnectParams('/?role=host&code=AB%20CD')
+    assert.equal(params.code, 'AB CD')
+  })
+  it('ignores a param with an empty value (role= is treated as absent)', () => {
+    // parseConnectParams uses a truthy guard: `if (role) params.role = role`
+    // An empty string is falsy, so role='' is intentionally treated as missing.
+    const params = parseConnectParams('/?role=')
+    assert.equal(params.role, undefined)
+  })
+  it('does NOT expose hostToken — it is silently stripped from params', () => {
+    const params = parseConnectParams('/?role=host&code=ABCD&hostToken=s3cr3t')
+    assert.equal((params as Record<string, string>)['hostToken'], undefined)
+    assert.equal(params.role, 'host')
+    assert.equal(params.code, 'ABCD')
+  })
+  it('ignores unknown keys without crashing', () => {
+    const params = parseConnectParams('/?role=client&unknownKey=value')
+    assert.equal(params.role, 'client')
+    assert.equal((params as Record<string, string>)['unknownKey'], undefined)
   })
 })
 

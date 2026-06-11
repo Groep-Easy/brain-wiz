@@ -1,27 +1,24 @@
 import { describe, it } from 'node:test'
 import * as assert from 'node:assert/strict'
-import { Test, TestingModule } from '@nestjs/testing'
-import { DatabaseModule } from '../../src/server/database/database.module'
 import { getDatabaseConfig } from '../../src/config/database'
 
 describe('DatabaseModule', () => {
-  it('should compile and load configuration successfully', async () => {
-    // Note: We don't actually instantiate the module fully to avoid connecting
-    // to a real database during unit testing, but we verify it can be created.
-
+  it('validates that getDatabaseConfig returns all required fields', () => {
+    // Only validate the config shape — do NOT boot a NestJS module or attempt
+    // a real DB connection. Integration tests that need a live Postgres belong
+    // in a separate test suite that is gated by CI environment.
     const config = getDatabaseConfig()
 
-    assert.strictEqual(config.type, 'postgres')
-    assert.ok(config.host)
-    assert.ok(config.port)
-    assert.ok(config.username)
-    assert.ok(config.database)
+    assert.strictEqual(config.type, 'postgres', 'type must be postgres')
+    assert.ok(config.host, 'host must be set')
+    assert.ok(typeof config.port === 'number' && config.port > 0, 'port must be a positive number')
+    assert.ok(config.username, 'username must be set')
+    assert.ok(config.database, 'database must be set')
+  })
 
-    // Test NestJS module structure
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule],
-    }).compile()
-
-    assert.ok(module)
+  it('port is in a valid range (1-65535)', () => {
+    const config = getDatabaseConfig()
+    const port = Number(config.port)
+    assert.ok(port >= 1 && port <= 65535, `port ${port} is out of range`)
   })
 })
