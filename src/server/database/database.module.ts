@@ -12,6 +12,7 @@ import { Module, OnApplicationBootstrap, OnApplicationShutdown, Logger } from '@
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppDataSource } from './data-source'
 import { QuestionSeederService } from './question-seeder.service'
+import { BlockSeederService } from './block-seeder.service'
 import * as entities from '../entities/index'
 
 /**
@@ -31,10 +32,11 @@ import * as entities from '../entities/index'
       entities.Client,
       entities.Round,
       entities.ClientAnswer,
+      entities.GameBlock,
     ]),
   ],
-  providers: [QuestionSeederService],
-  exports: [TypeOrmModule, QuestionSeederService],
+  providers: [QuestionSeederService, BlockSeederService],
+  exports: [TypeOrmModule, QuestionSeederService, BlockSeederService],
 })
 export class DatabaseModule implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(DatabaseModule.name)

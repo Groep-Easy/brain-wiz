@@ -18,7 +18,6 @@ import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
 
-
 const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
 const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
 const JOIN_GAME_URL = 'http://localhost:5173'
@@ -159,7 +158,7 @@ export function App(): React.JSX.Element {
   }
 
   const handleJoinGame = () => {
-    window.location.href = JOIN_GAME_URL;
+    window.location.href = JOIN_GAME_URL
   }
 
   const handleStartGame = async () => {
@@ -226,7 +225,9 @@ export function App(): React.JSX.Element {
       <main className="app">
         <SetupLobby
           roomCode={code}
+          hostToken={hostToken}
           players={roomState.players}
+          gameFlow={roomState.gameFlow ?? []}
           onStartGame={handleStartGame}
           onCloseLobby={handleCloseLobby}
         />

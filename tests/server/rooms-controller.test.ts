@@ -14,7 +14,7 @@ import {
 } from '../../src/server/room/lobby/lobby.errors'
 import type { RoomState } from '../../src/shared/types/index'
 
-const lobbyState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0 }
+const lobbyState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0, gameFlow: [] }
 
 function controllerWith(overrides: Partial<LobbyService>): RoomsController {
   return new RoomsController(overrides as LobbyService)
