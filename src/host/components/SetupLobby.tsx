@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import type { Player } from '../../shared/types/index'
+import type { Player, Character } from '../../shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
 import { getClientBaseUrl } from '../../shared/utils/env'
+import { CharacterPreview } from '../../client/components/CharacterPreview'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -122,6 +123,8 @@ export function SetupLobby({
               ) : (
                 players.map((player) => (
                   <li key={player.id}>
+                    {console.log('players:', players)}
+                    <CharacterPreview color={'#ccb87b'} faceId={1} size={40} />
                     {player.name}
                     <button
                       className="kick"

@@ -26,6 +26,7 @@ export interface Player {
   name: string
   connected: boolean
   score: number
+  character: Character
 }
 
 export interface Character {
