@@ -28,6 +28,11 @@ export interface Player {
   score: number
 }
 
+export interface Character {
+  bodyColor: string
+  faceId: number
+}
+
 export interface RoomState {
   code: string
   players: Player[]
