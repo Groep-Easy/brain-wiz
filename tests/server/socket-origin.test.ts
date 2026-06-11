@@ -5,7 +5,7 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { isOriginAllowed } from '../../src/server/socket/socket.origin'
+import { isOriginAllowed } from '../../src/server/socket/utils/index'
 
 const ALLOWED = ['http://localhost:5173', 'http://localhost:5174']
 

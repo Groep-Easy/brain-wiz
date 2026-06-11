@@ -13,28 +13,72 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
 } from '@nestjs/common'
 import { LobbyService } from './lobby.service'
 import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { RoomState } from '../../../shared/types/index'
-
-interface StartRoomBody {
-  hostToken?: string
-}
+import type { GameFlowItem } from '../../../shared/types/flow'
+import type { StartRoomBody, StoreFlowBody, RandomizeFlowBody } from '../room.types'
+import {
+  ApiBody,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger'
 
 @Controller('rooms')
 export class RoomsController {
   public constructor(private readonly lobby: LobbyService) {}
 
-  /** Create a lobby room. Returns the join code and the host's control token. */
   @Post()
+  @ApiOperation({
+    summary: 'Create a room',
+    description: 'Creates a new lobby room and returns a join code + host token',
+  })
+  @ApiCreatedResponse({
+    description: 'Room successfully created',
+    schema: {
+      example: {
+        code: 'ABCD12',
+        hostToken: 'host_123456',
+      },
+    },
+  })
   public async createRoom(): Promise<{ code: string; hostToken: string }> {
     const { code, hostToken } = await this.lobby.createRoom()
     return { code, hostToken }
   }
 
+  /** Get the current state of a room. Used by the lobby and the host's flow editor. */
   @Get(':code')
+  @ApiOperation({
+    summary: 'Join room',
+    description: 'Returns the full state of a room by join code',
+  })
+  @ApiParam({
+    name: 'code',
+    example: 'ABCD12',
+    description: 'Room join code',
+  })
+  @ApiOkResponse({
+    description: 'Room found',
+    schema: {
+      example: {
+        code: 'ABCD12',
+        players: [],
+        status: 'LOBBY',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Room not found',
+  })
   public async getRoom(@Param('code') code: string): Promise<RoomState> {
     const state = await this.lobby.getRoomState(code)
     if (!state) {
@@ -43,7 +87,81 @@ export class RoomsController {
     return state
   }
 
+  /** Store the host-built flow on the room. Returns the normalized flow. */
+  @Put(':code/flow')
+  public async storeFlow(
+    @Param('code') code: string,
+    @Body() body: StoreFlowBody
+  ): Promise<{ flow: GameFlowItem[] }> {
+    try {
+      const flow = await this.lobby.setRoomFlow(code, body?.hostToken ?? '', body?.flow ?? [])
+      return { flow }
+    } catch (error) {
+      throw this.toHttp(error)
+    }
+  }
+
+  /** Server-side randomize + store. Returns the generated flow. */
+  @Post(':code/flow/randomize')
+  public async randomizeFlow(
+    @Param('code') code: string,
+    @Body() body: RandomizeFlowBody
+  ): Promise<{ flow: GameFlowItem[] }> {
+    try {
+      const flow = await this.lobby.randomizeRoomFlow(code, body?.hostToken ?? '', body?.size)
+      return { flow }
+    } catch (error) {
+      throw this.toHttp(error)
+    }
+  }
+
+  /** Translate flow domain errors into HTTP responses. */
+  private toHttp(error: unknown): Error {
+    if (error instanceof RoomNotFoundError) {
+      return new NotFoundException(error.message)
+    }
+    if (error instanceof InvalidHostTokenError) {
+      return new ForbiddenException(error.message)
+    }
+    return error as Error
+  }
+
+  /** Start the game. Returns the initial room state for convenience. */
   @Post(':code/start')
+  @ApiOperation({
+    summary: 'Start game in room',
+    description: 'Starts the game if host token is valid and room is ready',
+  })
+  @ApiParam({
+    name: 'code',
+    example: 'ABCD12',
+  })
+  @ApiBody({
+    schema: {
+      example: {
+        hostToken: 'host_123456',
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Game started successfully',
+    schema: {
+      example: {
+        code: 'ABCD12',
+        status: 'IN_GAME',
+        players: [],
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Room not found',
+  })
+  @ApiForbiddenResponse({
+    description: 'Invalid host token',
+  })
+  @ApiConflictResponse({
+    description: 'Not enough players to start',
+  })
   public async start(@Param('code') code: string, @Body() body: StartRoomBody): Promise<RoomState> {
     try {
       return await this.lobby.startGame(code, body?.hostToken ?? '')

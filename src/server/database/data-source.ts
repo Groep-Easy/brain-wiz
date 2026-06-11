@@ -29,6 +29,7 @@ const ENTITIES = [
   entities.Client,
   entities.Round,
   entities.ClientAnswer,
+  entities.GameBlock,
 ]
 
 /**
