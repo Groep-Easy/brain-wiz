@@ -52,6 +52,7 @@ export interface ScalePuzzleRulesInput {
 
 export interface ScalePuzzleGenerationInput {
   id: string
+  seed?: string
   difficulty: ScaleDifficulty
   /**
    * Later: load from DB/static content by room/round.

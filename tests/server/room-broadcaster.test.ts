@@ -14,7 +14,7 @@ function recordingSocket(): { sent: string[]; send(data: string): void } {
   return { sent, send: (data: string): void => void sent.push(data) }
 }
 
-const sampleState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0 }
+const sampleState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0, gameFlow: [] }
 
 describe('RoomBroadcaster', () => {
   it('emitToSocket sends a single JSON {event,data} envelope', () => {

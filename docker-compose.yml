@@ -10,6 +10,8 @@ services:
     environment:
       - DB_HOST=db
     container_name: server
+    ports:
+      - "3000:3000"
     depends_on:
       - db
     restart: unless-stopped

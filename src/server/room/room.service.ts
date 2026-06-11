@@ -16,6 +16,7 @@ import { ROUNDS, TIMER } from '../../shared/constants/game-config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
 import { config } from '../../config/server'
+import type { GameFlowItem } from '../../shared/types/flow'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
@@ -61,6 +62,12 @@ export class RoomService {
 
   public async updateHostSocket(room: Room, socketId: string | null): Promise<Room> {
     room.hostSocketId = socketId
+    return this.rooms.save(room)
+  }
+
+  /** Persist the host-built game flow that the round builder will expand. */
+  public async setGameFlow(room: Room, flow: GameFlowItem[]): Promise<Room> {
+    room.gameFlow = flow
     return this.rooms.save(room)
   }
 

@@ -17,6 +17,9 @@ import { RoundPresenterImpl } from './round-presenter.impl'
 import { GameEventBus } from './game-event-bus'
 import { AnswerService } from './answer.service'
 import { ScoringService } from './scoring.service'
+import { MinigameRegistry } from './minigames/minigame-registry'
+import { SlidingPuzzleServerAdapter } from './minigames/sliding-puzzle.server'
+import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
@@ -24,6 +27,9 @@ import { ScoringService } from './scoring.service'
     GameEngineService,
     RoundBuilder,
     GameEventBus,
+    SlidingPuzzleServerAdapter,
+    BalanceScaleServerAdapter,
+    MinigameRegistry,
     AnswerService,
     ScoringService,
     { provide: ROUND_PRESENTER, useClass: RoundPresenterImpl },
