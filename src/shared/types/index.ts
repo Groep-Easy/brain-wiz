@@ -48,6 +48,16 @@ export interface Answer {
   text: string
 }
 
+export interface RoadmapTheme {
+  theme: string
+  questionsInTheme: number
+}
+export interface RoadmapUpdate {
+  playerPos: number
+  totalQuestions: number
+  themes: RoadmapTheme[]
+}
+
 /** playerId → cumulative score (running total at the time the map is sent) */
 export type ScoreMap = Record<string, number>
 
