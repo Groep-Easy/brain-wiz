@@ -42,10 +42,13 @@ export const GAME_OVER = 'GAME_OVER'
 // ── Quiz round ────────────────────────────────────────────────────────────────
 /** Server → all:    question live.        Payload: { question: QuestionState }          */
 export const QUESTION_SHOW = 'QUESTION_SHOW'
+export const ROUND_CONTENT_SHOW = 'ROUND_CONTENT_SHOW'
 /** Server → all:    answer reveal.        Payload: { correctAnswer, playerAnswers }     */
 export const QUESTION_REVEAL = 'QUESTION_REVEAL'
+export const ROUND_REVEAL = 'ROUND_REVEAL'
 /** Client → server: submit answer.        Payload: { answerId, timestamp }             */
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
+export const ROUND_SUBMIT = 'ROUND_SUBMIT'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
 /** Server → all:    how many have answered.  Payload: { answered, total }      */

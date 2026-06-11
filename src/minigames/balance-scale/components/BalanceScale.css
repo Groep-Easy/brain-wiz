@@ -10,6 +10,52 @@
   overflow: visible;
 }
 
+.balance-scale-equations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: min(100%, 980px);
+  margin: 0 auto 16px;
+}
+
+.balance-scale-equations__equation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgb(15 23 42 / 8%);
+  color: #182230;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.balance-scale-equations__side,
+.balance-scale-equations__stack {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.balance-scale-equations__count {
+  min-width: 1.1em;
+  color: #475467;
+  text-align: right;
+}
+
+.balance-scale-equations__emoji {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+}
+
+.balance-scale-equations__equals {
+  color: #ff2bd6;
+  font-size: 20px;
+}
+
 .balance-scale__foot {
   filter: drop-shadow(0 14px 22px rgb(25 33 44 / 16%));
 }
