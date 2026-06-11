@@ -3,7 +3,8 @@ name: Sigrid
 on:
   push:
     branches:
-      - feat/sigrid-ci-pipeline
+      - develop
+      - master
   workflow_dispatch:
 
 concurrency:
