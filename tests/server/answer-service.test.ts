@@ -7,7 +7,11 @@ import { AnswerService } from '../../src/server/room/game/answer.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import * as EVENTS from '../../src/shared/events/socket-events'
 import type { ClientSocket } from '../../src/server/room/lobby/lobby.types'
-import type { AnswerAckPayload, AnswerSubmitPayload } from '../../src/shared/types/index'
+import type {
+  AnswerAckPayload,
+  AnswerSubmitPayload,
+  RoundSubmitPayload,
+} from '../../src/shared/types/index'
 
 const SOCK_A = { send: (): void => undefined } as ClientSocket
 const SOCK_B = { send: (): void => undefined } as ClientSocket
@@ -87,6 +91,8 @@ function openWindow(bus: GameEventBus): void {
     type: 'ROUND_WINDOW_OPENED',
     roomId: 'room-1',
     roundId: 'round-1',
+    roundType: 'quiz',
+    scoringMode: 'quiz',
     questionId: 'q1',
     shownAt: Date.now(),
     timeLimitSeconds: 30,
@@ -95,6 +101,20 @@ function openWindow(bus: GameEventBus): void {
       { id: 'round-1:0', text: 'Paris', isCorrect: true },
       { id: 'round-1:1', text: 'Berlin', isCorrect: false },
     ],
+  })
+}
+
+function openMinigameWindow(bus: GameEventBus): void {
+  bus.publish({
+    type: 'ROUND_WINDOW_OPENED',
+    roomId: 'room-1',
+    roundId: 'round-1',
+    roundType: 'sliding-puzzle',
+    scoringMode: 'minigame',
+    shownAt: Date.now(),
+    timeLimitSeconds: 30,
+    privateState: {},
+    scoringConfig: {},
   })
 }
 
@@ -232,5 +252,33 @@ describe('AnswerService', () => {
 
     const rooms = roomCapture.rooms.filter((r) => r.event === EVENTS.ANSWER_COUNT_UPDATE)
     assert.equal(rooms.length, 0)
+  })
+
+  it('accepts a procedural round submission and stores it as JSON', async () => {
+    const minigames = {
+      get: (): unknown => ({ validateSubmission: (): boolean => true }),
+    }
+    service = new AnswerService(
+      bus,
+      registry as never,
+      broadcaster as never,
+      repo as never,
+      minigames as never
+    )
+    openMinigameWindow(bus)
+
+    const payload: RoundSubmitPayload = {
+      roundId: 'round-1',
+      type: 'sliding-puzzle',
+      submission: { board: [1, 2, 3, 4, 5, 6, 7, 8, 0] },
+    }
+    await service.submitRound(SOCK_A, payload)
+
+    assert.equal(repo.rows.length, 1)
+    assert.equal(
+      (repo.rows[0] as { answerValue: string }).answerValue,
+      JSON.stringify(payload.submission)
+    )
+    assert.equal(ack.acks[ack.acks.length - 1]?.data.accepted, true)
   })
 })

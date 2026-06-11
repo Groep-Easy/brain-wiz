@@ -10,9 +10,16 @@
  *  3. Keep types flat — nested shapes get their own type.
  */
 
+import type { GameFlowItem } from './flow'
+
 export type GamePhase = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
 
-export type RoundType = 'quiz' | 'collab-puzzle' | 'head-to-head'
+export type RoundType =
+  | 'quiz'
+  | 'collab-puzzle'
+  | 'head-to-head'
+  | 'sliding-puzzle'
+  | 'balance-scale'
 
 export interface Player {
   id: string
@@ -26,6 +33,7 @@ export interface RoomState {
   players: Player[]
   phase: GamePhase
   round: number
+  gameFlow: GameFlowItem[]
 }
 
 export interface QuestionState {
@@ -89,6 +97,18 @@ export interface LeaderboardEntry {
   connected: boolean
 }
 
+/** One theme segment in the roadmap. */
+export interface ThemeEntry {
+  theme: string
+  questionCount: number
+}
+
+/** Roadmap shown on the leaderboard screen. */
+export interface RoadmapEntry {
+  playerPos: number
+  themes: ThemeEntry[]
+}
+
 /** Server → all: game over (GAME_OVER). */
 export interface GameOverPayload {
   finalScores: ScoreMap
@@ -127,6 +147,23 @@ export interface QuestionShowPayload {
   question: QuestionState
 }
 
+/** Server -> all: generic minigame content is live (ROUND_CONTENT_SHOW). */
+export interface RoundAnswerChoice {
+  id: string
+  label: string
+  emoji?: string
+  submission: unknown
+}
+
+export interface RoundContentPayload {
+  roundId: string
+  type: RoundType
+  seed?: string
+  publicState: unknown
+  answerChoices?: RoundAnswerChoice[]
+  timeLimitSeconds: number
+}
+
 /** Client → server: submit an answer (ANSWER_SUBMIT). */
 export interface AnswerSubmitPayload {
   answerId: string
@@ -134,6 +171,14 @@ export interface AnswerSubmitPayload {
    *  answers from its own clock (anti-cheat), so this field is not used for
    *  scoring. */
   timestamp: number
+}
+
+/** Client -> server: submit a procedural/minigame result (ROUND_SUBMIT). */
+export interface RoundSubmitPayload {
+  roundId: string
+  type: RoundType
+  submission: unknown
+  timestamp?: number
 }
 
 /** Server → client: answer outcome (ANSWER_ACK). */
@@ -162,4 +207,20 @@ export interface QuestionRevealPayload {
   roundId: string
   correctAnswerIds: string[]
   playerAnswers: Record<string /* playerId */, PlayerAnswerResult>
+}
+
+export interface RoundPlayerResult {
+  submission: unknown | null
+  isCorrect: boolean
+  pointsAwarded: number
+  isTimeout: boolean
+  breakdown?: unknown
+}
+
+/** Server -> all: generic minigame reveal + scoring (ROUND_REVEAL). */
+export interface RoundRevealPayload {
+  roundId: string
+  type: RoundType
+  playerResults: Record<string /* playerId */, RoundPlayerResult>
+  publicSolution?: unknown
 }

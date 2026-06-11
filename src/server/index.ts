@@ -58,7 +58,10 @@ async function bootstrap(): Promise<void> {
   app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
+
   setSwaggerConfig(app)
+
+  await app.listen(config.PORT, '0.0.0.0')
 
   // eslint-disable-next-line no-console
   console.log(`REST API endpoints: ${config.BASE_URL}/api`)

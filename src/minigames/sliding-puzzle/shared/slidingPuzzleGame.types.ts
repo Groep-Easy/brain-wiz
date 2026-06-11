@@ -16,6 +16,22 @@ export interface SlidingPuzzleGenerationInput {
   id: string
   image: SlidingPuzzleImage
   scrambleMoves?: number
+  seed?: string
+}
+
+export interface SlidingPuzzleScoreConfig {
+  pointsPerCorrectTile: number
+  solveSpeedBonus: number
+  timeLimitMs: number
+}
+
+export interface SlidingPuzzleScoreBreakdown {
+  correctTiles: number
+  totalTiles: number
+  solved: boolean
+  positionPoints: number
+  speedBonus: number
+  pointsAwarded: number
 }
 
 export interface HeapNode {
