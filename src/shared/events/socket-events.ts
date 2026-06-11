@@ -26,7 +26,7 @@ export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
 export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────
-/** Host → server:   start game.           Payload: none                      */
+/** Server → all:    game started.         Payload: none                      */
 export const GAME_START = 'GAME_START'
 /** Server → all:    phase changed.        Payload: { phase: GamePhase }      */
 export const GAME_PHASE_CHANGE = 'GAME_PHASE_CHANGE'
@@ -36,6 +36,8 @@ export const ROUND_START = 'ROUND_START'
 export const ROUND_END = 'ROUND_END'
 /** Server → all:    leaderboard shown.    Payload: { round, leaderboard }    */
 export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
+/** Server → all:    roadmap shown.        Payload: { roadmap }               */
+export const ROADMAP_SHOW = 'ROADMAP_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
 

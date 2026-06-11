@@ -55,8 +55,8 @@ npm run format          # format all files
 ## Team rules — non-negotiable
 
 1. **Edit only your squad's folder.** See `CODEOWNERS`.
-2. **Never hardcode a socket event string.** Import from `src/shared/events/socket-events.js`.
-3. **Never hardcode a game setting number.** Import from `src/shared/constants/game-config.js`.
+2. **Never hardcode a socket event string.** Import from `src/shared/events/socket-events.ts`.
+3. **Never hardcode a game setting number.** Import from `src/shared/constants/game-config.ts`.
 4. **Changing `src/shared/` requires team notification before opening the PR.** It breaks all three contexts simultaneously.
 5. **Every new logic path needs a test.** No test = PR rejected.
 6. **Commit format:** `type(scope): description` e.g. `feat(server): add room expiry timer`

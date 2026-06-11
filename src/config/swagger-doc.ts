@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common'
-import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
+import { DocumentBuilder, SwaggerModule, OpenAPIObject } from '@nestjs/swagger'
 
 export function setSwaggerConfig(app: INestApplication): void {
   const swaggerConfig = new DocumentBuilder()

@@ -17,14 +17,15 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
+import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
-const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
-const JOIN_GAME_URL = 'http://localhost:5173'
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
+const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')

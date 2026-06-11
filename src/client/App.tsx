@@ -14,6 +14,7 @@ import type {
   RoundRevealPayload,
 } from '../shared/types/index'
 import * as EVENTS from '../shared/events/socket-events'
+import { getBackendWsUrl } from '../shared/utils/env'
 import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
 import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
 import type {
@@ -29,7 +30,7 @@ import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import './styles/main_style.css'
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 1500
