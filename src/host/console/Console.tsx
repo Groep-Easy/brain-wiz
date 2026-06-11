@@ -37,7 +37,11 @@ import {
 } from './console-utils'
 import './console.css'
 
-const DEFAULT_URL = 'ws://localhost:3000'
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+const defaultWsUrl = typeof window !== 'undefined' 
+  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
+  : 'ws://localhost:3000'
+const DEFAULT_URL = isLocalhost ? 'ws://localhost:3000' : defaultWsUrl
 
 function rankDelta(entry: LeaderboardEntry): string {
   if (entry.previousRank === null) {

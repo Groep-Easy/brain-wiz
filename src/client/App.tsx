@@ -21,7 +21,12 @@ import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import './styles/main_style.css'
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+const defaultWsUrl = typeof window !== 'undefined' 
+  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
+  : 'ws://localhost:3000'
+
+const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || (isLocalhost ? 'ws://localhost:3000' : defaultWsUrl)
 const STORAGE_KEY = 'brainwiz-player'
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 1500

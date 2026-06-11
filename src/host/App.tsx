@@ -19,9 +19,15 @@ import './styles/welcome.css'
 import './styles/main_style.css'
 
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+const defaultWsUrl = typeof window !== 'undefined' 
+  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
+  : 'ws://localhost:3000'
+const defaultHttpUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+
+const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || (isLocalhost ? 'ws://localhost:3000' : defaultWsUrl)
 const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
-const JOIN_GAME_URL = 'http://localhost:5173'
+const JOIN_GAME_URL = isLocalhost ? 'http://localhost:5173/client' : `${defaultHttpUrl}/client`
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')
