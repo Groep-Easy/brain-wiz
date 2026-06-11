@@ -1,11 +1,14 @@
+const STANDARD_SIZE = 120
 interface CharacterPreviewProps {
   color?: string
   faceId?: number
+  size?: number
 }
 
 export function CharacterPreview({
   color = '#eab308',
   faceId = 0,
+  size = STANDARD_SIZE,
 }: CharacterPreviewProps): React.JSX.Element {
   let face
   switch (faceId) {
@@ -57,10 +60,10 @@ export function CharacterPreview({
       )
   }
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', margin: '1rem 0' }}>
-      <svg width="120" height="120" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="40" fill={color} />
-        {face}
+    <div style={{ display: 'flex', justifyContent: 'center' }} className="character">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={size / 3} fill={color} />
+        <g transform={`scale(${size / STANDARD_SIZE})`}>{face}</g>
       </svg>
     </div>
   )
