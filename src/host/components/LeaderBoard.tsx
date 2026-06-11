@@ -11,6 +11,7 @@ import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
+  roadmap?: RoadmapEntry | null
 }
 
 interface RoadmapProps {
@@ -29,7 +30,7 @@ const themeAssets: Record<string, { icon: string }> = {
   Geography: { icon: '🌍' },
 }
 
-export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Element {
+export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.JSX.Element {
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
   const previousPositions = useRef<Map<string, number>>(new Map())
 
@@ -247,7 +248,7 @@ export function LeaderBoard({ leaderboard }: LeaderBoardProps): React.JSX.Elemen
         </ul>
       </div>
       <div className="roadmap-container">
-        <Roadmap />
+        <Roadmap roadmap={roadmap ?? undefined} />
       </div>
     </>
   )

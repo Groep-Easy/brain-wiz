@@ -1,0 +1,302 @@
+[
+    {
+        "text": "What is the chemical symbol for water?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "H2O"
+        ],
+        "wrongAnswers": [
+            "CO2",
+            "O2",
+            "NaCl"
+        ],
+        "imagePath": "/images/water.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are planets in our Solar System?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Mars",
+            "Jupiter"
+        ],
+        "wrongAnswers": [
+            "Pluto",
+            "Alpha Centauri"
+        ],
+        "imagePath": "/images/solar-system.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the largest planet in our Solar System?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Jupiter"
+        ],
+        "wrongAnswers": [
+            "Saturn",
+            "Earth",
+            "Neptune"
+        ],
+        "imagePath": "/images/jupiter.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are states of matter?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Solid",
+            "Liquid"
+        ],
+        "wrongAnswers": [
+            "Energy",
+            "Gravity"
+        ],
+        "imagePath": "/images/matter.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What gas do plants absorb from the atmosphere?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Carbon Dioxide"
+        ],
+        "wrongAnswers": [
+            "Oxygen",
+            "Nitrogen",
+            "Hydrogen"
+        ],
+        "imagePath": "/images/plants.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are noble gases?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Helium",
+            "Neon"
+        ],
+        "wrongAnswers": [
+            "Hydrogen",
+            "Oxygen"
+        ],
+        "imagePath": "/images/noble-gases.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the center of an atom called?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Nucleus"
+        ],
+        "wrongAnswers": [
+            "Electron",
+            "Proton",
+            "Shell"
+        ],
+        "imagePath": "/images/atom.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these animals are mammals?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Whale",
+            "Bat"
+        ],
+        "wrongAnswers": [
+            "Shark",
+            "Crocodile"
+        ],
+        "imagePath": "/images/mammals.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What force keeps planets in orbit around the Sun?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Gravity"
+        ],
+        "wrongAnswers": [
+            "Magnetism",
+            "Friction",
+            "Electricity"
+        ],
+        "imagePath": "/images/gravity.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are parts of a cell?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Nucleus",
+            "Cell Membrane"
+        ],
+        "wrongAnswers": [
+            "Axle",
+            "Circuit Board"
+        ],
+        "imagePath": "/images/cell.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the chemical symbol for gold?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Au"
+        ],
+        "wrongAnswers": [
+            "Ag",
+            "Go",
+            "Gd"
+        ],
+        "imagePath": "/images/gold.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these planets are known as gas giants?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Jupiter",
+            "Saturn"
+        ],
+        "wrongAnswers": [
+            "Mars",
+            "Mercury"
+        ],
+        "imagePath": "/images/gas-giants.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the speed of light closest to?",
+        "theme": "science",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "300,000 km/s"
+        ],
+        "wrongAnswers": [
+            "30,000 km/s",
+            "3,000 km/s",
+            "3,000,000 km/s"
+        ],
+        "imagePath": "/images/light.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these are renewable energy sources?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Solar",
+            "Wind"
+        ],
+        "wrongAnswers": [
+            "Coal",
+            "Oil"
+        ],
+        "imagePath": "/images/renewable-energy.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the hardest natural substance on Earth?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Diamond"
+        ],
+        "wrongAnswers": [
+            "Gold",
+            "Iron",
+            "Quartz"
+        ],
+        "imagePath": "/images/diamond.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are fundamental particles?",
+        "theme": "science",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Electron",
+            "Quark"
+        ],
+        "wrongAnswers": [
+            "Molecule",
+            "Cell"
+        ],
+        "imagePath": "/images/particles.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "What is the nearest star to Earth?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "The Sun"
+        ],
+        "wrongAnswers": [
+            "Proxima Centauri",
+            "Sirius",
+            "Alpha Centauri"
+        ],
+        "imagePath": "/images/sun.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these organs are part of the human digestive system?",
+        "theme": "science",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Stomach",
+            "Small Intestine"
+        ],
+        "wrongAnswers": [
+            "Lungs",
+            "Heart"
+        ],
+        "imagePath": "/images/digestive-system.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What process do plants use to make food?",
+        "theme": "science",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Photosynthesis"
+        ],
+        "wrongAnswers": [
+            "Respiration",
+            "Fermentation",
+            "Digestion"
+        ],
+        "imagePath": "/images/photosynthesis.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these scientists are known for major contributions to physics?",
+        "theme": "science",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Albert Einstein",
+            "Isaac Newton"
+        ],
+        "wrongAnswers": [
+            "Charles Darwin",
+            "Louis Pasteur"
+        ],
+        "imagePath": "/images/physics-scientists.jpg",
+        "timeLimitSeconds": 25
+    }
+]
