@@ -174,8 +174,8 @@ Some jobs need a running PostgreSQL database. Instead of copying the same databa
 
 The reusable workflow is called by `project-checks.yml` for:
 
-* `Run tests`
-* `Generate coverage report`
+- `Run tests`
+- `Generate coverage report`
 
 This avoids duplicated database configuration and keeps the main workflow cleaner.
 
@@ -487,15 +487,15 @@ The project now has a CI setup that automatically checks important quality gates
 
 The pipeline now provides:
 
-* automated formatting checks;
-* automated lint checks;
-* automated database-backed tests;
-* automated build checks;
-* reusable PostgreSQL setup for test-related jobs;
-* `.env.test` support for the CI test environment;
-* LCOV and HTML coverage report artifacts;
-* dependency review for pull requests;
-* manual workflow execution through GitHub Actions.
+- automated formatting checks;
+- automated lint checks;
+- automated database-backed tests;
+- automated build checks;
+- reusable PostgreSQL setup for test-related jobs;
+- `.env.test` support for the CI test environment;
+- LCOV and HTML coverage report artifacts;
+- dependency review for pull requests;
+- manual workflow execution through GitHub Actions.
 
 ```text
 PR opened
