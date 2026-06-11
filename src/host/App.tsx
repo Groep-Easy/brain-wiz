@@ -19,6 +19,9 @@ import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+
+import jazzMusic from '../shared/SFX/jazz.mp3'
+
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
@@ -223,13 +226,6 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
-        <audio
-          id="bg-music"
-          loop
-          autoPlay
-          src="../shared/SFX/jazz.mp3"
-          preload="auto">
-        </audio>
         <div className="welcome-screen">
           <div className="welcome-card">
             <h1>Brain Wiz</h1>
@@ -259,6 +255,13 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
+        <audio
+          id="bg-music"
+          loop
+          autoPlay
+          src={jazzMusic}
+          preload="auto">
+        </audio>
         <SetupLobby
           roomCode={code}
           hostToken={hostToken}
