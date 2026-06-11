@@ -12,6 +12,7 @@ import type {
   AnswerAckPayload,
   RoundContentPayload,
   RoundRevealPayload,
+  Character,
 } from '../shared/types/index'
 import * as EVENTS from '../shared/events/socket-events'
 import { getBackendWsUrl } from '../shared/utils/env'
@@ -40,6 +41,7 @@ interface SavedPlayer {
   playerName: string
   playerId: string
   reconnectToken: string
+  character: Character
 }
 
 function loadSavedPlayer(): SavedPlayer | null {
@@ -47,11 +49,18 @@ function loadSavedPlayer(): SavedPlayer | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as Partial<SavedPlayer>
-    if (parsed.roomCode && parsed.playerName && parsed.playerId && parsed.reconnectToken) {
+    if (
+      parsed.roomCode &&
+      parsed.playerName &&
+      parsed.playerId &&
+      parsed.character &&
+      parsed.reconnectToken
+    ) {
       return {
         roomCode: parsed.roomCode,
         playerName: parsed.playerName,
         playerId: parsed.playerId,
+        character: parsed.character,
         reconnectToken: parsed.reconnectToken,
       }
     }
@@ -89,22 +98,34 @@ export function App(): React.JSX.Element {
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
   const credsRef = useRef<SavedPlayer | null>(loadSavedPlayer())
-  const pendingJoinRef = useRef<{ name: string; code: string } | null>(null)
+  const pendingJoinRef = useRef<{ name: string; code: string; character: Character } | null>(null)
   const intentionalCloseRef = useRef(false)
   const reconnectAttemptsRef = useRef(0)
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [urlCode] = useState(readCodeFromUrl)
 
-  function sendJoin(name: string, code: string, creds: SavedPlayer | null): void {
+  function sendJoin(
+    name: string,
+    code: string,
+    character: Character,
+    creds: SavedPlayer | null
+  ): void {
     const socket = socketRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) return
+    console.log('📤 Sending JOIN payload:', {
+      roomCode: code,
+      playerName: name,
+      character,
+      ...(creds ? { playerId: creds.playerId } : {}),
+    })
     socket.send(
       JSON.stringify({
         event: EVENTS.PLAYER_JOIN,
         data: {
           roomCode: code,
           playerName: name,
+          character,
           ...(creds ? { playerId: creds.playerId, playerToken: creds.reconnectToken } : {}),
         },
       })
@@ -120,6 +141,7 @@ export function App(): React.JSX.Element {
           roomCode: ack.roomCode,
           playerName: credsRef.current?.playerName ?? pendingJoinRef.current?.name ?? '',
           playerId: ack.playerId,
+          character: ack.character,
           reconnectToken: ack.reconnectToken,
         }
         credsRef.current = creds
@@ -256,9 +278,14 @@ export function App(): React.JSX.Element {
       reconnectAttemptsRef.current = 0
       const creds = credsRef.current
       if (creds) {
-        sendJoin(creds.playerName, creds.roomCode, creds)
+        sendJoin(creds.playerName, creds.roomCode, creds.character, creds)
       } else if (pendingJoinRef.current) {
-        sendJoin(pendingJoinRef.current.name, pendingJoinRef.current.code, null)
+        sendJoin(
+          pendingJoinRef.current.name,
+          pendingJoinRef.current.code,
+          pendingJoinRef.current.character,
+          null
+        )
       }
     }
 
@@ -307,14 +334,14 @@ export function App(): React.JSX.Element {
     }
   }, [])
 
-  function handleJoin(name: string, code: string): void {
+  function handleJoin(name: string, code: string, character: Character): void {
     setJoinError(null)
     setJoining(true)
     const socket = socketRef.current
     if (socket && socket.readyState === WebSocket.OPEN) {
-      sendJoin(name, code, null)
+      sendJoin(name, code, character, null)
     } else {
-      pendingJoinRef.current = { name, code }
+      pendingJoinRef.current = { name, code, character }
       if (!socket || socket.readyState === WebSocket.CLOSED) connect()
     }
   }
