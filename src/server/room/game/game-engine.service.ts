@@ -44,6 +44,7 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
   [GamePhase.LEADERBOARD]: 'leaderboard',
+  [GamePhase.GAME_OVER]: 'game-over',
 }
 
 const FIRST_RANK = 1
@@ -167,7 +168,10 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
-
+    if (round.roundIndex === ROUNDS.COUNT) {
+      await this.enterPhase(room, GamePhase.GAME_OVER)
+      return
+    }
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),

@@ -59,5 +59,5 @@ export const ROUNDS = Object.freeze({
   DEFAULT_SEQUENCE: ['quiz', 'collab-puzzle', 'quiz', 'head-to-head'] as readonly RoundType[],
   // Number of rounds the engine plays per game (quiz-only MVP). When the
   // theme/round-selection feature lands, this becomes derived per room.
-  COUNT: 5,
+  COUNT: 1,
 })
