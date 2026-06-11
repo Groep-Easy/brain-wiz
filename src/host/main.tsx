@@ -25,6 +25,12 @@ if (!container) {
   throw new Error('Root element #root not found')
 }
 
+const mockLeaderboard = [
+  { playerId: 'p1', name: 'Alice', score: 1500, rank: 1, previousRank: 2, rankChange: 1, connected: true },
+  { playerId: 'p2', name: 'Bob', score: 1200, rank: 2, previousRank: 1, rankChange: -1, connected: true },
+  { playerId: 'p3', name: 'Charlie', score: 900, rank: 3, previousRank: null, rankChange: 0, connected: false },
+]
+
 createRoot(container).render(
   <StrictMode>
     {/* basename must match the Vite base / Express mount so React Router
@@ -34,7 +40,7 @@ createRoot(container).render(
         <Route path="/" element={<App />} />
         <Route path="/console" element={<Console />} />
         <Route path="/flow-editor" element={<FlowEditor />} />
-        <Route path="/screens/leaderboard" element={<LeaderBoard />} />
+        <Route path="/screens/leaderboard" element={<LeaderBoard leaderboard={mockLeaderboard} />} />
         <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
         <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
       </Routes>

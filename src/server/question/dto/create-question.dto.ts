@@ -14,9 +14,11 @@ import {
 import { DifficultyEnum, QuestionThemeEnum } from '../../entities/enums'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
-const MAX_STRING_LENGTH = 512
-const MAX_CORRECT_ANSWERS = 2
-const MAX_INT_VALUE = 32767
+import {
+  MAX_STRING_LENGTH,
+  MAX_CORRECT_ANSWERS,
+  MAX_INT_VALUE,
+} from '../../../shared/constants/validation'
 
 export class CreateQuestionDto {
   @ApiProperty({

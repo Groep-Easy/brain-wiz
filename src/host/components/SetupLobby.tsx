@@ -13,6 +13,7 @@ import {
 } from '../flow/blocks'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
+import { getClientBaseUrl } from '../../shared/utils/env'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -58,9 +59,7 @@ export function SetupLobby({
 
   useEffect(() => {
     if (roomCode) {
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      const baseHttp = isLocalhost ? 'http://localhost:5173' : window.location.origin
-      const joinUrl = `${baseHttp}/client/?code=${roomCode}`
+      const joinUrl = `${getClientBaseUrl()}/client/?code=${roomCode}`
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {

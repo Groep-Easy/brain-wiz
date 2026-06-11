@@ -14,20 +14,15 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
+import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
 
 
-const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-const defaultWsUrl = typeof window !== 'undefined' 
-  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
-  : 'ws://localhost:3000'
-const defaultHttpUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
-
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || (isLocalhost ? 'ws://localhost:3000' : defaultWsUrl)
-const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
-const JOIN_GAME_URL = isLocalhost ? 'http://localhost:5173/client' : `${defaultHttpUrl}/client`
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
+const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')

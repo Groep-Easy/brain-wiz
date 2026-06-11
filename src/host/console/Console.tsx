@@ -35,13 +35,10 @@ import {
   type LogEntry,
   type Status,
 } from './console-utils'
+import { getBackendWsUrl } from '../../shared/utils/env'
 import './console.css'
 
-const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-const defaultWsUrl = typeof window !== 'undefined' 
-  ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
-  : 'ws://localhost:3000'
-const DEFAULT_URL = isLocalhost ? 'ws://localhost:3000' : defaultWsUrl
+const DEFAULT_URL = getBackendWsUrl()
 
 function rankDelta(entry: LeaderboardEntry): string {
   if (entry.previousRank === null) {
