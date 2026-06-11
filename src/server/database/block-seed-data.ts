@@ -24,6 +24,12 @@ const THEME_BLOCKS: BlockSeed[] = [
   { theme: QuestionThemeEnum.GEOGRAPHY, label: 'Geography', icon: '🌍' },
   { theme: QuestionThemeEnum.TECHNOLOGY, label: 'Technology', icon: '💻' },
   { theme: QuestionThemeEnum.ART, label: 'Art', icon: '🎨' },
+  { theme: QuestionThemeEnum.CODING, label: 'Coding', icon: '💻' },
+  { theme: QuestionThemeEnum.FILMS, label: 'Films', icon: '🎬' },
+  { theme: QuestionThemeEnum.GAMING, label: 'Gaming', icon: '🎮' },
+  { theme: QuestionThemeEnum.GENERAL, label: 'General', icon: '🧠' },
+  { theme: QuestionThemeEnum.INTERNET, label: 'Internet', icon: '🌐' },
+  { theme: QuestionThemeEnum.MUSIC, label: 'Music', icon: '🎵' },
   { theme: QuestionThemeEnum.OTHER, label: 'Other', icon: '❓' },
 ].map((t) => ({
   id: `theme-${t.theme}`,

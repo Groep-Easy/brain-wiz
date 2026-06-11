@@ -25,6 +25,12 @@ export enum QuestionThemeEnum {
   TECHNOLOGY = 'technology',
   ART = 'art',
   OTHER = 'other',
+  CODING = 'coding',
+  FILMS = 'films',
+  GAMING = 'gaming',
+  GENERAL = 'general',
+  INTERNET = 'internet',
+  MUSIC = 'music',
 }
 
 /**
