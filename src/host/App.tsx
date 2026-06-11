@@ -21,6 +21,7 @@ import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
+import logo from './assets/BrainWiz logo.png'
 
 import './styles/index.css'
 import './styles/welcome.css'
@@ -226,9 +227,10 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
+
         <div className="welcome-screen">
           <div className="welcome-card">
-            <h1>Brain Wiz</h1>
+            <img src={logo} width="300"></img>
             <p className="subtitle">Interactive Quiz & Trivia Game</p>
             <div className="divider"></div>
             {status === 'connecting' ? (
