@@ -30,7 +30,20 @@ jobs:
         with:
           customer: uvapse
           system: brain-wiz
-          publishonly: true
+          source: .
+          publish: true
+          capability: maintainability,osh,security
+          exclude: node_modules,dist,coverage,.git
+          showupload: true
+          out: sigrid-ci-output
         env:
           SIGRID_CI_TOKEN: ${{ secrets.SIGRID_CI_TOKEN }}
-          
+
+      - name: Save Sigrid output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigrid-ci-output
+          path: sigrid-ci-output/**
+          retention-days: 7
+          if-no-files-found: ignore
