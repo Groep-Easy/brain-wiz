@@ -129,7 +129,10 @@ export class GameEngineService {
     game.timer.cancel()
   }
 
-  private async buildRoadmapThemes(roomId: string, currentRoundIndex: number): Promise<RoadmapTheme[]> {
+  private async buildRoadmapThemes(
+    roomId: string,
+    currentRoundIndex: number
+  ): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
       .innerJoinAndSelect('round.question', 'question')
@@ -152,7 +155,14 @@ export class GameEngineService {
   }
 
   private async runRound(
-    room: { id: string; joinCode: string; status: RoomStatusEnum; currentRoundIndex: number ; totalRounds: number; selectedThemes: QuestionThemeEnum[]},
+    room: {
+      id: string
+      joinCode: string
+      status: RoomStatusEnum
+      currentRoundIndex: number
+      totalRounds: number
+      selectedThemes: QuestionThemeEnum[]
+    },
     round: Round,
     game: RunningGame
   ): Promise<void> {
