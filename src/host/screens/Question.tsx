@@ -3,7 +3,7 @@ import { computeAnswerStats } from '../../shared/utils/answer-stats'
 import '../styles/question.css'
 
 const SHAPES = ['▲', '◆', '●', '■']
-const TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan']
+const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
 
 interface QuestionScreenProps {
   gameCode: string
