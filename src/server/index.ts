@@ -11,6 +11,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { config } from '../config/server'
+import { setSwaggerConfig } from '../config/swagger-doc';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -27,17 +28,10 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  // TODO: serve the static host display (src/host) and phone client (src/client).
-  // Old Express mounts were `app.use('/host', express.static('src/host'))` and
-  // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
-  // (@nestjs/serve-static) or equivalent once the static assets are wired up.
-
-  await app.listen(config.PORT, '0.0.0.0')
+  setSwaggerConfig(app);
 
   // eslint-disable-next-line no-console
-  console.log(`Brain Wiz running on http://0.0.0.0:${config.PORT}`)
-  // eslint-disable-next-line no-console
-  console.log(`Host display: http://localhost:${config.PORT}/host`)
+  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
 }
 
 void bootstrap()
