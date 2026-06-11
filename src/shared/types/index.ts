@@ -133,6 +133,7 @@ export interface PongPayload {
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
+  character: Character
   playerId?: string
   playerToken?: string
 }
@@ -141,6 +142,7 @@ export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
   reconnectToken: string
+  character: Character
 }
 
 export interface PlayerJoinRejectedPayload {
