@@ -1,0 +1,26 @@
+name: Sigrid
+
+on:
+  push:
+    branches:
+      - feat/sigrid-ci-pipeline
+
+jobs:
+  sigrid:
+    name: Run Sigrid
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Sigrid CI
+        uses: Software-Improvement-Group/sigridci@main
+        with:
+          customer: uvapse
+          system: brain-wiz
+          publishonly: true
+        env:
+          SIGRID_CI_TOKEN: ${{ secrets.SIGRID_CI_TOKEN }}
