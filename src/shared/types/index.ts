@@ -10,6 +10,8 @@
  *  3. Keep types flat — nested shapes get their own type.
  */
 
+import type { GameFlowItem } from './flow'
+
 export type GamePhase = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
 
 export type RoundType = 'quiz' | 'collab-puzzle' | 'head-to-head'
@@ -26,6 +28,7 @@ export interface RoomState {
   players: Player[]
   phase: GamePhase
   round: number
+  gameFlow: GameFlowItem[]
 }
 
 export interface QuestionState {

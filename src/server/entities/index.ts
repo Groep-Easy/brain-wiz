@@ -9,6 +9,7 @@ export { Room } from './room.entity'
 export { Client } from './client.entity'
 export { Round } from './round.entity'
 export { ClientAnswer } from './client-answer.entity'
+export { GameBlock } from './game-block.entity'
 export {
   DifficultyEnum,
   QuestionThemeEnum,
@@ -17,4 +18,5 @@ export {
   RoomStatusEnum,
   RoundStatusEnum,
   ContentTypeEnum,
+  BlockKindEnum,
 } from './enums'

@@ -167,7 +167,7 @@ export function App(): React.JSX.Element {
   }
 
   const handleJoinGame = () => {
-    window.location.href = JOIN_GAME_URL;
+    window.location.href = JOIN_GAME_URL
   }
 
   const handleStartGame = async () => {
@@ -234,7 +234,9 @@ export function App(): React.JSX.Element {
       <main className="app">
         <SetupLobby
           roomCode={code}
+          hostToken={hostToken}
           players={roomState.players}
+          gameFlow={roomState.gameFlow ?? []}
           onStartGame={handleStartGame}
           onCloseLobby={handleCloseLobby}
         />
