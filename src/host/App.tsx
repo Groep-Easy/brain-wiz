@@ -145,7 +145,6 @@ export function App(): React.JSX.Element {
   }, [code, hostToken])
 
   const handleCreateRoom = async () => {
-    SFX('../shared/SFX/pop.mp3')
     try {
       const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
       if (!res.ok) {
@@ -161,7 +160,6 @@ export function App(): React.JSX.Element {
   }
 
   const handleJoinGame = () => {
-    SFX('../shared/SFX/pop.mp3')
     window.location.href = JOIN_GAME_URL;
   }
 
@@ -196,9 +194,14 @@ export function App(): React.JSX.Element {
 
   // Dynamic Routing based on game phase
   if (!roomState || status !== 'open') {
-    SFX('../shared/SFX/jazz.mp3')
     return (
       <main className="app">
+        <audio id="bg-music"
+          loop
+          autoPlay
+          src="../shared/SFX/jazz.mp3"
+          preload="auto">
+        </audio>
         <div className="welcome-screen">
           <div className="welcome-card">
             <h1>Brain Wiz</h1>
