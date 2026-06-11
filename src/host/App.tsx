@@ -14,6 +14,7 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
+import { SFX } from '../shared/SFX/SFX'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
@@ -144,6 +145,7 @@ export function App(): React.JSX.Element {
   }, [code, hostToken])
 
   const handleCreateRoom = async () => {
+    SFX('../shared/SFX/pop.mp3')
     try {
       const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
       if (!res.ok) {
@@ -159,6 +161,7 @@ export function App(): React.JSX.Element {
   }
 
   const handleJoinGame = () => {
+    SFX('../shared/SFX/pop.mp3')
     window.location.href = JOIN_GAME_URL;
   }
 
@@ -193,6 +196,7 @@ export function App(): React.JSX.Element {
 
   // Dynamic Routing based on game phase
   if (!roomState || status !== 'open') {
+    SFX('../shared/SFX/jazz.mp3')
     return (
       <main className="app">
         <div className="welcome-screen">
