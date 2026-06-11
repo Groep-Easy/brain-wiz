@@ -223,7 +223,8 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
-        <audio id="bg-music"
+        <audio
+          id="bg-music"
           loop
           autoPlay
           src="../shared/SFX/jazz.mp3"
