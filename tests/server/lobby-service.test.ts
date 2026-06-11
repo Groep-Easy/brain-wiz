@@ -24,6 +24,7 @@ import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '../../src/shared/events/socket-events'
 import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
 import { QuestionService } from '../../src/server/question/question.service.js'
+import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
@@ -97,6 +98,14 @@ function fakeQuestionService(questionsList: Question[] = []): QuestionService {
   } as unknown as QuestionService
 }
 
+function fakeFlowService(): FlowService {
+  return {
+    getCatalog: async () => [],
+    randomize: async () => [],
+    normalizeForStorage: async (flow: unknown) => flow,
+  } as unknown as FlowService
+}
+
 function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
@@ -112,7 +121,8 @@ function makeLobby(questions: Question[] = []): LobbyService {
     registry,
     broadcaster,
     noopEngine,
-    fakeQuestionService(questions)
+    fakeQuestionService(questions),
+    fakeFlowService()
   )
 }
 
@@ -461,7 +471,8 @@ describe('LobbyService abort-on-empty', () => {
       registry,
       broadcaster,
       gameEngine,
-      fakeQuestionService()
+      fakeQuestionService(),
+      fakeFlowService()
     )
     return { lobby, rooms, clients, registry, aborted }
   }

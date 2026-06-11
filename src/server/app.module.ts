@@ -13,8 +13,9 @@ import { LobbyModule } from './room/lobby/lobby.module'
 import { SocketModule } from './socket/index'
 import { HealthModule } from './health/health.module'
 import { QuestionModule } from './question/question.module'
+import { FlowModule } from './flow/flow.module'
 
 @Module({
-  imports: [DatabaseModule, LobbyModule, SocketModule, HealthModule, QuestionModule],
+  imports: [DatabaseModule, LobbyModule, SocketModule, HealthModule, QuestionModule, FlowModule],
 })
 export class AppModule {}

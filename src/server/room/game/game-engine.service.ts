@@ -56,6 +56,7 @@ export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
   private readonly games = new Map<string, RunningGame>()
   private readonly leaderboardOrderByRoom = new Map<string, string[]>()
+  private readonly totalRoundsByRoom = new Map<string, number>()
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
@@ -88,6 +89,7 @@ export class GameEngineService {
         return
       }
       const rounds = await this.roundBuilder.buildRounds(room, ROUNDS.COUNT)
+      this.totalRoundsByRoom.set(roomId, rounds.length)
 
       for (const round of rounds) {
         if (game.aborted) {
@@ -112,6 +114,7 @@ export class GameEngineService {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId })
       this.games.delete(roomId)
       this.leaderboardOrderByRoom.delete(roomId)
+      this.totalRoundsByRoom.delete(roomId)
     }
   }
 
@@ -283,8 +286,8 @@ export class GameEngineService {
   private toRoundSummary(round: Round): RoundSummary {
     return {
       index: round.roundIndex,
-      total: ROUNDS.COUNT,
-      type: 'quiz',
+      total: this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT,
+      type: round.gameType ?? 'quiz',
       timeLimitSeconds: round.timeLimitSeconds,
     }
   }

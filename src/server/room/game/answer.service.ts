@@ -12,10 +12,16 @@ import { ClientAnswer } from '../../entities/client-answer.entity'
 import { ConnectionRegistry } from '../lobby/connection-registry'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { GameEventBus } from './game-event-bus'
-import type { RoundOption } from './game-events'
+import type { RoundOption, RoundScoringMode } from './game-events'
 import type { ClientSocket } from '../lobby/lobby.types'
-import type { AnswerAckPayload, AnswerSubmitPayload } from '../../../shared/types/index'
+import type {
+  AnswerAckPayload,
+  AnswerSubmitPayload,
+  RoundSubmitPayload,
+  RoundType,
+} from '../../../shared/types/index'
 import * as EVENTS from '../../../shared/events/socket-events'
+import { MinigameRegistry } from './minigames/minigame-registry'
 
 /** Postgres unique_violation SQLSTATE — raised when the (clientId, roundId)
  *  unique index rejects a duplicate answer row. */
@@ -23,6 +29,8 @@ const PG_UNIQUE_VIOLATION = '23505'
 
 interface OpenWindow {
   roundId: string
+  roundType: RoundType
+  scoringMode: RoundScoringMode
   shownAt: number
   options: Map<string, RoundOption>
   submitted: Set<string>
@@ -37,13 +45,16 @@ export class AnswerService {
     private readonly bus: GameEventBus,
     private readonly registry: ConnectionRegistry,
     private readonly broadcaster: RoomBroadcaster,
-    @InjectRepository(ClientAnswer) private readonly answers: Repository<ClientAnswer>
+    @InjectRepository(ClientAnswer) private readonly answers: Repository<ClientAnswer>,
+    private readonly minigames?: MinigameRegistry
   ) {
     this.bus.on('ROUND_WINDOW_OPENED').subscribe((e) => {
       this.windows.set(e.roomId, {
         roundId: e.roundId,
+        roundType: e.roundType,
+        scoringMode: e.scoringMode,
         shownAt: e.shownAt,
-        options: new Map(e.options.map((o) => [o.id, o])),
+        options: new Map((e.options ?? []).map((o) => [o.id, o])),
         submitted: new Set<string>(),
       })
     })
@@ -67,6 +78,10 @@ export class AnswerService {
       this.ack(socket, false, 'window-closed')
       return
     }
+    if (window.scoringMode !== 'quiz') {
+      this.ack(socket, false, 'invalid-answer')
+      return
+    }
     const option = window.options.get(payload.answerId)
     if (!option) {
       this.ack(socket, false, 'invalid-answer')
@@ -77,11 +92,60 @@ export class AnswerService {
       return
     }
 
+    await this.persistSubmission(socket, roomId, clientId, window, payload.answerId)
+  }
+
+  public async submitRound(socket: ClientSocket, payload: RoundSubmitPayload): Promise<void> {
+    const membership = this.registry.lookup(socket)
+    if (!membership || membership.role !== 'client') {
+      return
+    }
+    const { roomId, clientId } = membership
+
+    const window = this.windows.get(roomId)
+    if (!window) {
+      this.ack(socket, false, 'window-closed')
+      return
+    }
+    if (
+      window.scoringMode !== 'minigame' ||
+      payload.roundId !== window.roundId ||
+      payload.type !== window.roundType
+    ) {
+      this.ack(socket, false, 'invalid-answer')
+      return
+    }
+    const adapter = this.minigames?.get(payload.type)
+    if (!adapter || !adapter.validateSubmission(payload.submission)) {
+      this.ack(socket, false, 'invalid-answer')
+      return
+    }
+    if (window.submitted.has(clientId)) {
+      this.ack(socket, false, 'already-answered')
+      return
+    }
+
+    await this.persistSubmission(
+      socket,
+      roomId,
+      clientId,
+      window,
+      JSON.stringify(payload.submission)
+    )
+  }
+
+  private async persistSubmission(
+    socket: ClientSocket,
+    roomId: string,
+    clientId: string,
+    window: OpenWindow,
+    answerValue: string
+  ): Promise<void> {
     window.submitted.add(clientId)
     const row = this.answers.create({
       clientId,
       roundId: window.roundId,
-      answerValue: payload.answerId,
+      answerValue,
       answeredAt: new Date(),
       timeToAnswerMs: Date.now() - window.shownAt,
       isTimeout: false,

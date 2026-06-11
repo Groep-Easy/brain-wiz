@@ -10,11 +10,14 @@ import {
   SOLVED_BOARD,
   TILE_BACKGROUND_STEP_PERCENT,
 } from './slidingPuzzleGame.constants.js'
+import { createSeededRandom } from '../../../shared/utils/seeded-random.js'
 import type {
   HeapNode,
   MinHeap,
   SlidingPuzzleGenerationInput,
   SlidingPuzzlePuzzle,
+  SlidingPuzzleScoreBreakdown,
+  SlidingPuzzleScoreConfig,
 } from './slidingPuzzleGame.types.js'
 
 export type SlidingPuzzleBoard = number[]
@@ -23,6 +26,8 @@ export type {
   SlidingPuzzleGenerationInput,
   SlidingPuzzleImage,
   SlidingPuzzlePuzzle,
+  SlidingPuzzleScoreBreakdown,
+  SlidingPuzzleScoreConfig,
 } from './slidingPuzzleGame.types.js'
 export {
   BOARD_SIZE,
@@ -80,6 +85,15 @@ export function moveTile(board: SlidingPuzzleBoard, tileIndex: number): SlidingP
 
 export function isSolved(board: SlidingPuzzleBoard): boolean {
   return getBoardKey(board) === getBoardKey(SOLVED_BOARD)
+}
+
+export function countCorrectTiles(board: SlidingPuzzleBoard): number {
+  return board.reduce((correct, value, index) => {
+    if (value !== 0 && value === SOLVED_BOARD[index]) {
+      return correct + 1
+    }
+    return correct
+  }, 0)
 }
 
 export function countInversions(board: SlidingPuzzleBoard): number {
@@ -319,9 +333,39 @@ export function createSlidingPuzzle(input: SlidingPuzzleGenerationInput): Slidin
    * Server entry point later.
    * Persist by roomId/roundId with an image id/url from DB-backed content.
    */
+  const random = input.seed ? createSeededRandom(input.seed) : Math.random
+
   return {
     id: input.id,
     image: input.image,
-    initialBoard: createScrambledBoard(input.scrambleMoves),
+    initialBoard: createScrambledBoard(input.scrambleMoves, random),
+  }
+}
+
+export function scoreSlidingPuzzleBoard(
+  board: SlidingPuzzleBoard,
+  config: SlidingPuzzleScoreConfig,
+  timeToAnswerMs: number
+): SlidingPuzzleScoreBreakdown {
+  const totalTiles = SOLVED_BOARD.filter((value) => value !== 0).length
+  const correctTiles = countCorrectTiles(board)
+  const solved = isSolved(board)
+  const positionPoints = correctTiles * config.pointsPerCorrectTile
+  const clampedRemaining = Math.max(
+    0,
+    Math.min(config.timeLimitMs, config.timeLimitMs - timeToAnswerMs)
+  )
+  const speedBonus = solved
+    ? Math.round(config.solveSpeedBonus * (clampedRemaining / config.timeLimitMs))
+    : 0
+  const pointsAwarded = positionPoints + speedBonus
+
+  return {
+    correctTiles,
+    totalTiles,
+    solved,
+    positionPoints,
+    speedBonus,
+    pointsAwarded,
   }
 }
