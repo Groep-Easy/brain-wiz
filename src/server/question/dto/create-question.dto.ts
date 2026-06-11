@@ -15,7 +15,6 @@ import { DifficultyEnum, QuestionThemeEnum } from '../../entities/enums'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export class CreateQuestionDto {
-
   @ApiProperty({
     example: 'What is the capital of France?',
     maxLength: 512,
