@@ -27,7 +27,7 @@ export class RoundBuilder {
     @InjectRepository(Round) private readonly rounds: Repository<Round>,
     @InjectRepository(Room) private readonly roomRepo: Repository<Room>,
     private readonly minigames: MinigameRegistry
-  ) { }
+  ) {}
 
   public async buildRounds(room: Room, count: number): Promise<Round[]> {
     const sequence = this.roundSequence(count)

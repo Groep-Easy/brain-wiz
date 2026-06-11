@@ -24,10 +24,6 @@ const DEFAULT_IMAGE = Object.freeze({
   alt: 'Numbered color grid puzzle',
 })
 
-interface SlidingPuzzleSubmission {
-  board: SlidingPuzzleBoard
-}
-
 @Injectable()
 export class SlidingPuzzleServerAdapter implements MinigameAdapter {
   public readonly type = 'sliding-puzzle'
@@ -67,13 +63,13 @@ export class SlidingPuzzleServerAdapter implements MinigameAdapter {
     scoringConfig: Record<string, unknown>,
     timeToAnswerMs: number
   ): MinigameScoreResult {
-    const parsed = this.parseSubmission(submission)
+    const board = this.parseSubmission(submission)
     const config = this.parseConfig(scoringConfig)
-    if (!parsed || !config) {
+    if (!board || !config) {
       return { isCorrect: false, pointsAwarded: 0 }
     }
 
-    const breakdown = scoreSlidingPuzzleBoard(parsed.board, config, timeToAnswerMs)
+    const breakdown = scoreSlidingPuzzleBoard(board, config, timeToAnswerMs)
     return {
       isCorrect: breakdown.solved,
       pointsAwarded: breakdown.pointsAwarded,
@@ -82,7 +78,7 @@ export class SlidingPuzzleServerAdapter implements MinigameAdapter {
     }
   }
 
-  private parseSubmission(submission: unknown): SlidingPuzzleSubmission | undefined {
+  private parseSubmission(submission: unknown): SlidingPuzzleBoard | undefined {
     if (!this.isRecord(submission)) {
       return undefined
     }
@@ -90,7 +86,7 @@ export class SlidingPuzzleServerAdapter implements MinigameAdapter {
     if (!this.isBoard(board)) {
       return undefined
     }
-    return { board }
+    return board
   }
 
   private parseConfig(config: Record<string, unknown>): SlidingPuzzleScoreConfig | undefined {

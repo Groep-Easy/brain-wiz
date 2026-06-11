@@ -22,6 +22,7 @@ import type {
 } from '../../../shared/types/index'
 import * as EVENTS from '../../../shared/events/socket-events'
 import { MinigameRegistry } from './minigames/minigame-registry'
+import { MinigameScoreResult } from './minigames/minigame.types'
 
 const MS_PER_SECOND = 1000
 
@@ -138,7 +139,7 @@ export class ScoringService {
     roundId: string,
     ctx: ScoringContext,
     rows: ClientAnswer[],
-    roster: Awaited<ReturnType<ClientService['findByRoom']>>,
+    roster: Awaited<ReturnType<ClientService['findByRoom']>>
   ): Promise<void> {
     const adapter = this.minigames?.get(ctx.roundType)
 
@@ -146,23 +147,22 @@ export class ScoringService {
     const answered = new Set<string>()
     let publicSolution: unknown
 
-    const canScore =
-      !!adapter && !!ctx.privateState && !!ctx.scoringConfig
-
-    const scoreRow = (row: ClientAnswer) => {
+    const scoreRow = (row: ClientAnswer): MinigameScoreResult => {
       const submission = this.parseSubmission(row.answerValue)
 
-      return canScore && submission !== undefined
-        ? adapter!.scoreSubmission(
-          submission,
-          ctx.privateState!,
-          ctx.scoringConfig!,
-          row.timeToAnswerMs ?? 0,
-        )
-        : { isCorrect: false, pointsAwarded: 0 }
+      if (!submission || !adapter || !ctx.privateState || !ctx.scoringConfig) {
+        return { isCorrect: false, pointsAwarded: 0 }
+      }
+
+      return adapter.scoreSubmission(
+        submission,
+        ctx.privateState,
+        ctx.scoringConfig,
+        row.timeToAnswerMs ?? 0
+      )
     }
 
-    const applyScoreToClient = async (clientId: string, points: number) => {
+    const applyScoreToClient = async (clientId: string, points: number): Promise<void> => {
       if (points <= 0) return
 
       const client = roster.find((c) => c.id === clientId)
@@ -191,7 +191,7 @@ export class ScoringService {
         isCorrect: result.isCorrect,
         pointsAwarded: result.pointsAwarded,
         isTimeout: false,
-        ...(result.breakdown ?? { breakdown: result.breakdown }),
+        ...(result.breakdown !== undefined ? { breakdown: result.breakdown } : {}),
       }
     }
 

@@ -13,22 +13,14 @@ import type {
   GeneratedMinigameRound,
   MinigameAdapter,
   MinigameScoreResult,
+  BalanceScalePrivateState,
+  BalanceScaleScoringConfig,
 } from './minigame.types.js'
 
 const BASE_POINTS = 700
 const SOLVE_SPEED_BONUS = 300
 const MILLISECONDS_PER_SECOND = 1000
 const EASY_SCALE_ROUND_COUNT = 2
-
-interface BalanceScalePrivateState {
-  correctOptionId: string
-}
-
-interface BalanceScaleScoringConfig {
-  basePoints: number
-  solveSpeedBonus: number
-  timeLimitMs: number
-}
 
 @Injectable()
 export class BalanceScaleServerAdapter implements MinigameAdapter {
@@ -49,7 +41,9 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     })
 
     if (!puzzle.correctOptionId) {
-      throw new BadRequestException(`Balance-scale round ${input.roundId} generated without a correct option`)
+      throw new BadRequestException(
+        `Balance-scale round ${input.roundId} generated without a correct option`
+      )
     }
 
     const privateState: BalanceScalePrivateState = { correctOptionId: puzzle.correctOptionId }

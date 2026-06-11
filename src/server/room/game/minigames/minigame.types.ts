@@ -9,11 +9,7 @@ export interface CreateMinigameRoundInput {
   timeLimitSeconds: number
 }
 
-export interface GeneratedMinigameRound<
-  TPublic = unknown,
-  TPrivate = unknown,
-  TConfig = unknown
-> {
+export interface GeneratedMinigameRound<TPublic = unknown, TPrivate = unknown, TConfig = unknown> {
   type: ProceduralRoundType
   seed: string
   publicState: TPublic
@@ -40,4 +36,14 @@ export interface MinigameAdapter {
     scoringConfig: Record<string, unknown>,
     timeToAnswerMs: number
   ): MinigameScoreResult
+}
+
+export interface BalanceScalePrivateState {
+  correctOptionId: string
+}
+
+export interface BalanceScaleScoringConfig {
+  basePoints: number
+  solveSpeedBonus: number
+  timeLimitMs: number
 }
