@@ -41,14 +41,17 @@ async function bootstrap(): Promise<void> {
   // /host must be mounted BEFORE /client to prevent the catch-all from
   // swallowing /host/* sub-paths.
   // ---------------------------------------------------------------------------
-  const distDir = path.join(__dirname, '..')   // __dirname = dist/server → .. = dist/
+  const distDir = path.join(__dirname, '..') // __dirname = dist/server → .. = dist/
 
-  const hostDist   = path.join(distDir, 'host')
+  const hostDist = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
 
   // Welcome page at /
   app.use('/', (_req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (_req.path !== '/') { next(); return }
+    if (_req.path !== '/') {
+      next()
+      return
+    }
     res.send(`<!doctype html>
 <html lang="en">
 <head>
