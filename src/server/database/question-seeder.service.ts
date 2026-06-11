@@ -41,6 +41,7 @@ export class QuestionSeederService implements OnApplicationBootstrap {
     const seedQuestions = files.flatMap((file) => this.readSeedFile(path.join(dataDir, file)))
 
     let insertedCount = 0
+    let skippedCount = 0
     const seenTexts = new Set<string>()
     for (const q of seedQuestions) {
       // Skip duplicates within the same run (themed files overlap with questions.json).
@@ -48,7 +49,9 @@ export class QuestionSeederService implements OnApplicationBootstrap {
       seenTexts.add(q.text)
 
       const existing = await this.questions.findOne({ where: { text: q.text } })
-      if (!existing) {
+      if (existing) continue
+
+      try {
         const question = this.questions.create({
           text: q.text,
           theme: q.theme,
@@ -61,13 +64,23 @@ export class QuestionSeederService implements OnApplicationBootstrap {
         })
         await this.questions.save(question)
         insertedCount++
+      } catch (error) {
+        skippedCount++
+        this.logger.warn(
+          `Skipped invalid seed question "${q.text}": ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        )
       }
     }
 
     if (insertedCount > 0) {
       this.logger.log(
-        `Successfully seeded ${insertedCount} new questions from ${files.length} file(s).`
+        `Successfully seeded ${insertedCount} new questions from ${files.length} file(s).` +
+          (skippedCount > 0 ? ` Skipped ${skippedCount} invalid question(s).` : '')
       )
+    } else if (skippedCount > 0) {
+      this.logger.warn(`No questions seeded: all ${skippedCount} candidate(s) were invalid.`)
     } else {
       this.logger.log('Questions already seeded, no new insertions needed.')
     }
