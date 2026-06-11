@@ -11,6 +11,8 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
     container_name: server
+    ports:
+      - "3000:3000"
     depends_on:
       - db
     restart: unless-stopped
