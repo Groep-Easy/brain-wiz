@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import {
   EASY_SCALE_DIFFICULTY,
   HARD_SCALE_DIFFICULTY,
   generateScalePuzzle,
-  toPublicScalePuzzle,
   type ScaleDifficulty,
-  type ScalePuzzle,
 } from '../../../../minigames/balance-scale/shared/scaleGame.js'
 import { getDefaultScaleItemPool } from '../../../../minigames/balance-scale/shared/scaleGame.presets.js'
 import { hashSeed } from '../../../../shared/utils/seeded-random.js'
@@ -51,7 +49,7 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     })
 
     if (!puzzle.correctOptionId) {
-      throw new Error(`Balance-scale round ${input.roundId} generated without a correct option`)
+      throw new BadRequestException(`Balance-scale round ${input.roundId} generated without a correct option`)
     }
 
     const privateState: BalanceScalePrivateState = { correctOptionId: puzzle.correctOptionId }
@@ -64,14 +62,14 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     return {
       type: this.type,
       seed: input.seed,
-      publicState: this.toRecord(toPublicScalePuzzle(puzzle)),
-      privateState: this.toRecord(privateState),
-      scoringConfig: this.toRecord(scoringConfig),
+      publicState: puzzle,
+      privateState: privateState,
+      scoringConfig: scoringConfig,
     }
   }
 
   public validateSubmission(submission: unknown): boolean {
-    return this.parseOptionId(submission) !== undefined
+    return !this.parseOptionId(submission)
   }
 
   public getAnswerChoices(publicState: Record<string, unknown>): RoundAnswerChoice[] {
@@ -79,26 +77,7 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     if (!Array.isArray(options)) {
       return []
     }
-
-    return options.flatMap((option) => {
-      if (!this.isRecord(option)) {
-        return []
-      }
-      const id = option['id']
-      const label = option['label']
-      const emoji = option['emoji']
-      if (typeof id !== 'string' || typeof label !== 'string') {
-        return []
-      }
-      return [
-        {
-          id,
-          label,
-          ...(typeof emoji === 'string' ? { emoji } : {}),
-          submission: { optionId: id },
-        },
-      ]
-    })
+    return options as RoundAnswerChoice[]
   }
 
   public scoreSubmission(
@@ -130,18 +109,6 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     }
   }
 
-  private difficultyForRound(roundIndex: number): ScaleDifficulty {
-    return roundIndex < EASY_SCALE_ROUND_COUNT ? EASY_SCALE_DIFFICULTY : HARD_SCALE_DIFFICULTY
-  }
-
-  private parseOptionId(submission: unknown): string | undefined {
-    if (!this.isRecord(submission)) {
-      return undefined
-    }
-    const optionId = submission['optionId']
-    return typeof optionId === 'string' && optionId.trim().length > 0 ? optionId : undefined
-  }
-
   private parsePrivateState(
     privateState: Record<string, unknown>
   ): BalanceScalePrivateState | undefined {
@@ -166,6 +133,18 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     return { basePoints, solveSpeedBonus, timeLimitMs }
   }
 
+  private difficultyForRound(roundIndex: number): ScaleDifficulty {
+    return roundIndex < EASY_SCALE_ROUND_COUNT ? EASY_SCALE_DIFFICULTY : HARD_SCALE_DIFFICULTY
+  }
+
+  private parseOptionId(submission: unknown): string | undefined {
+    if (!this.isRecord(submission)) {
+      return undefined
+    }
+    const optionId = submission['optionId']
+    return typeof optionId === 'string' && optionId.trim().length > 0 ? optionId : undefined
+  }
+
   private speedBonus(config: BalanceScaleScoringConfig, timeToAnswerMs: number): number {
     const remaining = config.timeLimitMs - timeToAnswerMs
     const clamped = Math.max(0, Math.min(config.timeLimitMs, remaining))
@@ -174,11 +153,5 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
 
   private isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value)
-  }
-
-  private toRecord(
-    value: ScalePuzzle | BalanceScalePrivateState | BalanceScaleScoringConfig
-  ): Record<string, unknown> {
-    return value as unknown as Record<string, unknown>
   }
 }

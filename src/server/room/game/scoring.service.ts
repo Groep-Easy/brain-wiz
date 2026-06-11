@@ -138,56 +138,71 @@ export class ScoringService {
     roundId: string,
     ctx: ScoringContext,
     rows: ClientAnswer[],
-    roster: Awaited<ReturnType<ClientService['findByRoom']>>
+    roster: Awaited<ReturnType<ClientService['findByRoom']>>,
   ): Promise<void> {
     const adapter = this.minigames?.get(ctx.roundType)
-    const privateState = ctx.privateState
-    const scoringConfig = ctx.scoringConfig
+
     const playerResults: Record<string, RoundPlayerResult> = {}
     const answered = new Set<string>()
     let publicSolution: unknown
 
+    const canScore =
+      !!adapter && !!ctx.privateState && !!ctx.scoringConfig
+
+    const scoreRow = (row: ClientAnswer) => {
+      const submission = this.parseSubmission(row.answerValue)
+
+      return canScore && submission !== undefined
+        ? adapter!.scoreSubmission(
+          submission,
+          ctx.privateState!,
+          ctx.scoringConfig!,
+          row.timeToAnswerMs ?? 0,
+        )
+        : { isCorrect: false, pointsAwarded: 0 }
+    }
+
+    const applyScoreToClient = async (clientId: string, points: number) => {
+      if (points <= 0) return
+
+      const client = roster.find((c) => c.id === clientId)
+      if (!client) return
+
+      await this.clients.addScore(client, points)
+    }
+
     for (const row of rows) {
       answered.add(row.clientId)
-      const submission = this.parseSubmission(row.answerValue)
-      const result =
-        adapter && privateState && scoringConfig && submission !== undefined
-          ? adapter.scoreSubmission(
-              submission,
-              privateState,
-              scoringConfig,
-              row.timeToAnswerMs ?? 0
-            )
-          : { isCorrect: false, pointsAwarded: 0 }
+
+      const result = scoreRow(row)
+
       row.isCorrect = result.isCorrect
       row.pointsAwarded = result.pointsAwarded
+
       await this.answers.save(row)
-      if (result.pointsAwarded > 0) {
-        const client = roster.find((c) => c.id === row.clientId)
-        if (client) {
-          await this.clients.addScore(client, result.pointsAwarded)
-        }
-      }
+      await applyScoreToClient(row.clientId, result.pointsAwarded)
+
       if (result.publicSolution !== undefined) {
         publicSolution = result.publicSolution
       }
+
       playerResults[row.clientId] = {
-        submission,
+        submission: this.parseSubmission(row.answerValue),
         isCorrect: result.isCorrect,
         pointsAwarded: result.pointsAwarded,
         isTimeout: false,
-        ...(result.breakdown !== undefined ? { breakdown: result.breakdown } : {}),
+        ...(result.breakdown ?? { breakdown: result.breakdown }),
       }
     }
 
     for (const client of roster) {
-      if (!answered.has(client.id)) {
-        playerResults[client.id] = {
-          submission: null,
-          isCorrect: false,
-          pointsAwarded: 0,
-          isTimeout: true,
-        }
+      if (answered.has(client.id)) continue
+
+      playerResults[client.id] = {
+        submission: null,
+        isCorrect: false,
+        pointsAwarded: 0,
+        isTimeout: true,
       }
     }
 
@@ -195,8 +210,9 @@ export class ScoringService {
       roundId,
       type: ctx.roundType,
       playerResults,
-      ...(!publicSolution ? { publicSolution } : {}),
+      ...(publicSolution !== undefined && { publicSolution }),
     }
+
     this.broadcaster.emitToRoom(roomId, EVENTS.ROUND_REVEAL, reveal)
   }
 

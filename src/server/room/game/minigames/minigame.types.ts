@@ -9,12 +9,16 @@ export interface CreateMinigameRoundInput {
   timeLimitSeconds: number
 }
 
-export interface GeneratedMinigameRound {
+export interface GeneratedMinigameRound<
+  TPublic = unknown,
+  TPrivate = unknown,
+  TConfig = unknown
+> {
   type: ProceduralRoundType
   seed: string
-  publicState: Record<string, unknown>
-  privateState: Record<string, unknown>
-  scoringConfig: Record<string, unknown>
+  publicState: TPublic
+  privateState: TPrivate
+  scoringConfig: TConfig
 }
 
 export interface MinigameScoreResult {

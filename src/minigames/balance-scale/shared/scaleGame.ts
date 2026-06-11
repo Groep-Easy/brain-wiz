@@ -540,16 +540,6 @@ export function generateScalePuzzle(input: ScalePuzzleGenerationInput): ScalePuz
   return generateHardScalePuzzle(input)
 }
 
-export function toPublicScalePuzzle(puzzle: ScalePuzzle): ScalePuzzle {
-  return {
-    id: puzzle.id,
-    placed: puzzle.placed,
-    addTo: puzzle.addTo,
-    options: puzzle.options,
-    equations: puzzle.equations,
-  }
-}
-
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }

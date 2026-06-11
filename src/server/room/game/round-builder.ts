@@ -6,10 +6,10 @@
  * feature plugs into (it will replace `pickQuestions`).
  */
 import 'reflect-metadata'
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { randomUUID } from 'node:crypto'
-import type { Repository } from 'typeorm'
+import type { DeepPartial, Repository } from 'typeorm'
 import { Question } from '../../entities/question.entity'
 import { Round } from '../../entities/round.entity'
 import { Room } from '../../entities/room.entity'
@@ -20,12 +20,6 @@ import { NotEnoughQuestionsError } from './game.errors'
 import type { ProceduralRoundSeedInput } from './game.types'
 import { MinigameRegistry } from './minigames/minigame-registry'
 
-const PROCEDURAL_ROUND_SEED_SEPARATOR = ':'
-
-function createProceduralRoundSeed({ roomId, roundId, type }: ProceduralRoundSeedInput): string {
-  return [roomId, roundId, type].join(PROCEDURAL_ROUND_SEED_SEPARATOR)
-}
-
 @Injectable()
 export class RoundBuilder {
   public constructor(
@@ -33,7 +27,7 @@ export class RoundBuilder {
     @InjectRepository(Round) private readonly rounds: Repository<Round>,
     @InjectRepository(Room) private readonly roomRepo: Repository<Room>,
     private readonly minigames: MinigameRegistry
-  ) {}
+  ) { }
 
   public async buildRounds(room: Room, count: number): Promise<Round[]> {
     const sequence = this.roundSequence(count)
@@ -69,6 +63,10 @@ export class RoundBuilder {
     return built
   }
 
+  private createProceduralRoundSeed({ roomId, roundId, type }: ProceduralRoundSeedInput): string {
+    return `${roomId}:${roundId}:${type}`
+  }
+
   private roundSequence(count: number): RoundType[] {
     const sequence: RoundType[] = []
     for (let index = 0; index < count; index += 1) {
@@ -93,10 +91,10 @@ export class RoundBuilder {
   private async saveProceduralRound(room: Room, index: number, type: RoundType): Promise<Round> {
     const adapter = this.minigames.get(type)
     if (!adapter) {
-      throw new Error(`No minigame adapter registered for round type "${type}"`)
+      throw new BadRequestException(`No minigame adapter registered for round type "${type}"`)
     }
     const roundId = randomUUID()
-    const seed = createProceduralRoundSeed({
+    const seed = this.createProceduralRoundSeed({
       roomId: room.id,
       roundId,
       type,
@@ -107,7 +105,7 @@ export class RoundBuilder {
       roundIndex: index,
       timeLimitSeconds: TIMER.QUESTION_SECONDS,
     })
-    const round = this.rounds.create({
+    const round: Round = this.rounds.create({
       id: roundId,
       roomId: room.id,
       roundIndex: index,
@@ -119,7 +117,8 @@ export class RoundBuilder {
       privateState: generated.privateState,
       scoringConfig: generated.scoringConfig,
       timeLimitSeconds: TIMER.QUESTION_SECONDS,
-    })
+    } as DeepPartial<Round>)
+
     return this.rounds.save(round)
   }
 
