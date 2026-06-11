@@ -36,6 +36,8 @@ export const ROUND_START = 'ROUND_START'
 export const ROUND_END = 'ROUND_END'
 /** Server → all:    leaderboard shown.    Payload: { round, leaderboard }    */
 export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
+/** Server → all:    roadmap shown.        Payload: { roadmap }               */
+export const ROADMAP_SHOW = 'ROADMAP_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
 

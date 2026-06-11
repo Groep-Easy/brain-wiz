@@ -53,16 +53,13 @@ async function bootstrap(): Promise<void> {
     res.sendFile(path.join(hostDist, 'index.html'))
   })
 
-  // Player client: /client and /client/* (SPA fallback)
+// Player client: /client and /client/* (SPA fallback)
   app.use('/client', express.static(clientDist))
   app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
-
   setSwaggerConfig(app)
-
   await app.listen(config.PORT, '0.0.0.0')
-
   // eslint-disable-next-line no-console
   console.log(`REST API endpoints: ${config.BASE_URL}/api`)
 }
