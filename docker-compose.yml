@@ -1,59 +1,133 @@
+# docker-compose.yml
 services:
+  # ---------------------------------------------------------------------------
+  # Brain Wiz
+  # ---------------------------------------------------------------------------
   brain-wiz:
     build: .
     env_file:
       - .env
     environment:
       - DB_HOST=db
+      - DB_PORT=5432
     container_name: server
-    ports:
-      - "3000:3000"
     depends_on:
       - db
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # Nginx
+  # ---------------------------------------------------------------------------
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
     ports:
-      - "80:80"
+      - '80:80'     # HTTP → HTTPS redirect
+      - '443:443'   # HTTPS — no port number needed in browser
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/errors:/usr/share/nginx/html/errors:ro
+      # Shared with Promtail so logs are accessible without a host bind-mount.
+      - nginx_logs:/var/log/nginx
     depends_on:
       - brain-wiz
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # PostgreSQL
+  # ---------------------------------------------------------------------------
   db:
     image: postgres:16
     container_name: postgres-db
     env_file:
       - .env
-    # Expose Postgres on the host via 5433 to avoid conflicts with any local
-    # Postgres instance on 5432. The app and tests use DB_PORT=5433 in .env.
-    ports:
-      - "5432:5432"
+    # PostgreSQL is intentionally NOT exposed on the host. The app connects
+    # via DB_HOST=db (Docker network) and pgAdmin resolves it the same way.
+    # Exposing it here causes port conflicts when prod + branch run together.
+    # Add a ports override in docker-compose.override.yml if you need direct
+    # psql access from the host for debugging.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # pgadmin
+  # ---------------------------------------------------------------------------
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     ports:
-      - "5050:80"
+      - '5050:80'
     env_file:
       - .env
     environment:
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-      PGADMIN_CONFIG_LOGIN_DISABLED: "True"
-
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+      PGADMIN_CONFIG_LOGIN_DISABLED: 'True'
     user: root
     depends_on:
       - db
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # Observability: Loki + Promtail + Grafana
+  # ---------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.5.0
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    # Loki is accessed internally by Promtail (push) and Grafana (query).
+    # No host port needed — if you want to query Loki's API directly, use
+    # Grafana's explore view or add a ports override.
+    volumes:
+      - loki_data:/loki
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:3100/ready || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Promtail
+  # ---------------------------------------------------------------------------
+  promtail:
+    image: grafana/promtail:3.5.0
+    container_name: promtail
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./loki/promtail-config.yml:/etc/promtail/config.yml:ro
+      - nginx_logs:/var/log/nginx:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Grafana
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:12.0.1
+    container_name: grafana
+    ports:
+      - '3200:3000'   # Grafana UI — http://<host>:3200
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL:-admin@brainwiz.local}
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./loki/grafana-provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  loki_data:
+  grafana_data:
+  # Shared log volume: nginx writes here, Promtail reads from the same path.
+  nginx_logs:

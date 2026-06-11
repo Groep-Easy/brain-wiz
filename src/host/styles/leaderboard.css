@@ -5,6 +5,7 @@
   margin: 40px auto;
   width: 90%;
   animation: fadeIn 0.8s ease-out;
+  position: relative;
 }
 
 .leaderboard-header {
@@ -26,11 +27,11 @@
 
 .player-row {
   background-color: var(--surface);
-  color: var(--dark);
+  color: var(--navy);
   margin: 12px 0;
   padding: 18px 24px;
   border-radius: 16px;
-  border: 1px solid var(--tan);
+  /* border: 1px solid var(--tan); */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -77,7 +78,7 @@
 .score {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--teal);
+  color: var(--navy);
 }
 
 .rank-change {
@@ -93,4 +94,45 @@
 
 .rank-down {
   color: var(--red);
+}
+
+/* Roadmap */
+.roadmap-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 160px;
+
+  overflow: hidden;
+  justify-content: center;
+}
+
+.questionNode {
+  fill: var(--teal);
+}
+
+.oldNode {
+  fill: var(--navy);
+  opacity: 0.7;
+}
+
+.playerNode {
+  fill: var(--red);
+}
+
+.lastNode {
+  fill: var(--tan);
+}
+
+.miniDot {
+  fill: var(--navy);
+  opacity: 0.7;
+}
+
+.themeLabel {
+  font-size: 20px;
+  fill: var(--navy);
+  font-weight: 400;
 }

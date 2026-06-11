@@ -5,6 +5,7 @@ import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
+import { getClientBaseUrl } from '../../shared/utils/env'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -42,10 +43,7 @@ export function SetupLobby({
 
   useEffect(() => {
     if (roomCode) {
-      const host = window.location.hostname
-      const protocol = window.location.protocol
-      // Build client URL pointing to port 5173
-      const joinUrl = `${protocol}//${host}${window.location.port ? ':5173' : ''}/?code=${roomCode}`
+      const joinUrl = `${getClientBaseUrl()}/client/?code=${roomCode}`
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {

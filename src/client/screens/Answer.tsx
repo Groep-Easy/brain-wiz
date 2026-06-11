@@ -2,7 +2,7 @@ import type { QuestionState, PlayerAnswerResult } from '../../shared/types/index
 import '../styles/answer.css'
 
 const SHAPES = ['▲', '◆', '●', '■']
-const TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan']
+const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
 
 interface AnswerProps {
   question: QuestionState
