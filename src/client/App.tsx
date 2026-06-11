@@ -84,6 +84,7 @@ export function App(): React.JSX.Element {
   const [joinError, setJoinError] = useState<string | null>(null)
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -158,6 +159,7 @@ export function App(): React.JSX.Element {
         setRoundContent(null)
         setRoundReveal(null)
         setRoundSubmitted(false)
+        setSelectedOptionId(null)
         break
       case EVENTS.TIMER_TICK:
         setSecondsRemaining(data.secondsRemaining as number)
@@ -176,6 +178,7 @@ export function App(): React.JSX.Element {
         setRoundContent(content)
         setRoundReveal(null)
         setRoundSubmitted(false)
+        setSelectedOptionId(null)
         if (content.type === 'sliding-puzzle') {
           setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
         }
@@ -357,14 +360,20 @@ export function App(): React.JSX.Element {
                   aria-label={option.label}
                   className={`answer-tile minigame-answer-tile ${
                     MINIGAME_TILE_CLASSES[index] ?? 'tile-teal'
-                  } ${dim ? 'is-dim' : ''} ${phase === 'reveal' && isCorrect ? 'is-correct' : ''}`}
+                  } ${dim ? 'is-dim' : ''} ${phase === 'reveal' && isCorrect ? 'is-correct' : ''} ${
+                    option.id === selectedOptionId ? 'is-selected' : ''
+                  }`}
                   disabled={roundSubmitted || phase === 'reveal'}
                   key={option.id}
-                  onClick={() => handleRoundSubmit({ optionId: option.id })}
+                  onClick={() => {
+                    setSelectedOptionId(option.id)
+                    handleRoundSubmit({ optionId: option.id })
+                  }}
                   type="button"
                 >
                   <span className="answer-shape">{option.emoji}</span>
                   <span className="minigame-answer-label">{option.label}</span>
+                  {option.id === selectedOptionId ? <span className="answer-you">You</span> : null}
                 </button>
               )
             })}
