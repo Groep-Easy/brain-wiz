@@ -17,7 +17,7 @@
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
-    "test": "npm run lint:fix && npm run format && tsc && cd dist && node --env-file=../.env --test",
+    "test": "npm install --no-audit --no-fund && npm run lint && npm run format:check && npm run test:project-checks",
     "test:project-checks": "tsc && cd dist && node --env-file=../.env --test",
     "test:coverage": "tsc && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
     "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",

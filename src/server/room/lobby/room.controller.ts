@@ -13,16 +13,24 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
 } from '@nestjs/common'
 import { LobbyService } from './lobby.service'
 import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { RoomState } from '../../../shared/types/index'
-import { ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger'
-
-interface StartRoomBody {
-  hostToken?: string
-}
+import type { GameFlowItem } from '../../../shared/types/flow'
+import type { StartRoomBody, StoreFlowBody, RandomizeFlowBody } from '../room.types'
+import {
+  ApiBody,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger'
 
 @Controller('rooms')
 export class RoomsController {
@@ -47,6 +55,7 @@ export class RoomsController {
     return { code, hostToken }
   }
 
+  /** Get the current state of a room. Used by the lobby and the host's flow editor. */
   @Get(':code')
   @ApiOperation({
     summary: 'Join room',
@@ -78,6 +87,46 @@ export class RoomsController {
     return state
   }
 
+  /** Store the host-built flow on the room. Returns the normalized flow. */
+  @Put(':code/flow')
+  public async storeFlow(
+    @Param('code') code: string,
+    @Body() body: StoreFlowBody
+  ): Promise<{ flow: GameFlowItem[] }> {
+    try {
+      const flow = await this.lobby.setRoomFlow(code, body?.hostToken ?? '', body?.flow ?? [])
+      return { flow }
+    } catch (error) {
+      throw this.toHttp(error)
+    }
+  }
+
+  /** Server-side randomize + store. Returns the generated flow. */
+  @Post(':code/flow/randomize')
+  public async randomizeFlow(
+    @Param('code') code: string,
+    @Body() body: RandomizeFlowBody
+  ): Promise<{ flow: GameFlowItem[] }> {
+    try {
+      const flow = await this.lobby.randomizeRoomFlow(code, body?.hostToken ?? '', body?.size)
+      return { flow }
+    } catch (error) {
+      throw this.toHttp(error)
+    }
+  }
+
+  /** Translate flow domain errors into HTTP responses. */
+  private toHttp(error: unknown): Error {
+    if (error instanceof RoomNotFoundError) {
+      return new NotFoundException(error.message)
+    }
+    if (error instanceof InvalidHostTokenError) {
+      return new ForbiddenException(error.message)
+    }
+    return error as Error
+  }
+
+  /** Start the game. Returns the initial room state for convenience. */
   @Post(':code/start')
   @ApiOperation({
     summary: 'Start game in room',

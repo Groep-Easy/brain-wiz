@@ -74,6 +74,8 @@ describe('RoundPresenterImpl', () => {
     const e = opened[0] as {
       roomId: string
       roundId: string
+      roundType: string
+      scoringMode: string
       questionId: string
       timeLimitSeconds: number
       basePoints: number
@@ -81,6 +83,8 @@ describe('RoundPresenterImpl', () => {
     }
     assert.equal(e.roomId, 'room-1')
     assert.equal(e.roundId, 'round-1')
+    assert.equal(e.roundType, 'quiz')
+    assert.equal(e.scoringMode, 'quiz')
     assert.equal(e.questionId, 'q1')
     assert.equal(e.basePoints, 1000)
     assert.equal(e.timeLimitSeconds, 30)

@@ -128,3 +128,35 @@ body {
   font-size: 0.9rem;
   z-index: 10;
 }
+
+.minigame-answer-tile {
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.minigame-answer-label {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.client-minigame {
+  width: 100%;
+  min-height: 100svh;
+}
+
+.client-minigame--sliding {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  background: #ffffff;
+}
+
+.client-minigame--sliding .sliding-puzzle-app {
+  min-height: 0;
+  height: 100%;
+}
+
+.client-minigame__actions {
+  padding: 0 18px 18px;
+  background: #ffffff;
+}

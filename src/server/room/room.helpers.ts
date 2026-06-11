@@ -42,5 +42,6 @@ export function toRoomState(
     players,
     phase: livePhase ?? roomStatusToPhase(room.status),
     round: room.currentRoundIndex,
+    gameFlow: room.gameFlow ?? [],
   }
 }

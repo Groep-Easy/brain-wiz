@@ -1,67 +1,49 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Player } from '../../shared/types/index'
-import {
-  STORAGE_KEY,
-  MIN_FLOW_BLOCKS,
-  MAX_FLOW_COLUMNS,
-  blockById,
-  loadFlow,
-  saveFlow,
-  randomFlow,
-  type FlowItem,
-} from '../flow/blocks'
+import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
+import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
+import { getClientBaseUrl } from '../../shared/utils/env'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
   roomCode: string
+  hostToken: string
   players: Player[]
+  /** The server-owned game flow (from RoomState), shown read-only in the lobby. */
+  gameFlow: StoredFlowItem[]
   onStartGame: (timePerQuestion: number) => void
   onCloseLobby: () => void
 }
 
 export function SetupLobby({
   roomCode,
+  hostToken,
   players,
+  gameFlow,
   onStartGame,
   onCloseLobby,
 }: SetupLobbyProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'lobby' | 'settings'>('lobby')
   const [timePerQuestion, setTimePerQuestion] = useState(20)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
-  // The game flow: a randomized default that the host can customize in the editor.
-  const [flow, setFlow] = useState<FlowItem[]>(() => {
-    const existing = loadFlow()
-    if (existing.length >= MIN_FLOW_BLOCKS) return existing
-    const generated = randomFlow()
-    saveFlow(generated)
-    return generated
-  })
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
-  // Snake grid for the blocks plus the trailing add (+) node at index flow.length.
-  const { cells } = useMemo(() => buildSerpentine(flow.length + 1, MAX_FLOW_COLUMNS), [flow.length])
+  const { cells } = useMemo(
+    () => buildSerpentine(gameFlow.length + 1, MAX_FLOW_COLUMNS),
+    [gameFlow.length]
+  )
 
-  // Pick up edits made in the flow editor (which runs in another tab).
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        const updated = loadFlow()
-        if (updated.length >= MIN_FLOW_BLOCKS) setFlow(updated)
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
+  const openEditor = () => {
+    const params = new URLSearchParams({ code: roomCode, token: hostToken })
+    window.open(`/flow-editor?${params.toString()}`, '_blank')
+  }
 
   useEffect(() => {
     if (roomCode) {
-      const host = window.location.hostname
-      const protocol = window.location.protocol
-      // Build client URL pointing to port 5173
-      const joinUrl = `${protocol}//${host}${window.location.port ? ':5173' : ''}/?code=${roomCode}`
+      const joinUrl = `${getClientBaseUrl()}/client/?code=${roomCode}`
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
@@ -84,7 +66,12 @@ export function SetupLobby({
     <div className="host-lobby-container">
       <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
       <header className="host-lobby-header">
-        <button className="close-btn" onClick={onCloseLobby} title="Close lobby" aria-label="Close lobby">
+        <button
+          className="close-btn"
+          onClick={onCloseLobby}
+          title="Close lobby"
+          aria-label="Close lobby"
+        >
           &times;
         </button>
         <h1>Host Lobby</h1>
@@ -114,7 +101,10 @@ export function SetupLobby({
             {qrCodeUrl ? (
               <img className="qr-code-img" src={qrCodeUrl} alt="Join Game QR Code" />
             ) : (
-              <div className="qr-code-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                className="qr-code-img"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
                 Generating QR...
               </div>
             )}
@@ -160,12 +150,12 @@ export function SetupLobby({
               )
               const style = { gridRow: cell.row + 1, gridColumn: cell.col }
               // The final node is the add (+) block that opens the editor.
-              if (cell.logicalIndex >= flow.length) {
+              if (cell.logicalIndex >= gameFlow.length) {
                 return (
                   <div className="flow-cell" key="flow-add" style={style}>
                     <button
                       className="flow-block flow-add"
-                      onClick={() => window.open('/flow-editor', '_blank')}
+                      onClick={openEditor}
                       title="Edit game flow"
                       aria-label="Edit game flow"
                     >
@@ -175,12 +165,12 @@ export function SetupLobby({
                   </div>
                 )
               }
-              const item = flow[cell.logicalIndex]
+              const item = gameFlow[cell.logicalIndex]
               if (!item) return null
               const block = blockById(item.blockId)
               if (!block) return null
               return (
-                <div className="flow-cell" key={item.uid} style={style}>
+                <div className="flow-cell" key={cell.logicalIndex} style={style}>
                   <div className={`flow-block ${block.kind}`}>
                     <span className="flow-block-icon">{block.icon}</span>
                     <span className="flow-block-label">{block.label}</span>

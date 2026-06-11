@@ -16,6 +16,7 @@ import {
 import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums'
 import type { Client } from './client.entity'
 import type { Round } from './round.entity'
+import type { GameFlowItem } from '../../shared/types/flow'
 
 /**
  * Room entity - represents a multiplayer game session
@@ -103,6 +104,15 @@ export class Room {
     array: true,
   })
   public selectedLanguages!: CodingLanguageEnum[]
+
+  /**
+   * The host-built game flow: an ordered list of building blocks (themes and
+   * mini-games) that the round builder expands into the round sequence. Empty
+   * means "no custom flow" and the builder falls back to random questions.
+   * Stored as JSON; one-shot per game (not a reusable library).
+   */
+  @Column('jsonb', { default: () => "'[]'::jsonb" })
+  public gameFlow!: GameFlowItem[]
 
   /**
    * Total rounds to play in this session

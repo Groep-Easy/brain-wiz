@@ -4,6 +4,10 @@
  * @description Host display entry point. Mounts the React app into #root and
  * wires the routes: `/` is the host display (host team), `/console` is the
  * server team's WebSocket debug console.
+ *
+ * NOTE: The leaderboard screen is driven by live game state from inside App —
+ * it is NOT a standalone route because LeaderBoard requires a `leaderboard`
+ * prop that only the game state machine can supply.
  */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -21,14 +25,22 @@ if (!container) {
   throw new Error('Root element #root not found')
 }
 
+const mockLeaderboard = [
+  { playerId: 'p1', name: 'Alice', score: 1500, rank: 1, previousRank: 2, rankChange: 1, connected: true },
+  { playerId: 'p2', name: 'Bob', score: 1200, rank: 2, previousRank: 1, rankChange: -1, connected: true },
+  { playerId: 'p3', name: 'Charlie', score: 900, rank: 3, previousRank: null, rankChange: 0, connected: false },
+]
+
 createRoot(container).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* basename must match the Vite base / Express mount so React Router
+        resolves paths correctly: /host/console matches route path="/console" */}
+    <BrowserRouter basename="/host">
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/console" element={<Console />} />
         <Route path="/flow-editor" element={<FlowEditor />} />
-        <Route path="/screens/leaderboard" element={<LeaderBoard />} />
+        <Route path="/screens/leaderboard" element={<LeaderBoard leaderboard={mockLeaderboard} />} />
         <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
         <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
       </Routes>
