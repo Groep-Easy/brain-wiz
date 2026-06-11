@@ -58,10 +58,9 @@ export function SetupLobby({
 
   useEffect(() => {
     if (roomCode) {
-      const host = window.location.hostname
-      const protocol = window.location.protocol
-      // Build client URL pointing to port 5173
-      const joinUrl = `${protocol}//${host}${window.location.port ? ':5173' : ''}/?code=${roomCode}`
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      const baseHttp = isLocalhost ? 'http://localhost:5173' : window.location.origin
+      const joinUrl = `${baseHttp}/client/?code=${roomCode}`
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {

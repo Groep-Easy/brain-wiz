@@ -37,7 +37,7 @@ import {
 } from './console-utils'
 import './console.css'
 
-const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
 const defaultWsUrl = typeof window !== 'undefined' 
   ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}` 
   : 'ws://localhost:3000'
