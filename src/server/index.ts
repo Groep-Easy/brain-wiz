@@ -11,7 +11,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { config } from '../config/server'
-import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
+import { setSwaggerConfig } from '../config/swagger-doc'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -28,13 +28,7 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Brain-wiz server REST API endpoints')
-    .setVersion(process.env['SERVER_API_VERSION'] ?? '1.0')
-    .addTag('')
-    .build()
-  const documentFactory = (): OpenAPIObject => SwaggerModule.createDocument(app, swaggerConfig)
-  SwaggerModule.setup('api', app, documentFactory)
+  setSwaggerConfig(app)
 
   // eslint-disable-next-line no-console
   console.log(`REST API endpoints: ${config.BASE_URL}/api`)

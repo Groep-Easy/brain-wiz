@@ -98,5 +98,385 @@
     "imagePath": "/images/monalisa.jpg",
     "timeLimitSeconds": 20,
     "basePoints": 1500
+  },
+  {
+    "text": "Which famous painter cut off part of his own ear?",
+    "theme": "art",
+    "difficulty": "medium",
+    "correctAnswers": ["Vincent van Gogh"],
+    "wrongAnswers": ["Pablo Picasso"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which art movement is Salvador Dalí most associated with?",
+    "theme": "art",
+    "difficulty": "hard",
+    "correctAnswers": ["Surrealism"],
+    "wrongAnswers": ["Cubism"],
+    "imagePath": "",
+    "timeLimitSeconds": 25,
+    "basePoints": 2000
+  },
+  {
+    "text": "Which of these are sculptures by Michelangelo?",
+    "theme": "art",
+    "difficulty": "hard",
+    "correctAnswers": ["David", "Pietà"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 25,
+    "basePoints": 2000
+  },
+  {
+    "text": "Which painting technique uses tiny distinct dots of color?",
+    "theme": "art",
+    "difficulty": "medium",
+    "correctAnswers": ["Pointillism"],
+    "wrongAnswers": ["Fresco"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which is the largest country in the world by area?",
+    "theme": "geography",
+    "difficulty": "easy",
+    "correctAnswers": ["Russia"],
+    "wrongAnswers": ["Canada"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which countries share a land border with the United States?",
+    "theme": "geography",
+    "difficulty": "easy",
+    "correctAnswers": ["Canada", "Mexico"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What is the tallest mountain above sea level on Earth?",
+    "theme": "geography",
+    "difficulty": "medium",
+    "correctAnswers": ["Mount Everest"],
+    "wrongAnswers": ["K2"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "On which continent is the Sahara Desert located?",
+    "theme": "geography",
+    "difficulty": "easy",
+    "correctAnswers": ["Africa"],
+    "wrongAnswers": ["Asia"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What gas do plants primarily absorb from the atmosphere?",
+    "theme": "science",
+    "difficulty": "easy",
+    "correctAnswers": ["Carbon dioxide"],
+    "wrongAnswers": ["Oxygen"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which of these are states of matter?",
+    "theme": "science",
+    "difficulty": "easy",
+    "correctAnswers": ["Solid", "Gas"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What is the chemical formula for water?",
+    "theme": "science",
+    "difficulty": "easy",
+    "correctAnswers": ["H2O"],
+    "wrongAnswers": ["CO2"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which language has the most native speakers worldwide?",
+    "theme": "culture",
+    "difficulty": "medium",
+    "correctAnswers": ["Mandarin Chinese"],
+    "wrongAnswers": ["English"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which of these are plays written by William Shakespeare?",
+    "theme": "culture",
+    "difficulty": "medium",
+    "correctAnswers": ["Macbeth", "Othello"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "In which country did the ancient Olympic Games originate?",
+    "theme": "culture",
+    "difficulty": "easy",
+    "correctAnswers": ["Greece"],
+    "wrongAnswers": ["Italy"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What is the traditional Japanese art of paper folding called?",
+    "theme": "culture",
+    "difficulty": "easy",
+    "correctAnswers": ["Origami"],
+    "wrongAnswers": ["Ikebana"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which Indian festival is known as the Festival of Lights?",
+    "theme": "culture",
+    "difficulty": "medium",
+    "correctAnswers": ["Diwali"],
+    "wrongAnswers": ["Holi"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "What does the abbreviation CPU stand for?",
+    "theme": "technology",
+    "difficulty": "easy",
+    "correctAnswers": ["Central Processing Unit"],
+    "wrongAnswers": ["Computer Power Unit"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which company originally developed the Android operating system?",
+    "theme": "technology",
+    "difficulty": "medium",
+    "correctAnswers": ["Google"],
+    "wrongAnswers": ["Apple"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which of these are web browsers?",
+    "theme": "technology",
+    "difficulty": "easy",
+    "correctAnswers": ["Chrome", "Firefox"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "What does HTML stand for?",
+    "theme": "technology",
+    "difficulty": "medium",
+    "correctAnswers": ["HyperText Markup Language"],
+    "wrongAnswers": ["HighText Machine Language"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Who co-founded Microsoft with Paul Allen?",
+    "theme": "technology",
+    "difficulty": "easy",
+    "correctAnswers": ["Bill Gates"],
+    "wrongAnswers": ["Steve Jobs"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Who was the first President of the United States?",
+    "theme": "history",
+    "difficulty": "easy",
+    "correctAnswers": ["George Washington"],
+    "wrongAnswers": ["Abraham Lincoln"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which civilization built the pyramids of Giza?",
+    "theme": "history",
+    "difficulty": "easy",
+    "correctAnswers": ["Ancient Egyptians"],
+    "wrongAnswers": ["Ancient Romans"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "In what year did the Berlin Wall fall?",
+    "theme": "history",
+    "difficulty": "medium",
+    "correctAnswers": ["1989"],
+    "wrongAnswers": ["1991"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which of these were historical empires?",
+    "theme": "history",
+    "difficulty": "medium",
+    "correctAnswers": ["Roman Empire", "Ottoman Empire"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Who was the British Prime Minister for most of World War II?",
+    "theme": "history",
+    "difficulty": "medium",
+    "correctAnswers": ["Winston Churchill"],
+    "wrongAnswers": ["Neville Chamberlain"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "How many players from one team are on the field in a soccer match?",
+    "theme": "sport",
+    "difficulty": "easy",
+    "correctAnswers": ["11"],
+    "wrongAnswers": ["9"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "In which sport would you perform a slam dunk?",
+    "theme": "sport",
+    "difficulty": "easy",
+    "correctAnswers": ["Basketball"],
+    "wrongAnswers": ["Tennis"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which of these are tennis Grand Slam tournaments?",
+    "theme": "sport",
+    "difficulty": "medium",
+    "correctAnswers": ["Wimbledon", "US Open"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "How often are the modern Summer Olympic Games held?",
+    "theme": "sport",
+    "difficulty": "easy",
+    "correctAnswers": ["Every 4 years"],
+    "wrongAnswers": ["Every 2 years"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "In golf, what is a score of one stroke under par called?",
+    "theme": "sport",
+    "difficulty": "medium",
+    "correctAnswers": ["Birdie"],
+    "wrongAnswers": ["Eagle"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which country has won the most FIFA World Cup titles?",
+    "theme": "sport",
+    "difficulty": "medium",
+    "correctAnswers": ["Brazil"],
+    "wrongAnswers": ["Germany"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "How many days are there in a leap year?",
+    "theme": "other",
+    "difficulty": "easy",
+    "correctAnswers": ["366"],
+    "wrongAnswers": ["365"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which of these are basic tastes detected by the tongue?",
+    "theme": "other",
+    "difficulty": "easy",
+    "correctAnswers": ["Sweet", "Bitter"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "How many minutes are there in a full hour?",
+    "theme": "other",
+    "difficulty": "easy",
+    "correctAnswers": ["60"],
+    "wrongAnswers": ["100"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "Which beverage is the most consumed in the world after water?",
+    "theme": "other",
+    "difficulty": "medium",
+    "correctAnswers": ["Tea"],
+    "wrongAnswers": ["Coffee"],
+    "imagePath": "",
+    "timeLimitSeconds": 20,
+    "basePoints": 1500
+  },
+  {
+    "text": "Which of these are even numbers?",
+    "theme": "other",
+    "difficulty": "easy",
+    "correctAnswers": ["2", "4"],
+    "wrongAnswers": [],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
+  },
+  {
+    "text": "How many continents are there on Earth?",
+    "theme": "other",
+    "difficulty": "easy",
+    "correctAnswers": ["7"],
+    "wrongAnswers": ["5"],
+    "imagePath": "",
+    "timeLimitSeconds": 15,
+    "basePoints": 1000
   }
 ]

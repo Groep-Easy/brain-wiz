@@ -6,9 +6,10 @@ import { GameModule } from '../game/game.module.js'
 import { LobbyService } from './lobby.service.js'
 import { RoomsController } from './room.controller.js'
 import { QuestionModule } from '../../question/question.module.js'
+import { FlowModule } from '../../flow/flow.module.js'
 
 @Module({
-  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule],
+  imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule, FlowModule],
   controllers: [RoomsController],
   providers: [LobbyService],
   exports: [LobbyService],
