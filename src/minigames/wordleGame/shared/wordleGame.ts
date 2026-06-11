@@ -1,6 +1,8 @@
-import { WORD_LENGTH } from "./wordleGame.constants"
-import type { Guess, Tile } from "./wordleGame.types"
+import { WORD_LENGTH, MAX_TRIES, FIVE_LETTER_WORDS } from "./wordleGame.constants"
+import type { Guess, Tile, GamePhase } from "./wordleGame.types"
 import type { Letter } from "./wordleGame.constants"
+
+
 // import { title } from "node:process"
 
 
@@ -70,7 +72,35 @@ export function evaluate_guess(guess: string, answer: string): Guess{
 }
 
 
+export function is_solved(guess: string, answer: string): Boolean{
+  return guess == answer
+}
 
-// to do
-// is solved
-// generate answer
+
+function guess_to_string(guess: Guess): string {
+  return guess.word.map(tile => tile.letter).join("")
+}
+
+export function get_game_state(guesses: Guess[], answer: string): GamePhase {
+  if (guesses.length === 0) {
+    return "waiting"
+  }
+  if (guesses.some(guess => is_solved(guess_to_string(guess), answer))) {
+    return "solved"
+  }
+  if (guesses.length >= MAX_TRIES) {
+    return "failed"
+  }
+  return "playing"
+}
+
+
+export function get_random_word(): string {
+  const index = Math.floor(Math.random() * FIVE_LETTER_WORDS.length)
+  return (FIVE_LETTER_WORDS[index] ?? "crane").toUpperCase() // crane is fallback
+}
+
+export function is_valid_word(word: string): boolean {
+  return FIVE_LETTER_WORDS.includes(word.toLowerCase())
+}
+
