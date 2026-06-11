@@ -1,6 +1,6 @@
 # Brain Wiz REST API
 
-This document describes the HTTP REST endpoints available for managing Brain Wiz server entities.
+This document describes the HTTP REST endpoints available for managing Brain Wiz server entities. Also you can interact with the REST API on the `/api` route.
 Currently, real-time gameplay occurs over WebSockets, but content management (such as questions) is handled via a secure REST API.
 
 ---
