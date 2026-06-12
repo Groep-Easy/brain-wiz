@@ -8,10 +8,11 @@ REPO_URL="https://github.com/Groep-Easy/brain-wiz.git"
 SCRIPT_NAME="deploy.sh"
 
 function print_usage() {
-    echo "Usage: ./$SCRIPT_NAME [prod|dev|branch <branch-name>]"
+    echo "Usage: ./$SCRIPT_NAME [prod|dev|branch <branch-name>|current]"
     echo "  prod              : Deploys from master to ~/brain-wiz"
     echo "  dev               : Deploys from develop to ~/brain-wiz-dev (alt ports)"
     echo "  branch <name>     : Deploys from <name> to ~/brain-wiz-branch (alt ports)"
+    echo "  current           : Deploys the current directory as-is without pulling"
     exit 1
 }
 
@@ -37,6 +38,9 @@ elif [ "$ENV" == "dev" ]; then
 elif [ "$ENV" == "branch" ]; then
     REPO_DIR="$HOME/brain-wiz-branch"
     BRANCH="${CUSTOM_BRANCH}"
+elif [ "$ENV" == "current" ]; then
+    REPO_DIR="$PWD"
+    BRANCH="current"
 else
     echo "ERROR: Invalid environment '$ENV'"
     print_usage
@@ -68,14 +72,18 @@ fi
 # 2. Synchronize Repository
 # -------------------------------------------------------------------------
 echo "[2/8] Synchronizing Repository..."
-if [ ! -d "$REPO_DIR/.git" ]; then
-    echo "      Repository not found. Cloning into $REPO_DIR..."
-    git clone -b "$BRANCH" "$REPO_URL" "$REPO_DIR"
+if [ "$ENV" != "current" ]; then
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        echo "      Repository not found. Cloning into $REPO_DIR..."
+        git clone -b "$BRANCH" "$REPO_URL" "$REPO_DIR"
+    else
+        echo "      Fetching latest from origin..."
+        git -C "$REPO_DIR" fetch origin "$BRANCH"
+        echo "      Hard resetting to origin/$BRANCH..."
+        git -C "$REPO_DIR" reset --hard "origin/$BRANCH"
+    fi
 else
-    echo "      Fetching latest from origin..."
-    git -C "$REPO_DIR" fetch origin "$BRANCH"
-    echo "      Hard resetting to origin/$BRANCH..."
-    git -C "$REPO_DIR" reset --hard "origin/$BRANCH"
+    echo "      Skipping synchronization for 'current' environment."
 fi
 
 # -------------------------------------------------------------------------
@@ -88,35 +96,39 @@ SCRIPT_DIR="$(dirname "$RUNNING_SCRIPT")"
 
 cd "$REPO_DIR"
 
-# If the user ran the script from outside the target repo directory, copy .env to the target
-if [ "$SCRIPT_DIR" != "$REPO_DIR" ] && [ -f "$SCRIPT_DIR/.env" ]; then
-    echo "      Copying .env from $SCRIPT_DIR to $REPO_DIR..."
-    cp "$SCRIPT_DIR/.env" "$REPO_DIR/.env"
-fi
-
-REPO_SCRIPT_PATH="$REPO_DIR/$SCRIPT_NAME"
-
-if [ -f "$REPO_SCRIPT_PATH" ] && [ -f "$RUNNING_SCRIPT" ]; then
-    # We use shasum or sha256sum depending on OS
-    if command -v sha256sum >/dev/null 2>&1; then
-        RUNNING_HASH=$(sha256sum "$RUNNING_SCRIPT" | awk '{print $1}')
-        REPO_HASH=$(sha256sum "$REPO_SCRIPT_PATH" | awk '{print $1}')
-    elif command -v shasum >/dev/null 2>&1; then
-        RUNNING_HASH=$(shasum -a 256 "$RUNNING_SCRIPT" | awk '{print $1}')
-        REPO_HASH=$(shasum -a 256 "$REPO_SCRIPT_PATH" | awk '{print $1}')
-    else
-        RUNNING_HASH="1"
-        REPO_HASH="1"
+if [ "$ENV" != "current" ]; then
+    # If the user ran the script from outside the target repo directory, copy .env to the target
+    if [ "$SCRIPT_DIR" != "$REPO_DIR" ] && [ -f "$SCRIPT_DIR/.env" ]; then
+        echo "      Copying .env from $SCRIPT_DIR to $REPO_DIR..."
+        cp "$SCRIPT_DIR/.env" "$REPO_DIR/.env"
     fi
 
-    if [ "$RUNNING_HASH" != "$REPO_HASH" ]; then
-        echo "=================================================================="
-        echo "ERROR: The running deployment script differs from the repository."
-        echo "Please restart the script so the updated version executes:"
-        echo "  cd $REPO_DIR && ./$SCRIPT_NAME $ENV"
-        echo "=================================================================="
-        exit 1
+    REPO_SCRIPT_PATH="$REPO_DIR/$SCRIPT_NAME"
+
+    if [ -f "$REPO_SCRIPT_PATH" ] && [ -f "$RUNNING_SCRIPT" ]; then
+        # We use shasum or sha256sum depending on OS
+        if command -v sha256sum >/dev/null 2>&1; then
+            RUNNING_HASH=$(sha256sum "$RUNNING_SCRIPT" | awk '{print $1}')
+            REPO_HASH=$(sha256sum "$REPO_SCRIPT_PATH" | awk '{print $1}')
+        elif command -v shasum >/dev/null 2>&1; then
+            RUNNING_HASH=$(shasum -a 256 "$RUNNING_SCRIPT" | awk '{print $1}')
+            REPO_HASH=$(shasum -a 256 "$REPO_SCRIPT_PATH" | awk '{print $1}')
+        else
+            RUNNING_HASH="1"
+            REPO_HASH="1"
+        fi
+
+        if [ "$RUNNING_HASH" != "$REPO_HASH" ]; then
+            echo "=================================================================="
+            echo "ERROR: The running deployment script differs from the repository."
+            echo "Please restart the script so the updated version executes:"
+            echo "  cd $REPO_DIR && ./$SCRIPT_NAME $ENV"
+            echo "=================================================================="
+            exit 1
+        fi
     fi
+else
+    echo "[3/8] Skipping script synchronization for 'current' environment."
 fi
 
 # -------------------------------------------------------------------------
