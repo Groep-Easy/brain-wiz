@@ -268,7 +268,7 @@ export COMPOSE_PROJECT_NAME="brainwiz_${ENV}"
 DOCKER_CMD="docker compose"
 if ! docker ps >/dev/null 2>&1; then
     if sudo -n docker ps >/dev/null 2>&1; then
-        DOCKER_CMD="sudo docker compose"
+        DOCKER_CMD="sudo -E docker compose"
         echo "      Note: Using sudo for docker commands."
     else
         echo "ERROR: Cannot access Docker. Run as a user with Docker permissions or configure sudoers."
@@ -283,7 +283,7 @@ echo "      Pulling images..."
 $DOCKER_CMD pull
 
 echo "[8/8] Starting Containers..."
-$DOCKER_CMD up -d
+$DOCKER_CMD up --build -d
 
 # -------------------------------------------------------------------------
 # Done — print all accessible URLs
