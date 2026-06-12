@@ -9,6 +9,7 @@ on:
     branches:
       - develop
       - master
+      - chore/pipeline-build
   workflow_dispatch:
 
 permissions:
@@ -106,7 +107,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --progress=false
+        run: npm i --prefer-offline --no-audit --progress=false
 
       - name: Run build
         run: npm run build
