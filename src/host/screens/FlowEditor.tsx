@@ -63,6 +63,23 @@ export function FlowEditor(): React.JSX.Element {
     [flow.length]
   )
 
+  const blockMetaById = useMemo(() => new Map(catalog.map((b) => [b.id, b])), [catalog])
+  const resolveBlock = (id: string): BlockDef | undefined => blockMetaById.get(id) ?? blockById(id)
+
+  const addCellPos = useMemo(() => {
+    if (flow.length >= MAX_FLOW_BLOCKS) return null
+    const withAdd = buildSerpentine(flow.length + 1, MAX_FLOW_COLUMNS)
+    return withAdd.cells.find((c) => c.logicalIndex === flow.length) ?? null
+  }, [flow.length])
+
+  const addBlock = () => {
+    setFlow((prev) => {
+      if (prev.length >= MAX_FLOW_BLOCKS) return prev
+      const pick = catalog[Math.floor(Math.random() * catalog.length)]
+      return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
+    })
+  }
+
   useEffect(() => {
     let active = true
     void (async () => {
@@ -164,7 +181,7 @@ export function FlowEditor(): React.JSX.Element {
 
     if (source === 'palette') {
       const blockId = e.dataTransfer.getData('application/x-block')
-      if (!blockById(blockId)) return
+      if (!resolveBlock(blockId)) return
       setFlow((prev) => {
         const next = [...prev]
         next.splice(index, 0, { uid: nextUid(), blockId })
@@ -284,7 +301,7 @@ export function FlowEditor(): React.JSX.Element {
             {cells.map((cell) => {
               const item = flow[cell.logicalIndex]
               if (!item) return null
-              const block = blockById(item.blockId)
+              const block = resolveBlock(item.blockId)
               if (!block) return null
               const lastCell = cell.visualPos === count - 1
               return (
@@ -354,6 +371,23 @@ export function FlowEditor(): React.JSX.Element {
             })}
             {count === 0 && (
               <div className="canvas-empty">Drag blocks here to build your game flow</div>
+            )}
+            {addCellPos && (
+              <div
+                className="canvas-cell"
+                key="canvas-add"
+                style={{ gridRow: addCellPos.row + 1, gridColumn: addCellPos.col }}
+              >
+                <button
+                  type="button"
+                  className="canvas-add"
+                  onClick={addBlock}
+                  title="Add a block"
+                  aria-label="Add a block"
+                >
+                  +
+                </button>
+              </div>
             )}
           </div>
         </section>

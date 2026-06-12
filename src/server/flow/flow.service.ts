@@ -72,13 +72,26 @@ export class FlowService {
     const catalog = await this.getCatalog()
     if (catalog.length === 0) return []
 
+    const shuffled = this.shuffle([...catalog])
     const flow: GameFlowItem[] = []
     for (let i = 0; i < count; i++) {
-      const pick = catalog[Math.floor(Math.random() * catalog.length)]
+      const pick = shuffled[i % shuffled.length]
       if (!pick) continue
       flow.push(this.toFlowItem(pick.id, pick.kind, pick.available, undefined))
     }
     return flow
+  }
+
+  private shuffle<T>(items: T[]): T[] {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const a = items[i]
+      const b = items[j]
+      if (a === undefined || b === undefined) continue
+      items[i] = b
+      items[j] = a
+    }
+    return items
   }
 
   /** Validate and normalize a host-built flow so it is always playable. */

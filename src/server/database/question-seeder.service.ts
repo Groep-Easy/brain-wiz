@@ -2,6 +2,8 @@ import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Question } from '../entities/question.entity'
+import { DEFAULT_BASE_POINTS } from './question-seeder.constants'
+import { SeedQuestion } from './question-seeder.types'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -24,19 +26,32 @@ export class QuestionSeederService implements OnApplicationBootstrap {
   }
 
   private async seedQuestions(): Promise<void> {
-    const filePath = path.resolve(process.cwd(), 'assets/test-data/questions.json')
-    if (!fs.existsSync(filePath)) {
-      this.logger.warn(`Seed file not found at ${filePath}. Skipping question seeding.`)
+    const dataDir = path.resolve(process.cwd(), 'assets/test-data')
+    if (!fs.existsSync(dataDir)) {
+      this.logger.warn(`Seed directory not found at ${dataDir}. Skipping question seeding.`)
       return
     }
 
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-    const seedQuestions = JSON.parse(fileContent)
+    const files = fs.readdirSync(dataDir).filter((file) => file.endsWith('.json'))
+    if (files.length === 0) {
+      this.logger.warn(`No seed files found in ${dataDir}. Skipping question seeding.`)
+      return
+    }
+
+    const seedQuestions = files.flatMap((file) => this.readSeedFile(path.join(dataDir, file)))
 
     let insertedCount = 0
+    let skippedCount = 0
+    const seenTexts = new Set<string>()
     for (const q of seedQuestions) {
+      // Skip duplicates within the same run (themed files overlap with questions.json).
+      if (seenTexts.has(q.text)) continue
+      seenTexts.add(q.text)
+
       const existing = await this.questions.findOne({ where: { text: q.text } })
-      if (!existing) {
+      if (existing) continue
+
+      try {
         const question = this.questions.create({
           text: q.text,
           theme: q.theme,
@@ -45,17 +60,47 @@ export class QuestionSeederService implements OnApplicationBootstrap {
           wrongAnswers: q.wrongAnswers,
           imagePath: q.imagePath || '',
           timeLimitSeconds: q.timeLimitSeconds,
-          basePoints: q.basePoints,
+          basePoints: q.basePoints ?? DEFAULT_BASE_POINTS,
         })
         await this.questions.save(question)
         insertedCount++
+      } catch (error) {
+        skippedCount++
+        this.logger.warn(
+          `Skipped invalid seed question "${q.text}": ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        )
       }
     }
 
     if (insertedCount > 0) {
-      this.logger.log(`Successfully seeded ${insertedCount} new questions.`)
+      this.logger.log(
+        `Successfully seeded ${insertedCount} new questions from ${files.length} file(s).` +
+          (skippedCount > 0 ? ` Skipped ${skippedCount} invalid question(s).` : '')
+      )
+    } else if (skippedCount > 0) {
+      this.logger.warn(`No questions seeded: all ${skippedCount} candidate(s) were invalid.`)
     } else {
       this.logger.log('Questions already seeded, no new insertions needed.')
+    }
+  }
+
+  private readSeedFile(filePath: string): SeedQuestion[] {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+      if (!Array.isArray(parsed)) {
+        this.logger.warn(`Seed file ${path.basename(filePath)} is not a JSON array. Skipping.`)
+        return []
+      }
+      return parsed as SeedQuestion[]
+    } catch (error) {
+      this.logger.warn(
+        `Failed to read seed file ${path.basename(filePath)}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      )
+      return []
     }
   }
 }

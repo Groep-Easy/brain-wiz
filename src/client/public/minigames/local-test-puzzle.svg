@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900">
+  <rect width="900" height="900" fill="#f7fafc" />
+  <rect x="0" y="0" width="300" height="300" fill="#0f766e" />
+  <rect x="300" y="0" width="300" height="300" fill="#2563eb" />
+  <rect x="600" y="0" width="300" height="300" fill="#d97706" />
+  <rect x="0" y="300" width="300" height="300" fill="#dc2626" />
+  <rect x="300" y="300" width="300" height="300" fill="#7c3aed" />
+  <rect x="600" y="300" width="300" height="300" fill="#0891b2" />
+  <rect x="0" y="600" width="300" height="300" fill="#65a30d" />
+  <rect x="300" y="600" width="300" height="300" fill="#be185d" />
+  <rect x="600" y="600" width="300" height="300" fill="#ffffff" />
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-size="118" font-weight="700">
+    <text x="150" y="188" text-anchor="middle">1</text>
+    <text x="450" y="188" text-anchor="middle">2</text>
+    <text x="750" y="188" text-anchor="middle">3</text>
+    <text x="150" y="488" text-anchor="middle">4</text>
+    <text x="450" y="488" text-anchor="middle">5</text>
+    <text x="750" y="488" text-anchor="middle">6</text>
+    <text x="150" y="788" text-anchor="middle">7</text>
+    <text x="450" y="788" text-anchor="middle">8</text>
+  </g>
+  <path
+    d="M0 300H900M0 600H900M300 0V900M600 0V900"
+    stroke="#111827"
+    stroke-width="12"
+  />
+</svg>
