@@ -59,7 +59,7 @@ async function bootstrap(): Promise<void> {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
   setSwaggerConfig(app)
-  await app.listen(config.PORT, '0.0.0.0')
+  await app.listen(config.PORT, '127.0.0.1')
   // eslint-disable-next-line no-console
   console.log(`REST API endpoints: ${config.BASE_URL}/api`)
 }
