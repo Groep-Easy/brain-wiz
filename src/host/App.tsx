@@ -22,6 +22,7 @@ import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurfa
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
 import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
+import intro from '../shared/SFX/intro.wav'
 import logo from './assets/BrainWiz logo.png'
 
 import './styles/index.css'
@@ -293,6 +294,7 @@ export function App(): React.JSX.Element {
     if (!question) {
       return (
         <main className="app">
+          <audio id="intro-music" autoPlay src={intro} preload="auto"></audio>
           <div className="welcome-screen">
             <div className="welcome-card">
               <p>Preparing next question…</p>
