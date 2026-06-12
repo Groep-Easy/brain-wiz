@@ -2,7 +2,7 @@
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  isLocalhost,
+  isViteDevServer,
   getBackendWsUrl,
   getBackendHttpUrl,
   getClientBaseUrl,
@@ -20,24 +20,24 @@ describe('Env Utils', () => {
     ;(global as any).window = originalWindow
   })
 
-  describe('isLocalhost', () => {
+  describe('isViteDevServer', () => {
     it('returns false when window is undefined', () => {
-      assert.equal(isLocalhost(), false)
+      assert.equal(isViteDevServer(), false)
     })
 
-    it('returns true for localhost hostname', () => {
-      ;(global as any).window = { location: { hostname: 'localhost' } }
-      assert.equal(isLocalhost(), true)
+    it('returns true for port 5173', () => {
+      ;(global as any).window = { location: { port: '5173' } }
+      assert.equal(isViteDevServer(), true)
     })
 
-    it('returns true for 127.0.0.1 hostname', () => {
-      ;(global as any).window = { location: { hostname: '127.0.0.1' } }
-      assert.equal(isLocalhost(), true)
+    it('returns true for port 5174', () => {
+      ;(global as any).window = { location: { port: '5174' } }
+      assert.equal(isViteDevServer(), true)
     })
 
-    it('returns false for production hostname', () => {
-      ;(global as any).window = { location: { hostname: 'brainwiz.com' } }
-      assert.equal(isLocalhost(), false)
+    it('returns false for other ports', () => {
+      ;(global as any).window = { location: { port: '3000' } }
+      assert.equal(isViteDevServer(), false)
     })
   })
 
@@ -46,23 +46,33 @@ describe('Env Utils', () => {
       assert.equal(getBackendWsUrl('wss://custom.url'), 'wss://custom.url')
     })
 
-    it('returns ws://localhost:3000 if localhost', () => {
+    it('returns ws://hostname:3000 if vite dev server', () => {
       ;(global as any).window = {
-        location: { hostname: 'localhost', protocol: 'http:', host: 'localhost:5173' },
+        location: { hostname: 'localhost', port: '5173' },
       }
       assert.equal(getBackendWsUrl(), 'ws://localhost:3000')
     })
 
-    it('returns ws://host if not localhost and protocol is http:', () => {
+    it('returns ws://host if not vite dev server and protocol is http:', () => {
       ;(global as any).window = {
-        location: { hostname: 'brainwiz.local', protocol: 'http:', host: 'brainwiz.local:8080' },
+        location: {
+          hostname: 'brainwiz.local',
+          protocol: 'http:',
+          host: 'brainwiz.local:8080',
+          port: '8080',
+        },
       }
       assert.equal(getBackendWsUrl(), 'ws://brainwiz.local:8080')
     })
 
-    it('returns wss://host if not localhost and protocol is https:', () => {
+    it('returns wss://host if not vite dev server and protocol is https:', () => {
       ;(global as any).window = {
-        location: { hostname: 'brainwiz.com', protocol: 'https:', host: 'brainwiz.com' },
+        location: {
+          hostname: 'brainwiz.com',
+          protocol: 'https:',
+          host: 'brainwiz.com',
+          port: '443',
+        },
       }
       assert.equal(getBackendWsUrl(), 'wss://brainwiz.com')
     })
@@ -83,14 +93,14 @@ describe('Env Utils', () => {
   })
 
   describe('getClientBaseUrl', () => {
-    it('returns http://localhost:5173 if localhost', () => {
-      ;(global as any).window = { location: { hostname: 'localhost' } }
+    it('returns http://hostname:5173 if vite dev server', () => {
+      ;(global as any).window = { location: { hostname: 'localhost', port: '5173' } }
       assert.equal(getClientBaseUrl(), 'http://localhost:5173')
     })
 
-    it('returns window origin if window is defined and not localhost', () => {
+    it('returns window origin if window is defined and not vite dev server', () => {
       ;(global as any).window = {
-        location: { hostname: 'brainwiz.com', origin: 'https://brainwiz.com' },
+        location: { hostname: 'brainwiz.com', port: '443', origin: 'https://brainwiz.com' },
       }
       assert.equal(getClientBaseUrl(), 'https://brainwiz.com')
     })
