@@ -19,8 +19,9 @@ import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
 import { RoomStatusEnum } from '../../entities/enums'
 import * as EVENTS from '../../../shared/events/socket-events'
-import { ROOM, PLAYER } from '../../../shared/constants/game-config'
+import { ROOM } from '../../../shared/constants/game-config'
 import { isValidRoomCode } from '../../../shared/utils/room-code'
+import { validateDisplayName } from '../../../shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
@@ -87,14 +88,9 @@ export class LobbyService {
       return
     }
     const displayName = playerName.trim()
-    if (
-      displayName.length < PLAYER.NAME_MIN_LENGTH ||
-      displayName.length > PLAYER.NAME_MAX_LENGTH
-    ) {
-      this.reject(
-        socket,
-        `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
-      )
+    const nameResult = validateDisplayName(displayName)
+    if (!nameResult.ok) {
+      this.reject(socket, nameResult.reason)
       return
     }
 
