@@ -22,7 +22,15 @@ import {
   type PuzzleStatus,
 } from './SlidingPuzzle.constants.js'
 import type { SlidingPuzzleProps } from './SlidingPuzzle.types.js'
+import defaultPuzzleImage from './default-puzzle-image.svg?url'
 import './SlidingPuzzle.css'
+
+const DEFAULT_IMAGE_ID = 'local-test-grid'
+
+function resolveImageUrl(image: { id?: string; url?: string }): string {
+  if (image.id === DEFAULT_IMAGE_ID || !image.url) return defaultPuzzleImage
+  return image.url
+}
 
 function getTileImageStyle(imageUrl: string, value: number): CSSProperties {
   return {
@@ -204,7 +212,7 @@ export function SlidingPuzzle({
                     handleTileClick(index)
                   }}
                   role="gridcell"
-                  style={getTileImageStyle(puzzle.image.url, value)}
+                  style={getTileImageStyle(resolveImageUrl(puzzle.image), value)}
                   type="button"
                 >
                   <span className="tile-number">{value.toString()}</span>

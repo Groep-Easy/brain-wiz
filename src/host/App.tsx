@@ -313,15 +313,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <GameOver
@@ -329,6 +320,15 @@ export function App(): React.JSX.Element {
         finalScores={finalScores || {}}
         onBackToMenu={handleCloseLobby}
       />
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+      </main>
     )
   }
 

@@ -175,8 +175,32 @@
   color: #fff;
 }
 
-/* A fixed-column snake grid: blocks always line up in columns, so nothing can
-   overflow. Columns fill the width up to a max size, then the grid is centred. */
+.canvas-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.canvas-add:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
 .flow-canvas-track {
   --flow-col-gap: clamp(34px, 4vw, 58px);
   --flow-row-gap: clamp(30px, 4vw, 52px);

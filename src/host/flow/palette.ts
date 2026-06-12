@@ -14,11 +14,20 @@ export const MAX_QUESTIONS_PER_BLOCK = 20
 
 /** Every block a host can place in a flow: trivia themes + mini-games. */
 export const PALETTE: BlockDef[] = [
-  { id: 'theme-random', label: 'Random', kind: 'theme', icon: '🎲' },
-  { id: 'theme-movies', label: 'Movies', kind: 'theme', icon: '🎬' },
-  { id: 'theme-music', label: 'Music', kind: 'theme', icon: '🎵' },
+  { id: 'theme-history', label: 'History', kind: 'theme', icon: '🏺' },
+  { id: 'theme-science', label: 'Science', kind: 'theme', icon: '🔬' },
+  { id: 'theme-sport', label: 'Sport', kind: 'theme', icon: '⚽' },
+  { id: 'theme-culture', label: 'Culture', kind: 'theme', icon: '🎭' },
+  { id: 'theme-geography', label: 'Geography', kind: 'theme', icon: '🌍' },
+  { id: 'theme-technology', label: 'Technology', kind: 'theme', icon: '💻' },
+  { id: 'theme-art', label: 'Art', kind: 'theme', icon: '🎨' },
   { id: 'theme-coding', label: 'Coding', kind: 'theme', icon: '💻' },
-  { id: 'theme-sports', label: 'Sports', kind: 'theme', icon: '⚽' },
+  { id: 'theme-films', label: 'Films', kind: 'theme', icon: '🎬' },
+  { id: 'theme-gaming', label: 'Gaming', kind: 'theme', icon: '🎮' },
+  { id: 'theme-general', label: 'General', kind: 'theme', icon: '🧠' },
+  { id: 'theme-internet', label: 'Internet', kind: 'theme', icon: '🌐' },
+  { id: 'theme-music', label: 'Music', kind: 'theme', icon: '🎵' },
+  { id: 'theme-other', label: 'Other', kind: 'theme', icon: '❓' },
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
 ]
@@ -43,8 +52,13 @@ export const nextUid = (): string => `f${Date.now()}-${uidCounter++}`
 /** Build a randomized flow from a given set of blocks (defaults to the palette). */
 export function randomFlowFrom(blocks: BlockDef[], size: number = DEFAULT_FLOW_SIZE): FlowItem[] {
   const pool = blocks.length > 0 ? blocks : PALETTE
-  return Array.from({ length: size }, () => {
-    const block = pool[Math.floor(Math.random() * pool.length)]!
+  const shuffled = [...pool]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+  }
+  return Array.from({ length: size }, (_, i) => {
+    const block = shuffled[i % shuffled.length]!
     return { uid: nextUid(), blockId: block.id }
   })
 }

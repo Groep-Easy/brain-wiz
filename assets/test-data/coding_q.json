@@ -1,0 +1,302 @@
+[
+    {
+        "text": "What does CPU stand for?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Central Processing Unit"
+        ],
+        "wrongAnswers": [
+            "Computer Processing Unit",
+            "Central Program Utility",
+            "Core Processing Utility"
+        ],
+        "imagePath": "/images/cpu.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are programming languages?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Python",
+            "JavaScript"
+        ],
+        "wrongAnswers": [
+            "Photoshop",
+            "Excel"
+        ],
+        "imagePath": "/images/programming-languages.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What does HTML stand for?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "HyperText Markup Language"
+        ],
+        "wrongAnswers": [
+            "HighText Machine Language",
+            "Hyper Transfer Markup Language",
+            "Home Tool Markup Language"
+        ],
+        "imagePath": "/images/html.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which data structures follow FIFO?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Queue"
+        ],
+        "wrongAnswers": [
+            "Stack",
+            "Tree",
+            "Graph"
+        ],
+        "imagePath": "/images/queue.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which data structures follow LIFO?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Stack"
+        ],
+        "wrongAnswers": [
+            "Queue",
+            "Array",
+            "Graph"
+        ],
+        "imagePath": "/images/stack.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the average time complexity of Binary Search?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "O(log n)"
+        ],
+        "wrongAnswers": [
+            "O(n)",
+            "O(n²)",
+            "O(1)"
+        ],
+        "imagePath": "/images/binary-search.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are NoSQL databases?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "MongoDB",
+            "Redis"
+        ],
+        "wrongAnswers": [
+            "MySQL",
+            "PostgreSQL"
+        ],
+        "imagePath": "/images/database.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does API stand for?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Application Programming Interface"
+        ],
+        "wrongAnswers": [
+            "Advanced Program Integration",
+            "Application Process Identifier",
+            "Automated Program Interface"
+        ],
+        "imagePath": "/images/api.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which search algorithms are graph traversal algorithms?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Breadth-First Search",
+            "Depth-First Search"
+        ],
+        "wrongAnswers": [
+            "Quick Sort",
+            "Binary Search"
+        ],
+        "imagePath": "/images/search.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does RAM stand for?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Random Access Memory"
+        ],
+        "wrongAnswers": [
+            "Read Access Memory",
+            "Runtime Allocation Memory",
+            "Rapid Action Memory"
+        ],
+        "imagePath": "/images/ram.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are version control systems?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Git",
+            "Subversion"
+        ],
+        "wrongAnswers": [
+            "MongoDB",
+            "Docker"
+        ],
+        "imagePath": "/images/git.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is Git primarily used for?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Version Control"
+        ],
+        "wrongAnswers": [
+            "Database Management",
+            "Cloud Hosting",
+            "Machine Learning"
+        ],
+        "imagePath": "/images/version-control.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which language runs natively in web browsers?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "JavaScript"
+        ],
+        "wrongAnswers": [
+            "Python",
+            "Java",
+            "C++"
+        ],
+        "imagePath": "/images/javascript.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are object-oriented programming languages?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Java",
+            "C#"
+        ],
+        "wrongAnswers": [
+            "HTML",
+            "CSS"
+        ],
+        "imagePath": "/images/oop.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does SQL stand for?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Structured Query Language"
+        ],
+        "wrongAnswers": [
+            "Simple Query Language",
+            "System Query Logic",
+            "Structured Question Language"
+        ],
+        "imagePath": "/images/sql.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these sorting algorithms have an average complexity of O(n log n)?",
+        "theme": "coding",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Merge Sort",
+            "Quick Sort"
+        ],
+        "wrongAnswers": [
+            "Bubble Sort",
+            "Selection Sort"
+        ],
+        "imagePath": "/images/sorting.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "What does OOP stand for?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Object-Oriented Programming"
+        ],
+        "wrongAnswers": [
+            "Open Object Processing",
+            "Online Operation Protocol",
+            "Object Output Program"
+        ],
+        "imagePath": "/images/oop-concept.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are operating systems?",
+        "theme": "coding",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Linux",
+            "Windows"
+        ],
+        "wrongAnswers": [
+            "Chrome",
+            "Git"
+        ],
+        "imagePath": "/images/os.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are frontend web technologies?",
+        "theme": "coding",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "HTML",
+            "CSS"
+        ],
+        "wrongAnswers": [
+            "MySQL",
+            "PostgreSQL"
+        ],
+        "imagePath": "/images/frontend.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are common programming paradigms?",
+        "theme": "coding",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Object-Oriented Programming",
+            "Functional Programming"
+        ],
+        "wrongAnswers": [
+            "Spreadsheet Programming",
+            "Document Programming"
+        ],
+        "imagePath": "/images/paradigms.jpg",
+        "timeLimitSeconds": 25
+    }
+]

@@ -1,0 +1,302 @@
+[
+    {
+        "text": "What is the capital city of France?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Paris"
+        ],
+        "wrongAnswers": [
+            "London",
+            "Berlin",
+            "Madrid"
+        ],
+        "imagePath": "/images/paris.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are continents?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Africa",
+            "Asia"
+        ],
+        "wrongAnswers": [
+            "Greenland",
+            "Russia"
+        ],
+        "imagePath": "/images/continents.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the largest ocean on Earth?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Pacific Ocean"
+        ],
+        "wrongAnswers": [
+            "Atlantic Ocean",
+            "Indian Ocean",
+            "Arctic Ocean"
+        ],
+        "imagePath": "/images/pacific.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries are located in Europe?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Germany",
+            "Italy"
+        ],
+        "wrongAnswers": [
+            "Brazil",
+            "Japan"
+        ],
+        "imagePath": "/images/europe.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the longest river in the world?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Nile River"
+        ],
+        "wrongAnswers": [
+            "Amazon River",
+            "Mississippi River",
+            "Yangtze River"
+        ],
+        "imagePath": "/images/nile.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these countries are in South America?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Brazil",
+            "Argentina"
+        ],
+        "wrongAnswers": [
+            "Mexico",
+            "Canada"
+        ],
+        "imagePath": "/images/south-america.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the capital city of Japan?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Tokyo"
+        ],
+        "wrongAnswers": [
+            "Kyoto",
+            "Osaka",
+            "Seoul"
+        ],
+        "imagePath": "/images/tokyo.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are U.S. states?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "California",
+            "Texas"
+        ],
+        "wrongAnswers": [
+            "Toronto",
+            "Vancouver"
+        ],
+        "imagePath": "/images/usa.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the tallest mountain in the world?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Mount Everest"
+        ],
+        "wrongAnswers": [
+            "K2",
+            "Mont Blanc",
+            "Kilimanjaro"
+        ],
+        "imagePath": "/images/everest.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries have German as an official language?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Germany",
+            "Austria"
+        ],
+        "wrongAnswers": [
+            "Spain",
+            "Portugal"
+        ],
+        "imagePath": "/images/german-speaking.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which desert is the largest hot desert in the world?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Sahara Desert"
+        ],
+        "wrongAnswers": [
+            "Gobi Desert",
+            "Kalahari Desert",
+            "Arabian Desert"
+        ],
+        "imagePath": "/images/sahara.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these cities are capitals?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Amsterdam",
+            "Ottawa"
+        ],
+        "wrongAnswers": [
+            "Sydney",
+            "New York City"
+        ],
+        "imagePath": "/images/capitals.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What country has the largest population in the world?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "India"
+        ],
+        "wrongAnswers": [
+            "China",
+            "United States",
+            "Indonesia"
+        ],
+        "imagePath": "/images/india.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these countries are island nations?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Japan",
+            "Iceland"
+        ],
+        "wrongAnswers": [
+            "Switzerland",
+            "Austria"
+        ],
+        "imagePath": "/images/islands.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the capital city of Canada?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Ottawa"
+        ],
+        "wrongAnswers": [
+            "Toronto",
+            "Montreal",
+            "Vancouver"
+        ],
+        "imagePath": "/images/ottawa.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries are part of Scandinavia?",
+        "theme": "geography",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Norway",
+            "Sweden"
+        ],
+        "wrongAnswers": [
+            "Finland",
+            "Iceland"
+        ],
+        "imagePath": "/images/scandinavia.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which continent is Egypt located on?",
+        "theme": "geography",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Africa"
+        ],
+        "wrongAnswers": [
+            "Asia",
+            "Europe",
+            "South America"
+        ],
+        "imagePath": "/images/egypt.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these rivers flow through Europe?",
+        "theme": "geography",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Danube",
+            "Rhine"
+        ],
+        "wrongAnswers": [
+            "Amazon",
+            "Mississippi"
+        ],
+        "imagePath": "/images/europe-rivers.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "What is the smallest country in the world?",
+        "theme": "geography",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Vatican City"
+        ],
+        "wrongAnswers": [
+            "Monaco",
+            "San Marino",
+            "Liechtenstein"
+        ],
+        "imagePath": "/images/vatican.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these countries border Germany?",
+        "theme": "geography",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "France",
+            "Poland"
+        ],
+        "wrongAnswers": [
+            "Spain",
+            "Portugal"
+        ],
+        "imagePath": "/images/germany-border.jpg",
+        "timeLimitSeconds": 25
+    }
+]
