@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Player } from '../../shared/types/index'
+import { makeServerURL } from '../../shared/utils/url-handeler'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
 import '../styles/setup_lobby.css'
+import * as EVENTS from '@/shared/events/socket-events'
 
 interface SetupLobbyProps {
   roomCode: string
@@ -62,6 +64,9 @@ export function SetupLobby({
   const handleKick = (playerName: string) => {
     // eslint-disable-next-line no-console
     console.log(`Kick player: ${playerName} (Backend kick API not yet implemented)`)
+    // socket.emit(EVENTS.PLAYER_KICK, {
+    //   playerId,
+    // })
   }
 
   return (

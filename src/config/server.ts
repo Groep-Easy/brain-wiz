@@ -8,6 +8,7 @@
  * IMPORTANT: Environment validation happens here on startup. If any required
  * variables are missing, the application will fail fast with a clear error.
  */
+import { env } from '../shared/utils/env-handelers'
 import { getDatabaseConfig } from './database'
 
 const DEFAULT_PORT = 3000
@@ -18,7 +19,7 @@ const MAX_PORT_NUMBER = 65535
  */
 function validatePort(port: number): void {
   if (port < 1 || port > MAX_PORT_NUMBER) {
-    throw new Error(`Invalid PORT: must be between 1 and ${MAX_PORT_NUMBER}, got ${port}`)
+    throw new Error(`Invalid SERVER_PORT: must be between 1 and ${MAX_PORT_NUMBER}, got ${port}`)
   }
 }
 
@@ -26,12 +27,12 @@ function validatePort(port: number): void {
  * Parse and validate port from environment
  */
 function parsePort(): number {
-  const portStr = process.env['PORT']
+  const portStr = process.env['SERVER_PORT']
   if (!portStr) return DEFAULT_PORT
 
   const port = parseInt(portStr, 10)
   if (isNaN(port)) {
-    throw new Error(`Invalid PORT: must be a number, got "${portStr}"`)
+    throw new Error(`Invalid SERVER_PORT: must be a number, got "${portStr}"`)
   }
 
   validatePort(port)
@@ -113,9 +114,9 @@ const databaseConfig = getDatabaseConfig()
 // Base URL validated on startup
 const baseUrl = parseBaseUrl(port)
 
-export const config = Object.freeze({
-  PORT: port,
-  NODE_ENV: nodeEnv,
+export const server_config = Object.freeze({
+  PORT: env.SERVER_PORT,
+  NODE_ENV: env.NODE_ENV,
   BASE_URL: baseUrl,
   CORS_ORIGINS: Object.freeze(corsOrigins),
   ADMIN_API_KEY: adminApiKey,

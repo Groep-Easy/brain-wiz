@@ -10,7 +10,7 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
-import { config } from '../config/server'
+import { server_config } from '../config/server'
 import { setSwaggerConfig } from '../config/swagger-doc'
 
 async function bootstrap(): Promise<void> {
@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
   // Allow the host display and phone client (served from their own Vite dev
   // origins) to call the HTTP API cross-origin, e.g. POST /rooms.
   app.enableCors({
-    origin: [...config.CORS_ORIGINS],
+    origin: [...server_config.CORS_ORIGINS],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   })
 
@@ -30,10 +30,10 @@ async function bootstrap(): Promise<void> {
 
   setSwaggerConfig(app)
 
-  await app.listen(config.PORT, '0.0.0.0')
+  await app.listen(server_config.PORT, '0.0.0.0')
 
   // eslint-disable-next-line no-console
-  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
+  console.log(`REST API endpoints: ${server_config.BASE_URL}/api`)
 }
 
 void bootstrap()

@@ -373,4 +373,44 @@ export class LobbyService {
       this.gameEngine.abort(roomId)
     }
   }
+
+
+public async kickClient(
+  socket: ClientSocket,
+  playerId: string,
+): Promise<void> {
+  const hostMembership = this.registry.lookup(socket)
+
+  if (!hostMembership || hostMembership.role !== 'host') {
+    throw new InvalidHostTokenError()
+  }
+
+  const client = await this.clients.findById(playerId)
+
+  if (!client || client.roomId !== hostMembership.roomId) {
+    return
+  }
+
+  const clientSocket = this.registry.getSocketByClientId(playerId)
+
+  if (clientSocket) {
+    this.broadcaster.emitToSocket(clientSocket, EVENTS.PLAYER_KICK)
+    this.registry.unregister(clientSocket)
+  }
+
+  this.registry.clearReconnectToken(playerId)
+
+  const timer = this.registry.clearGraceTimer(playerId)
+  if (timer) {
+    clearTimeout(timer)
+  }
+
+  await this.clients.remove(client)
+
+  const room = await this.rooms.findById(hostMembership.roomId)
+
+  if (room) {
+    await this.broadcastState(room)
+  }
+}
 }

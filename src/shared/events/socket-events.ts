@@ -18,11 +18,13 @@ export const PLAYER_JOIN = 'PLAYER_JOIN'
 export const PLAYER_JOIN_ACK = 'PLAYER_JOIN_ACK'
 /** Server → client: join rejected.        Payload: { reason: string }        */
 export const PLAYER_JOIN_REJECTED = 'PLAYER_JOIN_REJECTED'
+/** Host   → server: kicks a player                                           */
+export const PLAYER_KICK = 'PLAYER_KICK'
 /** Client → server: deliberate leave.     Payload: none                      */
 export const PLAYER_LEAVE = 'PLAYER_LEAVE'
-/** Server → all:    unplanned disconnect. Payload: { playerId }               */
+/** Server → all:    unplanned disconnect. Payload: { playerId }              */
 export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
-/** Server → all:    player reconnected.   Payload: { playerId }               */
+/** Server → all:    player reconnected.   Payload: { playerId }              */
 export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────

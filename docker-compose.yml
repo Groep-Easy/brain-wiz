@@ -30,8 +30,6 @@ services:
     container_name: postgres-db
     env_file:
       - .env
-    # Expose Postgres on the host via 5433 to avoid conflicts with any local
-    # Postgres instance on 5432. The app and tests use DB_PORT=5433 in .env.
     ports:
       - "5432:5432"
     volumes:
