@@ -30,7 +30,7 @@ else
 fi
 if [ "$ENV" == "prod" ]; then
     REPO_DIR="$HOME/brain-wiz"
-    BRANCH="master"
+    BRANCH="develop"
 elif [ "$ENV" == "dev" ]; then
     REPO_DIR="$HOME/brain-wiz-dev"
     BRANCH="develop"
