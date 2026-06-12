@@ -1,0 +1,50 @@
+name: Sigrid
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: sigrid-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sigrid:
+    name: Run Sigrid
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Sigrid CI
+        uses: Software-Improvement-Group/sigridci@main
+        with:
+          customer: uvapse
+          system: brain-wiz
+          source: .
+          publish: true
+          capability: maintainability,osh,security
+          exclude: node_modules,dist,coverage,.git
+          showupload: true
+          out: sigrid-ci-output
+        env:
+          SIGRID_CI_TOKEN: ${{ secrets.SIGRID_CI_TOKEN }}
+
+      - name: Save Sigrid output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigrid-ci-output
+          path: sigrid-ci-output/**
+          retention-days: 7
+          if-no-files-found: ignore
