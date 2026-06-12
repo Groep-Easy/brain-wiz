@@ -19,6 +19,11 @@ import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+
+import jazzMusic from '../shared/SFX/jazz.mp3'
+import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
+import logo from './assets/BrainWiz logo.png'
+
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
@@ -223,9 +228,10 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
+
         <div className="welcome-screen">
           <div className="welcome-card">
-            <h1>Brain Wiz</h1>
+            <img src={logo} width="300"></img>
             <p className="subtitle">Interactive Quiz & Trivia Game</p>
             <div className="divider"></div>
             {status === 'connecting' ? (
@@ -252,6 +258,13 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
+        <audio
+          id="bg-music"
+          loop
+          autoPlay
+          src={jazzMusic}
+          preload="auto">
+        </audio>
         <SetupLobby
           roomCode={code}
           hostToken={hostToken}
@@ -300,14 +313,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <GameOver
@@ -315,6 +320,15 @@ export function App(): React.JSX.Element {
         finalScores={finalScores || {}}
         onBackToMenu={handleCloseLobby}
       />
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+      </main>
     )
   }
 

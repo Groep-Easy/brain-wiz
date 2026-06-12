@@ -38,7 +38,7 @@ export function SetupLobby({
 
   const openEditor = () => {
     const params = new URLSearchParams({ code: roomCode, token: hostToken })
-    window.open(`/flow-editor?${params.toString()}`, '_blank')
+    window.open(`/host/flow-editor?${params.toString()}`, '_blank')
   }
 
   useEffect(() => {

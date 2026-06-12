@@ -16,8 +16,10 @@ import {
 import { DifficultyEnum, QuestionThemeEnum } from './enums'
 import type { Round } from './round.entity'
 
-const MIN_ANSWERS = 1
-const MAX_ANSWERS = 2
+const MIN_CORRECT_ANSWERS = 1
+const MAX_CORRECT_ANSWERS = 2
+const MIN_TOTAL_ANSWERS = 2
+const MAX_TOTAL_ANSWERS = 4
 
 /**
  * Question entity - represents a trivia question in the content pool
@@ -99,21 +101,23 @@ export class Question {
   public validateAnswers(): void {
     if (
       !Array.isArray(this.correctAnswers) ||
-      this.correctAnswers.length < MIN_ANSWERS ||
-      this.correctAnswers.length > MAX_ANSWERS
+      this.correctAnswers.length < MIN_CORRECT_ANSWERS ||
+      this.correctAnswers.length > MAX_CORRECT_ANSWERS
     ) {
       throw new Error(
-        `Question must have between ${MIN_ANSWERS} and ${MAX_ANSWERS} correct answers`
+        `Question must have between ${MIN_CORRECT_ANSWERS} and ${MAX_CORRECT_ANSWERS} correct answers`
       )
     }
 
-    if (!Array.isArray(this.wrongAnswers) || this.wrongAnswers.length > 1) {
-      throw new Error('Question can have a maximum of 1 wrong answer')
+    if (!Array.isArray(this.wrongAnswers)) {
+      throw new Error('Question wrongAnswers must be an array')
     }
 
     const totalAnswers = this.correctAnswers.length + this.wrongAnswers.length
-    if (totalAnswers !== MAX_ANSWERS) {
-      throw new Error(`Question must have exactly ${MAX_ANSWERS} possible answers`)
+    if (totalAnswers < MIN_TOTAL_ANSWERS || totalAnswers > MAX_TOTAL_ANSWERS) {
+      throw new Error(
+        `Question must have between ${MIN_TOTAL_ANSWERS} and ${MAX_TOTAL_ANSWERS} possible answers`
+      )
     }
   }
 }

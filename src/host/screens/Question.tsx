@@ -1,6 +1,7 @@
 import type { QuestionState, QuestionRevealPayload } from '../../shared/types/index'
 import { computeAnswerStats } from '../../shared/utils/answer-stats'
 import '../styles/question.css'
+import suspenseMusic from '../../shared/SFX/Standoff.mp3'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -33,6 +34,13 @@ export function Question({
 
   return (
     <main className="host-question-page">
+      <audio
+        id="suspense-music"
+        loop
+        autoPlay
+        src={suspenseMusic}
+        preload="auto">
+      </audio>
       <header className="hq-top">
         <span className="hq-code">Code: {gameCode}</span>
         <span className="hq-status">
