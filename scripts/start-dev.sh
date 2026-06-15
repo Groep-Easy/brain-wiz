@@ -7,7 +7,7 @@ echo "======================================"
 
 # 1. Stop all project containers
 echo "-> Stopping existing containers..."
-docker compose -f docker-compose.dev.yml down --timeout 10
+docker compose -f docker-compose.dev.yml down -v --remove-orphans --timeout 10
 
 # 2. Release occupied ports
 echo "-> Checking for occupied ports (3000, 5173, 5432, 3100)..."
@@ -20,7 +20,7 @@ done
 
 # 3. Rebuild images & 4. Recreate containers
 echo "-> Rebuilding and starting containers (Database)..."
-docker compose -f docker-compose.dev.yml up --build -d db
+docker compose -f docker-compose.dev.yml up --remove-orphans --build -d db
 
 echo "-> Waiting for PostgreSQL to be ready..."
 for i in {1..15}; do
@@ -35,13 +35,8 @@ for i in {1..15}; do
     fi
 done
 
-# 5. Run migrations
-echo "-> Running database migrations..."
-if [ ! -d "node_modules" ]; then
-    npm install
-fi
-npm run build:server
-node --env-file=.env ./node_modules/typeorm/cli.js migration:run -d dist/server/database/data-source.js
+# 5. Skip migrations
+echo "-> Skipping TypeORM migrations (local dev relies on DB_SYNCHRONIZE=true)..."
 
 # 6. Run health checks
 echo "-> Checking core services health..."
