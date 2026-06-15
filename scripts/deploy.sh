@@ -58,7 +58,6 @@ case "${1:-prod}" in
         BRANCH="develop"
         ;;
     branch)
-        # Require a branch name argument
         if [ -z "${2:-}" ]; then
             echo "ERROR: 'branch' mode requires a branch name."
             print_usage
@@ -79,10 +78,19 @@ case "${1:-prod}" in
         ;;
 esac
 
-# Sanitize branch name for use as a Docker Compose project name suffix.
+# Sanitize a string into a valid Docker project name segment.
 # Docker project names must match [a-z0-9][a-z0-9_-]*
-SAFE_ENV_SUFFIX=$(echo "$ENV" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9_-' '_')
-export COMPOSE_PROJECT_NAME="brainwiz_${SAFE_ENV_SUFFIX}"
+_safe_suffix() {
+    echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9-' '_' | sed 's/_$//'
+}
+
+# FIX: include sanitized branch name in the project name so two different
+# branch deployments get fully isolated networks and volumes.
+if [ "$ENV" == "branch" ]; then
+    export COMPOSE_PROJECT_NAME="brainwiz_branch_$(_safe_suffix "$BRANCH")"
+else
+    export COMPOSE_PROJECT_NAME="brainwiz_$(_safe_suffix "$ENV")"
+fi
 
 echo "======================================"
 echo " Starting Deployment: $ENV"
@@ -121,22 +129,26 @@ fi
 
 # -------------------------------------------------------------------------
 # 3. Enforce script synchronization
-#    Abort if the running script differs from the repo copy, so we never
-#    continue a deployment with a stale version of this file.
 # -------------------------------------------------------------------------
 step "Checking script synchronization..."
 
-# Resolve absolute path of the currently-running script BEFORE cd-ing.
+# Resolve the running script's absolute path BEFORE cd-ing.
 RUNNING_SCRIPT="$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")"
 SCRIPT_DIR="$(dirname "$RUNNING_SCRIPT")"
+
+# FIX: the script lives at <repo>/scripts/deploy.sh, so SCRIPT_DIR is
+# <repo>/scripts — one level below the repo root. Derive the root from
+# the parent directory so .env lookups work correctly.
+SCRIPT_REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$REPO_DIR"
 
 if [ "$ENV" != "current" ]; then
-    # If launched from outside the target repo, copy .env so it travels with us.
-    if [ "$SCRIPT_DIR" != "$REPO_DIR" ] && [ -f "$SCRIPT_DIR/.env" ]; then
-        echo "      Copying .env from $SCRIPT_DIR to $REPO_DIR..."
-        cp "$SCRIPT_DIR/.env" "$REPO_DIR/.env"
+    # Copy .env from the source repo root if deploying to a different directory.
+    # Search in the repo root (parent of scripts/), not in scripts/ itself.
+    if [ "$SCRIPT_REPO_ROOT" != "$REPO_DIR" ] && [ -f "$SCRIPT_REPO_ROOT/.env" ]; then
+        echo "      Copying .env from $SCRIPT_REPO_ROOT to $REPO_DIR..."
+        cp "$SCRIPT_REPO_ROOT/.env" "$REPO_DIR/.env"
         chmod 600 "$REPO_DIR/.env"
     fi
 
@@ -150,7 +162,6 @@ if [ "$ENV" != "current" ]; then
             RUNNING_HASH=$(shasum -a 256 "$RUNNING_SCRIPT" | awk '{print $1}')
             REPO_HASH=$(shasum -a 256 "$REPO_SCRIPT_PATH"   | awk '{print $1}')
         else
-            # Cannot compare — skip the check rather than falsely passing.
             RUNNING_HASH=""
             REPO_HASH=""
             echo "      WARNING: No sha256 tool found; skipping script integrity check."
@@ -178,7 +189,11 @@ if [ ! -f ".env" ]; then
         cp .env.example .env
         chmod 600 .env
     else
-        die "No .env file found. Non-dev deployments require a manually configured .env."
+        # FIX: give the operator a concrete path and fix instructions.
+        die "No .env file found at $REPO_DIR/.env.
+For non-dev deployments, create one manually:
+  cp $REPO_DIR/.env.example $REPO_DIR/.env
+  # then edit $REPO_DIR/.env with real values"
     fi
 fi
 
@@ -229,7 +244,6 @@ services:
       - "3201:3000"
 EOF
 else
-    # Remove any leftover override from a previous dev/branch run.
     rm -f docker-compose.override.yml
 fi
 
@@ -244,20 +258,17 @@ else
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
-    # Stop conflicting Docker containers on this port.
     while IFS= read -r container; do
         [ -z "$container" ] && continue
         echo "      Port $port is held by Docker container $container — stopping it..."
         docker stop "$container" >/dev/null 2>&1 || true
     done < <(docker ps -q --filter "publish=$port" 2>/dev/null || true)
 
-    # Kill conflicting host processes.
     if command -v lsof >/dev/null 2>&1; then
         while IFS= read -r pid; do
             [ -z "$pid" ] && continue
             PROC_NAME=$(ps -p "$pid" -o comm= 2>/dev/null || echo "unknown")
             echo "      Port $port is held by host PID $pid ($PROC_NAME) — terminating..."
-            # Attempt graceful kill first, then escalate.
             kill "$pid" 2>/dev/null \
                 || kill -9 "$pid" 2>/dev/null \
                 || sudo -n kill -9 "$pid" 2>/dev/null \
@@ -265,7 +276,6 @@ for port in "${REQUIRED_PORTS[@]}"; do
         done < <(lsof -ti :"$port" 2>/dev/null || true)
     fi
 
-    # Verify port is now free (portable: works on Linux and macOS).
     if netstat -an 2>/dev/null | awk '/LISTEN/{print $4}' | grep -qE "[.:]${port}$"; then
         die "Port $port is still in use and could not be freed.
 A system service (e.g. a local Postgres instance) may be holding it.
@@ -281,23 +291,24 @@ mkdir -p nginx/ssl
 
 CERT_FILE="nginx/ssl/nginx-selfsigned.crt"
 KEY_FILE="nginx/ssl/nginx-selfsigned.key"
-CERT_DAYS_REMAINING=0
 
-if [ -f "$CERT_FILE" ]; then
-    CERT_DAYS_REMAINING=$(openssl x509 -enddate -noout -in "$CERT_FILE" 2>/dev/null \
-        | sed 's/notAfter=//' \
-        | xargs -I{} openssl x509 -enddate -noout -checkend 2592000 -in "$CERT_FILE" \
-            2>/dev/null && echo "ok" || echo "expiring")
+# FIX: simplified expiry check — openssl -checkend returns non-zero if the
+# cert expires within the given number of seconds (2592000 = 30 days).
+needs_cert=false
+if [ ! -f "$CERT_FILE" ]; then
+    needs_cert=true
+elif ! openssl x509 -checkend 2592000 -noout -in "$CERT_FILE" 2>/dev/null; then
+    needs_cert=true
 fi
 
-if [ ! -f "$CERT_FILE" ] || [ "$CERT_DAYS_REMAINING" == "expiring" ]; then
+if $needs_cert; then
     [ -f "$CERT_FILE" ] \
-        && echo "      Certificate expires soon or is invalid — regenerating..." \
-        || echo "      No certificate found — generating self-signed wildcard certificate..."
+        && echo "      Certificate expires within 30 days — regenerating..." \
+        || echo "      No certificate found — generating self-signed certificate..."
 
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout "$KEY_FILE" \
-        -out  "$CERT_FILE" \
+        -out    "$CERT_FILE" \
         -subj "/C=US/ST=State/L=City/O=BrainWiz/OU=IT/CN=*" \
         >/dev/null 2>&1
 
@@ -312,29 +323,30 @@ fi
 # -------------------------------------------------------------------------
 step "Deploying containers..."
 
-# Determine whether sudo is required for Docker.
-DOCKER_CMD="docker compose -f docker-compose.prod.yml"
-if ! docker ps >/dev/null 2>&1; then
-    if sudo -n docker ps >/dev/null 2>&1; then
-        DOCKER_CMD="sudo docker compose -f docker-compose.prod.yml"
-        echo "      Note: using sudo for Docker commands."
-    else
-        die "Cannot access Docker. Either add your user to the 'docker' group or configure passwordless sudo for 'docker'."
-    fi
+# FIX: build command as an array to avoid word-splitting with the optional
+# -f flag. Also avoids sudo -E which would leak all env vars including secrets.
+if docker ps >/dev/null 2>&1; then
+    DOCKER_BIN="docker"
+elif sudo -n docker ps >/dev/null 2>&1; then
+    DOCKER_BIN="sudo docker"
+    echo "      Note: using sudo for Docker commands."
+else
+    die "Cannot access Docker. Either add your user to the 'docker' group or configure passwordless sudo for 'docker'."
 fi
 
+DOCKER_CMD=($DOCKER_BIN compose -f docker-compose.prod.yml)
 if [ -f "docker-compose.override.yml" ]; then
-    DOCKER_CMD="$DOCKER_CMD -f docker-compose.override.yml"
+    DOCKER_CMD+=(-f docker-compose.override.yml)
 fi
 
 echo "      Stopping existing containers (timeout 30 s)..."
-$DOCKER_CMD down --timeout 30
+"${DOCKER_CMD[@]}" down --timeout 30
 
 echo "      Pulling latest images..."
-$DOCKER_CMD pull
+"${DOCKER_CMD[@]}" pull
 
 echo "      Building and starting containers..."
-$DOCKER_CMD up --build -d
+"${DOCKER_CMD[@]}" up --build -d
 
 # -------------------------------------------------------------------------
 # Done — print accessible URLs
@@ -346,7 +358,7 @@ fi
 [ -z "$SERVER_IP" ] && SERVER_IP="<server-ip>"
 
 if [ "$ENV" == "prod" ]; then
-    APP_URL="https://${SERVER_IP}"      # standard 443, no port in URL
+    APP_URL="https://${SERVER_IP}"
     GRAFANA_PORT=3200
     PGADMIN_PORT=5050
 else

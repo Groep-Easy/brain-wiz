@@ -72,20 +72,20 @@ async function bootstrap(): Promise<void> {
   await app.listen(config.PORT, '127.0.0.1')
 
   // eslint-disable-next-line no-console
-  console.log('\n🚀 Brain Wiz Server Successfully Started!')
+  console.log('\n  Brain Wiz Server Successfully Started!')
   if (config.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
     console.log(`
-  🎮 Host Display:  http://localhost:5174/host
-  📱 Player Client: http://localhost:5173/client
-  🔌 REST API:      http://localhost:3000
+  Host Display:  http://localhost:5174/host
+  Player Client: http://localhost:5173/client
+  REST API:      http://localhost:3000/api
     `)
   } else {
     // eslint-disable-next-line no-console
     console.log(`
-  🎮 Host Display:  ${config.BASE_URL}/host
-  📱 Player Client: ${config.BASE_URL}/client
-  🔌 REST API:      ${config.BASE_URL}
+  Host Display:  ${config.BASE_URL}/host
+  Player Client: ${config.BASE_URL}/client
+  REST API:      ${config.BASE_URL}/api
     `)
   }
 }
