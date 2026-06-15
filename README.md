@@ -31,19 +31,29 @@ Multiplayer knowledge & puzzle game. Host displays game. Players join via phones
 git clone https://github.com/Groep-Easy/brain-wiz.git
 cd brain-wiz
 cp .env.example .env
-docker compose up -d
 npm install
+
+# Option A: Quick manual start
+docker compose up -d
 npm run dev
+
+# Option B: Robust automated start
+./scripts/start-dev.sh
 ```
 
-**Host:** `http://localhost:3000/host`
-**Players:** `http://<host-ip>:3000`
+**Host:** `http://localhost:5173/host` (or 3000 if using built frontend)
+**Players:** `http://<host-ip>:5173`
 
-## Deployment (UVA Server)
+## Deployment (Production/Server)
 
 ```bash
 ssh -i <ssh_key_file> ubuntu@83.96.203.127
-./deploy.sh prod  # Or ./deploy.sh dev
+
+# Re-deploy branch/master
+./scripts/deploy.sh prod  # Or dev
+
+# Safe production startup (no rebuilds)
+./scripts/start-prod.sh
 ```
 
 ## Validation & PRs

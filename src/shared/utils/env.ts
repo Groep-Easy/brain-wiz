@@ -1,13 +1,15 @@
-export const isViteDevServer = (): boolean => {
-  return (
-    typeof window !== 'undefined' &&
-    (window.location.port === '5173' || window.location.port === '5174')
-  )
+export const isDevelopment = (): boolean => {
+  if (typeof process !== 'undefined' && process.env['NODE_ENV']) {
+    return process.env['NODE_ENV'] !== 'production'
+  }
+  return false
 }
 
 export const getBackendWsUrl = (envUrl?: string): string => {
   if (envUrl) return envUrl
-  if (isViteDevServer()) return `ws://${window.location.hostname}:3000`
+  if (isDevelopment() && typeof window !== 'undefined') {
+    return `ws://${window.location.hostname}:3000`
+  }
   if (typeof window !== 'undefined') {
     return `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
   }
@@ -19,7 +21,9 @@ export const getBackendHttpUrl = (wsUrl: string): string => {
 }
 
 export const getClientBaseUrl = (): string => {
-  if (isViteDevServer()) return `http://${window.location.hostname}:5173`
+  if (isDevelopment() && typeof window !== 'undefined') {
+    return `http://${window.location.hostname}:5173`
+  }
   if (typeof window !== 'undefined') return window.location.origin
   return 'http://localhost:3000'
 }

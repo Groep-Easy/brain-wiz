@@ -2,7 +2,7 @@
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  isViteDevServer,
+  isDevelopment,
   getBackendWsUrl,
   getBackendHttpUrl,
   getClientBaseUrl,
@@ -10,34 +10,28 @@ import {
 
 describe('Env Utils', () => {
   let originalWindow: unknown
+  let originalProcessEnv: NodeJS.ProcessEnv
 
   beforeEach(() => {
     originalWindow = (global as any).window
     delete (global as any).window
+    originalProcessEnv = { ...process.env }
   })
 
   afterEach(() => {
     ;(global as any).window = originalWindow
+    process.env = originalProcessEnv
   })
 
-  describe('isViteDevServer', () => {
-    it('returns false when window is undefined', () => {
-      assert.equal(isViteDevServer(), false)
+  describe('isDevelopment', () => {
+    it('returns false when not in development', () => {
+      process.env['NODE_ENV'] = 'production'
+      assert.equal(isDevelopment(), false)
     })
 
-    it('returns true for port 5173', () => {
-      ;(global as any).window = { location: { port: '5173' } }
-      assert.equal(isViteDevServer(), true)
-    })
-
-    it('returns true for port 5174', () => {
-      ;(global as any).window = { location: { port: '5174' } }
-      assert.equal(isViteDevServer(), true)
-    })
-
-    it('returns false for other ports', () => {
-      ;(global as any).window = { location: { port: '3000' } }
-      assert.equal(isViteDevServer(), false)
+    it('returns true when NODE_ENV is development', () => {
+      process.env['NODE_ENV'] = 'development'
+      assert.equal(isDevelopment(), true)
     })
   })
 
@@ -46,14 +40,16 @@ describe('Env Utils', () => {
       assert.equal(getBackendWsUrl('wss://custom.url'), 'wss://custom.url')
     })
 
-    it('returns ws://hostname:3000 if vite dev server', () => {
+    it('returns ws://hostname:3000 if development', () => {
+      process.env['NODE_ENV'] = 'development'
       ;(global as any).window = {
         location: { hostname: 'localhost', port: '5173' },
       }
       assert.equal(getBackendWsUrl(), 'ws://localhost:3000')
     })
 
-    it('returns ws://host if not vite dev server and protocol is http:', () => {
+    it('returns ws://host if not development and protocol is http:', () => {
+      process.env['NODE_ENV'] = 'production'
       ;(global as any).window = {
         location: {
           hostname: 'brainwiz.local',
@@ -65,7 +61,8 @@ describe('Env Utils', () => {
       assert.equal(getBackendWsUrl(), 'ws://brainwiz.local:8080')
     })
 
-    it('returns wss://host if not vite dev server and protocol is https:', () => {
+    it('returns wss://host if not development and protocol is https:', () => {
+      process.env['NODE_ENV'] = 'production'
       ;(global as any).window = {
         location: {
           hostname: 'brainwiz.com',
@@ -93,12 +90,14 @@ describe('Env Utils', () => {
   })
 
   describe('getClientBaseUrl', () => {
-    it('returns http://hostname:5173 if vite dev server', () => {
+    it('returns http://hostname:5173 if development', () => {
+      process.env['NODE_ENV'] = 'development'
       ;(global as any).window = { location: { hostname: 'localhost', port: '5173' } }
       assert.equal(getClientBaseUrl(), 'http://localhost:5173')
     })
 
-    it('returns window origin if window is defined and not vite dev server', () => {
+    it('returns window origin if window is defined and not development', () => {
+      process.env['NODE_ENV'] = 'production'
       ;(global as any).window = {
         location: { hostname: 'brainwiz.com', port: '443', origin: 'https://brainwiz.com' },
       }
