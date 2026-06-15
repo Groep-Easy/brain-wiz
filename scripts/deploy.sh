@@ -230,10 +230,6 @@ services:
       - "3080:80"
   db:
     container_name: ${PREFIX}-postgres-db
-  pgadmin:
-    container_name: ${PREFIX}-pgadmin
-    ports:
-      - "5051:80"
   loki:
     container_name: ${PREFIX}-loki
   promtail:
@@ -252,9 +248,9 @@ fi
 # -------------------------------------------------------------------------
 step "Checking and freeing required ports..."
 if [ "$ENV" == "prod" ]; then
-    REQUIRED_PORTS=(80 443 5050 3200)
+    REQUIRED_PORTS=(80 443 3200)
 else
-    REQUIRED_PORTS=(3000 3080 5051 3201)
+    REQUIRED_PORTS=(3000 3080 3201)
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
@@ -360,11 +356,9 @@ fi
 if [ "$ENV" == "prod" ]; then
     APP_URL="https://${SERVER_IP}"
     GRAFANA_PORT=3200
-    PGADMIN_PORT=5050
 else
     APP_URL="https://${SERVER_IP}:3000"
     GRAFANA_PORT=3201
-    PGADMIN_PORT=5051
 fi
 
 echo ""
@@ -378,7 +372,6 @@ echo " Welcome page          ${APP_URL}"
 echo " Game Host (TV)        ${APP_URL}/host"
 echo " Player client         ${APP_URL}/client"
 echo " Grafana               http://${SERVER_IP}:${GRAFANA_PORT}"
-echo " pgAdmin               http://${SERVER_IP}:${PGADMIN_PORT}"
 echo ""
 echo " NOTE: Self-signed certificate — click Advanced → Proceed in browser."
 echo "       Requires UvA VPN for off-campus access."
