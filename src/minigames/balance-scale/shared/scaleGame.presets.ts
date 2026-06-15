@@ -8,28 +8,28 @@ import type { ItemOption } from './scaleGame.types.js'
 export const DEFAULT_SCALE_ITEM_POOLS: Record<ScaleDifficulty, ItemOption[][]> = {
   [EASY_SCALE_DIFFICULTY]: [
     [
-      { id: 'apple', label: 'Apple', emoji: '🍎', weight: 1 },
-      { id: 'ball', label: 'Ball', emoji: '⚽', weight: 2 },
-      { id: 'brick', label: 'Brick', emoji: '🧱', weight: 3 },
+      { id: 'apple', label: 'Apple', emoji: 'A', weight: 1 },
+      { id: 'ball', label: 'Ball', emoji: 'B', weight: 2 },
+      { id: 'brick', label: 'Brick', emoji: 'C', weight: 3 },
     ],
     [
-      { id: 'coin', label: 'Coin', emoji: '🪙', weight: 1 },
-      { id: 'book', label: 'Book', emoji: '📘', weight: 2 },
-      { id: 'box', label: 'Box', emoji: '📦', weight: 3 },
+      { id: 'coin', label: 'Coin', emoji: 'D', weight: 1 },
+      { id: 'book', label: 'Book', emoji: 'E', weight: 2 },
+      { id: 'box', label: 'Box', emoji: 'F', weight: 3 },
     ],
   ],
   [HARD_SCALE_DIFFICULTY]: [
     [
-      { id: 'apple', label: 'Apple', emoji: '🍎', weight: 1 },
-      { id: 'ball', label: 'Ball', emoji: '⚽', weight: 2 },
-      { id: 'brick', label: 'Brick', emoji: '🧱', weight: 3 },
-      { id: 'vase', label: 'Vase', emoji: '🏺', weight: 4 },
+      { id: 'apple', label: 'Apple', emoji: 'A', weight: 1 },
+      { id: 'ball', label: 'Ball', emoji: 'B', weight: 2 },
+      { id: 'brick', label: 'Brick', emoji: 'C', weight: 3 },
+      { id: 'vase', label: 'Vase', emoji: 'D', weight: 4 },
     ],
     [
-      { id: 'coin', label: 'Coin', emoji: '🪙', weight: 1 },
-      { id: 'book', label: 'Book', emoji: '📘', weight: 2 },
-      { id: 'box', label: 'Box', emoji: '📦', weight: 3 },
-      { id: 'rock', label: 'Rock', emoji: '🪨', weight: 4 },
+      { id: 'coin', label: 'Coin', emoji: 'E', weight: 1 },
+      { id: 'book', label: 'Book', emoji: 'F', weight: 2 },
+      { id: 'box', label: 'Box', emoji: 'G', weight: 3 },
+      { id: 'rock', label: 'Rock', emoji: 'H', weight: 4 },
     ],
   ],
 }

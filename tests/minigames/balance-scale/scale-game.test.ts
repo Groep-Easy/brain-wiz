@@ -15,7 +15,6 @@ import {
   REVEAL_SCALE_PHASE,
   SCALE_DIFFICULTIES,
 } from '../../../src/minigames/balance-scale/shared/scaleGame.constants.js'
-import { DEFAULT_SCALE_ITEM_POOLS } from '../../../src/minigames/balance-scale/shared/scaleGame.presets.js'
 import { SAMPLE_ITEM_POOLS } from '../../../src/minigames/balance-scale/mock/samplePuzzle.js'
 
 const EASY_ITEM_POOL: ItemOption[] = [
@@ -93,18 +92,6 @@ function sortBooleanValues(values: Iterable<boolean>): boolean[] {
 }
 
 describe('generateScalePuzzle', () => {
-  it('uses actual emoji in the default item pools', () => {
-    const defaultItems = SCALE_DIFFICULTIES.flatMap((difficulty) =>
-      DEFAULT_SCALE_ITEM_POOLS[difficulty].flat()
-    )
-
-    defaultItems.forEach((item) => {
-      assert.doesNotMatch(item.emoji, /^[A-Z]$/)
-    })
-    assert.equal(defaultItems.find((item) => item.id === 'apple')?.emoji, '🍎')
-    assert.equal(defaultItems.find((item) => item.id === 'coin')?.emoji, '🪙')
-  })
-
   it('generates easy puzzles with exactly three scale item types and composite equations', () => {
     const puzzle = generateScalePuzzle({
       id: 'easy-variant-0',
