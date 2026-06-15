@@ -15,7 +15,7 @@ import type {
 } from '../shared/types/index'
 import * as EVENTS from '../shared/events/socket-events'
 import { getBackendWsUrl } from '../shared/utils/env'
-import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
+import { MinigameChoiceGrid } from '../minigames/components/MinigameChoiceGrid'
 import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
 import type {
   SlidingPuzzleBoard,
@@ -34,7 +34,6 @@ const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 1500
-const MINIGAME_TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan']
 
 interface SavedPlayer {
   roomCode: string
@@ -354,37 +353,19 @@ export function App(): React.JSX.Element {
 
     if (roundContent.type === 'balance-scale') {
       const solution = roundReveal?.publicSolution as { correctOptionId?: string } | undefined
-      const puzzle = roundContent.publicState as ScalePuzzle
+
       return (
-        <section className="answer-page">
-          <div className="answer-grid">
-            {puzzle.options.map((option, index) => {
-              const isCorrect = option.id === solution?.correctOptionId
-              const dim = phase === 'reveal' && !isCorrect
-              return (
-                <button
-                  aria-label={option.label}
-                  className={`answer-tile minigame-answer-tile ${
-                    MINIGAME_TILE_CLASSES[index] ?? 'tile-teal'
-                  } ${dim ? 'is-dim' : ''} ${phase === 'reveal' && isCorrect ? 'is-correct' : ''} ${
-                    option.id === selectedOptionId ? 'is-selected' : ''
-                  }`}
-                  disabled={roundSubmitted || phase === 'reveal'}
-                  key={option.id}
-                  onClick={() => {
-                    setSelectedOptionId(option.id)
-                    handleRoundSubmit({ optionId: option.id })
-                  }}
-                  type="button"
-                >
-                  <span className="answer-shape">{option.emoji}</span>
-                  <span className="minigame-answer-label">{option.label}</span>
-                  {option.id === selectedOptionId ? <span className="answer-you">You</span> : null}
-                </button>
-              )
-            })}
-          </div>
-        </section>
+        <MinigameChoiceGrid
+          choices={roundContent.answerChoices ?? []}
+          correctChoiceId={solution?.correctOptionId}
+          onSelect={(choice) => {
+            setSelectedOptionId(choice.id)
+            handleRoundSubmit(choice.submission)
+          }}
+          phase={phase}
+          selectedChoiceId={selectedOptionId}
+          submitted={roundSubmitted}
+        />
       )
     }
 
