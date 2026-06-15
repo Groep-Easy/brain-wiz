@@ -25,7 +25,7 @@ import { validateDisplayName } from '../../../shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { RoomState } from '../../../shared/types/index'
+import type { PlayerAvatar, RoomState } from '../../../shared/types/index'
 import type { GameFlowItem } from '../../../shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
@@ -81,7 +81,8 @@ export class LobbyService {
     roomCode: string,
     playerName: string,
     playerId?: string,
-    playerToken?: string
+    playerToken?: string,
+    playerAvatar?: PlayerAvatar
   ): Promise<void> {
     if (!isValidRoomCode(roomCode)) {
       this.reject(socket, 'Invalid room code')
@@ -126,7 +127,7 @@ export class LobbyService {
       return
     }
 
-    const client = await this.clients.addClient(room.id, displayName, connectionId)
+    const client = await this.clients.addClient(room.id, displayName, connectionId, playerAvatar)
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
@@ -134,6 +135,7 @@ export class LobbyService {
       playerId: client.id,
       roomCode: room.joinCode,
       reconnectToken,
+      playerAvatar: client.playerAvatar,
     })
     await this.broadcastState(room)
   }

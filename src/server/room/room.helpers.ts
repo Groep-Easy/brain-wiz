@@ -6,8 +6,13 @@
  * and gives the broadcaster a single, consistent payload to send.
  */
 import { RoomStatusEnum } from '../entities/enums'
-import type { GamePhase, Player, RoomState } from '../../shared/types/index'
+import type { GamePhase, Player, RoomState, PlayerAvatar } from '../../shared/types/index'
 import type { RoomStateSource, PlayerSource } from './room.types'
+
+const DEFAULT_PLAYER_AVATAR: PlayerAvatar = {
+  bodyColor: '#ccb87b',
+  faceId: 0,
+}
 
 /**
  * Map the persisted room status to the wire game phase. `active` becomes
@@ -31,12 +36,24 @@ export function toRoomState(
   clients: PlayerSource[],
   livePhase?: GamePhase
 ): RoomState {
-  const players: Player[] = clients.map((c) => ({
+  const players: Player[] = clients.map((c) => {
+    console.log('CLIENT RAW:', c)
+
+    return {
+      id: c.id,
+      name: c.displayName,
+      connected: c.isConnected,
+      score: c.totalScore,
+      playerAvatar: c.playerAvatar ?? DEFAULT_PLAYER_AVATAR,
+    }
+  })
+  /* const players: Player[] = clients.map((c) => ({
     id: c.id,
     name: c.displayName,
     connected: c.isConnected,
     score: c.totalScore,
-  }))
+    playerAvatar: c.playerAvatar,
+  })) */
   return {
     code: room.joinCode,
     players,

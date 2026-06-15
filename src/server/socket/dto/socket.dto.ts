@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsOptional, IsDefined } from 'class-validator'
+import { IsString, IsNumber, IsOptional, IsDefined, ValidateNested } from 'class-validator'
+import { Type } from 'class-transformer'
 import type { RoundType } from '../../../shared/types/index'
 
 export class PingDto {
@@ -21,6 +22,19 @@ export class PlayerJoinDto {
   @IsString()
   @IsOptional()
   public playerToken?: string
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PlayerAvatarDto)
+  playerAvatar?: PlayerAvatarDto
+}
+
+export class PlayerAvatarDto {
+  @IsString()
+  bodyColor!: string
+
+  @IsNumber()
+  faceId!: number
 }
 
 export class AnswerSubmitDto {

@@ -26,10 +26,10 @@ export interface Player {
   name: string
   connected: boolean
   score: number
-  character: Character
+  playerAvatar: PlayerAvatar
 }
 
-export interface Character {
+export interface PlayerAvatar {
   bodyColor: string
   faceId: number
 }
@@ -132,7 +132,7 @@ export interface PongPayload {
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
-  character: Character
+  playerAvatar: PlayerAvatar
   playerId?: string
   playerToken?: string
 }
@@ -141,7 +141,7 @@ export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
   reconnectToken: string
-  character: Character
+  playerAvatar: PlayerAvatar
 }
 
 export interface PlayerJoinRejectedPayload {
