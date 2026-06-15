@@ -18,7 +18,7 @@
     "db:reset": "docker compose -f docker-compose.dev.yml down -v",
     "infra:up": "docker compose -f docker-compose.dev.yml up -d",
     "infra:down": "docker compose -f docker-compose.dev.yml down",
-    "deploy": "docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d",
+    "deploy": "bash scripts/deploy.sh prod",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
