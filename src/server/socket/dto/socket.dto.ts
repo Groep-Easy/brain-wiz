@@ -8,6 +8,13 @@ export class PingDto {
   public t?: number
 }
 
+export class PlayerAvatarDto {
+  @IsString()
+  public bodyColor!: string
+
+  @IsNumber()
+  public faceId!: number
+}
 export class PlayerJoinDto {
   @IsString()
   public roomCode!: string
@@ -26,15 +33,7 @@ export class PlayerJoinDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => PlayerAvatarDto)
-  playerAvatar?: PlayerAvatarDto
-}
-
-export class PlayerAvatarDto {
-  @IsString()
-  bodyColor!: string
-
-  @IsNumber()
-  faceId!: number
+  public playerAvatar?: PlayerAvatarDto
 }
 
 export class AnswerSubmitDto {

@@ -36,24 +36,13 @@ export function toRoomState(
   clients: PlayerSource[],
   livePhase?: GamePhase
 ): RoomState {
-  const players: Player[] = clients.map((c) => {
-    console.log('CLIENT RAW:', c)
-
-    return {
-      id: c.id,
-      name: c.displayName,
-      connected: c.isConnected,
-      score: c.totalScore,
-      playerAvatar: c.playerAvatar ?? DEFAULT_PLAYER_AVATAR,
-    }
-  })
-  /* const players: Player[] = clients.map((c) => ({
+  const players: Player[] = clients.map((c) => ({
     id: c.id,
     name: c.displayName,
     connected: c.isConnected,
     score: c.totalScore,
-    playerAvatar: c.playerAvatar,
-  })) */
+    playerAvatar: c.playerAvatar ?? DEFAULT_PLAYER_AVATAR,
+  }))
   return {
     code: room.joinCode,
     players,

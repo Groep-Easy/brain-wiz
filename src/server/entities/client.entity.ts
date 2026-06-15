@@ -108,7 +108,6 @@ export class Client {
    */
   @OneToMany('ClientAnswer', 'client', { onDelete: 'CASCADE' })
   public answers!: ClientAnswer[]
-  character: any
 
   /**
    * Validate before insert/update

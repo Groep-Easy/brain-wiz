@@ -36,13 +36,49 @@ describe('toRoomState', () => {
 
   it('maps client rows to wire players', () => {
     const clients = [
-      { id: 'c1', displayName: 'Alice', isConnected: true, totalScore: 10 },
-      { id: 'c2', displayName: 'Bob', isConnected: false, totalScore: 0 },
+      {
+        id: 'c1',
+        displayName: 'Alice',
+        isConnected: true,
+        totalScore: 10,
+        playerAvatar: {
+          bodyColor: 'red',
+          faceId: 1,
+        },
+      },
+      {
+        id: 'c2',
+        displayName: 'Bob',
+        isConnected: false,
+        totalScore: 0,
+        playerAvatar: {
+          bodyColor: 'blue',
+          faceId: 2,
+        },
+      },
     ]
     const state = toRoomState(room, clients)
     assert.deepEqual(state.players, [
-      { id: 'c1', name: 'Alice', connected: true, score: 10 },
-      { id: 'c2', name: 'Bob', connected: false, score: 0 },
+      {
+        id: 'c1',
+        name: 'Alice',
+        connected: true,
+        score: 10,
+        playerAvatar: {
+          bodyColor: 'red',
+          faceId: 1,
+        },
+      },
+      {
+        id: 'c2',
+        name: 'Bob',
+        connected: false,
+        score: 0,
+        playerAvatar: {
+          bodyColor: 'blue',
+          faceId: 2,
+        },
+      },
     ])
   })
 })
