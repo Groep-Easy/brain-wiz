@@ -9,7 +9,6 @@ on:
     branches:
       - develop
       - master
-      - chore/pipeline-build
   workflow_dispatch:
 
 permissions:
