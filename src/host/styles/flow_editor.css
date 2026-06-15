@@ -1,0 +1,488 @@
+/* flow_editor.css — drag-and-drop game-flow builder on the teal→navy backdrop. */
+
+.flow-editor {
+  --teal: #056c5c;
+  --navy: #36435f;
+  --tan: #ccb87b;
+  --dark: #2a3135;
+  --red: #ba162d;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px clamp(16px, 4vw, 56px) 32px;
+  box-sizing: border-box;
+  color: #fff;
+  background: linear-gradient(160deg, var(--teal) 0%, var(--navy) 100%);
+  overflow: hidden;
+}
+
+.flow-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Brand logo at the top-left of the editor header. */
+.flow-editor-header .brand-logo {
+  height: clamp(36px, 4vw, 52px);
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.flow-editor-header h1 {
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-weight: 800;
+  margin: 0;
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+.back-btn,
+.shuffle-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+  flex: 0 0 auto;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.shuffle-btn {
+  background: var(--tan);
+  color: var(--dark);
+}
+
+.shuffle-btn:hover {
+  transform: translateY(-2px);
+}
+
+.flow-editor-hint {
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  margin: 8px 0 20px;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+}
+
+.flow-editor-body {
+  display: flex;
+  gap: clamp(16px, 2.5vw, 32px);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Palette ----------------------------------------------------------------- */
+.palette {
+  flex: 0 0 clamp(220px, 22vw, 300px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.palette h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.palette h2:not(:first-child) {
+  margin-top: 24px;
+}
+
+.palette-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.palette-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-weight: 600;
+  cursor: grab;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.palette-block:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateX(3px);
+}
+
+.palette-block:active {
+  cursor: grabbing;
+}
+
+.palette-block.minigame {
+  border-color: var(--tan);
+  background: rgba(204, 184, 123, 0.22);
+}
+
+.block-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.block-label {
+  font-size: 1rem;
+}
+
+/* Canvas ------------------------------------------------------------------ */
+.flow-canvas {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-radius: 22px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  overflow: auto;
+}
+
+.canvas-empty {
+  margin: auto;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  padding: 40px;
+  border-radius: 16px;
+  transition: background 0.15s ease;
+}
+
+.canvas-empty.over {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.canvas-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.canvas-add:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.flow-canvas-track {
+  --flow-col-gap: clamp(34px, 4vw, 58px);
+  --flow-row-gap: clamp(30px, 4vw, 52px);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(48px, 150px));
+  justify-content: center;
+  align-content: center;
+  column-gap: var(--flow-col-gap);
+  row-gap: var(--flow-row-gap);
+  min-height: 140px;
+  width: 100%;
+}
+
+/* One grid cell: a block plus the connector that leaves it. */
+.canvas-cell {
+  position: relative;
+  display: flex;
+}
+
+/* Connectors are absolutely placed in the grid gaps so they never affect the
+   column alignment. */
+.canvas-arrow {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.canvas-arrow.arrow-right {
+  left: 100%;
+  top: 0;
+  bottom: 0;
+  width: var(--flow-col-gap);
+}
+
+.canvas-arrow.arrow-left {
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  width: var(--flow-col-gap);
+}
+
+/* Bold downward arrow into the block directly below. */
+.canvas-arrow.arrow-down {
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: var(--flow-row-gap);
+  color: var(--tan);
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+}
+
+.canvas-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+  cursor: grab;
+  text-align: center;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.canvas-block:active {
+  cursor: grabbing;
+}
+
+.canvas-block.minigame {
+  border-color: var(--tan);
+  background: rgba(204, 184, 123, 0.26);
+}
+
+.canvas-block .block-icon {
+  font-size: 2rem;
+}
+
+.remove-block {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.remove-block:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.remove-block:not(:disabled):hover {
+  background: var(--red);
+}
+
+/* Gear on quiz blocks: opens the question-count popover. */
+.settings-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  z-index: 3;
+}
+
+.settings-btn:hover,
+.settings-btn.open {
+  background: var(--tan);
+  color: var(--dark);
+}
+
+/* Inline popover to set how many questions a quiz block contributes. */
+.block-settings {
+  position: absolute;
+  top: 32px;
+  right: 4px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 122px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--navy);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+}
+
+.block-settings label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.block-settings input {
+  width: 100%;
+  padding: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 8px;
+  border: 2px solid var(--tan);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--dark);
+  box-sizing: border-box;
+}
+
+/* Insertion indicator showing where a dragged block will land, in the gap on
+   the relevant side of a cell. */
+.drop-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 6px;
+  background: var(--tan);
+  box-shadow: 0 0 16px rgba(204, 184, 123, 0.8);
+  animation: indicatorPulse 0.8s ease-in-out infinite;
+  z-index: 2;
+}
+
+.drop-indicator.before {
+  right: 100%;
+  margin-right: calc(var(--flow-col-gap) / 2 - 3px);
+}
+
+.drop-indicator.after {
+  left: 100%;
+  margin-left: calc(var(--flow-col-gap) / 2 - 3px);
+}
+
+@keyframes indicatorPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Size picker modal ------------------------------------------------------- */
+.size-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.size-modal {
+  background: var(--navy);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 22px;
+  padding: 32px 36px;
+  width: min(90vw, 360px);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.size-modal h2 {
+  margin: 0 0 6px;
+  font-size: 1.6rem;
+}
+
+.size-modal-hint {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.size-input {
+  width: 120px;
+  padding: 14px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+  border-radius: 14px;
+  border: 2px solid var(--tan);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--dark);
+}
+
+.size-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.size-cancel,
+.size-confirm {
+  flex: 1 1 0;
+  padding: 14px;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.size-cancel {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.size-confirm {
+  background: var(--tan);
+  color: var(--dark);
+}
+
+.size-confirm:hover,
+.size-cancel:hover {
+  filter: brightness(1.08);
+}

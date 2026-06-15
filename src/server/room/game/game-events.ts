@@ -3,6 +3,7 @@
  * @description Internal, in-process domain events for the game's decoupled bus.
  * These NEVER cross the WebSocket — they only coordinate server-side services.
  */
+import type { RoundType } from '../../../shared/types/index.js'
 
 /** An answer option as the presenter assigned it (the id↔correctness source of truth). */
 export interface RoundOption {
@@ -11,15 +12,21 @@ export interface RoundOption {
   isCorrect: boolean
 }
 
+export type RoundScoringMode = 'quiz' | 'minigame'
+
 export interface RoundWindowOpened {
   type: 'ROUND_WINDOW_OPENED'
   roomId: string
   roundId: string
-  questionId: string
+  roundType: RoundType
+  scoringMode: RoundScoringMode
+  questionId?: string
   shownAt: number
   timeLimitSeconds: number
-  basePoints: number
-  options: RoundOption[]
+  basePoints?: number
+  options?: RoundOption[]
+  privateState?: Record<string, unknown>
+  scoringConfig?: Record<string, unknown>
 }
 
 export interface AllPlayersAnswered {

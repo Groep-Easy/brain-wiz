@@ -31,51 +31,25 @@ import type {
   PingPayload,
   PlayerJoinPayload,
   PongPayload,
+  RoundSubmitPayload,
 } from '../../shared/types/index'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
-import { isOriginAllowed, WS_ALLOWED_ORIGINS } from './socket.origin'
+import type { CloseableSocket, IdentifiedSocket, UpgradeRequest } from './socket.types'
 import {
+  parseConnectParams,
   clientIp,
   parseHostTokenFromHeaders,
   selectSubprotocol,
+} from './helpers/index'
+import { isOriginAllowed } from './utils/index'
+import {
+  WS_ALLOWED_ORIGINS,
   INVALID_TOKEN_CLOSE_CODE,
   INVALID_TOKEN_CLOSE_REASON,
-} from './socket-handshake'
-import type { ConnectParams, IdentifiedSocket, UpgradeRequest } from './socket.types'
-
-/** Named sentinel to avoid magic-number lint errors when testing for missing query */
-const NO_QUERY_INDEX = -1
-
-/** A socket that supports close(code, reason) at runtime (ws). */
-type CloseableSocket = IdentifiedSocket & { close?: (code?: number, reason?: string) => void }
-
-/** Parse `role`/`code` from the WebSocket upgrade request URL.
- * NOTE: `hostToken` query params are disallowed for security reasons; tokens
- * must be supplied via the Sec-WebSocket-Protocol header only.
- */
-export function parseConnectParams(url: string | undefined): ConnectParams {
-  if (!url) return {}
-
-  const params: ConnectParams = {}
-  const queryIndex = url.indexOf('?')
-  if (queryIndex === NO_QUERY_INDEX) return params
-
-  const query = url.slice(queryIndex + 1)
-  const pairs = query.split('&')
-  const map = new Map<string, string>()
-  for (const p of pairs) {
-    const [k, v] = p.split('=')
-    if (k) map.set(decodeURIComponent(k), v ? decodeURIComponent(v) : '')
-  }
-  const role = map.get('role')
-  const code = map.get('code')
-  if (role) params.role = role
-  if (code) params.code = code
-  return params
-}
+} from './socket.constants'
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
 export class SocketGateway
@@ -117,8 +91,6 @@ export class SocketGateway
     const params = parseConnectParams(request?.url)
     const headerToken = parseHostTokenFromHeaders(request?.headers)
 
-    // If the client sent a token via the query string, reject it explicitly
-    // and do not expose the token in logs.
     const url = request?.url
     const hasHostTokenInUrl = typeof url === 'string' && url.includes('hostToken=')
     if (hasHostTokenInUrl) {
@@ -127,8 +99,6 @@ export class SocketGateway
       return
     }
 
-    // Host connections MUST supply their token via the Sec-WebSocket-Protocol
-    // header. If it's missing, reject with the specific close code + reason.
     if (params.role === 'host') {
       if (!params.code) return
       if (!headerToken) {
@@ -232,5 +202,15 @@ export class SocketGateway
     if (!this.rateLimiter.allow(client.connectionId)) return
     if (!payload?.answerId) return
     void this.answerService.submit(client, payload)
+  }
+
+  @SubscribeMessage(EVENTS.ROUND_SUBMIT)
+  public handleRoundSubmit(
+    @MessageBody() payload: RoundSubmitPayload | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): void {
+    if (!this.rateLimiter.allow(client.connectionId)) return
+    if (!payload?.roundId || !payload?.type) return
+    void this.answerService.submitRound(client, payload)
   }
 }

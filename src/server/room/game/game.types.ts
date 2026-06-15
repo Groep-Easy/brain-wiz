@@ -5,7 +5,8 @@
  * and the in-memory per-room running-game record.
  */
 
-import { Round } from '../../entities/round.entity'
+import type { Round } from '../../entities/round.entity'
+import type { RoundType } from '../../../shared/types/index'
 
 /** A round's internal sub-phase. Maps to the shared wire `GamePhase`. */
 export enum GamePhase {
@@ -13,6 +14,7 @@ export enum GamePhase {
   QUESTION = 'question',
   REVEAL = 'reveal',
   LEADERBOARD = 'leaderboard',
+  GAME_OVER = 'game-over',
 }
 
 /** Why a PhaseTimer resolved. */
@@ -28,6 +30,12 @@ export interface TimerOptions {
 
 export interface RoundPresenter {
   present(roomId: string, round: Round): Promise<void> | void
+}
+
+export interface ProceduralRoundSeedInput {
+  roomId: string
+  roundId: string
+  type: RoundType
 }
 
 /**

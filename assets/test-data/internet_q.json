@@ -1,0 +1,302 @@
+[
+    {
+        "text": "What does 'LOL' stand for?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Laughing Out Loud"
+        ],
+        "wrongAnswers": [
+            "Lots of Love",
+            "League of Legends",
+            "Laugh Out Longer"
+        ],
+        "imagePath": "/images/lol.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are social media platforms?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Instagram",
+            "TikTok"
+        ],
+        "wrongAnswers": [
+            "Netflix",
+            "Spotify"
+        ],
+        "imagePath": "/images/social-media.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What animal is featured in the famous 'Doge' meme?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Shiba Inu"
+        ],
+        "wrongAnswers": [
+            "Golden Retriever",
+            "Husky",
+            "Pug"
+        ],
+        "imagePath": "/images/doge.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which platform is known for short-form videos and viral trends?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "TikTok"
+        ],
+        "wrongAnswers": [
+            "LinkedIn",
+            "Reddit",
+            "Pinterest"
+        ],
+        "imagePath": "/images/tiktok.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are popular internet memes?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Distracted Boyfriend",
+            "Woman Yelling at Cat"
+        ],
+        "wrongAnswers": [
+            "Mona Lisa",
+            "The Thinker"
+        ],
+        "imagePath": "/images/memes.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What does 'AFK' mean in online gaming?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Away From Keyboard"
+        ],
+        "wrongAnswers": [
+            "Available For Kills",
+            "After Final Knockout",
+            "Away For Knowledge"
+        ],
+        "imagePath": "/images/afk.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which website is famous for user-created discussion communities called subreddits?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Reddit"
+        ],
+        "wrongAnswers": [
+            "Tumblr",
+            "Discord",
+            "Pinterest"
+        ],
+        "imagePath": "/images/reddit.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these internet personalities became famous on YouTube?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "MrBeast",
+            "PewDiePie"
+        ],
+        "wrongAnswers": [
+            "Tom Cruise",
+            "Elon Musk"
+        ],
+        "imagePath": "/images/youtube.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does 'GG' commonly mean in gaming?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Good Game"
+        ],
+        "wrongAnswers": [
+            "Great Goal",
+            "Go Gaming",
+            "Game Group"
+        ],
+        "imagePath": "/images/gg.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which meme phrase is associated with success despite obstacles?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Task Failed Successfully"
+        ],
+        "wrongAnswers": [
+            "Press F to Pay Respects",
+            "It's Over 9000",
+            "This Is Fine"
+        ],
+        "imagePath": "/images/task-failed.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are common reaction GIF sources?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "GIPHY",
+            "Tenor"
+        ],
+        "wrongAnswers": [
+            "Steam",
+            "Epic Games"
+        ],
+        "imagePath": "/images/gif.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What key do gamers jokingly press to 'pay respects'?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "F"
+        ],
+        "wrongAnswers": [
+            "E",
+            "R",
+            "Q"
+        ],
+        "imagePath": "/images/f.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are messaging platforms commonly used by online communities?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Discord",
+            "Telegram"
+        ],
+        "wrongAnswers": [
+            "Photoshop",
+            "Excel"
+        ],
+        "imagePath": "/images/discord.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What does 'TL;DR' stand for?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Too Long; Didn't Read"
+        ],
+        "wrongAnswers": [
+            "Too Late; Don't Respond",
+            "Time Lost; Don't Retry",
+            "Tell Long; Do Read"
+        ],
+        "imagePath": "/images/tldr.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these memes originated from video games?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Press F to Pay Respects",
+            "The Cake Is a Lie"
+        ],
+        "wrongAnswers": [
+            "Success Kid",
+            "Bad Luck Brian"
+        ],
+        "imagePath": "/images/gaming-memes.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which platform is primarily used for livestreaming video games?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Twitch"
+        ],
+        "wrongAnswers": [
+            "Netflix",
+            "IMDb",
+            "Dropbox"
+        ],
+        "imagePath": "/images/twitch.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are internet slang terms?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "BRB",
+            "IMO"
+        ],
+        "wrongAnswers": [
+            "PDF",
+            "CPU"
+        ],
+        "imagePath": "/images/slang.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What does 'rickrolling' involve?",
+        "theme": "internet",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Tricking someone into watching a Rick Astley video"
+        ],
+        "wrongAnswers": [
+            "Rolling dice online",
+            "Hacking a website",
+            "Sending spam emails"
+        ],
+        "imagePath": "/images/rickroll.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are famous meme templates?",
+        "theme": "internet",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Drake Hotline Bling",
+            "Distracted Boyfriend"
+        ],
+        "wrongAnswers": [
+            "The Last Supper",
+            "American Gothic"
+        ],
+        "imagePath": "/images/templates.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "What is the name of the green frog character commonly used in memes?",
+        "theme": "internet",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Pepe the Frog"
+        ],
+        "wrongAnswers": [
+            "Kermit",
+            "Frogger",
+            "Hypnotoad"
+        ],
+        "imagePath": "/images/pepe.jpg",
+        "timeLimitSeconds": 15
+    }
+]

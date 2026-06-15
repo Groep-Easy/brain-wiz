@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   RoomState,
   LeaderboardEntry,
+  RoadmapEntry,
   ScoreMap,
   QuestionState,
   QuestionRevealPayload,
   RoundSummary,
+  RoundContentPayload,
+  RoundRevealPayload,
 } from '../shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
@@ -14,13 +17,20 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
+import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
+import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+
+import jazzMusic from '../shared/SFX/jazz.mp3'
+import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
+import logo from './assets/BrainWiz logo.png'
+
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
 
-
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
-const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
+const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')
@@ -33,7 +43,10 @@ export function App(): React.JSX.Element {
   const [answeredCount, setAnsweredCount] = useState<number>(0)
   const [totalPlayers, setTotalPlayers] = useState<number>(0)
   const [round, setRound] = useState<RoundSummary | null>(null)
+  const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
+  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [roadmap, setRoadmap] = useState<RoadmapEntry | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -65,6 +78,7 @@ export function App(): React.JSX.Element {
       setTotalPlayers(0)
       setRound(null)
       setLeaderboard([])
+      setRoadmap(null)
       setFinalScores(null)
     }
 
@@ -85,6 +99,8 @@ export function App(): React.JSX.Element {
             if (data.round) {
               setRound(data.round)
             }
+            setRoundContent(null)
+            setRoundReveal(null)
             break
 
           case EVENTS.TIMER_TICK:
@@ -93,10 +109,18 @@ export function App(): React.JSX.Element {
 
           case EVENTS.QUESTION_SHOW:
             if (data.question) {
+              setRoundContent(null)
+              setRoundReveal(null)
               setQuestion(data.question)
               setReveal(null)
               setAnsweredCount(0)
             }
+            break
+
+          case EVENTS.ROUND_CONTENT_SHOW:
+            setRoundContent(data as RoundContentPayload)
+            setRoundReveal(null)
+            setAnsweredCount(0)
             break
 
           case EVENTS.ANSWER_COUNT_UPDATE:
@@ -108,9 +132,19 @@ export function App(): React.JSX.Element {
             setReveal(data)
             break
 
+          case EVENTS.ROUND_REVEAL:
+            setRoundReveal(data as RoundRevealPayload)
+            break
+
           case EVENTS.LEADERBOARD_SHOW:
             if (data.leaderboard) {
               setLeaderboard(data.leaderboard)
+            }
+            break
+
+          case EVENTS.ROADMAP_SHOW:
+            if (data.roadmap) {
+              setRoadmap(data.roadmap)
             }
             break
 
@@ -157,6 +191,10 @@ export function App(): React.JSX.Element {
     }
   }
 
+  const handleJoinGame = () => {
+    window.location.href = JOIN_GAME_URL
+  }
+
   const handleStartGame = async () => {
     if (!code || !hostToken) return
     try {
@@ -190,17 +228,24 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
+
         <div className="welcome-screen">
           <div className="welcome-card">
-            <h1>Brain Wiz</h1>
+            <img src={logo} width="300"></img>
             <p className="subtitle">Interactive Quiz & Trivia Game</p>
             <div className="divider"></div>
             {status === 'connecting' ? (
               <p>Connecting to server...</p>
             ) : (
-              <button className="primary-btn" onClick={handleCreateRoom}>
-                Host Game
-              </button>
+              <>
+                <button className="primary-btn" onClick={handleCreateRoom}>
+                  Host Game
+                </button>
+                <div className="space"></div>
+                <button className="primary-btn" onClick={handleJoinGame}>
+                  Join Game
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -213,9 +258,18 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
+        <audio
+          id="bg-music"
+          loop
+          autoPlay
+          src={jazzMusic}
+          preload="auto">
+        </audio>
         <SetupLobby
           roomCode={code}
+          hostToken={hostToken}
           players={roomState.players}
+          gameFlow={roomState.gameFlow ?? []}
           onStartGame={handleStartGame}
           onCloseLobby={handleCloseLobby}
         />
@@ -228,6 +282,14 @@ export function App(): React.JSX.Element {
   }
 
   if (phase === 'playing' || phase === 'reveal') {
+    if (roundContent) {
+      return (
+        <main className="app app--minigame">
+          {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
+        </main>
+      )
+    }
+
     if (!question) {
       return (
         <main className="app">
@@ -251,14 +313,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        <LeaderBoard leaderboard={leaderboard} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <GameOver
@@ -269,9 +323,46 @@ export function App(): React.JSX.Element {
     )
   }
 
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+      </main>
+    )
+  }
+
   return (
     <main className="app">
       <h1>Unknown Phase: {phase}</h1>
     </main>
+  )
+}
+
+function renderMinigame(
+  content: RoundContentPayload,
+  reveal: RoundRevealPayload | null,
+  phase: 'playing' | 'reveal'
+): React.JSX.Element {
+  if (content.type === 'balance-scale' || content.type === 'sliding-puzzle') {
+    return (
+      <RoundMinigameSurface
+        className={`host-minigame ${
+          content.type === 'balance-scale' ? 'host-minigame--scale' : 'host-minigame--sliding'
+        }`}
+        content={content}
+        mode="display"
+        phase={phase}
+        reveal={reveal}
+      />
+    )
+  }
+
+  return (
+    <div className="welcome-screen">
+      <div className="welcome-card">
+        <p>Preparing next round...</p>
+      </div>
+    </div>
   )
 }

@@ -22,7 +22,15 @@ import {
   type PuzzleStatus,
 } from './SlidingPuzzle.constants.js'
 import type { SlidingPuzzleProps } from './SlidingPuzzle.types.js'
+import defaultPuzzleImage from './default-puzzle-image.svg?url'
 import './SlidingPuzzle.css'
+
+const DEFAULT_IMAGE_ID = 'local-test-grid'
+
+function resolveImageUrl(image: { id?: string; url?: string }): string {
+  if (image.id === DEFAULT_IMAGE_ID || !image.url) return defaultPuzzleImage
+  return image.url
+}
 
 function getTileImageStyle(imageUrl: string, value: number): CSSProperties {
   return {
@@ -34,6 +42,8 @@ function getTileImageStyle(imageUrl: string, value: number): CSSProperties {
 export function SlidingPuzzle({
   puzzle,
   showLocalControls = false,
+  readOnly = false,
+  onBoardChange,
 }: SlidingPuzzleProps): JSX.Element {
   const boardWrapRef = useRef<HTMLDivElement | null>(null)
   const solveTimerRef = useRef<number | undefined>(undefined)
@@ -53,19 +63,21 @@ export function SlidingPuzzle({
   function resetBoard(nextBoard: SlidingPuzzleBoard): void {
     clearSolveTimer()
     setBoard(nextBoard)
+    onBoardChange?.(nextBoard)
     setMoveCount(0)
     setStatus(SCRAMBLED_PUZZLE_STATUS)
     setIsSolving(false)
   }
 
   function handleTileClick(tileIndex: number): void {
-    if (isSolving || !isAdjacent(tileIndex, board.indexOf(0))) {
+    if (readOnly || isSolving || !isAdjacent(tileIndex, board.indexOf(0))) {
       return
     }
 
     const nextBoard = moveTile(board, tileIndex)
 
     setBoard(nextBoard)
+    onBoardChange?.(nextBoard)
     setMoveCount((currentMoveCount) => currentMoveCount + 1)
     setStatus(isSolved(nextBoard) ? SOLVED_PUZZLE_STATUS : PLAYING_PUZZLE_STATUS)
   }
@@ -106,6 +118,7 @@ export function SlidingPuzzle({
       }
 
       setBoard(nextBoard)
+      onBoardChange?.(nextBoard)
       setMoveCount((currentMoveCount) => currentMoveCount + 1)
       stepIndex += 1
     }, SOLVE_STEP_MS)
@@ -187,7 +200,7 @@ export function SlidingPuzzle({
                 )
               }
 
-              const isMovable = isAdjacent(index, zeroIndex)
+              const isMovable = !readOnly && isAdjacent(index, zeroIndex)
 
               return (
                 <button
@@ -199,7 +212,7 @@ export function SlidingPuzzle({
                     handleTileClick(index)
                   }}
                   role="gridcell"
-                  style={getTileImageStyle(puzzle.image.url, value)}
+                  style={getTileImageStyle(resolveImageUrl(puzzle.image), value)}
                   type="button"
                 >
                   <span className="tile-number">{value.toString()}</span>

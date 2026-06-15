@@ -44,6 +44,7 @@ const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
   [GamePhase.QUESTION]: 'playing',
   [GamePhase.REVEAL]: 'reveal',
   [GamePhase.LEADERBOARD]: 'leaderboard',
+  [GamePhase.GAME_OVER]: 'game-over',
 }
 
 const FIRST_RANK = 1
@@ -55,6 +56,7 @@ export class GameEngineService {
   private readonly logger = new Logger(GameEngineService.name)
   private readonly games = new Map<string, RunningGame>()
   private readonly leaderboardOrderByRoom = new Map<string, string[]>()
+  private readonly totalRoundsByRoom = new Map<string, number>()
 
   public constructor(
     private readonly broadcaster: RoomBroadcaster,
@@ -87,6 +89,7 @@ export class GameEngineService {
         return
       }
       const rounds = await this.roundBuilder.buildRounds(room, ROUNDS.COUNT)
+      this.totalRoundsByRoom.set(roomId, rounds.length)
 
       for (const round of rounds) {
         if (game.aborted) {
@@ -111,6 +114,7 @@ export class GameEngineService {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId })
       this.games.delete(roomId)
       this.leaderboardOrderByRoom.delete(roomId)
+      this.totalRoundsByRoom.delete(roomId)
     }
   }
 
@@ -167,7 +171,10 @@ export class GameEngineService {
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
-
+    if (round.roundIndex === ROUNDS.COUNT) {
+      await this.enterPhase(room, GamePhase.GAME_OVER)
+      return
+    }
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),
@@ -254,8 +261,8 @@ export class GameEngineService {
   private toRoundSummary(round: Round): RoundSummary {
     return {
       index: round.roundIndex,
-      total: ROUNDS.COUNT,
-      type: 'quiz',
+      total: this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT,
+      type: round.gameType ?? 'quiz',
       timeLimitSeconds: round.timeLimitSeconds,
     }
   }
