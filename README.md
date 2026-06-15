@@ -47,7 +47,7 @@ npm run db:reset
 
 - **Host Display:** `http://localhost:5174/host` (Vite dev server)
 - **Players (Client):** `http://localhost:5173/client` (Vite dev server)
-- **Backend API:** `http://localhost:3000` (NestJS)
+- **Backend API:** `http://localhost:3000/api` (NestJS)
 
 **During Production / Built Mode (`npm run build` & `npm run start`)**:
 

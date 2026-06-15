@@ -59,9 +59,10 @@ async function bootstrap(): Promise<void> {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
 
-  // Root redirect: Send bare requests (/) to the Player Client (/client)
+  // Root redirect: Send bare HTTP requests (/) to the Player Client (/client)
+  // Ignore WebSocket upgrades so the WsAdapter can handle them!
   app.use('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (req.path === '/') {
+    if (req.path === '/' && req.method === 'GET' && !req.headers.upgrade) {
       return res.redirect('/client')
     }
     next()
@@ -69,8 +70,24 @@ async function bootstrap(): Promise<void> {
 
   setSwaggerConfig(app)
   await app.listen(config.PORT, '127.0.0.1')
+
   // eslint-disable-next-line no-console
-  console.log(`REST API endpoints: ${config.BASE_URL}`)
+  console.log('\n🚀 Brain Wiz Server Successfully Started!')
+  if (config.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(`
+  🎮 Host Display:  http://localhost:5174/host
+  📱 Player Client: http://localhost:5173/client
+  🔌 REST API:      http://localhost:3000
+    `)
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(`
+  🎮 Host Display:  ${config.BASE_URL}/host
+  📱 Player Client: ${config.BASE_URL}/client
+  🔌 REST API:      ${config.BASE_URL}
+    `)
+  }
 }
 
 void bootstrap()

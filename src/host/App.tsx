@@ -62,14 +62,14 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     if (!code || !hostToken) return
 
-    socketRef.current?.close()
     setStatus('connecting')
 
-    const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
-    const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-    socketRef.current = socket
+    const connectTimer = setTimeout(() => {
+      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
+      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
+      socketRef.current = socket
 
-    socket.onopen = () => {
+      socket.onopen = () => {
       setStatus('open')
       // Reset game states
       setQuestion(null)
@@ -173,6 +173,15 @@ export function App(): React.JSX.Element {
     socket.onerror = () => {
       // eslint-disable-next-line no-console
       console.error('WebSocket connection error')
+    }
+    }, 50)
+
+    return () => {
+      clearTimeout(connectTimer)
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        socketRef.current.onerror = null
+      }
+      socketRef.current?.close()
     }
   }, [code, hostToken])
 
