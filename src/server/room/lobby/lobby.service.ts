@@ -373,29 +373,39 @@ export class LobbyService {
       this.gameEngine.abort(roomId)
     }
   }
+public async kickPlayerByRoom({
+  roomCode,
+  playerId,
+  hostToken,
+}: {
+  roomCode: string
+  playerId: string
+  hostToken: string
+}) {
+  const room = await this.rooms.findByJoinCode(roomCode)
 
+  if (!room) {
+    return { success: false, reason: 'ROOM_NOT_FOUND' }
+  }
 
-public async kickClient(
-  socket: ClientSocket,
-  playerId: string,
-): Promise<void> {
-  const hostMembership = this.registry.lookup(socket)
-
-  if (!hostMembership || hostMembership.role !== 'host') {
-    throw new InvalidHostTokenError()
+  if (!this.registry.verifyHostToken(room.id, hostToken)) {
+    return { success: false, reason:  `NOT_AUTHORIZED: ${hostToken}` }
   }
 
   const client = await this.clients.findById(playerId)
 
-  if (!client || client.roomId !== hostMembership.roomId) {
-    return
+  if (!client || client.roomId !== room.id) {
+    return { success: false, reason: 'PLAYER_NOT_FOUND' }
   }
 
-  const clientSocket = this.registry.getSocketByClientId(playerId)
+  const socket = this.registry.getSocketByClientId(playerId)
 
-  if (clientSocket) {
-    this.broadcaster.emitToSocket(clientSocket, EVENTS.PLAYER_KICK)
-    this.registry.unregister(clientSocket)
+  if (socket) {
+    this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_KICKED)
+
+    socket.close?.()
+
+    this.registry.unregister(socket)
   }
 
   this.registry.clearReconnectToken(playerId)
@@ -407,10 +417,9 @@ public async kickClient(
 
   await this.clients.remove(client)
 
-  const room = await this.rooms.findById(hostMembership.roomId)
+  await this.broadcastState(room)
 
-  if (room) {
-    await this.broadcastState(room)
-  }
+  return { success: true }
 }
+
 }

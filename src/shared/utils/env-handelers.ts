@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { DEFAULTS, NodeEnv } from "../types/env.constants";
+import { z } from 'zod'
+import { DEFAULTS, NodeEnv } from '../types/env.constants'
 
 const envSchema = z.object({
   SERVER_PORT: z.coerce.number().default(DEFAULTS.SERVER_PORT),
@@ -27,25 +27,20 @@ const envSchema = z.object({
   DB_IDLE_TIMEOUT: z.coerce.number().default(DEFAULTS.DB_IDLE_TIMEOUT),
 
   DB_LOG_LEVEL: z.string().default(DEFAULTS.DB_LOG_LEVEL),
-  DB_LOGGING_ENABLED: z.coerce.boolean().default(
-    DEFAULTS.DB_LOGGING_ENABLED,
-  ),
+  DB_LOGGING_ENABLED: z.coerce.boolean().default(DEFAULTS.DB_LOGGING_ENABLED),
 
   PGADMIN_DEFAULT_EMAIL: z.email(),
   PGADMIN_DEFAULT_PASSWORD: z.string(),
 
-  SERVER_API_VERSION: z.string().default(
-    DEFAULTS.SERVER_API_VERSION,
-  ),
-});
+  SERVER_API_VERSION: z.string().default(DEFAULTS.SERVER_API_VERSION),
+})
 
-
-const parsedEnv = envSchema.safeParse(process.env);
+const parsedEnv = envSchema.safeParse(process.env)
 
 if (!parsedEnv.success) {
-  console.error("Invalid environment variables:");
-  console.error(z.treeifyError(parsedEnv.error));
-  process.exit(1);
+  console.error('Invalid environment variables:')
+  console.error(z.treeifyError(parsedEnv.error))
+  process.exit(1)
 }
 
-export const env = Object.freeze(parsedEnv.data);
+export const env = Object.freeze(parsedEnv.data)

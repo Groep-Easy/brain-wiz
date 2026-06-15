@@ -8,6 +8,7 @@
  */
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 const HOST_DEV_PORT = 5174
 
@@ -21,4 +22,9 @@ export default defineConfig({
     outDir: '../../dist/host',
     emptyOutDir: true,
   },
+  resolve: {
+    alias: {
+      "@src": path.resolve(__dirname, "src")
+    }
+  }
 })

@@ -84,6 +84,7 @@ export function App(): React.JSX.Element {
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
+  const [kicked, setKicked] = useState(false)
 
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
@@ -145,6 +146,29 @@ export function App(): React.JSX.Element {
         setJoined(false)
         setJoinError(rejected.reason || 'Could not join the room.')
         break
+      }
+      case EVENTS.PLAYER_KICKED: {
+  console.log('kicked')
+  setKicked(true)
+
+  credsRef.current = null
+  playerIdRef.current = null
+
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {}
+
+  setJoined(false)
+  setJoining(false)
+  setRoomState(null)
+  setFinalScores(null)
+
+  socketRef.current?.close()
+  setReconnectExhausted(false)
+
+  setJoinError('You were kicked from the lobby')
+
+  break
       }
       case EVENTS.ROOM_STATE_UPDATE:
         setRoomState(data.room as RoomState)
@@ -360,7 +384,7 @@ export function App(): React.JSX.Element {
   }
 
   const disconnected = status === 'closed'
-  const banner = disconnected ? (
+  const banner = disconnected && !kicked ? (
     <div className="banner">
       {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
     </div>

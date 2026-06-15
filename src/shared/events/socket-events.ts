@@ -19,7 +19,7 @@ export const PLAYER_JOIN_ACK = 'PLAYER_JOIN_ACK'
 /** Server → client: join rejected.        Payload: { reason: string }        */
 export const PLAYER_JOIN_REJECTED = 'PLAYER_JOIN_REJECTED'
 /** Host   → server: kicks a player                                           */
-export const PLAYER_KICK = 'PLAYER_KICK'
+export const PLAYER_KICKED = 'PLAYER_KICKED'
 /** Client → server: deliberate leave.     Payload: none                      */
 export const PLAYER_LEAVE = 'PLAYER_LEAVE'
 /** Server → all:    unplanned disconnect. Payload: { playerId }              */

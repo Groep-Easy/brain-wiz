@@ -1,13 +1,13 @@
-import { env } from "./env-handelers";
+import { env } from './env-handelers'
 
-export function getServerBaseURL(): string{
-  return makeServerURL("");
+export function getServerBaseURL(): string {
+  return makeServerURL('')
 }
 
-export function makeServerURL(route:string) :string {
-  const raw = `http://${env.SERVER_LOCATION}:${env.SERVER_PORT}/${route}`;
+export function makeServerURL(route: string): string {
+  const raw = `http://${env.SERVER_LOCATION}:${env.SERVER_PORT}/${route}`
 
-  let url: URL = new URL(raw);
+  let url: URL = new URL(raw)
 
-  return url.toString().replace(/\/$/, '');
+  return url.toString().replace(/\/$/, '')
 }
