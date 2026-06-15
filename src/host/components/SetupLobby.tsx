@@ -7,7 +7,10 @@ import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
 import { getClientBaseUrl } from '../../shared/utils/env'
 
+import useSound from 'use-sound'
+// { playAudio } from '../../shared/SFX/SFX'
 import jazzMusic from '../../shared/SFX/jazz.mp3'
+import startGameSound from '../../shared/SFX/start-game.wav'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -31,6 +34,7 @@ export function SetupLobby({
   const [activeTab, setActiveTab] = useState<'lobby' | 'settings'>('lobby')
   const [timePerQuestion, setTimePerQuestion] = useState(20)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
+  const [playStartGameSound] = useSound(startGameSound, { preload: true });
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
   const { cells } = useMemo(
@@ -56,6 +60,7 @@ export function SetupLobby({
   }, [roomCode])
 
   const handleStart = () => {
+    playStartGameSound()
     onStartGame(timePerQuestion)
   }
 

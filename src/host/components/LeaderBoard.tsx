@@ -7,6 +7,8 @@
 import { useRef, useLayoutEffect, useMemo } from 'react'
 import type { LeaderboardEntry } from '../../shared/types/index'
 import type { RoadmapEntry } from '../../shared/types/index'
+
+import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
 import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
@@ -212,6 +214,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
   return (
     <>
+      <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
       <div className="leaderboard-screen">
         <header className="leaderboard-header">
           <h1>Leaderboard</h1>

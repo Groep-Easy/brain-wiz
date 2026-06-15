@@ -20,7 +20,6 @@ import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
 
-import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
 import logo from './assets/BrainWiz logo.png'
 import './styles/index.css'
 import './styles/welcome.css'
@@ -317,7 +316,6 @@ export function App(): React.JSX.Element {
   if (phase === 'leaderboard') {
     return (
       <main className="app">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
         <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
       </main>
     )
