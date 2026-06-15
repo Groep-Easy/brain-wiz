@@ -32,8 +32,8 @@ print_usage() {
 Usage: ./scripts/deploy.sh [prod|dev|branch <branch-name>|current]
 
   prod              : Deploy from 'master'  → ~/brain-wiz          (ports 80/443)
-  dev               : Deploy from 'develop' → ~/brain-wiz-dev      (ports 3080/3001)
-  branch <name>     : Deploy from <name>    → ~/brain-wiz-branch   (ports 3080/3001)
+  dev               : Deploy from 'develop' → ~/brain-wiz-dev      (ports 3080/3000)
+  branch <name>     : Deploy from <name>    → ~/brain-wiz-branch   (ports 3080/3000)
   current           : Deploy the current working directory as-is, no git pull
 
 EOF
@@ -211,7 +211,7 @@ services:
   nginx:
     container_name: ${PREFIX}-nginx-proxy
     ports:
-      - "3001:443"
+      - "3000:443"
       - "3080:80"
   db:
     container_name: ${PREFIX}-postgres-db
@@ -240,7 +240,7 @@ step "Checking and freeing required ports..."
 if [ "$ENV" == "prod" ]; then
     REQUIRED_PORTS=(80 443 5050 3200)
 else
-    REQUIRED_PORTS=(3001 3080 5051 3201)
+    REQUIRED_PORTS=(3000 3080 5051 3201)
 fi
 
 for port in "${REQUIRED_PORTS[@]}"; do
@@ -313,14 +313,18 @@ fi
 step "Deploying containers..."
 
 # Determine whether sudo is required for Docker.
-DOCKER_CMD="docker compose"
+DOCKER_CMD="docker compose -f docker-compose.prod.yml"
 if ! docker ps >/dev/null 2>&1; then
     if sudo -n docker ps >/dev/null 2>&1; then
-        DOCKER_CMD="sudo docker compose"
+        DOCKER_CMD="sudo docker compose -f docker-compose.prod.yml"
         echo "      Note: using sudo for Docker commands."
     else
         die "Cannot access Docker. Either add your user to the 'docker' group or configure passwordless sudo for 'docker'."
     fi
+fi
+
+if [ -f "docker-compose.override.yml" ]; then
+    DOCKER_CMD="$DOCKER_CMD -f docker-compose.override.yml"
 fi
 
 echo "      Stopping existing containers (timeout 30 s)..."
@@ -346,7 +350,7 @@ if [ "$ENV" == "prod" ]; then
     GRAFANA_PORT=3200
     PGADMIN_PORT=5050
 else
-    APP_URL="https://${SERVER_IP}:3001"
+    APP_URL="https://${SERVER_IP}:3000"
     GRAFANA_PORT=3201
     PGADMIN_PORT=5051
 fi

@@ -9,10 +9,10 @@ if [[ "${NODE_ENV:-production}" != "production" ]]; then
     echo "WARNING: NODE_ENV is not set to 'production'."
 fi
 
-DOCKER_CMD="docker compose"
+DOCKER_CMD="docker compose -f docker-compose.prod.yml"
 if ! docker ps >/dev/null 2>&1; then
     if sudo -n docker ps >/dev/null 2>&1; then
-        DOCKER_CMD="sudo docker compose"
+        DOCKER_CMD="sudo docker compose -f docker-compose.prod.yml"
     else
         echo "ERROR: Docker requires sudo privileges."
         exit 1
