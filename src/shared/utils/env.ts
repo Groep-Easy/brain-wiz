@@ -2,6 +2,15 @@ export const isDevelopment = (): boolean => {
   if (typeof process !== 'undefined' && process.env['NODE_ENV']) {
     return process.env['NODE_ENV'] !== 'production'
   }
+
+  // Vite dev servers don't expose process.env to the browser.
+  // We can safely assume development if we are on the known dev ports or localhost.
+  if (typeof window !== 'undefined') {
+    const port = window.location.port
+    if (port === '5173' || port === '5174') return true
+    if (window.location.hostname === 'localhost') return true
+  }
+
   return false
 }
 

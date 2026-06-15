@@ -58,10 +58,19 @@ async function bootstrap(): Promise<void> {
   app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
+
+  // Root redirect: Send bare requests (/) to the Player Client (/client)
+  app.use('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.path === '/') {
+      return res.redirect('/client')
+    }
+    next()
+  })
+
   setSwaggerConfig(app)
   await app.listen(config.PORT, '127.0.0.1')
   // eslint-disable-next-line no-console
-  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
+  console.log(`REST API endpoints: ${config.BASE_URL}`)
 }
 
 void bootstrap()

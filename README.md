@@ -43,8 +43,17 @@ npm run dev
 npm run db:reset
 ```
 
-**Host:** `http://localhost:5173/host` (or 3000 if using built frontend)
-**Players:** `http://<host-ip>:5173`
+**During Local Development (`npm run dev`)**:
+
+- **Host Display:** `http://localhost:5174/host` (Vite dev server)
+- **Players (Client):** `http://localhost:5173/client` (Vite dev server)
+- **Backend API:** `http://localhost:3000` (NestJS)
+
+**During Production / Built Mode (`npm run build` & `npm run start`)**:
+
+- **Host Display:** `http://<server-ip>/host`
+- **Players (Client):** `http://<server-ip>/client`
+- All frontend assets are statically served by the NestJS server on port 3000, proxied via Nginx.
 
 ## Deployment (Production/Server)
 
