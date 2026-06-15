@@ -12,7 +12,14 @@
  * inbound rate limiting, a transport `maxPayload` cap, and a server-driven
  * heartbeat that reaps dead sockets.
  */
-import { Inject, Logger, UsePipes, ValidationPipe, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common'
+import {
+  Inject,
+  Logger,
+  UsePipes,
+  ValidationPipe,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from '@nestjs/common'
 import {
   ConnectedSocket,
   MessageBody,

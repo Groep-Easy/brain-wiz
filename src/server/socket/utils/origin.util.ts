@@ -18,7 +18,7 @@ export function isOriginAllowed(origin: string | undefined, allowed: readonly st
   if (origin === undefined || origin === '') {
     return true
   }
-  
+
   if (allowed.includes(origin)) {
     return true
   }
@@ -27,7 +27,11 @@ export function isOriginAllowed(origin: string | undefined, allowed: readonly st
   // so developers can test the client on their phones.
   // We check if the allowed list contains the default dev origins to infer dev mode.
   if (allowed.includes('http://localhost:5173')) {
-    if (origin.startsWith('http://192.168.') || origin.startsWith('http://10.') || origin.startsWith('http://172.')) {
+    if (
+      origin.startsWith('http://192.168.') ||
+      origin.startsWith('http://10.') ||
+      origin.startsWith('http://172.')
+    ) {
       return true
     }
   }

@@ -1,4 +1,4 @@
-# docker-compose.yml
+# docker-compose.prod.yml
 services:
   # ---------------------------------------------------------------------------
   # Brain Wiz
@@ -40,7 +40,7 @@ services:
   db:
     image: postgres:16
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 10

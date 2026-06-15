@@ -4,25 +4,25 @@ import type { GameFlowItem } from '../../../shared/types/flow'
 export class StartRoomDto {
   @IsString()
   @IsOptional()
-  hostToken?: string
+  public hostToken?: string
 }
 
 export class StoreFlowDto {
   @IsString()
   @IsOptional()
-  hostToken?: string
+  public hostToken?: string
 
   @IsArray()
   @IsOptional()
-  flow?: GameFlowItem[]
+  public flow?: GameFlowItem[]
 }
 
 export class RandomizeFlowDto {
   @IsString()
   @IsOptional()
-  hostToken?: string
+  public hostToken?: string
 
   @IsNumber()
   @IsOptional()
-  size?: number
+  public size?: number
 }

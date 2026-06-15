@@ -4,44 +4,44 @@ import type { RoundType } from '../../../shared/types/index'
 export class PingDto {
   @IsNumber()
   @IsOptional()
-  t?: number
+  public t?: number
 }
 
 export class PlayerJoinDto {
   @IsString()
-  roomCode!: string
+  public roomCode!: string
 
   @IsString()
-  playerName!: string
-
-  @IsString()
-  @IsOptional()
-  playerId?: string
+  public playerName!: string
 
   @IsString()
   @IsOptional()
-  playerToken?: string
+  public playerId?: string
+
+  @IsString()
+  @IsOptional()
+  public playerToken?: string
 }
 
 export class AnswerSubmitDto {
   @IsString()
-  answerId!: string
+  public answerId!: string
 
   @IsNumber()
-  timestamp!: number
+  public timestamp!: number
 }
 
 export class RoundSubmitDto {
   @IsString()
-  roundId!: string
+  public roundId!: string
 
   @IsString()
-  type!: RoundType
+  public type!: RoundType
 
   @IsDefined()
-  submission!: unknown
+  public submission!: unknown
 
   @IsNumber()
   @IsOptional()
-  timestamp?: number
+  public timestamp?: number
 }
