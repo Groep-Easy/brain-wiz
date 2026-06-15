@@ -33,12 +33,14 @@ cd brain-wiz
 cp .env.example .env
 npm install
 
-# Option A: Quick manual start
-docker compose up -d
+# Start database infrastructure
+npm run db:up
+
+# Start application watchers
 npm run dev
 
-# Option B: Robust automated start
-./scripts/start-dev.sh
+# Reset local database if needed
+npm run db:reset
 ```
 
 **Host:** `http://localhost:5173/host` (or 3000 if using built frontend)
@@ -49,11 +51,8 @@ npm run dev
 ```bash
 ssh -i <ssh_key_file> ubuntu@83.96.203.127
 
-# Re-deploy branch/master
-./scripts/deploy.sh prod  # Or dev
-
-# Safe production startup (no rebuilds)
-./scripts/start-prod.sh
+# Safe production pull & startup
+npm run deploy
 ```
 
 ## Validation & PRs
