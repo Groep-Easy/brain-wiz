@@ -123,7 +123,11 @@ export function SetupLobby({
               ) : (
                 players.map((player) => (
                   <li key={player.id}>
-                    <CharacterPreview color={'#ccb87b'} faceId={1} size={40} />
+                    <CharacterPreview
+                      color={player.playerAvatar.bodyColor}
+                      faceId={player.playerAvatar.faceId}
+                      size={40}
+                    />
                     {player.name}
                     <button
                       className="kick"
