@@ -2,15 +2,9 @@
  * Palette mirrors the host (src/host/styles/main_style.css) so shapes and
  * colours match across the host screen and the phone. */
 
+@import '../../shared/styles/variables.css';
+
 :root {
-  --dark: #2a3135;
-  --navy: #36435f;
-  --red: #ba162d;
-  --tan: #ccb87b;
-  --teal: #056c5c;
-  --bg: #f7f5ef;
-  --surface: #ffffff;
-  --darkblue: #2c57a8;
   /* Force a light theme so our warm cards never get inverted by OS dark mode.
    * (The base index.css sets `color-scheme: light dark`.) */
   color-scheme: light;

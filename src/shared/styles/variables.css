@@ -1,0 +1,11 @@
+/* variables.css - Shared design tokens for Brain Wiz */
+:root {
+  --dark: #2a3135; /* Text, headings */
+  --navy: #36435f; /* Secondary, hover */
+  --red: #ba162d; /* Accent, error, danger */
+  --tan: #ccb87b; /* Borders, soft surfaces */
+  --teal: #056c5c; /* Primary, buttons */
+  --bg: #f7f5ef; /* Warm light background */
+  --surface: #ffffff; /* Card backgrounds */
+  --darkblue: #2c57a8; /* Additional accent */
+}

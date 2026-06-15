@@ -1,17 +1,6 @@
 /* main_style.css - algemene stijl voor alle pagina's. Voor nu simpel. */
 
-/* Kleurenpalet (kleurenblind-veilig) */
-:root {
-  --dark: #2a3135; /* tekst, koppen        */
-  --navy: #36435f; /* secundair, hover     */
-  --red: #ba162d; /* accent, fout, gevaar */
-  --tan: #ccb87b; /* randen, zachte vlakken */
-  --teal: #056c5c; /* primair, knoppen     */
-  --bg: #f7f5ef; /* warme lichte achtergrond */
-  --surface: #ffffff;
-  --darkblue: #2c57a8;
-}
-
+@import '../../shared/styles/variables.css';
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
