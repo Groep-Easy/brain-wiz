@@ -44,8 +44,8 @@ echo "-> Checking core services health..."
 
 # 7. Start application server
 echo "-> Starting local development server..."
-# Note: npm run dev runs the NestJS backend
-npm run dev &
+# Note: npm run dev:server runs the NestJS backend without recursion
+npm run dev:server &
 DEV_PID=$!
 
 echo "======================================"
