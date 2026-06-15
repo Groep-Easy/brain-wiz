@@ -92,3 +92,25 @@ top-left {
   right: 50%;
   transform: translateX(50%);
 }
+
+.host-minigame {
+  width: 100%;
+  min-height: 100svh;
+}
+
+.host-minigame--scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.host-minigame--sliding {
+  display: block;
+  padding: 0;
+}
+
+.host-minigame--sliding .sliding-puzzle-app {
+  min-height: 100svh;
+}

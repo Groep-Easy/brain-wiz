@@ -25,3 +25,10 @@ body {
   padding: 1rem;
   text-align: center;
 }
+
+.app--minigame {
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  text-align: initial;
+}

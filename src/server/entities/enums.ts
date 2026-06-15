@@ -25,6 +25,12 @@ export enum QuestionThemeEnum {
   TECHNOLOGY = 'technology',
   ART = 'art',
   OTHER = 'other',
+  CODING = 'coding',
+  FILMS = 'films',
+  GAMING = 'gaming',
+  GENERAL = 'general',
+  INTERNET = 'internet',
+  MUSIC = 'music',
 }
 
 /**
@@ -78,4 +84,14 @@ export enum ContentTypeEnum {
   QUESTION = 'question',
   CODING_CHALLENGE = 'coding_challenge',
   PUZZLE = 'puzzle',
+}
+
+/**
+ * Kind of building block a host can place in a game flow.
+ * - theme: a trivia category that expands into question rounds
+ * - minigame: a self-contained mini-game module
+ */
+export enum BlockKindEnum {
+  THEME = 'theme',
+  MINIGAME = 'minigame',
 }

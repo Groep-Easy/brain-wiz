@@ -6,11 +6,14 @@
  * together, nothing else.
  */
 import 'reflect-metadata'
+import * as path from 'path'
+import * as express from 'express'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { config } from '../config/server'
+import { setSwaggerConfig } from '../config/swagger-doc'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -27,17 +30,38 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  // TODO: serve the static host display (src/host) and phone client (src/client).
-  // Old Express mounts were `app.use('/host', express.static('src/host'))` and
-  // `app.use('/', express.static('src/client'))`. Replace with ServeStaticModule
-  // (@nestjs/serve-static) or equivalent once the static assets are wired up.
+  // ---------------------------------------------------------------------------
+  // Static frontends — served from the Vite build output.
+  // /host   → Host display Vite app  (dist/host)
+  // /client → Player phone Vite app  (dist/client)
+  //
+  // Vite base paths (/host, /client) must match these mounts so built asset
+  // URLs are correct. See vite.host.config.ts and vite.client.config.ts.
+  //
+  // /host must be mounted BEFORE /client to prevent the catch-all from
+  // swallowing /host/* sub-paths.
+  // ---------------------------------------------------------------------------
+  const distDir = path.join(__dirname, '..') // __dirname = dist/server → .. = dist/
 
-  await app.listen(config.PORT, '0.0.0.0')
+  const hostDist = path.join(distDir, 'host')
+  const clientDist = path.join(distDir, 'client')
 
+  // Host display: /host and /host/* (SPA fallback)
+  // Express v5 uses path-to-regexp v8+ which requires named wildcard params.
+  app.use('/host', express.static(hostDist))
+  app.use('/host/{*path}', (_req: express.Request, res: express.Response) => {
+    res.sendFile(path.join(hostDist, 'index.html'))
+  })
+
+  // Player client: /client and /client/* (SPA fallback)
+  app.use('/client', express.static(clientDist))
+  app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
+    res.sendFile(path.join(clientDist, 'index.html'))
+  })
+  setSwaggerConfig(app)
+  await app.listen(config.PORT, '127.0.0.1')
   // eslint-disable-next-line no-console
-  console.log(`Brain Wiz running on http://0.0.0.0:${config.PORT}`)
-  // eslint-disable-next-line no-console
-  console.log(`Host display: http://localhost:${config.PORT}/host`)
+  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
 }
 
 void bootstrap()

@@ -47,3 +47,15 @@ export interface ConnectParams {
   code?: string
   hostToken?: string
 }
+
+/** The record we keep per-IP in the HostAuthThrottle. */
+export interface HostAuthRecord {
+  failures: number
+  firstFailureAt: number
+  lockedUntil: number
+}
+
+/** A socket that supports close(code, reason) at runtime (ws). */
+export type CloseableSocket = IdentifiedSocket & {
+  close?: (code?: number, reason?: string) => void
+}

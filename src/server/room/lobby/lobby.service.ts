@@ -25,7 +25,9 @@ import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
 import type { RoomState } from '../../../shared/types/index'
+import type { GameFlowItem } from '../../../shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
+import { FlowService } from '../../flow/flow.service.js'
 
 @Injectable()
 export class LobbyService {
@@ -35,13 +37,16 @@ export class LobbyService {
     private readonly registry: ConnectionRegistry,
     private readonly broadcaster: RoomBroadcaster,
     private readonly gameEngine: GameEngineService,
-    private readonly questionService: QuestionService
+    private readonly questionService: QuestionService,
+    private readonly flow: FlowService
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
     const hostToken = randomUUID()
     this.registry.setHostToken(room.id, hostToken)
+    const flow = await this.flow.randomize()
+    await this.rooms.setGameFlow(room, flow)
     return { code: room.joinCode, hostToken, roomId: room.id }
   }
 
@@ -248,6 +253,52 @@ export class LobbyService {
     return state
   }
 
+  /**
+   * Store the host-built game flow on a room (one-shot, used to build rounds at
+   * start). Verifies the host token and normalizes the flow so it is playable.
+   * Returns the stored flow.
+   */
+  public async setRoomFlow(
+    code: string,
+    hostToken: string,
+    flow: GameFlowItem[]
+  ): Promise<GameFlowItem[]> {
+    const room = await this.requireHostRoom(code, hostToken)
+    const normalized = await this.flow.normalizeForStorage(flow)
+
+    await this.rooms.setGameFlow(room, normalized)
+    await this.broadcastState(room)
+    return normalized
+  }
+
+  /**
+   * Server-side randomize: build a guaranteed-playable flow from the catalog,
+   * store it on the room, and return it. Verifies the host token.
+   */
+  public async randomizeRoomFlow(
+    code: string,
+    hostToken: string,
+    size?: number
+  ): Promise<GameFlowItem[]> {
+    const room = await this.requireHostRoom(code, hostToken)
+    const flow = await this.flow.randomize(size)
+    await this.rooms.setGameFlow(room, flow)
+    await this.broadcastState(room)
+    return flow
+  }
+
+  /** Resolve a room by code and assert the caller holds its host token. */
+  private async requireHostRoom(code: string, hostToken: string): Promise<Room> {
+    const room = await this.rooms.findByJoinCode(code)
+    if (!room) {
+      throw new RoomNotFoundError()
+    }
+    if (!this.registry.verifyHostToken(room.id, hostToken)) {
+      throw new InvalidHostTokenError()
+    }
+    return room
+  }
+
   public async sendQuestionToRoom(hostSocket: ClientSocket): Promise<void> {
     const membership = this.registry.lookup(hostSocket)
     if (!membership || membership.role !== 'host') return
@@ -284,7 +335,7 @@ export class LobbyService {
       clearTimeout(timer)
     }
     await this.clients.updateSocket(client, connectionId)
-    // Rotate the reconnect secret so a previously-seen token can't be replayed.
+
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)

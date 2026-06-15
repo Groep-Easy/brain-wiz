@@ -10,8 +10,17 @@ import type {
   PlayerJoinAckPayload,
   PlayerJoinRejectedPayload,
   AnswerAckPayload,
+  RoundContentPayload,
+  RoundRevealPayload,
 } from '../shared/types/index'
 import * as EVENTS from '../shared/events/socket-events'
+import { getBackendWsUrl } from '../shared/utils/env'
+import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
+import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
+import type {
+  SlidingPuzzleBoard,
+  SlidingPuzzlePuzzle,
+} from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -21,10 +30,11 @@ import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import './styles/main_style.css'
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY_MS = 1500
+const MINIGAME_TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan']
 
 interface SavedPlayer {
   roomCode: string
@@ -67,10 +77,15 @@ export function App(): React.JSX.Element {
   const [secondsRemaining, setSecondsRemaining] = useState(0)
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null)
   const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
+  const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
+  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
+  const [roundSubmitted, setRoundSubmitted] = useState(false)
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
+  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
@@ -141,19 +156,39 @@ export function App(): React.JSX.Element {
         break
       case EVENTS.ROUND_START:
         if (data.round) setRound(data.round as RoundSummary)
+        setRoundContent(null)
+        setRoundReveal(null)
+        setRoundSubmitted(false)
+        setSelectedOptionId(null)
         break
       case EVENTS.TIMER_TICK:
         setSecondsRemaining(data.secondsRemaining as number)
         break
       case EVENTS.QUESTION_SHOW:
         if (data.question) {
+          setRoundContent(null)
+          setRoundReveal(null)
           setQuestion(data.question as QuestionState)
           setReveal(null)
           setSelectedAnswerId(null)
         }
         break
+      case EVENTS.ROUND_CONTENT_SHOW: {
+        const content = data as RoundContentPayload
+        setRoundContent(content)
+        setRoundReveal(null)
+        setRoundSubmitted(false)
+        setSelectedOptionId(null)
+        if (content.type === 'sliding-puzzle') {
+          setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
+        }
+        break
+      }
       case EVENTS.QUESTION_REVEAL:
         setReveal(data as QuestionRevealPayload)
+        break
+      case EVENTS.ROUND_REVEAL:
+        setRoundReveal(data as RoundRevealPayload)
         break
       case EVENTS.LEADERBOARD_SHOW:
         if (data.leaderboard) setLeaderboard(data.leaderboard as LeaderboardEntry[])
@@ -165,12 +200,48 @@ export function App(): React.JSX.Element {
         const ack = data as AnswerAckPayload
         if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
           setSelectedAnswerId(null)
+          setRoundSubmitted(false)
         }
         break
       }
       default:
         break
     }
+  }
+
+  function handleLeaveRoom(): void {
+    // 1. Tell the app this is an intentional disconnect so it doesn't try to reconnect
+    intentionalCloseRef.current = true
+
+    // 2. Clear saved credentials from local storage
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+
+    // 3. Clear all references
+    credsRef.current = null
+    playerIdRef.current = null
+    pendingJoinRef.current = null
+
+    // 4. Close the socket connection
+    if (socketRef.current) {
+      socketRef.current.close()
+      socketRef.current = null
+    }
+
+    // 5. Reset all React state to initial values
+    setJoined(false)
+    setJoining(false)
+    setRoomState(null)
+    setRound(null)
+    setQuestion(null)
+    setReveal(null)
+    setLeaderboard([])
+    setFinalScores(null)
+    setJoinError(null)
+    setStatus('closed')
   }
 
   function connect(): void {
@@ -255,6 +326,84 @@ export function App(): React.JSX.Element {
     )
   }
 
+  function handleRoundSubmit(submission: unknown): void {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN || !roundContent) return
+    setRoundSubmitted(true)
+    socket.send(
+      JSON.stringify({
+        event: EVENTS.ROUND_SUBMIT,
+        data: {
+          roundId: roundContent.roundId,
+          type: roundContent.type,
+          submission,
+          timestamp: Date.now(),
+        },
+      })
+    )
+  }
+
+  function renderMinigame(phase: 'playing' | 'reveal'): React.JSX.Element | null {
+    if (!roundContent) return null
+
+    if (roundContent.type === 'balance-scale') {
+      const solution = roundReveal?.publicSolution as { correctOptionId?: string } | undefined
+      const puzzle = roundContent.publicState as ScalePuzzle
+      return (
+        <section className="answer-page">
+          <div className="answer-grid">
+            {puzzle.options.map((option, index) => {
+              const isCorrect = option.id === solution?.correctOptionId
+              const dim = phase === 'reveal' && !isCorrect
+              return (
+                <button
+                  aria-label={option.label}
+                  className={`answer-tile minigame-answer-tile ${
+                    MINIGAME_TILE_CLASSES[index] ?? 'tile-teal'
+                  } ${dim ? 'is-dim' : ''} ${phase === 'reveal' && isCorrect ? 'is-correct' : ''} ${
+                    option.id === selectedOptionId ? 'is-selected' : ''
+                  }`}
+                  disabled={roundSubmitted || phase === 'reveal'}
+                  key={option.id}
+                  onClick={() => {
+                    setSelectedOptionId(option.id)
+                    handleRoundSubmit({ optionId: option.id })
+                  }}
+                  type="button"
+                >
+                  <span className="answer-shape">{option.emoji}</span>
+                  <span className="minigame-answer-label">{option.label}</span>
+                  {option.id === selectedOptionId ? <span className="answer-you">You</span> : null}
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )
+    }
+
+    if (roundContent.type === 'sliding-puzzle') {
+      const puzzle = roundContent.publicState as SlidingPuzzlePuzzle
+      return (
+        <section className="client-minigame client-minigame--sliding">
+          <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
+          <div className="client-minigame__actions">
+            <button
+              className="primary-btn"
+              disabled={roundSubmitted || phase === 'reveal'}
+              onClick={() => handleRoundSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
+              type="button"
+            >
+              Submit board
+            </button>
+          </div>
+        </section>
+      )
+    }
+
+    return null
+  }
+
   const disconnected = status === 'closed'
   const banner = disconnected ? (
     <div className="banner">
@@ -308,6 +457,16 @@ export function App(): React.JSX.Element {
   }
 
   if (phase === 'playing' || phase === 'reveal') {
+    const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
+    if (minigame) {
+      return (
+        <main className={roundContent?.type === 'sliding-puzzle' ? 'app app--minigame' : 'app'}>
+          {banner}
+          {minigame}
+        </main>
+      )
+    }
+
     if (!question) {
       return (
         <main className="app">
@@ -335,15 +494,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        {banner}
-        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <main className="app">
@@ -352,7 +502,17 @@ export function App(): React.JSX.Element {
           players={roomState?.players ?? []}
           finalScores={finalScores ?? {}}
           myPlayerId={myPlayerId}
+          onBackToMenu={handleLeaveRoom}
         />
+      </main>
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        {banner}
+        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
       </main>
     )
   }
