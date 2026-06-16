@@ -10,7 +10,7 @@ import {
   SOLVED_BOARD,
   TILE_BACKGROUND_STEP_PERCENT,
 } from './slidingPuzzleGame.constants.js'
-import { createSeededRandom } from '@shared/utils/seeded-random.js'
+import { createSeededRandom } from '../../../shared/utils/seeded-random.js'
 import type {
   HeapNode,
   MinHeap,
