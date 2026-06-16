@@ -29,6 +29,10 @@ import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
 import '../styles/flow_editor.css'
 
+import useSound from 'use-sound'
+import dieSound from '../../shared/SFX/die.mp3'
+import { isMuted } from '../../shared/SFX/mute'
+
 export function FlowEditor(): React.JSX.Element {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -46,6 +50,8 @@ export function FlowEditor(): React.JSX.Element {
   const [sizePicker, setSizePicker] = useState<number | null>(null)
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
+
+  const [playDieSound] = useSound(dieSound)
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
@@ -206,7 +212,9 @@ export function FlowEditor(): React.JSX.Element {
     setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
   }
 
-  const openSizePicker = () => setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  const openSizePicker = () => {
+    setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  }
 
   const confirmShuffle = () => {
     if (sizePicker === null) return
@@ -214,14 +222,15 @@ export function FlowEditor(): React.JSX.Element {
     setSizePicker(null)
     if (serverBacked) {
       void randomizeRoomFlow(code, token, count)
-        .then((next) => {
+      .then((next) => {
           skipNextSave.current = true
           setFlow(next)
         })
         .catch(() => setFlow(randomFlowFrom(catalog, count)))
-    } else {
-      setFlow(randomFlowFrom(catalog, count))
-    }
+      } else {
+        setFlow(randomFlowFrom(catalog, count))
+      }
+    if (!isMuted()) playDieSound()
   }
 
   const handleBack = () => {
