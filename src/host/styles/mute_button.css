@@ -10,7 +10,9 @@
 }
 
 .speaker-icon .wave {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   transform-origin: 11px 12px;
 }
 

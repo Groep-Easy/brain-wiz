@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBackendHttpUrl, getClientBaseUrl } from '../../shared/utils/env'
 import { getBackendWsUrl } from '../../shared/utils/env'
+import { WizardLogo } from '../../shared/components/WizardLogo'
 
 import '../styles/welcome.css'
 
@@ -109,11 +110,11 @@ export function WelcomeScreen(): React.JSX.Element {
         </svg>
       </div>
 
-      <div className="hero-content">
-        {/* <img src={logo} className="hero-logo" alt="Brain Wiz Logo" /> */}
-        <h1 className="hero-wordmark">BrainWiz</h1>
+      <div className="hero-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <WizardLogo size={80} className="hero-logo-svg" />
+        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>BrainWiz</h1>
         {isCreating ? (
-          <p style={{ color: 'white', opacity: 0.8 }}>Connecting to server...</p>
+          <p style={{ color: '#ccc' }}>Connecting to server...</p>
         ) : (
           <div className="hero-actions">
             <button className="primary-btn" onClick={handleCreateRoom}>

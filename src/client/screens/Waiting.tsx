@@ -5,7 +5,7 @@ interface WaitingProps {
 
 export function Waiting({ playerName, roomCode }: WaitingProps): React.JSX.Element {
   return (
-    <div className="card">
+    <div className="game-card client-card">
       <h1>You&apos;re in! 🎉</h1>
       <p className="subtitle">
         {playerName ? `Hang tight, ${playerName} — ` : 'Hang tight — '}

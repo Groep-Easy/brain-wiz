@@ -435,7 +435,7 @@ export function App(): React.JSX.Element {
   if (fatalError) {
     return (
       <main className="app">
-        <div className="card">
+        <div className="game-card client-card">
           <CountdownCircle
             seconds={5}
             message={fatalError}
@@ -510,7 +510,7 @@ export function App(): React.JSX.Element {
       return (
         <main className="app">
           {banner}
-          <div className="card">
+          <div className="game-card client-card">
             <h2>Preparing next question…</h2>
           </div>
         </main>
@@ -559,7 +559,7 @@ export function App(): React.JSX.Element {
   return (
     <main className="app">
       {banner}
-      <div className="card">
+      <div className="game-card client-card">
         <h2>Loading…</h2>
       </div>
     </main>

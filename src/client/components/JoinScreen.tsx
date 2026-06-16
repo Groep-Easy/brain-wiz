@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { validateDisplayName } from '../../shared/utils/display-name'
 import { CharacterPreview } from './CharacterPreview'
+import { WizardLogo } from '../../shared/components/WizardLogo'
 import type { PlayerAvatar } from '../../shared/types/index'
 import '../styles/CharacterPreview.css'
 
@@ -107,8 +108,11 @@ export function JoinScreen({
   }
 
   return (
-    <div className="card">
-      <h1>Brain Wiz</h1>
+    <div className="card join-card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+        <WizardLogo size={48} />
+        <h1 className="text-logo" style={{ color: 'white', fontSize: '3.5rem' }}>BrainWiz</h1>
+      </div>
       <p className="subtitle">Join the game</p>
       <form onSubmit={handleSubmit}>
         <div className="face-controls">

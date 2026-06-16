@@ -155,3 +155,40 @@ textarea:disabled {
     0 0.225em 0 0 var(--btn-shadow-7, #cacaca),
     0 0.225em 0.375em 0 var(--btn-shadow-8, #cecece);
 }
+
+/* Top red banner for reconnecting state */
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--coral, #ff6b6b);
+  color: white;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Base Client Card */
+.card {
+  background: var(--bg);
+  color: var(--dark);
+  border: 2px solid var(--btn-shadow-5, #dedede);
+  border-radius: var(--radius-2xl, 1.5rem);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.join-card {
+  padding-top: 48px;
+  padding-bottom: 48px;
+}

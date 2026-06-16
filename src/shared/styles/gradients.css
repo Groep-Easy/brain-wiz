@@ -16,7 +16,7 @@
 .gradient-bg-container {
   width: 100vw;
   height: 100vh;
-  position: absolute;
+  position: fixed;
   overflow: hidden;
   background: linear-gradient(40deg, rgb(var(--color-bg1)), rgb(var(--color-bg2)));
   top: 0;

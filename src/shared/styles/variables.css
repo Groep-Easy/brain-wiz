@@ -1,4 +1,5 @@
 /* variables.css - Shared design tokens for Brain Wiz */
+@import url('https://fonts.googleapis.com/css2?family=Ephesis&display=swap');
 :root {
   --dark: #2a3135; /* Text, headings */
   --navy: #36435f; /* Secondary, hover */
@@ -21,4 +22,12 @@
   --radius-xl: 16px;
   --radius-2xl: 22px;
   --radius-round: 999px;
+}
+
+.text-logo {
+  font-family: 'Ephesis', cursive;
+  font-weight: 400;
+  color: white;
+  margin: 0;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
