@@ -70,108 +70,108 @@ export function App(): React.JSX.Element {
       socketRef.current = socket
 
       socket.onopen = () => {
-      setStatus('open')
-      // Reset game states
-      setQuestion(null)
-      setReveal(null)
-      setAnsweredCount(0)
-      setTotalPlayers(0)
-      setRound(null)
-      setLeaderboard([])
-      setRoadmap(null)
-      setFinalScores(null)
-    }
+        setStatus('open')
+        // Reset game states
+        setQuestion(null)
+        setReveal(null)
+        setAnsweredCount(0)
+        setTotalPlayers(0)
+        setRound(null)
+        setLeaderboard([])
+        setRoadmap(null)
+        setFinalScores(null)
+      }
 
-    socket.onmessage = (event) => {
-      try {
-        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: any }
+      socket.onmessage = (event) => {
+        try {
+          const { event: ev, data } = JSON.parse(event.data) as { event: string; data: any }
 
-        switch (ev) {
-          case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(data.room)
-            break
+          switch (ev) {
+            case EVENTS.ROOM_STATE_UPDATE:
+              setRoomState(data.room)
+              break
 
-          case EVENTS.GAME_PHASE_CHANGE:
-            setRoomState((prev) => (prev ? { ...prev, phase: data.phase } : prev))
-            break
+            case EVENTS.GAME_PHASE_CHANGE:
+              setRoomState((prev) => (prev ? { ...prev, phase: data.phase } : prev))
+              break
 
-          case EVENTS.ROUND_START:
-            if (data.round) {
-              setRound(data.round)
-            }
-            setRoundContent(null)
-            setRoundReveal(null)
-            break
-
-          case EVENTS.TIMER_TICK:
-            setSecondsRemaining(data.secondsRemaining)
-            break
-
-          case EVENTS.QUESTION_SHOW:
-            if (data.question) {
+            case EVENTS.ROUND_START:
+              if (data.round) {
+                setRound(data.round)
+              }
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(data.question)
-              setReveal(null)
+              break
+
+            case EVENTS.TIMER_TICK:
+              setSecondsRemaining(data.secondsRemaining)
+              break
+
+            case EVENTS.QUESTION_SHOW:
+              if (data.question) {
+                setRoundContent(null)
+                setRoundReveal(null)
+                setQuestion(data.question)
+                setReveal(null)
+                setAnsweredCount(0)
+              }
+              break
+
+            case EVENTS.ROUND_CONTENT_SHOW:
+              setRoundContent(data as RoundContentPayload)
+              setRoundReveal(null)
               setAnsweredCount(0)
-            }
-            break
+              break
 
-          case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as RoundContentPayload)
-            setRoundReveal(null)
-            setAnsweredCount(0)
-            break
+            case EVENTS.ANSWER_COUNT_UPDATE:
+              setAnsweredCount(data.answered)
+              setTotalPlayers(data.total)
+              break
 
-          case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(data.answered)
-            setTotalPlayers(data.total)
-            break
+            case EVENTS.QUESTION_REVEAL:
+              setReveal(data)
+              break
 
-          case EVENTS.QUESTION_REVEAL:
-            setReveal(data)
-            break
+            case EVENTS.ROUND_REVEAL:
+              setRoundReveal(data as RoundRevealPayload)
+              break
 
-          case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as RoundRevealPayload)
-            break
+            case EVENTS.LEADERBOARD_SHOW:
+              if (data.leaderboard) {
+                setLeaderboard(data.leaderboard)
+              }
+              break
 
-          case EVENTS.LEADERBOARD_SHOW:
-            if (data.leaderboard) {
-              setLeaderboard(data.leaderboard)
-            }
-            break
+            case EVENTS.ROADMAP_UPDATE:
+              setRoadmap(data as RoadmapUpdate)
+              break
 
-          case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as RoadmapUpdate)
-            break
+            case EVENTS.GAME_OVER:
+              if (data.finalScores) {
+                setFinalScores(data.finalScores)
+              }
+              break
 
-          case EVENTS.GAME_OVER:
-            if (data.finalScores) {
-              setFinalScores(data.finalScores)
-            }
-            break
-
-          default:
-            break
+            default:
+              break
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to parse WebSocket message:', err)
         }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to parse WebSocket message:', err)
       }
-    }
 
-    socket.onclose = () => {
-      setStatus('closed')
-      setRoomState(null)
-      setCode('')
-      setHostToken('')
-    }
+      socket.onclose = () => {
+        setStatus('closed')
+        setRoomState(null)
+        setCode('')
+        setHostToken('')
+      }
 
-    socket.onerror = () => {
-      // eslint-disable-next-line no-console
-      console.error('WebSocket connection error')
-    }
+      socket.onerror = () => {
+        // eslint-disable-next-line no-console
+        console.error('WebSocket connection error')
+      }
     }, 50)
 
     return () => {
@@ -344,11 +344,19 @@ function renderMinigame(
   reveal: RoundRevealPayload | null,
   phase: 'playing' | 'reveal'
 ): React.JSX.Element {
-  if (content.type === 'balance-scale' || content.type === 'sliding-puzzle') {
+  if (
+    content.type === 'balance-scale' ||
+    content.type === 'sliding-puzzle' ||
+    content.type === 'vault-rush'
+  ) {
     return (
       <RoundMinigameSurface
         className={`host-minigame ${
-          content.type === 'balance-scale' ? 'host-minigame--scale' : 'host-minigame--sliding'
+          content.type === 'balance-scale'
+            ? 'host-minigame--scale'
+            : content.type === 'vault-rush'
+              ? 'host-minigame--vault'
+              : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"

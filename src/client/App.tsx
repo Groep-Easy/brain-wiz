@@ -29,6 +29,8 @@ import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import './styles/main_style.css'
+import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -85,6 +87,7 @@ export function App(): React.JSX.Element {
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
+  const [vaultCode, setVaultCode] = useState('')
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -181,6 +184,10 @@ export function App(): React.JSX.Element {
         setSelectedOptionId(null)
         if (content.type === 'sliding-puzzle') {
           setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
+        }
+
+        if (content.type === 'vault-rush') {
+          setVaultCode('')
         }
         break
       }
@@ -407,6 +414,34 @@ export function App(): React.JSX.Element {
       )
     }
 
+    if (roundContent.type === 'vault-rush') {
+      const puzzle = roundContent.publicState as VaultRushPuzzle
+      const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const isReveal = phase === 'reveal'
+
+      return (
+        <section className="client-minigame client-minigame--vault-rush">
+          <VaultRush
+            onCodeChange={isReveal ? undefined : setVaultCode}
+            puzzle={puzzle}
+            readOnly={isReveal}
+            solutionCode={isReveal ? solution?.code : undefined}
+          />
+
+          <div className="client-minigame__actions">
+            <button
+              className="primary-btn"
+              disabled={roundSubmitted || isReveal || !/^\d{4}$/.test(vaultCode)}
+              onClick={() => handleRoundSubmit({ code: vaultCode })}
+              type="button"
+            >
+              Submit code
+            </button>
+          </div>
+        </section>
+      )
+    }
+
     return null
   }
 
@@ -466,7 +501,13 @@ export function App(): React.JSX.Element {
     const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
     if (minigame) {
       return (
-        <main className={roundContent?.type === 'sliding-puzzle' ? 'app app--minigame' : 'app'}>
+        <main
+          className={
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
+              ? 'app app--minigame'
+              : 'app'
+          }
+        >
           {banner}
           {minigame}
         </main>

@@ -80,19 +80,22 @@ function fakeRoomRepo(): Repository<Room> {
 
 function fakeMinigameRegistry(): unknown {
   return {
-    get: (type: string): unknown =>
-      type === 'sliding-puzzle' || type === 'balance-scale'
-        ? {
-            type,
-            createRound: (input: { seed: string }): unknown => ({
-              type,
-              seed: input.seed,
-              publicState: { setup: type },
-              privateState: { solution: type },
-              scoringConfig: { points: 100 },
-            }),
-          }
-        : undefined,
+    get: (type: string): unknown => {
+      if (type !== 'sliding-puzzle' && type !== 'balance-scale' && type !== 'vault-rush') {
+        return undefined
+      }
+
+      return {
+        type,
+        createRound: (input: { seed: string }): unknown => ({
+          type,
+          seed: input.seed,
+          publicState: { setup: type },
+          privateState: { solution: type },
+          scoringConfig: { points: 100 },
+        }),
+      }
+    },
   }
 }
 
@@ -124,7 +127,7 @@ describe('RoundBuilder', () => {
     assert.ok(rounds.every((r: Round) => r.status === RoundStatusEnum.PENDING))
     assert.deepEqual(
       rounds.map((r: Round) => r.gameType),
-      ['quiz', 'balance-scale', 'sliding-puzzle', 'quiz', 'balance-scale']
+      ['quiz', 'balance-scale', 'sliding-puzzle', 'vault-rush', 'quiz']
     )
     assert.deepEqual(
       rounds.map((r: Round) => r.contentType),
@@ -132,8 +135,8 @@ describe('RoundBuilder', () => {
         ContentTypeEnum.QUESTION,
         ContentTypeEnum.PUZZLE,
         ContentTypeEnum.PUZZLE,
-        ContentTypeEnum.QUESTION,
         ContentTypeEnum.PUZZLE,
+        ContentTypeEnum.QUESTION,
       ]
     )
     assert.ok(rounds.every((r: Round) => r.timeLimitSeconds === TIMER.QUESTION_SECONDS))
