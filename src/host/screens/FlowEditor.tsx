@@ -31,6 +31,8 @@ import '../styles/flow_editor.css'
 
 import useSound from 'use-sound'
 import dieSound from '../../shared/SFX/die.mp3'
+import dragSound from '../../shared/SFX/water-drop.mp3'
+import dropSound from '../../shared/SFX/card-drop.mp3'
 import { isMuted } from '../../shared/SFX/mute'
 
 export function FlowEditor(): React.JSX.Element {
@@ -52,6 +54,8 @@ export function FlowEditor(): React.JSX.Element {
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
 
   const [playDieSound] = useSound(dieSound)
+  const [playDragSound] = useSound(dragSound)
+  const [playDropSound] = useSound(dropSound)
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
@@ -84,6 +88,7 @@ export function FlowEditor(): React.JSX.Element {
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
     })
+    if (!isMuted()) playDropSound()
   }
 
   useEffect(() => {
@@ -138,12 +143,14 @@ export function FlowEditor(): React.JSX.Element {
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
+    if (!isMuted()) playDragSound()
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
+    if (!isMuted()) playDragSound()
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -206,6 +213,7 @@ export function FlowEditor(): React.JSX.Element {
         return next
       })
     }
+    if (!isMuted()) playDropSound()
   }
 
   const removeAt = (index: number) => {
