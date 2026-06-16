@@ -1,6 +1,6 @@
 import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
 
-export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale'
+export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale' | 'vault-rush'
 
 export interface CreateMinigameRoundInput {
   roundId: string
@@ -43,6 +43,16 @@ export interface BalanceScalePrivateState {
 }
 
 export interface BalanceScaleScoringConfig {
+  basePoints: number
+  solveSpeedBonus: number
+  timeLimitMs: number
+}
+
+export interface VaultRushPrivateState {
+  code: string
+}
+
+export interface VaultRushScoringConfig {
   basePoints: number
   solveSpeedBonus: number
   timeLimitMs: number

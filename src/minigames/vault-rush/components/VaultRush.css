@@ -1,0 +1,134 @@
+:root {
+  --vault-rush-ink: #171717;
+  --vault-rush-muted: #6a7280;
+  --vault-rush-line: #d9dde5;
+  --vault-rush-panel: #f7f8fb;
+  --vault-rush-accent: #7c3aed;
+}
+
+.vault-rush-app,
+.vault-rush-app * {
+  box-sizing: border-box;
+}
+
+.vault-rush-app {
+  display: grid;
+  width: 100%;
+  min-height: 100svh;
+  place-items: center;
+  padding: 18px;
+  color: var(--vault-rush-ink);
+  background: #ffffff;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.vault-rush-card {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 440px);
+  padding: 22px;
+  background: var(--vault-rush-panel);
+  border: 1px solid var(--vault-rush-line);
+  border-radius: 18px;
+}
+
+.vault-rush-header {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.vault-rush-kicker {
+  margin: 0;
+  color: var(--vault-rush-accent);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vault-rush-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.vault-rush-subtitle {
+  margin: 0;
+  color: var(--vault-rush-muted);
+  font-weight: 700;
+}
+
+.vault-rush-code {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.vault-rush-code-box {
+  display: grid;
+  min-height: 70px;
+  place-items: center;
+  background: #ffffff;
+  border: 2px solid var(--vault-rush-line);
+  border-radius: 12px;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.vault-rush-clues {
+  display: grid;
+  gap: 8px;
+}
+
+.vault-rush-clue {
+  margin: 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid var(--vault-rush-line);
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.vault-rush-input-label {
+  display: grid;
+  gap: 8px;
+  color: var(--vault-rush-muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vault-rush-input {
+  min-height: 54px;
+  padding: 0 14px;
+  color: var(--vault-rush-ink);
+  background: #ffffff;
+  border: 2px solid var(--vault-rush-line);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  text-align: center;
+}
+
+.vault-rush-input:focus {
+  border-color: var(--vault-rush-accent);
+  outline: none;
+}
+
+.vault-rush-solution {
+  margin: 0;
+  color: var(--vault-rush-accent);
+  font-weight: 900;
+  text-align: center;
+}
