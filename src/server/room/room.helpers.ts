@@ -6,7 +6,7 @@
  * and gives the broadcaster a single, consistent payload to send.
  */
 import { RoomStatusEnum } from '../entities/enums'
-import type { GamePhase, Player, RoomState } from '../../shared/types/index'
+import { GamePhase, Player, RoomState, DEFAULT_PLAYER_AVATAR } from '../../shared/types/index'
 import type { RoomStateSource, PlayerSource } from './room.types'
 
 /**
@@ -36,6 +36,7 @@ export function toRoomState(
     name: c.displayName,
     connected: c.isConnected,
     score: c.totalScore,
+    playerAvatar: c.playerAvatar ?? DEFAULT_PLAYER_AVATAR,
   }))
   return {
     code: room.joinCode,

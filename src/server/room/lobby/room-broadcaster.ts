@@ -9,8 +9,8 @@ import 'reflect-metadata'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConnectionRegistry } from './connection-registry'
 import type { ClientSocket } from './lobby.types'
-import { ROOM_STATE_UPDATE } from '../../../shared/events/socket-events'
-import type { RoomState } from '../../../shared/types/index'
+import { ROOM_STATE_UPDATE, ROADMAP_UPDATE } from '../../../shared/events/socket-events'
+import type { RoomState, RoadmapUpdate } from '../../../shared/types/index'
 
 @Injectable()
 export class RoomBroadcaster {
@@ -45,5 +45,9 @@ export class RoomBroadcaster {
 
   public broadcastRoomState(roomId: string, state: RoomState): void {
     this.emitToRoom(roomId, ROOM_STATE_UPDATE, { room: state })
+  }
+
+  public broadcastRoadmap(roomId: string, payload: RoadmapUpdate): void {
+    this.emitToRoom(roomId, ROADMAP_UPDATE, payload)
   }
 }

@@ -111,6 +111,8 @@
 }
 
 .answer-shape {
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
   line-height: 1;
 }
 .answer-check {

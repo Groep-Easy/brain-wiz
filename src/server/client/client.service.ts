@@ -10,12 +10,18 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { type Repository } from 'typeorm'
 import { Client } from '../entities/client.entity'
+import { PlayerAvatar, DEFAULT_PLAYER_AVATAR } from '../../shared/types/index'
 
 @Injectable()
 export class ClientService {
   public constructor(@InjectRepository(Client) private readonly clients: Repository<Client>) {}
 
-  public async addClient(roomId: string, displayName: string, socketId: string): Promise<Client> {
+  public async addClient(
+    roomId: string,
+    displayName: string,
+    socketId: string,
+    playerAvatar?: PlayerAvatar
+  ): Promise<Client> {
     const client = this.clients.create({
       roomId,
       displayName,
@@ -23,6 +29,7 @@ export class ClientService {
       isConnected: true,
       joinedAt: new Date(),
       totalScore: 0,
+      playerAvatar: playerAvatar ?? DEFAULT_PLAYER_AVATAR,
     })
     return this.clients.save(client)
   }

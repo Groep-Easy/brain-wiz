@@ -48,7 +48,8 @@
 }
 
 .balance-scale-equations__emoji {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
 }
 
 .balance-scale-equations__equals {
@@ -122,7 +123,8 @@
 
 .balance-scale__item-emoji,
 .balance-scale__question-mark {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
   font-size: 30px;
   text-anchor: middle;
 }
@@ -201,7 +203,8 @@
 }
 
 .scale-mechanics-mock__stack-emoji {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
 }
 
 .scale-mechanics-mock__equals {

@@ -185,7 +185,8 @@ export class SocketGateway
       payload.roomCode,
       payload.playerName,
       payload.playerId,
-      payload.playerToken
+      payload.playerToken,
+      payload.playerAvatar
     )
   }
 
