@@ -10,8 +10,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-const HOST_DEV_PORT = 5174
-
 export default defineConfig({
   root: 'src/host',
   plugins: [react()],
@@ -20,7 +18,7 @@ export default defineConfig({
   base: '/host',
   cacheDir: '../../node_modules/.vite/host',
   server: {
-    port: HOST_DEV_PORT,
+    port: Number(process.env['HOST_PORT']),
   },
   build: {
     outDir: path.resolve(__dirname, 'dist/host'),
