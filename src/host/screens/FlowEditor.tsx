@@ -32,7 +32,7 @@ import '../styles/flow_editor.css'
 import useSound from 'use-sound'
 import dieSound from '../../shared/SFX/die.mp3'
 import dragSound from '../../shared/SFX/water-drop.mp3'
-import dropSound from '../../shared/SFX/card-drop.mp3'
+import dropSound from '../../shared/SFX/card-drop.mp3' //TODO: clean this mess up
 import { isMuted } from '../../shared/SFX/mute'
 
 export function FlowEditor(): React.JSX.Element {
