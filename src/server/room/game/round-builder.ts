@@ -19,8 +19,8 @@ import { Round } from '../../entities/round.entity'
 import { Room } from '../../entities/room.entity'
 import { GameBlock } from '../../entities/game-block.entity'
 import { RoundStatusEnum, ContentTypeEnum, BlockKindEnum } from '../../entities/enums'
-import { ROUNDS, TIMER } from '../../../shared/constants/game-config.constants'
-import type { RoundType } from '../../../shared/types/index'
+import { ROUNDS, TIMER } from '@config/game.config'
+import type { RoundType } from '@shared/types/index'
 import { NotEnoughQuestionsError } from './game.errors'
 import type { ProceduralRoundSeedInput } from './game.types'
 import { MinigameRegistry } from './minigames/minigame-registry'
@@ -48,7 +48,7 @@ export class RoundBuilder {
     @InjectRepository(Room) private readonly roomRepo: Repository<Room>,
     @InjectRepository(GameBlock) private readonly blocks: Repository<GameBlock>,
     private readonly minigames: MinigameRegistry
-  ) {}
+  ) { }
 
   /**
    * Build the round sequence. If the room has a custom flow, expand it; the
@@ -122,7 +122,7 @@ export class RoundBuilder {
     if (unknownMinigames > 0) {
       this.logger.warn(
         `Skipped ${unknownMinigames} unrecognized block(s) in room ${room.id}: ` +
-          `blocks must be a theme with questions or a mini-game with a minigameKey.`
+        `blocks must be a theme with questions or a mini-game with a minigameKey.`
       )
     }
     return plan

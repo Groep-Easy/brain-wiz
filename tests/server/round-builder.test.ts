@@ -17,7 +17,7 @@ import {
   BlockKindEnum,
   QuestionThemeEnum,
 } from '../../src/server/entities/enums'
-import { TIMER } from '../../src/shared/constants/game-config.constants'
+import { TIMER } from '../../src/config/game.config'
 
 function fakeQuestionRepo(count: number): Repository<Question> {
   const questions = Array.from({ length: count }, (_, i) =>
@@ -83,15 +83,15 @@ function fakeMinigameRegistry(): unknown {
     get: (type: string): unknown =>
       type === 'sliding-puzzle' || type === 'balance-scale'
         ? {
+          type,
+          createRound: (input: { seed: string }): unknown => ({
             type,
-            createRound: (input: { seed: string }): unknown => ({
-              type,
-              seed: input.seed,
-              publicState: { setup: type },
-              privateState: { solution: type },
-              scoringConfig: { points: 100 },
-            }),
-          }
+            seed: input.seed,
+            publicState: { setup: type },
+            privateState: { solution: type },
+            scoringConfig: { points: 100 },
+          }),
+        }
         : undefined,
   }
 }

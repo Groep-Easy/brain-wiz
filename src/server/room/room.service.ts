@@ -12,10 +12,10 @@ import { In, type Repository } from 'typeorm'
 import { Room } from '../entities/room.entity'
 import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
 import { generateRoomCode } from '../../shared/utils/room-code'
-import { ROUNDS, TIMER } from '@shared/constants/game-config.constants'
+import { ROUNDS, TIMER } from '@config/game.config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
-import { server_config } from '@config/server'
+import { server_config } from '@config/server.config'
 import type { GameFlowItem } from '@shared/types/flow'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */

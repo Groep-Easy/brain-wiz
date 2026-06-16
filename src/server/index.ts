@@ -12,7 +12,7 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
-import { ENV } from '@config/env'
+import { ENV } from '@config/env.config'
 import { setSwaggerConfig } from '../config/swagger-doc'
 import { NodeEnv } from '@shared/types/env'
 

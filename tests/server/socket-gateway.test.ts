@@ -12,7 +12,7 @@ import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
 import { WS_SUBPROTOCOL } from '../../src/server/socket/socket.constants.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '../../src/shared/constants/socket-events.constants.js'
-import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/shared/constants/game-config.constants.js'
+import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/config/game.config.js'
 import type { AnswerService } from '../../src/server/room/game/answer.service.js'
 import type { AnswerSubmitPayload } from '../../src/shared/types/index.js'
 
@@ -32,10 +32,10 @@ function fakeLobby(
   const calls: Call[] = []
   const record =
     (method: string) =>
-    async (...args: unknown[]): Promise<unknown> => {
-      calls.push({ method, args })
-      return Promise.resolve(method === 'connectHost' ? hostAccepts : undefined)
-    }
+      async (...args: unknown[]): Promise<unknown> => {
+        calls.push({ method, args })
+        return Promise.resolve(method === 'connectHost' ? hostAccepts : undefined)
+      }
   const service = {
     connectHost: record('connectHost'),
     joinClient: record('joinClient'),

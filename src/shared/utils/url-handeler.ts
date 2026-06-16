@@ -1,4 +1,4 @@
-import { ENV } from '@config/env'
+import { ENV } from '@config/env.config'
 
 export function makeServerURL(route: string): string {
   const raw = `${ENV.SERVER_BASE_URL}/${route}`

@@ -17,15 +17,15 @@ import { RoomService } from '../room.service'
 import { ClientService } from '../../client/client.service'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { toRoomState } from '../room.helpers'
-import * as EVENTS from '../../../shared/constants/socket-events.constants'
-import { ROUNDS, TIMER } from '../../../shared/constants/game-config.constants'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { ROUNDS, TIMER } from '@config/game.config'
 import type {
   GamePhase as WireGamePhase,
   LeaderboardEntry,
   RoundSummary,
   RoadmapTheme,
   ScoreMap,
-} from '../../../shared/types/index'
+} from '@shared/types/index'
 import {
   GamePhase,
   RoundPresenter,
@@ -67,7 +67,7 @@ export class GameEngineService {
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
     @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
     private readonly bus: GameEventBus
-  ) {}
+  ) { }
 
   /** Overridable so tests can inject a controllable timer. */
   protected createTimer(): PhaseTimerLike {

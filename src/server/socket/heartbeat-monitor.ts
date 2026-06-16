@@ -12,7 +12,7 @@
  */
 import 'reflect-metadata'
 import { Injectable, Logger } from '@nestjs/common'
-import { WS } from '@shared/constants/game-config.constants'
+import { WS } from '@config/game.config'
 import type { HeartbeatSocket } from './socket.types'
 
 @Injectable()

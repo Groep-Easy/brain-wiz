@@ -8,8 +8,8 @@
  * IMPORTANT: Environment validation happens here on startup. If any required
  * variables are missing, the application will fail fast with a clear error.
  */
-import { ENV } from './env'
-import { getDatabaseConfig } from './database'
+import { ENV } from './env.config'
+import { getDatabaseConfig } from './database.config'
 
 export const server_config = Object.freeze({
   PORT: ENV.SERVER_PORT,

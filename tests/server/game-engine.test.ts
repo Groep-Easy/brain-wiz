@@ -8,7 +8,7 @@ import { GameEngineService } from '../../src/server/room/game/game-engine.servic
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
 import * as EVENTS from '../../src/shared/constants/socket-events.constants'
-import { ROUNDS } from '../../src/shared/constants/game-config.constants'
+import { ROUNDS } from '../../src/config/game.config'
 import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
 import type { LeaderboardEntry } from '../../src/shared/types/index'
 
