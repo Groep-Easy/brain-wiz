@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBackendHttpUrl, getClientBaseUrl } from '../../shared/utils/env'
 import { getBackendWsUrl } from '../../shared/utils/env'
@@ -16,6 +16,37 @@ const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 export function WelcomeScreen(): React.JSX.Element {
   const [isCreating, setIsCreating] = useState(false)
   const navigate = useNavigate()
+  const interactiveRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let curX = 0
+    let curY = 0
+    let tgX = 0
+    let tgY = 0
+    let animationFrameId: number
+
+    const move = () => {
+      curX += (tgX - curX) / 20
+      curY += (tgY - curY) / 20
+      if (interactiveRef.current) {
+        interactiveRef.current.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`
+      }
+      animationFrameId = requestAnimationFrame(move)
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      tgX = event.clientX
+      tgY = event.clientY
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    move()
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [])
 
   const handleCreateRoom = async () => {
     setIsCreating(true)
@@ -27,10 +58,10 @@ export function WelcomeScreen(): React.JSX.Element {
         return
       }
       const body = (await res.json()) as { code: string; hostToken: string }
-      
+
       // Store host token securely in session storage to survive page reloads
       sessionStorage.setItem(`hostToken_${body.code}`, body.hostToken)
-      
+
       // Navigate to the newly created room
       navigate(`/host/${body.code}`)
     } catch (err) {
@@ -45,23 +76,62 @@ export function WelcomeScreen(): React.JSX.Element {
 
   return (
     <div className="welcome-screen">
-      <div className="welcome-card">
-        <img src={logo} width="300" alt="Brain Wiz Logo" />
-        <p className="subtitle">Interactive Quiz & Trivia Game</p>
-        <div className="divider"></div>
+      <div className="gradient-bg-container">
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="goo">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+              <feColorMatrix
+                in="blur"
+                mode="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+                result="goo"
+              />
+              <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+          </defs>
+        </svg>
+        <div className="gradients-container">
+          <div className="g1"></div>
+          <div className="g2"></div>
+          <div className="g3"></div>
+          <div className="g4"></div>
+          <div className="g5"></div>
+          <div className="interactive-glow" ref={interactiveRef}></div>
+        </div>
+      </div>
+
+      <div className="floating-shapes">
+        <svg className="floating-shape shape-1" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+        <svg className="floating-shape shape-2" viewBox="0 0 24 24">
+          <rect x="4" y="4" width="16" height="16" rx="4" />
+        </svg>
+        <svg className="floating-shape shape-3" viewBox="0 0 24 24">
+          <polygon points="12,2 22,20 2,20" />
+        </svg>
+      </div>
+
+      <div className="hero-content">
+        {/* <img src={logo} className="hero-logo" alt="Brain Wiz Logo" /> */}
+        <h1 className="hero-wordmark">BrainWiz</h1>
         {isCreating ? (
-          <p>Connecting to server...</p>
+          <p style={{ color: 'white', opacity: 0.8 }}>Connecting to server...</p>
         ) : (
-          <>
+          <div className="hero-actions">
             <button className="primary-btn" onClick={handleCreateRoom}>
-              Host Game
+              Start Hosting Game
             </button>
-            <div className="space"></div>
             <button className="primary-btn" onClick={handleJoinGame}>
-              Join Game
+              Join Existing Game
             </button>
-          </>
+          </div>
         )}
+      </div>
+
+      <div className="hero-footer">
+        <p>All rights reserved. BrainWiz™ 2026. </p>
       </div>
     </div>
   )

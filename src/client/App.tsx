@@ -28,6 +28,7 @@ import { Answer } from './screens/Answer'
 import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
+import { CountdownCircle } from '../shared/components/CountdownCircle'
 import './styles/main_style.css'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
@@ -82,6 +83,7 @@ export function App(): React.JSX.Element {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [fatalError, setFatalError] = useState<string | null>(null)
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
@@ -145,7 +147,11 @@ export function App(): React.JSX.Element {
         }
         setJoining(false)
         setJoined(false)
-        setJoinError(rejected.reason || 'Could not join the room.')
+        if (rejected.reason === 'Room not found') {
+          setFatalError('Room not found or game already started')
+        } else {
+          setJoinError(rejected.reason || 'Could not join the room.')
+        }
         break
       }
       case EVENTS.ROOM_STATE_UPDATE:
@@ -416,6 +422,24 @@ export function App(): React.JSX.Element {
       {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
     </div>
   ) : null
+
+  if (fatalError) {
+    return (
+      <main className="app">
+        <div className="card">
+          <CountdownCircle
+            seconds={5}
+            message={fatalError}
+            onComplete={() => {
+              window.history.replaceState({}, '', '/client')
+              setFatalError(null)
+              setJoinError(null)
+            }}
+          />
+        </div>
+      </main>
+    )
+  }
 
   if (!joined) {
     if (joining) {

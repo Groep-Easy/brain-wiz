@@ -20,6 +20,8 @@ import { FlowEditor } from './screens/FlowEditor'
 import { LeaderBoard } from './components/LeaderBoard'
 import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechanicsMock'
 import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { GlassFilter } from '../shared/components/GlassFilter'
+import '../shared/styles/glass.css'
 import './styles/index.css'
 
 const container = document.getElementById('root')
@@ -59,6 +61,7 @@ const mockLeaderboard = [
 
 createRoot(container).render(
   <StrictMode>
+    <GlassFilter />
     {/* The host app is now served from the root, so no basename is needed */}
     <BrowserRouter>
       <Routes>

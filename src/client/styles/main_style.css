@@ -59,37 +59,11 @@ body {
 }
 .field input {
   width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid var(--tan);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--dark);
-  box-sizing: border-box;
-}
-.field input:focus {
-  outline: none;
-  border-color: var(--teal);
 }
 
 /* Primary button */
 .primary-btn {
   width: 100%;
-  font-size: 1.05rem;
-  font-weight: 700;
-  padding: 0.85rem 1rem;
-  border: none;
-  border-radius: 10px;
-  background: var(--teal);
-  color: #fff;
-  cursor: pointer;
-}
-.primary-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.primary-btn:not(:disabled):hover {
-  opacity: 0.92;
 }
 
 .error-text {

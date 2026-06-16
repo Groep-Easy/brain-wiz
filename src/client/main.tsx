@@ -12,6 +12,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { App } from './App'
 import { Console } from './console/Console'
 import { Game } from './screens/Game'
+import { GlassFilter } from '../shared/components/GlassFilter'
+import '../shared/styles/glass.css'
 import './styles/index.css'
 import { LoadingComp } from './components/LoadingComp'
 
@@ -22,6 +24,7 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
+    <GlassFilter />
     {/* basename must match the Vite base / Express mount so React Router
         resolves paths correctly: /client/game matches route path="/game" */}
     <BrowserRouter basename="/client">

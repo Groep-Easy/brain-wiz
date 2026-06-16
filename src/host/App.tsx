@@ -20,6 +20,7 @@ import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+import { CountdownCircle } from '../shared/components/CountdownCircle'
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
 import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
@@ -37,6 +38,7 @@ export function App(): React.JSX.Element {
   const hostToken = sessionStorage.getItem(`hostToken_${roomCode}`)
 
   const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
+  const [fatalError, setFatalError] = useState<string | null>(null)
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
   const [question, setQuestion] = useState<QuestionState | null>(null)
@@ -62,8 +64,7 @@ export function App(): React.JSX.Element {
   // Automatically connect WebSocket when roomCode and hostToken are set
   useEffect(() => {
     if (!roomCode || !hostToken) {
-      alert('Missing room code or host token. Redirecting to home.')
-      navigate('/')
+      setFatalError('Room taken or unauthorized')
       return
     }
 
@@ -168,9 +169,12 @@ export function App(): React.JSX.Element {
       }
     }
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       setStatus('closed')
       setRoomState(null)
+      if (event.code === 4004) {
+        setFatalError('Room not found or token invalid')
+      }
       // Do not clear tokens or code so we can attempt reconnect if desired
     }
 
@@ -218,6 +222,22 @@ export function App(): React.JSX.Element {
   }
 
   // Dynamic Routing based on game phase
+  if (fatalError) {
+    return (
+      <main className="app">
+        <div className="welcome-screen">
+          <div className="welcome-card">
+            <CountdownCircle
+              seconds={5}
+              message={fatalError}
+              onComplete={() => navigate('/')}
+            />
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
