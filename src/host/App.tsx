@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   RoomState,
   LeaderboardEntry,
-  RoadmapEntry,
+  RoadmapUpdate,
   ScoreMap,
   QuestionState,
   QuestionRevealPayload,
@@ -18,13 +18,19 @@ import { GameOver } from './screens/GameOver'
 import * as EVENTS from '@shared/constants/socket-events.constants'
 import { WS_SUBPROTOCOL } from '@shared/constants/ws.constants'
 import { RoundMinigameSurface } from '@minigames/components/RoundMinigameSurface'
+
+import jazzMusic from '../shared/SFX/jazz.mp3'
+import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
+import logo from './assets/BrainWiz logo.png'
+
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'
+import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@shared/utils/env'
 
-const BACKEND_WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3000'
-const BACKEND_HTTP_URL = BACKEND_WS_URL.replace(/^ws/i, 'http')
-const JOIN_GAME_URL = 'http://localhost:5173'
+const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
+const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 
 export function App(): React.JSX.Element {
   const [code, setCode] = useState<string>('')
@@ -40,7 +46,7 @@ export function App(): React.JSX.Element {
   const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
   const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [roadmap, setRoadmap] = useState<RoadmapEntry | null>(null)
+  const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -56,14 +62,14 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     if (!code || !hostToken) return
 
-    socketRef.current?.close()
     setStatus('connecting')
 
-    const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
-    const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-    socketRef.current = socket
+    const connectTimer = setTimeout(() => {
+      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
+      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
+      socketRef.current = socket
 
-    socket.onopen = () => {
+      socket.onopen = () => {
       setStatus('open')
       // Reset game states
       setQuestion(null)
@@ -136,10 +142,8 @@ export function App(): React.JSX.Element {
             }
             break
 
-          case EVENTS.ROADMAP_SHOW:
-            if (data.roadmap) {
-              setRoadmap(data.roadmap)
-            }
+          case EVENTS.ROADMAP_UPDATE:
+            setRoadmap(data as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
@@ -167,6 +171,15 @@ export function App(): React.JSX.Element {
     socket.onerror = () => {
       // eslint-disable-next-line no-console
       console.error('WebSocket connection error')
+    }
+    }, 50)
+
+    return () => {
+      clearTimeout(connectTimer)
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        socketRef.current.onerror = null
+      }
+      socketRef.current?.close()
     }
   }, [code, hostToken])
 
@@ -224,7 +237,7 @@ export function App(): React.JSX.Element {
       <main className="app">
         <div className="welcome-screen">
           <div className="welcome-card">
-            <h1>Brain Wiz</h1>
+            <img src={logo} width="300"></img>
             <p className="subtitle">Interactive Quiz & Trivia Game</p>
             <div className="divider"></div>
             {status === 'connecting' ? (
@@ -251,6 +264,7 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
+        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={code}
           hostToken={hostToken}
@@ -299,14 +313,6 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (phase === 'leaderboard') {
-    return (
-      <main className="app">
-        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
-      </main>
-    )
-  }
-
   if (phase === 'game-over' || finalScores !== null) {
     return (
       <GameOver
@@ -314,6 +320,15 @@ export function App(): React.JSX.Element {
         finalScores={finalScores || {}}
         onBackToMenu={handleCloseLobby}
       />
+    )
+  }
+
+  if (phase === 'leaderboard') {
+    return (
+      <main className="app">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+      </main>
     )
   }
 

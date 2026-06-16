@@ -31,6 +31,7 @@ export interface UpgradeRequest {
   headers?: {
     origin?: string
     'sec-websocket-protocol'?: string
+    'x-forwarded-for'?: string | string[]
   }
   socket?: { remoteAddress?: string }
 }

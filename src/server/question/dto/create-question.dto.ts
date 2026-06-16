@@ -14,17 +14,19 @@ import {
 import { DifficultyEnum, QuestionThemeEnum } from '../../entities/enums'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
-const TEXT_MAX_LENGTH = 512
-const MAX_CORRECT_ANSWERS = 2
-const SMALLINT_MAX = 32767
+import {
+  MAX_STRING_LENGTH,
+  MAX_CORRECT_ANSWERS,
+  MAX_INT_VALUE,
+} from '../../../shared/constants/validation'
 
 export class CreateQuestionDto {
   @ApiProperty({
     example: 'What is the capital of France?',
-    maxLength: TEXT_MAX_LENGTH,
+    maxLength: MAX_STRING_LENGTH,
   })
   @IsString()
-  @MaxLength(TEXT_MAX_LENGTH)
+  @MaxLength(MAX_STRING_LENGTH)
   public text!: string
 
   @ApiProperty({
@@ -50,7 +52,7 @@ export class CreateQuestionDto {
   @IsArray()
   @IsString({ each: true })
   @MinLength(1, { each: true })
-  @MaxLength(TEXT_MAX_LENGTH, { each: true })
+  @MaxLength(MAX_STRING_LENGTH, { each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(MAX_CORRECT_ANSWERS)
   public correctAnswers!: string[]
@@ -64,7 +66,7 @@ export class CreateQuestionDto {
   @IsArray()
   @IsString({ each: true })
   @MinLength(1, { each: true })
-  @MaxLength(TEXT_MAX_LENGTH, { each: true })
+  @MaxLength(MAX_STRING_LENGTH, { each: true })
   @ArrayMaxSize(1)
   public wrongAnswers?: string[]
 
@@ -73,28 +75,28 @@ export class CreateQuestionDto {
   })
   @IsOptional()
   @IsString()
-  @MaxLength(TEXT_MAX_LENGTH)
+  @MaxLength(MAX_STRING_LENGTH)
   public imagePath?: string
 
   @ApiPropertyOptional({
     example: 30,
     minimum: 1,
-    maximum: SMALLINT_MAX,
+    maximum: MAX_INT_VALUE,
   })
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(SMALLINT_MAX)
+  @Max(MAX_INT_VALUE)
   public timeLimitSeconds?: number
 
   @ApiPropertyOptional({
     example: 10,
     minimum: 0,
-    maximum: SMALLINT_MAX,
+    maximum: MAX_INT_VALUE,
   })
   @IsOptional()
   @IsInt()
   @Min(0)
-  @Max(SMALLINT_MAX)
+  @Max(MAX_INT_VALUE)
   public basePoints?: number
 }

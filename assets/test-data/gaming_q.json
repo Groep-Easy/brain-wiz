@@ -1,0 +1,302 @@
+[
+    {
+        "text": "Which company developed Minecraft?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Mojang"
+        ],
+        "wrongAnswers": [
+            "Epic Games",
+            "Valve",
+            "Rockstar Games"
+        ],
+        "imagePath": "/images/minecraft.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are popular battle royale games?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Fortnite",
+            "Apex Legends"
+        ],
+        "wrongAnswers": [
+            "FIFA",
+            "Minecraft"
+        ],
+        "imagePath": "/images/battle-royale.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the name of Mario's brother?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Luigi"
+        ],
+        "wrongAnswers": [
+            "Wario",
+            "Toad",
+            "Yoshi"
+        ],
+        "imagePath": "/images/mario.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these companies make gaming consoles?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Sony",
+            "Nintendo"
+        ],
+        "wrongAnswers": [
+            "Netflix",
+            "Spotify"
+        ],
+        "imagePath": "/images/consoles.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "In which game would you find the character Master Chief?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Halo"
+        ],
+        "wrongAnswers": [
+            "Call of Duty",
+            "Destiny",
+            "Battlefield"
+        ],
+        "imagePath": "/images/halo.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are Pokémon?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Pikachu",
+            "Charizard"
+        ],
+        "wrongAnswers": [
+            "Totoro",
+            "Godzilla"
+        ],
+        "imagePath": "/images/pokemon.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "What is the best-selling video game of all time?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Minecraft"
+        ],
+        "wrongAnswers": [
+            "GTA V",
+            "Tetris",
+            "Fortnite"
+        ],
+        "imagePath": "/images/bestselling-game.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these games were developed by Rockstar Games?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Grand Theft Auto V",
+            "Red Dead Redemption 2"
+        ],
+        "wrongAnswers": [
+            "The Legend of Zelda",
+            "God of War"
+        ],
+        "imagePath": "/images/rockstar.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What does NPC stand for in gaming?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Non-Player Character"
+        ],
+        "wrongAnswers": [
+            "New Playable Character",
+            "Next Player Control",
+            "Network Play Character"
+        ],
+        "imagePath": "/images/npc.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are characters from the Super Mario series?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Bowser",
+            "Princess Peach"
+        ],
+        "wrongAnswers": [
+            "Kratos",
+            "Geralt"
+        ],
+        "imagePath": "/images/mario-characters.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which game franchise features the Triforce?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "The Legend of Zelda"
+        ],
+        "wrongAnswers": [
+            "Final Fantasy",
+            "Elden Ring",
+            "Dark Souls"
+        ],
+        "imagePath": "/images/zelda.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are popular esports titles?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "League of Legends",
+            "Counter-Strike 2"
+        ],
+        "wrongAnswers": [
+            "The Sims 4",
+            "Stardew Valley"
+        ],
+        "imagePath": "/images/esports.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Who is the main character in The Witcher 3?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Geralt of Rivia"
+        ],
+        "wrongAnswers": [
+            "Ciri",
+            "Dandelion",
+            "Eredin"
+        ],
+        "imagePath": "/images/witcher.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these games are made by Nintendo?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Mario Kart",
+            "Animal Crossing"
+        ],
+        "wrongAnswers": [
+            "Halo",
+            "God of War"
+        ],
+        "imagePath": "/images/nintendo.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which game popularized the phrase 'The cake is a lie'?",
+        "theme": "gaming",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Portal"
+        ],
+        "wrongAnswers": [
+            "Half-Life",
+            "BioShock",
+            "Team Fortress 2"
+        ],
+        "imagePath": "/images/portal.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these are PlayStation-exclusive franchises?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "God of War",
+            "The Last of Us"
+        ],
+        "wrongAnswers": [
+            "Halo",
+            "Forza Horizon"
+        ],
+        "imagePath": "/images/playstation.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What is the name of the virtual world in Roblox?",
+        "theme": "gaming",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Roblox"
+        ],
+        "wrongAnswers": [
+            "Blockland",
+            "CraftWorld",
+            "CubeVerse"
+        ],
+        "imagePath": "/images/roblox.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these games were developed by Valve?",
+        "theme": "gaming",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Half-Life",
+            "Portal"
+        ],
+        "wrongAnswers": [
+            "Overwatch",
+            "Valorant"
+        ],
+        "imagePath": "/images/valve.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which game features the island of Tsushima?",
+        "theme": "gaming",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Ghost of Tsushima"
+        ],
+        "wrongAnswers": [
+            "Sekiro",
+            "Assassin's Creed Shadows",
+            "Nioh"
+        ],
+        "imagePath": "/images/tsushima.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these gaming franchises have sold over 100 million copies?",
+        "theme": "gaming",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Minecraft",
+            "Grand Theft Auto"
+        ],
+        "wrongAnswers": [
+            "Titanfall",
+            "Dead Space"
+        ],
+        "imagePath": "/images/gaming-franchises.jpg",
+        "timeLimitSeconds": 25
+    }
+]

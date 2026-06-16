@@ -20,7 +20,7 @@ const SOLVE_SPEED_BONUS = 300
 const MILLISECONDS_PER_SECOND = 1000
 const DEFAULT_IMAGE = Object.freeze({
   id: 'local-test-grid',
-  url: '/src/minigames/sliding-puzzle/mock/images/local-test-puzzle.svg',
+  url: '/client/minigames/local-test-puzzle.svg',
   alt: 'Numbered color grid puzzle',
 })
 
@@ -119,6 +119,6 @@ export class SlidingPuzzleServerAdapter implements MinigameAdapter {
   }
 
   private toRecord(value: SlidingPuzzlePuzzle | SlidingPuzzleScoreConfig): Record<string, unknown> {
-    return value as unknown as Record<string, unknown>
+    return { ...value }
   }
 }

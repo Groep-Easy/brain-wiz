@@ -5,6 +5,8 @@ import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
+import { getClientBaseUrl } from '../../shared/utils/env'
+import { CharacterPreview } from '../../client/components/CharacterPreview'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -37,15 +39,12 @@ export function SetupLobby({
 
   const openEditor = () => {
     const params = new URLSearchParams({ code: roomCode, token: hostToken })
-    window.open(`/flow-editor?${params.toString()}`, '_blank')
+    window.open(`/host/flow-editor?${params.toString()}`, '_blank')
   }
 
   useEffect(() => {
     if (roomCode) {
-      const host = window.location.hostname
-      const protocol = window.location.protocol
-      // Build client URL pointing to port 5173
-      const joinUrl = `${protocol}//${host}${window.location.port ? ':5173' : ''}/?code=${roomCode}`
+      const joinUrl = `${getClientBaseUrl()}/client/?code=${roomCode}`
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
@@ -149,6 +148,11 @@ export function SetupLobby({
               ) : (
                 players.map((player) => (
                   <li key={player.id}>
+                    <CharacterPreview
+                      color={player.playerAvatar.bodyColor}
+                      faceId={player.playerAvatar.faceId}
+                      size={40}
+                    />
                     {player.name}
                     <button
                       className="kick"

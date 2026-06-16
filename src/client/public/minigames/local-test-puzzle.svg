@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-label="Cat puzzle image">
+  <rect width="900" height="900" fill="#f6efe2" />
+  <circle cx="160" cy="150" r="84" fill="#f4b860" opacity="0.9" />
+  <path d="M0 690C110 630 215 638 320 700C430 766 548 762 670 690C762 636 835 624 900 646V900H0Z" fill="#9ec5ab" />
+  <path d="M180 660C170 568 222 486 306 458C330 450 360 445 390 445H510C604 445 688 508 715 596C754 721 660 820 517 820H383C280 820 195 756 180 660Z" fill="#cf6f42" />
+  <path d="M292 232L234 100L401 184Z" fill="#cf6f42" />
+  <path d="M608 232L666 100L499 184Z" fill="#cf6f42" />
+  <path d="M308 210L272 130L373 190Z" fill="#f1a56d" />
+  <path d="M592 210L628 130L527 190Z" fill="#f1a56d" />
+  <circle cx="450" cy="350" r="198" fill="#d9854f" />
+  <path d="M278 362C314 332 354 332 390 362" fill="none" stroke="#4b2d20" stroke-width="22" stroke-linecap="round" />
+  <path d="M510 362C546 332 586 332 622 362" fill="none" stroke="#4b2d20" stroke-width="22" stroke-linecap="round" />
+  <circle cx="450" cy="415" r="24" fill="#4b2d20" />
+  <path d="M450 438V472" fill="none" stroke="#4b2d20" stroke-width="15" stroke-linecap="round" />
+  <path d="M408 476C426 496 474 496 492 476" fill="none" stroke="#4b2d20" stroke-width="15" stroke-linecap="round" />
+  <path d="M320 430H198M326 468H205M580 430H702M574 468H695" fill="none" stroke="#4b2d20" stroke-width="12" stroke-linecap="round" />
+  <path d="M238 606C292 574 365 590 401 650" fill="none" stroke="#b45435" stroke-width="20" stroke-linecap="round" />
+  <path d="M620 785C750 770 794 645 724 570C682 526 614 536 590 588C568 636 602 684 653 674C692 666 711 632 696 602" fill="none" stroke="#cf6f42" stroke-width="48" stroke-linecap="round" />
+  <path d="M310 760C324 806 382 824 430 795M590 760C576 806 518 824 470 795" fill="none" stroke="#4b2d20" stroke-width="16" stroke-linecap="round" />
+  <path d="M0 300H900M0 600H900M300 0V900M600 0V900" stroke="#ffffff" stroke-width="10" opacity="0.32" />
+</svg>

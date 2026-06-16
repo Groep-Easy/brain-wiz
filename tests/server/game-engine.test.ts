@@ -18,6 +18,7 @@ interface RecordingBroadcaster {
   stateBroadcasts: unknown[]
   emitToRoom: (_roomId: string, event: string, payload?: unknown) => void
   broadcastRoomState: (_roomId: string, state: unknown) => void
+  broadcastRoadmap: (_roomId: string, payload: unknown) => void
   emitToSocket: () => void
 }
 
@@ -37,6 +38,7 @@ function recordingBroadcaster(
       onEmit?.(event, payload)
     },
     broadcastRoomState: (_roomId: string, state: unknown): void => void stateBroadcasts.push(state),
+    broadcastRoadmap: (): void => undefined,
     emitToSocket: (): void => undefined,
   }
 }
@@ -77,6 +79,22 @@ interface FakeClient {
   displayName: string
   isConnected: boolean
   joinedAt: Date
+}
+
+interface FakeQueryBuilder {
+  innerJoinAndSelect: () => FakeQueryBuilder
+  where: () => FakeQueryBuilder
+  orderBy: () => FakeQueryBuilder
+  getMany: () => Promise<unknown[]>
+}
+
+function fakeQueryBuilder(): FakeQueryBuilder {
+  return {
+    innerJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
+    where: (): FakeQueryBuilder => fakeQueryBuilder(),
+    orderBy: (): FakeQueryBuilder => fakeQueryBuilder(),
+    getMany: async (): Promise<unknown[]> => [],
+  }
 }
 
 function fakeRound(index: number): FakeRound {
@@ -174,7 +192,11 @@ function makeEngine(
     buildRounds: async (): Promise<unknown[]> =>
       Array.from({ length: ROUNDS.COUNT }, (_, i) => fakeRound(i)),
   }
-  const roundRepo = { save: async (r: unknown): Promise<unknown> => r }
+
+  const roundRepo = {
+    save: async (r: unknown): Promise<unknown> => r,
+    createQueryBuilder: (): FakeQueryBuilder => fakeQueryBuilder(),
+  }
   const presenter = {
     present: (_roomId: string, round: { roundIndex: number }): void =>
       void presentCalls.push(round.roundIndex),

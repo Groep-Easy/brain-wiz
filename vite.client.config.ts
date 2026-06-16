@@ -14,6 +14,10 @@ import path from 'path'
 export default defineConfig({
   root: 'src/client',
   plugins: [react()],
+  // base must match the Express mount point so built asset URLs are correct.
+  // Without this, /assets/foo.js 404s because it hits the root handler, not /client.
+  base: '/client',
+  cacheDir: '../../node_modules/.vite/client',
   server: {
     port: Number(process.env['CLIENT_PORT']),
   },

@@ -63,7 +63,7 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
   }
 
   public validateSubmission(submission: unknown): boolean {
-    return !this.parseOptionId(submission)
+    return this.parseOptionId(submission) !== undefined
   }
 
   public getAnswerChoices(publicState: Record<string, unknown>): RoundAnswerChoice[] {

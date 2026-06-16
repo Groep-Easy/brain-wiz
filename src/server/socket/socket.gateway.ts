@@ -12,7 +12,14 @@
  * inbound rate limiting, a transport `maxPayload` cap, and a server-driven
  * heartbeat that reaps dead sockets.
  */
-import { Inject, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common'
+import {
+  Inject,
+  Logger,
+  UsePipes,
+  ValidationPipe,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from '@nestjs/common'
 import {
   ConnectedSocket,
   MessageBody,
@@ -24,15 +31,12 @@ import {
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
 import * as EVENTS from '@shared/constants/socket-events.constants'
-import { ROOM, WS } from '@shared/constants/game-config.constants'
+import { ROOM, WS } from '@config/game.config'
 import { AnswerService } from '../room/game/answer.service'
 import type {
-  AnswerSubmitPayload,
-  PingPayload,
-  PlayerJoinPayload,
   PongPayload,
-  RoundSubmitPayload,
 } from '@shared/types/index'
+import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
@@ -52,6 +56,7 @@ import {
 } from './socket.constants'
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SocketGateway.name)
@@ -157,7 +162,7 @@ export class SocketGateway
    */
   @SubscribeMessage(EVENTS.PING)
   public handlePing(
-    @MessageBody() payload: PingPayload | undefined,
+    @MessageBody() payload: PingDto | undefined,
     @ConnectedSocket() client?: IdentifiedSocket
   ): WsResponse<PongPayload> | undefined {
     if (!this.rateLimiter.allow(client?.connectionId)) return undefined
@@ -167,7 +172,7 @@ export class SocketGateway
 
   @SubscribeMessage(EVENTS.PLAYER_JOIN)
   public handlePlayerJoin(
-    @MessageBody() payload: PlayerJoinPayload | undefined,
+    @MessageBody() payload: PlayerJoinDto | undefined,
     @ConnectedSocket() client: IdentifiedSocket
   ): void {
     if (!this.rateLimiter.allow(client.connectionId)) return
@@ -178,7 +183,8 @@ export class SocketGateway
       payload.roomCode,
       payload.playerName,
       payload.playerId,
-      payload.playerToken
+      payload.playerToken,
+      payload.playerAvatar
     )
   }
 
@@ -195,7 +201,7 @@ export class SocketGateway
 
   @SubscribeMessage(EVENTS.ANSWER_SUBMIT)
   public handleAnswerSubmit(
-    @MessageBody() payload: AnswerSubmitPayload | undefined,
+    @MessageBody() payload: AnswerSubmitDto | undefined,
     @ConnectedSocket() client: IdentifiedSocket
   ): void {
     if (!this.rateLimiter.allow(client.connectionId)) return
@@ -205,7 +211,7 @@ export class SocketGateway
 
   @SubscribeMessage(EVENTS.ROUND_SUBMIT)
   public handleRoundSubmit(
-    @MessageBody() payload: RoundSubmitPayload | undefined,
+    @MessageBody() payload: RoundSubmitDto | undefined,
     @ConnectedSocket() client: IdentifiedSocket
   ): void {
     if (!this.rateLimiter.allow(client.connectionId)) return

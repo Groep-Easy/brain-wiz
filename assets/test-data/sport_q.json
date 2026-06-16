@@ -1,0 +1,302 @@
+[
+    {
+        "text": "How many players are on the field for one soccer team during a match?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "11"
+        ],
+        "wrongAnswers": [
+            "9",
+            "10",
+            "12"
+        ],
+        "imagePath": "/images/soccer.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are Olympic sports?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Swimming",
+            "Gymnastics"
+        ],
+        "wrongAnswers": [
+            "Chess",
+            "Bowling"
+        ],
+        "imagePath": "/images/olympics.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which country won the FIFA World Cup in 2022?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Argentina"
+        ],
+        "wrongAnswers": [
+            "France",
+            "Brazil",
+            "Germany"
+        ],
+        "imagePath": "/images/world-cup.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these sports use a racket?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Tennis",
+            "Badminton"
+        ],
+        "wrongAnswers": [
+            "Golf",
+            "Baseball"
+        ],
+        "imagePath": "/images/racket-sports.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "How many points is a touchdown worth in American football?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "6"
+        ],
+        "wrongAnswers": [
+            "3",
+            "7",
+            "1"
+        ],
+        "imagePath": "/images/football.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these athletes are famous football (soccer) players?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Lionel Messi",
+            "Cristiano Ronaldo"
+        ],
+        "wrongAnswers": [
+            "LeBron James",
+            "Roger Federer"
+        ],
+        "imagePath": "/images/football-stars.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "In which sport would you perform a slam dunk?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Basketball"
+        ],
+        "wrongAnswers": [
+            "Volleyball",
+            "Handball",
+            "Baseball"
+        ],
+        "imagePath": "/images/basketball.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these countries are famous for Formula 1 Grand Prix races?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Monaco",
+            "Italy"
+        ],
+        "wrongAnswers": [
+            "Iceland",
+            "Greenland"
+        ],
+        "imagePath": "/images/f1.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "How many players are on a basketball team on the court at one time?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "5"
+        ],
+        "wrongAnswers": [
+            "6",
+            "7",
+            "11"
+        ],
+        "imagePath": "/images/basketball-court.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which athlete holds the record for the most Olympic gold medals?",
+        "theme": "sport",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Michael Phelps"
+        ],
+        "wrongAnswers": [
+            "Usain Bolt",
+            "Carl Lewis",
+            "Simone Biles"
+        ],
+        "imagePath": "/images/phelps.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these are Grand Slam tennis tournaments?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Wimbledon",
+            "US Open"
+        ],
+        "wrongAnswers": [
+            "Miami Open",
+            "Indian Wells"
+        ],
+        "imagePath": "/images/tennis.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "What sport is Tiger Woods famous for?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Golf"
+        ],
+        "wrongAnswers": [
+            "Tennis",
+            "Baseball",
+            "Rugby"
+        ],
+        "imagePath": "/images/golf.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which of these are combat sports?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Boxing",
+            "Judo"
+        ],
+        "wrongAnswers": [
+            "Cricket",
+            "Volleyball"
+        ],
+        "imagePath": "/images/combat-sports.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which country is traditionally associated with the sport of cricket?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "England"
+        ],
+        "wrongAnswers": [
+            "Spain",
+            "Brazil",
+            "Italy"
+        ],
+        "imagePath": "/images/cricket.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these athletes are famous tennis players?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Roger Federer",
+            "Rafael Nadal"
+        ],
+        "wrongAnswers": [
+            "Lewis Hamilton",
+            "Tom Brady"
+        ],
+        "imagePath": "/images/tennis-stars.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "How long is a standard marathon?",
+        "theme": "sport",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "42.195 km"
+        ],
+        "wrongAnswers": [
+            "40 km",
+            "50 km",
+            "26 km"
+        ],
+        "imagePath": "/images/marathon.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which of these sports are played on ice?",
+        "theme": "sport",
+        "difficulty": "easy",
+        "correctAnswers": [
+            "Ice Hockey",
+            "Curling"
+        ],
+        "wrongAnswers": [
+            "Rugby",
+            "Handball"
+        ],
+        "imagePath": "/images/ice-sports.jpg",
+        "timeLimitSeconds": 15
+    },
+    {
+        "text": "Which Formula 1 driver has won the most World Championships?",
+        "theme": "sport",
+        "difficulty": "hard",
+        "correctAnswers": [
+            "Lewis Hamilton",
+            "Michael Schumacher"
+        ],
+        "wrongAnswers": [
+            "Max Verstappen",
+            "Ayrton Senna"
+        ],
+        "imagePath": "/images/f1-champions.jpg",
+        "timeLimitSeconds": 25
+    },
+    {
+        "text": "Which country invented basketball?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "Canada"
+        ],
+        "wrongAnswers": [
+            "United States",
+            "England",
+            "Australia"
+        ],
+        "imagePath": "/images/basketball-history.jpg",
+        "timeLimitSeconds": 20
+    },
+    {
+        "text": "Which of these are major international football tournaments?",
+        "theme": "sport",
+        "difficulty": "medium",
+        "correctAnswers": [
+            "FIFA World Cup",
+            "UEFA European Championship"
+        ],
+        "wrongAnswers": [
+            "Super Bowl",
+            "World Series"
+        ],
+        "imagePath": "/images/football-tournaments.jpg",
+        "timeLimitSeconds": 20
+    }
+]
