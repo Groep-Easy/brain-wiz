@@ -127,7 +127,7 @@ export function WelcomeScreen(): React.JSX.Element {
       </div>
 
       <div className="hero-footer">
-        <p>All rights reserved. BrainWiz™ 2026. </p>
+        <p>2026 BrainWiz™. All rights reserved.</p>
       </div>
     </div>
   )

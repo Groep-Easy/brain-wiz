@@ -5,11 +5,26 @@
   z-index: 1000;
 }
 
-.mute-btn svg {
-  fill: currentColor;
-  transition: opacity 0.2s;
+.speaker-icon {
+  display: block;
 }
 
-.mute-btn.is-muted svg {
-  opacity: 0.5;
+.speaker-icon .wave {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: 11px 12px;
+}
+
+.speaker-icon .strike {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.mute-btn.is-muted .speaker-icon .wave {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.mute-btn.is-muted .speaker-icon .strike {
+  stroke-dashoffset: 0;
 }

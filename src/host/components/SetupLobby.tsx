@@ -68,7 +68,7 @@ export function SetupLobby({
       <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
       <header className="host-lobby-header">
         <button
-          className="close-btn circle-btn"
+          className="close-btn icon-btn"
           onClick={onCloseLobby}
           title="Close lobby"
           aria-label="Close lobby"
