@@ -4,7 +4,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { validateDisplayName, NAME_REJECTION } from '../../src/shared/utils/display-name'
-import { PLAYER } from '../../src/shared/constants/game-config'
+import { PLAYER } from '../../src/config/game.config'
 
 const LENGTH_MSG = NAME_REJECTION.length
 
