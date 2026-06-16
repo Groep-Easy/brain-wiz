@@ -15,8 +15,8 @@ import { generateRoomCode } from '../../shared/utils/room-code'
 import { ROUNDS, TIMER } from '@config/game.config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
-import { server_config } from '@config/server.config'
 import type { GameFlowItem } from '@shared/types/flow'
+import { ENV } from '@config/env.config'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
@@ -26,11 +26,11 @@ export class RoomService {
   public constructor(
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
     private readonly qrcodeService?: QrcodeService
-  ) { }
+  ) {}
 
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()
-    const qrCodePayload = `${server_config.BASE_URL}/join?code=${joinCode}`
+    const qrCodePayload = `${ENV.SERVER_BASE_URL}/join?code=${joinCode}`
     const qrCodeSvg = this.qrcodeService ? await this.qrcodeService.generateSvg(qrCodePayload) : ''
 
     const room = this.rooms.create({

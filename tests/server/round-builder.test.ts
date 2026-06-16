@@ -83,15 +83,15 @@ function fakeMinigameRegistry(): unknown {
     get: (type: string): unknown =>
       type === 'sliding-puzzle' || type === 'balance-scale'
         ? {
-          type,
-          createRound: (input: { seed: string }): unknown => ({
             type,
-            seed: input.seed,
-            publicState: { setup: type },
-            privateState: { solution: type },
-            scoringConfig: { points: 100 },
-          }),
-        }
+            createRound: (input: { seed: string }): unknown => ({
+              type,
+              seed: input.seed,
+              publicState: { setup: type },
+              privateState: { solution: type },
+              scoringConfig: { points: 100 },
+            }),
+          }
         : undefined,
   }
 }

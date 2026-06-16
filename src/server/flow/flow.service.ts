@@ -30,7 +30,7 @@ export class FlowService {
   public constructor(
     @InjectRepository(GameBlock) private readonly blocks: Repository<GameBlock>,
     @InjectRepository(Question) private readonly questions: Repository<Question>
-  ) { }
+  ) {}
 
   /**
    * The palette a host can build from: theme blocks that currently have

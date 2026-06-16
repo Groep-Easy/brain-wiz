@@ -4,13 +4,13 @@ import { KickPlayerDto } from '@shared/dto/rest-api.dto'
 
 @Controller('lobbies')
 export class LobbyController {
-  constructor(private readonly lobby: LobbyService) { }
+  public constructor(private readonly lobby: LobbyService) {}
 
   @Post(':code/kick')
-  async kickPlayer(
+  public async kickPlayer(
     @Param('code') roomCode: string,
-    @Body() body: KickPlayerDto,
-  ) {
+    @Body() body: KickPlayerDto
+  ): Promise<{ success: boolean; reason: string | undefined }> {
     return this.lobby.kickPlayerByRoom({
       roomCode,
       playerId: body.playerId,

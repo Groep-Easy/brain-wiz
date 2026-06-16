@@ -33,9 +33,7 @@ import { randomUUID } from 'node:crypto'
 import * as EVENTS from '@shared/constants/socket-events.constants'
 import { ROOM, WS } from '@config/game.config'
 import { AnswerService } from '../room/game/answer.service'
-import type {
-  PongPayload,
-} from '@shared/types/index'
+import type { PongPayload } from '@shared/types/index'
 import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
@@ -58,7 +56,8 @@ import {
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class SocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(SocketGateway.name)
 
   public constructor(
@@ -68,7 +67,7 @@ export class SocketGateway
     private readonly heartbeat: HeartbeatMonitor,
     private readonly answerService: AnswerService,
     @Inject(WS_ALLOWED_ORIGINS) private readonly allowedOrigins: readonly string[]
-  ) { }
+  ) {}
 
   public onModuleInit(): void {
     this.heartbeat.start()
@@ -99,7 +98,7 @@ export class SocketGateway
     const hasHostTokenInUrl = typeof url === 'string' && url.includes('hostToken=')
     if (hasHostTokenInUrl) {
       this.logger.warn('Rejected WS connection: token sent via query param')
-        ; (client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+      ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
       return
     }
 
@@ -109,7 +108,7 @@ export class SocketGateway
         this.logger.warn(
           'Rejected WS connection: host attempted auth without Sec-WebSocket-Protocol token'
         )
-          ; (client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+        ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
         return
       }
       this.connectHost(params.code, headerToken, connectionId, client, clientIp(request))

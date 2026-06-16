@@ -66,11 +66,11 @@ describe('RoomService.createRoom', () => {
     const service = new RoomService(repo)
     // Patch findOne to collide once, then succeed.
     let calls = 0
-      ; (repo as unknown as { findOne: () => Promise<Room | null> }).findOne =
-        async (): Promise<Room | null> => {
-          calls++
-          return calls === 1 ? Object.assign(new Room(), { id: 'x' }) : null
-        }
+    ;(repo as unknown as { findOne: () => Promise<Room | null> }).findOne =
+      async (): Promise<Room | null> => {
+        calls++
+        return calls === 1 ? Object.assign(new Room(), { id: 'x' }) : null
+      }
 
     const room = await service.createRoom()
 

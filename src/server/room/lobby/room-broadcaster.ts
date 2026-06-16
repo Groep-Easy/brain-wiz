@@ -16,7 +16,7 @@ import type { RoadmapUpdate, RoomState } from '@shared/types/index'
 export class RoomBroadcaster {
   private readonly logger = new Logger(RoomBroadcaster.name)
 
-  public constructor(private readonly registry: ConnectionRegistry) { }
+  public constructor(private readonly registry: ConnectionRegistry) {}
 
   public emitToSocket(socket: ClientSocket, event: string, data?: unknown): void {
     this.safeSend(socket, JSON.stringify({ event, data }))

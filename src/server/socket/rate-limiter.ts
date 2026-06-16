@@ -17,7 +17,7 @@ export class RateLimiter {
   private readonly _windows = new Map<string, RateLimitWindow>()
 
   /** Clock seam so tests can advance time deterministically. */
-  public constructor(private readonly now: () => number = Date.now) { }
+  public constructor(private readonly now: () => number = Date.now) {}
 
   /**
    * Record a message for `key` and report whether it is within budget.

@@ -1,12 +1,13 @@
 import { EnvironmentSchema } from '@shared/dto/env.dto'
 import { NodeEnv } from '@shared/types/env'
 
-function getBaseUrl(serverLocatie: string, port: number): string {
-  let raw = ""
-  if (port in [80, 433])
-    raw = `http://${serverLocatie}`
-  else
-    raw = `http://${serverLocatie}:${port}`
+const HTTP_PORT = 80
+const HTTPS_PORT = 80
+
+function makeBaseUrl(serverLocatie: string, port: number): string {
+  let raw = ''
+  if (port in [HTTP_PORT, HTTPS_PORT]) raw = `http://${serverLocatie}`
+  else raw = `http://${serverLocatie}:${port}`
 
   let url: URL
   try {
@@ -24,13 +25,12 @@ function corsOrigins(node_env: NodeEnv): string[] {
   return node_env == NodeEnv.Production ? [] : [...DEFAULT_DEV_CORS_ORIGINS]
 }
 
-
 const parsed = EnvironmentSchema.parse(process.env)
 
-const extended_env = {
+const extendedEnv = {
   ...parsed,
-  SERVER_BASE_URL: getBaseUrl(parsed.SERVER_LOCATION, parsed.SERVER_PORT),
-  CORS_ORIGINS: corsOrigins(parsed.NODE_ENV)
+  SERVER_BASE_URL: makeBaseUrl(parsed.SERVER_LOCATION, parsed.SERVER_PORT),
+  CORS_ORIGINS: corsOrigins(parsed.NODE_ENV),
 }
 
-export const ENV = Object.freeze(extended_env)
+export const ENV = Object.freeze(extendedEnv)

@@ -18,9 +18,16 @@ import { QuestionModule } from './question/question.module'
 import { FlowModule } from './flow/flow.module'
 
 @Module({
-
-  imports: [ConfigModule.forRoot({
+  imports: [
+    ConfigModule.forRoot({
       isGlobal: true,
-    }),DatabaseModule, LobbyModule, SocketModule, HealthModule, QuestionModule, FlowModule],
+    }),
+    DatabaseModule,
+    LobbyModule,
+    SocketModule,
+    HealthModule,
+    QuestionModule,
+    FlowModule,
+  ],
 })
 export class AppModule {}

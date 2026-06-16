@@ -11,7 +11,7 @@ import type { GameBlockDto } from '@shared/types/flow'
 
 @Controller('flow')
 export class FlowController {
-  public constructor(private readonly flow: FlowService) { }
+  public constructor(private readonly flow: FlowService) {}
 
   /** The building-block catalog: themes that have questions + minigames. */
   @Get('blocks')

@@ -79,8 +79,8 @@ function validatePassword(password: string): void {
   if (password === 'your_secure_password_here') {
     throw new Error(
       'ERROR: DB_PASSWORD is not configured. ' +
-      'Update .env with your actual PostgreSQL password. ' +
-      'Never use the default placeholder in production.'
+        'Update .env with your actual PostgreSQL password. ' +
+        'Never use the default placeholder in production.'
     )
   }
 
@@ -149,13 +149,13 @@ export function loadDatabaseConfig(): DatabaseConfig {
     if (shouldSynchronize) {
       throw new Error(
         'ERROR: DB_SYNCHRONIZE=true is forbidden in production. ' +
-        'Always use migrations (DB_SYNCHRONIZE=false) in production.'
+          'Always use migrations (DB_SYNCHRONIZE=false) in production.'
       )
     }
     if (shouldDropSchema) {
       throw new Error(
         'ERROR: DB_DROP_SCHEMA=true is forbidden in production. ' +
-        'This would delete all production data.'
+          'This would delete all production data.'
       )
     }
     if (isLoggingEnabled) {

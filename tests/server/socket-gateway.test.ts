@@ -32,10 +32,10 @@ function fakeLobby(
   const calls: Call[] = []
   const record =
     (method: string) =>
-      async (...args: unknown[]): Promise<unknown> => {
-        calls.push({ method, args })
-        return Promise.resolve(method === 'connectHost' ? hostAccepts : undefined)
-      }
+    async (...args: unknown[]): Promise<unknown> => {
+      calls.push({ method, args })
+      return Promise.resolve(method === 'connectHost' ? hostAccepts : undefined)
+    }
   const service = {
     connectHost: record('connectHost'),
     joinClient: record('joinClient'),

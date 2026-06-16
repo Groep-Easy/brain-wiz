@@ -18,7 +18,7 @@ export class HostAuthThrottle {
   private readonly _records = new Map<string, HostAuthRecord>()
 
   /** Clock seam so tests can advance time deterministically. */
-  public constructor(private readonly now: () => number = Date.now) { }
+  public constructor(private readonly now: () => number = Date.now) {}
 
   /** True when this IP is currently locked out (too many recent failures). */
   public isLockedOut(ip: string): boolean {

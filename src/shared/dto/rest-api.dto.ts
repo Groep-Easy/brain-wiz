@@ -2,8 +2,8 @@ import { IsString } from 'class-validator'
 
 export class KickPlayerDto {
   @IsString()
-  playerId!: string
+  public playerId!: string
 
   @IsString()
-  hostToken!: string
+  public hostToken!: string
 }

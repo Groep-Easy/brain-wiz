@@ -19,7 +19,7 @@ import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
 import { WS_ALLOWED_ORIGINS } from './socket.constants'
-import { server_config } from '@config/server.config'
+import { ENV } from '@config/env.config'
 
 @Module({
   imports: [LobbyModule, GameModule],
@@ -28,7 +28,7 @@ import { server_config } from '@config/server.config'
     HeartbeatMonitor,
     { provide: RateLimiter, useFactory: (): RateLimiter => new RateLimiter() },
     { provide: HostAuthThrottle, useFactory: (): HostAuthThrottle => new HostAuthThrottle() },
-    { provide: WS_ALLOWED_ORIGINS, useValue: server_config.CORS_ORIGINS },
+    { provide: WS_ALLOWED_ORIGINS, useValue: ENV.CORS_ORIGINS },
   ],
 })
-export class SocketModule { }
+export class SocketModule {}

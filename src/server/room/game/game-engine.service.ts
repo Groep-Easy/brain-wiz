@@ -67,7 +67,7 @@ export class GameEngineService {
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
     @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
     private readonly bus: GameEventBus
-  ) { }
+  ) {}
 
   /** Overridable so tests can inject a controllable timer. */
   protected createTimer(): PhaseTimerLike {

@@ -40,7 +40,7 @@ export class LobbyService {
     private readonly gameEngine: GameEngineService,
     private readonly questionService: QuestionService,
     private readonly flow: FlowService
-  ) { }
+  ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
@@ -379,7 +379,7 @@ export class LobbyService {
     roomCode: string
     playerId: string
     hostToken: string
-  }) {
+  }): Promise<{ success: boolean; reason: string | undefined }> {
     const room = await this.rooms.findByJoinCode(roomCode)
 
     if (!room) {
@@ -417,7 +417,6 @@ export class LobbyService {
 
     await this.broadcastState(room)
 
-    return { success: true }
+    return { success: true, reason: undefined }
   }
-
 }

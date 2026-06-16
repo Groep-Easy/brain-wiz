@@ -1,4 +1,4 @@
-import { NodeEnv } from "../types/env";
+import { NodeEnv } from '../types/env'
 
 export const DEFAULTS = {
   SERVER_PORT: 3000,
@@ -25,4 +25,3 @@ export const DEFAULTS = {
 
   SERVER_API_VERSION: '1.0',
 } as const
-

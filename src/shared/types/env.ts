@@ -3,4 +3,3 @@ export enum NodeEnv {
   Test = 'test',
   Production = 'production',
 }
-
