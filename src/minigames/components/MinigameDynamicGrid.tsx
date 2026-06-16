@@ -6,35 +6,46 @@ import type {
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
 
 export interface MinigameDynamicGridProps {
+  init: boolean
   type: string
   puzzle: any
-  state: any
-  stateChange: Function
-  submit: Function
+  submit: Function | null
   submitted: boolean | undefined
   phase: string
 }
 
 export function MinigameDynamicGrid({
+    init,
     type,
     puzzle,
-    state,
-    stateChange,
     submit,
     submitted,
     phase
-}: MinigameDynamicGridProps): React.JSX.Element {
+}: MinigameDynamicGridProps): React.JSX.Element | null {
+  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
+
+  if (init) {
+    switch (type) {
+      case 'sliding-puzzle':
+        setSlidingBoard((puzzle as SlidingPuzzlePuzzle).initialBoard)
+        return null
+
+      default:
+        return null
+    }
+  }
+
   switch (type) {
     case 'sliding-puzzle':
       puzzle = puzzle as SlidingPuzzlePuzzle
       return (
         <section className="client-minigame client-minigame--sliding">
-          <SlidingPuzzle puzzle={puzzle} onBoardChange={stateChange} />
+          <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
           <div className="client-minigame__actions">
             <button
             className="primary-btn"
             disabled={submitted || phase === 'reveal'}
-              onClick={() => submit({ board: state ?? puzzle.initialBoard })}
+              onClick={() => submit({ board: slidingBoard ?? puzzle.initialBoard })}
               type="button"
             >
               Submit board
@@ -47,20 +58,5 @@ export function MinigameDynamicGrid({
         return (
           <section></section>
         )
-  }
-}
-
-export function minigameInitialize(
-  type: string,
-  startState: any,
-  stateChange: Function
-): any {
-  switch (type) {
-    case 'sliding-puzzle':
-      stateChange((startState as SlidingPuzzlePuzzle).initialBoard)
-      return
-
-    default:
-      return
   }
 }

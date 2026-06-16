@@ -16,11 +16,7 @@ import type {
 import * as EVENTS from '../shared/events/socket-events'
 import { getBackendWsUrl } from '../shared/utils/env'
 import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
-import {
-  MinigameDynamicGrid,
-  minigameInitialize,
-} from '../minigames/components/MinigameDynamicGrid'
-import type { SlidingPuzzleBoard } from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
+import { MinigameDynamicGrid } from '../minigames/components/MinigameDynamicGrid'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -85,7 +81,6 @@ export function App(): React.JSX.Element {
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
-  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
@@ -179,10 +174,15 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
-        switch (content.type) {
-          case 'sliding-puzzle':
-            minigameInitialize(content.type, content.publicState, setSlidingBoard)
-            break
+        if (content.type === 'sliding-puzzle') {
+          MinigameDynamicGrid({
+            init: true,
+            type: content.type,
+            puzzle: content.publicState,
+            submit: null,
+            submitted: false,
+            phase: ''
+          })
         }
         break
       }
@@ -387,10 +387,9 @@ export function App(): React.JSX.Element {
     if (roundContent.type === 'sliding-puzzle') {
       return (
         <MinigameDynamicGrid
+          init={false}
           type={roundContent.type}
           puzzle={roundContent.publicState}
-          state={slidingBoard}
-          stateChange={setSlidingBoard}
           submit={handleRoundSubmit}
           submitted={roundSubmitted}
           phase={phase}
