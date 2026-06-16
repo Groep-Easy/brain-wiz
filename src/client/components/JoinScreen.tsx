@@ -112,13 +112,13 @@ export function JoinScreen({
       <p className="subtitle">Join the game</p>
       <form onSubmit={handleSubmit}>
         <div className="face-controls">
-          <button type="button" onClick={prevFace} className="arrow-btn">
+          <button type="button" onClick={prevFace} className="arrow-btn circle-btn">
             <svg width="48" height="48" viewBox="0 0 24 24">
               <polygon points="16,4 6,12 16,20" />
             </svg>
           </button>
           <CharacterPreview color={character.bodyColor} faceId={character.faceId} />
-          <button type="button" onClick={nextFace} className="arrow-btn">
+          <button type="button" onClick={nextFace} className="arrow-btn circle-btn">
             <svg width="48" height="48" viewBox="0 0 24 24">
               <polygon points="8,4 18,12 8,20" />
             </svg>
@@ -145,7 +145,7 @@ export function JoinScreen({
           )}
           <button
             type="button"
-            className="icon-btn"
+            className="icon-btn circle-btn"
             onClick={() => setShowColorPalette((prev) => !prev)}
             title="Choose color"
           >
@@ -153,7 +153,7 @@ export function JoinScreen({
           </button>
           <button
             type="button"
-            className="icon-btn"
+            className="icon-btn circle-btn"
             onClick={() => setCharacter(createRandomCharacter())}
             title="Randomize character"
           >

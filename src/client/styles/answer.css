@@ -11,7 +11,7 @@
   position: relative;
   height: 22px;
   background: var(--tan);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   overflow: hidden;
 }
 .answer-timer-bar {
@@ -33,7 +33,7 @@
 .answer-status {
   background: var(--surface);
   border: 1px solid var(--tan);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   padding: 0.6rem 1rem;
   font-weight: 600;
   color: var(--navy);
@@ -42,7 +42,7 @@
 
 /* Right/wrong banner (reveal) */
 .reveal-banner {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 0.9rem 1rem;
   font-size: 1.25rem;
   font-weight: 800;
@@ -126,6 +126,6 @@
   font-weight: 700;
   background: rgba(255, 255, 255, 0.85);
   color: var(--dark);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   padding: 0.1rem 0.5rem;
 }

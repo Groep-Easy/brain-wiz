@@ -24,7 +24,7 @@ export function MuteButton(): React.JSX.Element {
   return (
     <button
       type="button"
-      className="mute-btn"
+      className="mute-btn circle-btn"
       onClick={() => toggleMuted()}
       title={muted ? 'Unmute sound' : 'Mute sound'}
       aria-label={muted ? 'Unmute sound' : 'Mute sound'}

@@ -329,7 +329,7 @@ export function FlowEditor(): React.JSX.Element {
                     {/* Quiz (theme) blocks let the host set how many questions they contribute. */}
                     {block.kind === 'theme' && (
                       <button
-                        className={`settings-btn ${settingsFor === item.uid ? 'open' : ''}`}
+                        className={`settings-btn circle-btn ${settingsFor === item.uid ? 'open' : ''}`}
                         draggable={false}
                         onClick={(e) => {
                           e.stopPropagation()

@@ -93,7 +93,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.28);
   font-weight: 600;
@@ -130,7 +130,7 @@
 .flow-canvas {
   flex: 1 1 auto;
   min-width: 0;
-  border-radius: 22px;
+  border-radius: var(--radius-2xl);
   background: rgba(0, 0, 0, 0.18);
   border: 2px dashed rgba(255, 255, 255, 0.25);
   padding: 24px;
@@ -145,7 +145,7 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: clamp(1rem, 1.8vw, 1.3rem);
   padding: 40px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   transition: background 0.15s ease;
 }
 
@@ -160,7 +160,7 @@
   justify-content: center;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   box-sizing: border-box;
   cursor: pointer;
   font-size: clamp(1.8rem, 3vw, 2.6rem);
@@ -246,7 +246,7 @@
   gap: 8px;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.32);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
@@ -276,7 +276,7 @@
   width: 22px;
   height: 22px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   background: rgba(0, 0, 0, 0.3);
   color: #fff;
   font-size: 1rem;
@@ -297,28 +297,8 @@
 /* Gear on quiz blocks: opens the question-count popover. */
 .settings-btn {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  font-size: 0.82rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  z-index: 3;
-}
-
-.settings-btn:hover,
-.settings-btn.open {
-  background: var(--tan);
-  color: var(--dark);
+  top: 8px;
+  right: 8px;
 }
 
 /* Inline popover to set how many questions a quiz block contributes. */
@@ -332,7 +312,7 @@
   gap: 6px;
   width: 122px;
   padding: 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   background: var(--navy);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
@@ -350,7 +330,7 @@
   font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--tan);
   background: rgba(255, 255, 255, 0.95);
   color: var(--dark);
@@ -364,7 +344,7 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--tan);
   box-shadow: 0 0 16px rgba(204, 184, 123, 0.8);
   animation: indicatorPulse 0.8s ease-in-out infinite;
@@ -405,7 +385,7 @@
 .size-modal {
   background: var(--navy);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 22px;
+  border-radius: var(--radius-2xl);
   padding: 32px 36px;
   width: min(90vw, 360px);
   text-align: center;
@@ -428,7 +408,7 @@
   font-size: 1.6rem;
   font-weight: 800;
   text-align: center;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   border: 2px solid var(--tan);
   background: rgba(255, 255, 255, 0.95);
   color: var(--dark);

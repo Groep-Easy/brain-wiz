@@ -51,13 +51,14 @@ input,
 textarea,
 .btn,
 .primary-btn,
-.start-btn {
+.start-btn,
+.circle-btn {
   text-decoration: none;
   font: inherit;
   background-color: var(--btn-bg-color, #f0f0f0);
   border: 0;
   color: var(--btn-text-color, #242424);
-  border-radius: 0.5em;
+  border-radius: var(--radius-md, 0.5em);
   font-size: 1.35rem;
   padding: 0.375em 1em;
   font-weight: 600;
@@ -79,8 +80,20 @@ textarea,
 button,
 .btn,
 .primary-btn,
-.start-btn {
+.start-btn,
+.circle-btn {
   cursor: pointer;
+}
+
+/* Specific styling for circle icon buttons */
+.circle-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-round, 999px);
 }
 
 input,
