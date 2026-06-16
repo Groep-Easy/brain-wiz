@@ -77,3 +77,9 @@ _Fails if lint, format, or tests fail._
 - `.env` must not be committed.
 - Rebase before work (`git pull --rebase`).
 - Do not commit build artifacts.
+
+## Acknowledgements
+
+- **Animated Backgrounds:** Adapted from [gradients-bg](https://github.com/baunov/gradients-bg).
+- **Glassmorphism:** Styled referencing Apple's VisionOS/Material liquid glass UI.
+- Detailed tracking can be found in `docs/PLAGIARISM.md`.

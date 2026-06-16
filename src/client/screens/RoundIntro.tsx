@@ -5,7 +5,7 @@ interface RoundIntroProps {
 
 export function RoundIntro({ index, total }: RoundIntroProps): React.JSX.Element {
   return (
-    <div className="card">
+    <div className="game-card client-card">
       <p className="subtitle">Get ready…</p>
       <h1>
         Question {index}
