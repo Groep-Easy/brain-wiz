@@ -42,34 +42,17 @@
 
 .back-btn,
 .shuffle-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 22px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  /* Inherit global styles */
   flex: 0 0 auto;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-}
-
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.28);
+  /* No specific override needed, can be default silver */
 }
 
 .shuffle-btn {
-  background: var(--tan);
-  color: var(--dark);
-}
-
-.shuffle-btn:hover {
-  transform: translateY(-2px);
+  --btn-bg-color: var(--tan);
+  --btn-text-color: var(--dark);
 }
 
 .flow-editor-hint {
@@ -464,25 +447,13 @@
 .size-cancel,
 .size-confirm {
   flex: 1 1 0;
-  padding: 14px;
-  border: none;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .size-cancel {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  /* Default silver button is fine */
 }
 
 .size-confirm {
-  background: var(--tan);
-  color: var(--dark);
-}
-
-.size-confirm:hover,
-.size-cancel:hover {
-  filter: brightness(1.08);
+  --btn-bg-color: var(--tan);
+  --btn-text-color: var(--dark);
 }

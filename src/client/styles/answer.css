@@ -71,30 +71,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 16px;
-  color: #fff;
+  /* border and border-radius handled by global button style */
   font-size: 3rem;
-  cursor: pointer;
+  /* We keep opacity/transform transitions for the selection logic, but let global button handle the active press */
   transition:
     opacity 250ms ease,
     transform 250ms ease;
 }
 .answer-tile:disabled {
-  cursor: default;
+  /* Cursor handled by global button style */
 }
 .tile-teal {
-  background: var(--teal);
+  --btn-bg-color: var(--teal);
+  --btn-text-color: #fff;
 }
 .tile-red {
-  background: var(--red);
+  --btn-bg-color: var(--red);
+  --btn-text-color: #fff;
 }
 .tile-blue {
-  background: var(--darkblue);
+  --btn-bg-color: var(--darkblue);
+  --btn-text-color: #fff;
 }
 .tile-tan {
-  background: var(--tan);
-  color: var(--dark);
+  --btn-bg-color: var(--tan);
+  --btn-text-color: var(--dark);
 }
 
 .answer-tile.is-dim {

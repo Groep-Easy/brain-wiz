@@ -14,7 +14,7 @@ import { Console } from './console/Console'
 import { Game } from './screens/Game'
 import { GlassFilter } from '../shared/components/GlassFilter'
 import '../shared/styles/glass.css'
-import './styles/index.css'
+import '../shared/styles/global.css'
 import { LoadingComp } from './components/LoadingComp'
 
 const container = document.getElementById('root')

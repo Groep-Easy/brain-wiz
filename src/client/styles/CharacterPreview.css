@@ -7,10 +7,8 @@
 }
 
 .arrow-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
+  /* Inherit global button styling */
+  padding: 4px 8px; /* Slightly smaller padding for icon button */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,22 +26,12 @@
 }
 
 .icon-btn {
-  width: 38px;
-  height: 38px;
-  border: none;
-  background-color: transparent;
-  border-radius: 10px;
-  cursor: pointer;
-
+  /* Inherit global button styling */
+  padding: 4px 8px; /* Slightly smaller padding for icon button */
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 18px;
-}
-
-.icon-btn:hover {
-  background: var(--bg);
 }
 
 .color-dot {

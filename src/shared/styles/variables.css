@@ -8,4 +8,8 @@
   --bg: #f7f5ef; /* Warm light background */
   --surface: #ffffff; /* Card backgrounds */
   --darkblue: #2c57a8; /* Additional accent */
+
+  /* Typography */
+  --fs-base: clamp(14px, 1.2vw + 10px, 20px);
+  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

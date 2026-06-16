@@ -194,26 +194,18 @@
 }
 
 .puzzle-button {
-  min-height: 46px;
-  color: #ffffff;
-  background: var(--puzzle-accent);
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 800;
+  --btn-bg-color: var(--puzzle-accent);
+  --btn-text-color: #ffffff;
 }
 
 .puzzle-button.secondary {
-  color: var(--puzzle-ink);
-  background: #eef2f6;
-  border: 1px solid var(--puzzle-line);
+  --btn-bg-color: #eef2f6;
+  --btn-text-color: var(--puzzle-ink);
 }
 
 .puzzle-button:disabled {
-  color: #8c94a1;
-  background: #e7ebf0;
-  cursor: default;
+  --btn-bg-color: #e7ebf0;
+  --btn-text-color: #8c94a1;
 }
 
 .puzzle-status {

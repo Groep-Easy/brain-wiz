@@ -22,7 +22,7 @@ import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechani
 import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 import { GlassFilter } from '../shared/components/GlassFilter'
 import '../shared/styles/glass.css'
-import './styles/index.css'
+import '../shared/styles/global.css'
 
 const container = document.getElementById('root')
 if (!container) {
