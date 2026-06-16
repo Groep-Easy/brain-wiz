@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { validateDisplayName } from '../../shared/utils/display-name'
 
 interface JoinScreenProps {
   initialCode?: string
@@ -14,7 +15,9 @@ export function JoinScreen({
   const [name, setName] = useState('')
   const [code, setCode] = useState(initialCode)
 
-  const canJoin = name.trim().length > 0 && code.trim().length > 0
+  const nameResult = validateDisplayName(name)
+  const nameError = name.trim().length > 0 && !nameResult.ok ? nameResult.reason : null
+  const canJoin = nameResult.ok && code.trim().length > 0
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,6 +43,7 @@ export function JoinScreen({
             placeholder="e.g. Alex"
             autoComplete="off"
           />
+          {nameError ? <p className="error-text">{nameError}</p> : null}
         </div>
         <div className="field">
           <label htmlFor="room-code">Room code</label>

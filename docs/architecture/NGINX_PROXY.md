@@ -54,9 +54,9 @@ The `deploy.sh` script handles cloning/updating the repo, cert generation, port 
 ### Deploy modes
 
 ```bash
-./deploy.sh prod              # master → ~/brain-wiz          (ports 3000, 5432, 5050, 3100, 3200)
-./deploy.sh dev               # develop → ~/brain-wiz-dev     (ports 3001, 5433, 5051, 3201)
-./deploy.sh branch <name>     # <name>  → ~/brain-wiz-branch  (ports 3001, 5433, 5051, 3201)
+./deploy.sh prod              # master → ~/brain-wiz          (ports 80, 443, 5432, 5050, 3100, 3200)
+./deploy.sh dev               # develop → ~/brain-wiz-dev     (ports 3000, 3080, 5433, 5051, 3201)
+./deploy.sh branch <name>     # <name>  → ~/brain-wiz-branch  (ports 3000, 3080, 5433, 5051, 3201)
 ```
 
 #### Deploying your current branch to the server (testing)
@@ -79,11 +79,11 @@ The UvA server is only reachable while connected to the **UvA VPN** (Cisco AnyCo
 
 | Service          | URL                        |
 | ---------------- | -------------------------- |
-| App (branch)     | `https://<server-ip>:3001` |
+| App (prod)       | `https://<server-ip>`      |
+| Grafana (prod)   | `http://<server-ip>:3200`  |
+| App (branch)     | `https://<server-ip>:3000` |
 | Grafana (branch) | `http://<server-ip>:3201`  |
 | pgAdmin (branch) | `http://<server-ip>:5051`  |
-| App (prod)       | `https://<server-ip>:3000` |
-| Grafana (prod)   | `http://<server-ip>:3200`  |
 
 > [!NOTE]
 > Browsers will show a privacy warning for `https://` because the certificate is self-signed. Click **Advanced → Proceed** to continue. Replace with a Let's Encrypt cert for a fully public deployment.

@@ -31,19 +31,37 @@ Multiplayer knowledge & puzzle game. Host displays game. Players join via phones
 git clone https://github.com/Groep-Easy/brain-wiz.git
 cd brain-wiz
 cp .env.example .env
-docker compose up -d
 npm install
+
+# Start database infrastructure
+npm run db:up
+
+# Start application watchers
 npm run dev
+
+# Reset local database if needed
+npm run db:reset
 ```
 
-**Host:** `http://localhost:3000/host`
-**Players:** `http://<host-ip>:3000`
+**During Local Development (`npm run dev`)**:
 
-## Deployment (UVA Server)
+- **Host Display:** `http://localhost:5174/host` (Vite dev server)
+- **Players (Client):** `http://localhost:5173/client` (Vite dev server)
+- **Backend API:** `http://localhost:3000/api` (NestJS)
+
+**During Production / Built Mode (`npm run build` & `npm run start`)**:
+
+- **Host Display:** `http://<server-ip>/host`
+- **Players (Client):** `http://<server-ip>/client`
+- All frontend assets are statically served by the NestJS server on port 3000, proxied via Nginx.
+
+## Deployment (Production/Server)
 
 ```bash
 ssh -i <ssh_key_file> ubuntu@83.96.203.127
-./deploy.sh prod  # Or ./deploy.sh dev
+
+# Safe production pull & startup
+npm run deploy
 ```
 
 ## Validation & PRs

@@ -104,3 +104,10 @@ export function is_valid_word(word: string): boolean {
   return FIVE_LETTER_WORDS.includes(word.toLowerCase())
 }
 
+export function getAmountGuesses(guesses: Guess[]): number {
+  return guesses.length
+}
+
+export function getAmountTime(startTime: Date, endTime: Date): number {
+  return Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+}

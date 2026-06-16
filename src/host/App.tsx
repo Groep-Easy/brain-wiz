@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type {
   RoomState,
   LeaderboardEntry,
-  RoadmapEntry,
+  RoadmapUpdate,
   ScoreMap,
   QuestionState,
   QuestionRevealPayload,
@@ -46,7 +46,7 @@ export function App(): React.JSX.Element {
   const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
   const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [roadmap, setRoadmap] = useState<RoadmapEntry | null>(null)
+  const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -62,14 +62,14 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     if (!code || !hostToken) return
 
-    socketRef.current?.close()
     setStatus('connecting')
 
-    const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
-    const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-    socketRef.current = socket
+    const connectTimer = setTimeout(() => {
+      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
+      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
+      socketRef.current = socket
 
-    socket.onopen = () => {
+      socket.onopen = () => {
       setStatus('open')
       // Reset game states
       setQuestion(null)
@@ -142,10 +142,8 @@ export function App(): React.JSX.Element {
             }
             break
 
-          case EVENTS.ROADMAP_SHOW:
-            if (data.roadmap) {
-              setRoadmap(data.roadmap)
-            }
+          case EVENTS.ROADMAP_UPDATE:
+            setRoadmap(data as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
@@ -173,6 +171,15 @@ export function App(): React.JSX.Element {
     socket.onerror = () => {
       // eslint-disable-next-line no-console
       console.error('WebSocket connection error')
+    }
+    }, 50)
+
+    return () => {
+      clearTimeout(connectTimer)
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        socketRef.current.onerror = null
+      }
+      socketRef.current?.close()
     }
   }, [code, hostToken])
 
@@ -228,7 +235,6 @@ export function App(): React.JSX.Element {
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
-
         <div className="welcome-screen">
           <div className="welcome-card">
             <img src={logo} width="300"></img>
@@ -258,13 +264,7 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
-        <audio
-          id="bg-music"
-          loop
-          autoPlay
-          src={jazzMusic}
-          preload="auto">
-        </audio>
+        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={code}
           hostToken={hostToken}

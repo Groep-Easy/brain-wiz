@@ -20,7 +20,7 @@ import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { RoomState } from '../../../shared/types/index'
 import type { GameFlowItem } from '../../../shared/types/flow'
-import type { StartRoomBody, StoreFlowBody, RandomizeFlowBody } from '../room.types'
+import { StartRoomDto, StoreFlowDto, RandomizeFlowDto } from '../dto/room.dto'
 import {
   ApiBody,
   ApiConflictResponse,
@@ -91,7 +91,7 @@ export class RoomsController {
   @Put(':code/flow')
   public async storeFlow(
     @Param('code') code: string,
-    @Body() body: StoreFlowBody
+    @Body() body: StoreFlowDto
   ): Promise<{ flow: GameFlowItem[] }> {
     try {
       const flow = await this.lobby.setRoomFlow(code, body?.hostToken ?? '', body?.flow ?? [])
@@ -105,7 +105,7 @@ export class RoomsController {
   @Post(':code/flow/randomize')
   public async randomizeFlow(
     @Param('code') code: string,
-    @Body() body: RandomizeFlowBody
+    @Body() body: RandomizeFlowDto
   ): Promise<{ flow: GameFlowItem[] }> {
     try {
       const flow = await this.lobby.randomizeRoomFlow(code, body?.hostToken ?? '', body?.size)
@@ -162,7 +162,7 @@ export class RoomsController {
   @ApiConflictResponse({
     description: 'Not enough players to start',
   })
-  public async start(@Param('code') code: string, @Body() body: StartRoomBody): Promise<RoomState> {
+  public async start(@Param('code') code: string, @Body() body: StartRoomDto): Promise<RoomState> {
     try {
       return await this.lobby.startGame(code, body?.hostToken ?? '')
     } catch (error) {

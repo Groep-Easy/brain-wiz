@@ -39,5 +39,18 @@ export function parseHostTokenFromHeaders(headers: UpgradeRequest['headers']): s
 
 /** Best-effort client IP for throttling/logging; '' when unavailable. */
 export function clientIp(request: UpgradeRequest | undefined): string {
+  if (process.env['TRUST_PROXY'] === 'true') {
+    const forwarded = request?.headers?.['x-forwarded-for']
+    if (typeof forwarded === 'string' && forwarded.length > 0) {
+      const parts = forwarded.split(',')
+      return (parts[0] || '').trim()
+    } else if (Array.isArray(forwarded) && forwarded.length > 0) {
+      const first = forwarded[0]
+      if (typeof first === 'string') {
+        const parts = first.split(',')
+        return (parts[0] || '').trim()
+      }
+    }
+  }
   return request?.socket?.remoteAddress ?? ''
 }

@@ -10,23 +10,29 @@
   "scripts": {
     "build": "npm run build:server && npm run client:build && npm run host:build",
     "build:server": "nest build",
-    "dev": "npm run dev:server",
-    "dev:server": "nest build && concurrently -k \"nest build --watch\" \"node --env-file=.env --watch dist/server/index.js\"",
     "start": "node --env-file=.env dist/server/index.js",
+    "dev:server": "concurrently -k \"nest build --watch\" \"node --watch --env-file=.env dist/server/index.js\"",
+    "dev": "concurrently -k \"npm run dev:server\" \"npm run client:dev\" \"npm run host:dev\"",
+    "db:up": "docker compose -f docker-compose.dev.yml up -d db",
+    "db:down": "docker compose -f docker-compose.dev.yml stop db",
+    "db:reset": "docker compose -f docker-compose.dev.yml down -v",
+    "infra:up": "docker compose -f docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f docker-compose.dev.yml down",
+    "deploy": "bash scripts/deploy.sh prod",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
-    "test": "npm install --no-audit --no-fund && npm run lint && npm run format:check && npm run test:project-checks",
+    "test": "npm run lint && npm run format:check && npm run test:project-checks",
     "test:project-checks": "tsc && cd dist && node --env-file=../.env --test",
     "test:coverage": "tsc && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
     "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",
-    "client:dev": "vite --config vite.client.config.ts",
+    "client:dev": "vite --host --config vite.client.config.ts",
     "client:build": "vite build --config vite.client.config.ts",
     "client:preview": "vite preview --config vite.client.config.ts",
-    "host:dev": "vite --config vite.host.config.ts",
+    "host:dev": "vite --host --config vite.host.config.ts",
     "host:build": "vite build --config vite.host.config.ts",
     "host:preview": "vite preview --config vite.host.config.ts"
   },
@@ -71,5 +77,9 @@
     "socket.io": "^4.7.4",
     "typeorm": "^1.0.0",
     "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.1.1",
+    "lightningcss-linux-x64-gnu": "^1.32.0"
   }
 }

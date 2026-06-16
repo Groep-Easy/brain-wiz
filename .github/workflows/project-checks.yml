@@ -43,7 +43,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --progress=false
+        run: npm ci --include=optional --no-audit --progress=false
 
       - name: Check formatting
         run: npm run format:check
@@ -65,7 +65,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --progress=false
+        run: npm ci --include=optional --no-audit --progress=false
 
       - name: Run lint
         run: npm run lint
@@ -106,7 +106,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --progress=false
+        run: npm ci --include=optional --no-audit --progress=false
 
       - name: Run build
         run: npm run build

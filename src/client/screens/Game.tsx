@@ -6,9 +6,24 @@
  * screen simply renders its local mock harness instead of side-loading the old
  * standalone bundle.
  */
+// import type { JSX } from 'react'
+// // import { SlidingPuzzleMock } from '../../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+// import wordleGame from '../../minigames/wordleGame/components/wordleGame'
+
+// export function Game(): JSX.Element {
+//   // return <SlidingPuzzleMock />
+//   return <wordleGame />
+// }
+
+
+
 import type { JSX } from 'react'
-import { SlidingPuzzleMock } from '../../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+// import { WordleGame } from '../../minigames/wordleGame/components/WordleGame.tsx'
+
+import {WordleMock} from '../../minigames/wordleGame/mock/WordleGameMock.tsx'
 
 export function Game(): JSX.Element {
-  return <SlidingPuzzleMock />
+  // return <SlidingPuzzleMock />
+  return <WordleMock />
 }
+

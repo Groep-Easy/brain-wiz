@@ -293,13 +293,19 @@ export function App(): React.JSX.Element {
   }
 
   useEffect(() => {
-    connect()
+    const connectTimer = setTimeout(() => {
+      connect()
+    }, 50)
+
     return () => {
+      clearTimeout(connectTimer)
       intentionalCloseRef.current = true
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        socketRef.current.onerror = null
+      }
       socketRef.current?.close()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleJoin(name: string, code: string): void {

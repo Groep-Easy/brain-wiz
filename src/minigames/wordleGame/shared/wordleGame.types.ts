@@ -4,7 +4,7 @@ export type TileState = "empty" | "correct" | "wrong" | "present"
 
 export type Tile = {
   state: TileState
-  letter: Letter
+  letter: Letter | ''
 }
 
 export type Guess = {

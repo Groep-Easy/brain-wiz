@@ -48,6 +48,16 @@ export interface Answer {
   text: string
 }
 
+export interface RoadmapTheme {
+  theme: string
+  questionsInTheme: number
+}
+export interface RoadmapUpdate {
+  playerPos: number
+  totalQuestions: number
+  themes: RoadmapTheme[]
+}
+
 /** playerId → cumulative score (running total at the time the map is sent) */
 export type ScoreMap = Record<string, number>
 
@@ -95,18 +105,6 @@ export interface LeaderboardEntry {
   previousRank: number | null
   rankChange: number
   connected: boolean
-}
-
-/** One theme segment in the roadmap. */
-export interface ThemeEntry {
-  theme: string
-  questionCount: number
-}
-
-/** Roadmap shown on the leaderboard screen. */
-export interface RoadmapEntry {
-  playerPos: number
-  themes: ThemeEntry[]
 }
 
 /** Server → all: game over (GAME_OVER). */

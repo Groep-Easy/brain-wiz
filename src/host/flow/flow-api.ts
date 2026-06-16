@@ -9,11 +9,10 @@
 import { PALETTE, nextUid } from './palette'
 import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 
+import { getBackendWsUrl, getBackendHttpUrl } from '../../shared/utils/env'
+
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
-const BACKEND_HTTP_URL = (import.meta.env.VITE_WS_URL || 'ws://localhost:3000').replace(
-  /^ws/i,
-  'http'
-)
+const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
 export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
