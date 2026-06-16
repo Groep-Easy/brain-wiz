@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getBackendHttpUrl, getClientBaseUrl } from '../../shared/utils/env'
 import { getBackendWsUrl } from '../../shared/utils/env'
 
-import logo from '../assets/BrainWiz logo.png'
-
-import '../styles/index.css'
 import '../styles/welcome.css'
-import '../styles/main_style.css'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)

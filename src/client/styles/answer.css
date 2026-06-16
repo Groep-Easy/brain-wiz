@@ -78,9 +78,6 @@
     opacity 250ms ease,
     transform 250ms ease;
 }
-.answer-tile:disabled {
-  /* Cursor handled by global button style */
-}
 .tile-teal {
   --btn-bg-color: var(--teal);
   --btn-text-color: #fff;

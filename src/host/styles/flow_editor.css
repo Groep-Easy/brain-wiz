@@ -46,10 +46,6 @@
   flex: 0 0 auto;
 }
 
-.back-btn {
-  /* No specific override needed, can be default silver */
-}
-
 .shuffle-btn {
   --btn-bg-color: var(--tan);
   --btn-text-color: var(--dark);
@@ -447,10 +443,6 @@
 .size-cancel,
 .size-confirm {
   flex: 1 1 0;
-}
-
-.size-cancel {
-  /* Default silver button is fine */
 }
 
 .size-confirm {

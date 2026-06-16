@@ -13,7 +13,7 @@ import { App } from './App'
 import { Console } from './console/Console'
 import { Game } from './screens/Game'
 import { GlassFilter } from '../shared/components/GlassFilter'
-import '../shared/styles/glass.css'
+import '../shared/styles/gradients.css'
 import '../shared/styles/global.css'
 import { LoadingComp } from './components/LoadingComp'
 

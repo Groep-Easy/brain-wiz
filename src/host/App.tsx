@@ -18,7 +18,7 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
-import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
+import { getBackendWsUrl, getBackendHttpUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '../shared/components/CountdownCircle'
 
