@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { validateDisplayName } from '../../shared/utils/display-name'
 import { CharacterPreview } from './CharacterPreview'
-import type { Character } from '../../shared/types/index'
+import type { PlayerAvatar } from '../../shared/types/index'
 import '../styles/CharacterPreview.css'
 
 const FACE_COUNT = 4
@@ -49,7 +49,7 @@ const COLOR_PRESETS = [
 interface JoinScreenProps {
   initialCode?: string
   error?: string | null
-  onJoin: (name: string, code: string, character: Character) => void
+  onJoin: (name: string, code: string, character: PlayerAvatar) => void
 }
 
 function getRandomColor(): string {
@@ -60,7 +60,7 @@ function getRandomFace(): number {
   return Math.floor(Math.random() * (FACE_COUNT - 1))
 }
 
-function createRandomCharacter(): Character {
+function createRandomCharacter(): PlayerAvatar {
   return {
     bodyColor: getRandomColor(),
     faceId: getRandomFace(),
@@ -78,7 +78,7 @@ export function JoinScreen({
   const nameResult = validateDisplayName(name)
   const nameError = name.trim().length > 0 && !nameResult.ok ? nameResult.reason : null
 
-  const [character, setCharacter] = useState<Character>(createRandomCharacter())
+  const [character, setCharacter] = useState<PlayerAvatar>(createRandomCharacter())
   const [showColorPalette, setShowColorPalette] = useState(false)
 
   function nextFace() {

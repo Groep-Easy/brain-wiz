@@ -34,6 +34,11 @@ export interface PlayerAvatar {
   faceId: number
 }
 
+export const DEFAULT_PLAYER_AVATAR: PlayerAvatar = {
+  bodyColor: '#ccb87b',
+  faceId: 0,
+}
+
 export interface RoomState {
   code: string
   players: Player[]

@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { type Repository } from 'typeorm'
 import { Client } from '../entities/client.entity'
-import type { PlayerAvatar } from '../../shared/types/index'
+import { PlayerAvatar, DEFAULT_PLAYER_AVATAR } from '../../shared/types/index'
 
 @Injectable()
 export class ClientService {
@@ -29,7 +29,7 @@ export class ClientService {
       isConnected: true,
       joinedAt: new Date(),
       totalScore: 0,
-      playerAvatar: playerAvatar ?? { bodyColor: '#ccb87b', faceId: 0 },
+      playerAvatar: playerAvatar ?? DEFAULT_PLAYER_AVATAR,
     })
     return this.clients.save(client)
   }

@@ -6,13 +6,8 @@
  * and gives the broadcaster a single, consistent payload to send.
  */
 import { RoomStatusEnum } from '../entities/enums'
-import type { GamePhase, Player, RoomState, PlayerAvatar } from '../../shared/types/index'
+import { GamePhase, Player, RoomState, PlayerAvatar, DEFAULT_PLAYER_AVATAR } from '../../shared/types/index'
 import type { RoomStateSource, PlayerSource } from './room.types'
-
-const DEFAULT_PLAYER_AVATAR: PlayerAvatar = {
-  bodyColor: '#ccb87b',
-  faceId: 0,
-}
 
 /**
  * Map the persisted room status to the wire game phase. `active` becomes
