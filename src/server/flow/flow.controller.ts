@@ -7,11 +7,11 @@
  */
 import { Controller, Get } from '@nestjs/common'
 import { FlowService } from './flow.service'
-import type { GameBlockDto } from '../../shared/types/flow'
+import type { GameBlockDto } from '@shared/types/flow'
 
 @Controller('flow')
 export class FlowController {
-  public constructor(private readonly flow: FlowService) {}
+  public constructor(private readonly flow: FlowService) { }
 
   /** The building-block catalog: themes that have questions + minigames. */
   @Get('blocks')

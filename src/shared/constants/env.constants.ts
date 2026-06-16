@@ -1,10 +1,10 @@
-// env.constants.ts
+import { NodeEnv } from "../types/env";
 
 export const DEFAULTS = {
   SERVER_PORT: 3000,
-  SERVER_LOCATIon: 'localhost',
+  SERVER_LOCATION: 'localhost',
 
-  NODE_ENV: 'development' as const,
+  NODE_ENV: NodeEnv.Development,
 
   DB_HOST: 'localhost',
   DB_PORT: 5432,
@@ -26,8 +26,3 @@ export const DEFAULTS = {
   SERVER_API_VERSION: '1.0',
 } as const
 
-export enum NodeEnv {
-  Development = 'development',
-  Test = 'test',
-  Production = 'production',
-}

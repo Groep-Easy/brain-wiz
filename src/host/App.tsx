@@ -9,15 +9,15 @@ import type {
   RoundSummary,
   RoundContentPayload,
   RoundRevealPayload,
-} from '../shared/types/index'
+} from '@shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
 import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
-import * as EVENTS from '../shared/events/socket-events'
-import { WS_SUBPROTOCOL } from '../shared/constants/ws'
-import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { WS_SUBPROTOCOL } from '@shared/constants/ws.constants'
+import { RoundMinigameSurface } from '@minigames/components/RoundMinigameSurface'
 import './styles/index.css'
 import './styles/welcome.css'
 import './styles/main_style.css'

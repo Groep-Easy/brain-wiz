@@ -11,12 +11,12 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { In, type Repository } from 'typeorm'
 import { Room } from '../entities/room.entity'
 import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
-import { generateRoomCode } from '../../shared/utils/room-code'
-import { ROUNDS, TIMER } from '../../shared/constants/game-config'
+import { generateRoomCode } from '@shared/utils/room-code'
+import { ROUNDS, TIMER } from '@shared/constants/game-config.constants'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
-import { server_config } from '../../config/server'
-import type { GameFlowItem } from '../../shared/types/flow'
+import { server_config } from '@config/server'
+import type { GameFlowItem } from '@shared/types/flow'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
@@ -26,7 +26,7 @@ export class RoomService {
   public constructor(
     @InjectRepository(Room) private readonly rooms: Repository<Room>,
     private readonly qrcodeService?: QrcodeService
-  ) {}
+  ) { }
 
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()

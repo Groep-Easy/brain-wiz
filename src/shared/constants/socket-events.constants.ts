@@ -40,6 +40,12 @@ export const ROUND_END = 'ROUND_END'
 export const LEADERBOARD_SHOW = 'LEADERBOARD_SHOW'
 /** Server → all:    game over.            Payload: { finalScores: ScoreMap } */
 export const GAME_OVER = 'GAME_OVER'
+/** Server → all:    roadmap shown.        Payload: { roadmap }               */
+export const ROADMAP_SHOW = 'ROADMAP_SHOW'
+/** Server → all:    roadmap position.     Payload: RoadmapUpdate             */
+export const ROADMAP_UPDATE = 'ROADMAP_UPDATE'
+
+
 
 // ── Quiz round ────────────────────────────────────────────────────────────────
 /** Server → all:    question live.        Payload: { question: QuestionState }          */

@@ -5,7 +5,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { ScoringService } from '../../src/server/room/game/scoring.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/events/socket-events'
+import * as EVENTS from '../../src/shared/constants/socket-events.constants'
 import type { QuestionRevealPayload, RoundRevealPayload } from '../../src/shared/types/index'
 
 interface AnswerRow {

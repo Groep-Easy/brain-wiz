@@ -23,8 +23,8 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import * as EVENTS from '../../shared/events/socket-events'
-import { ROOM, WS } from '../../shared/constants/game-config'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { ROOM, WS } from '@shared/constants/game-config.constants'
 import { AnswerService } from '../room/game/answer.service'
 import type {
   AnswerSubmitPayload,
@@ -32,7 +32,7 @@ import type {
   PlayerJoinPayload,
   PongPayload,
   RoundSubmitPayload,
-} from '../../shared/types/index'
+} from '@shared/types/index'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
@@ -53,8 +53,7 @@ import {
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
 export class SocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
-{
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SocketGateway.name)
 
   public constructor(
@@ -64,7 +63,7 @@ export class SocketGateway
     private readonly heartbeat: HeartbeatMonitor,
     private readonly answerService: AnswerService,
     @Inject(WS_ALLOWED_ORIGINS) private readonly allowedOrigins: readonly string[]
-  ) {}
+  ) { }
 
   public onModuleInit(): void {
     this.heartbeat.start()
@@ -95,7 +94,7 @@ export class SocketGateway
     const hasHostTokenInUrl = typeof url === 'string' && url.includes('hostToken=')
     if (hasHostTokenInUrl) {
       this.logger.warn('Rejected WS connection: token sent via query param')
-      ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+        ; (client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
       return
     }
 
@@ -105,7 +104,7 @@ export class SocketGateway
         this.logger.warn(
           'Rejected WS connection: host attempted auth without Sec-WebSocket-Protocol token'
         )
-        ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
+          ; (client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
         return
       }
       this.connectHost(params.code, headerToken, connectionId, client, clientIp(request))

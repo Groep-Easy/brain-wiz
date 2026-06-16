@@ -12,8 +12,8 @@ import { App } from './App'
 import { Console } from './console/Console'
 import { FlowEditor } from './screens/FlowEditor'
 import { LeaderBoard } from './components/LeaderBoard'
-import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechanicsMock'
-import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { ScaleMechanicsMock } from '@minigames/balance-scale/mock/ScaleMechanicsMock'
+import { SlidingPuzzleMock } from '@minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 import './styles/index.css'
 
 const container = document.getElementById('root')

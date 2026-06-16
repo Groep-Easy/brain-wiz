@@ -6,25 +6,27 @@
  * "no build step" approach documented in docs/architecture/OVERVIEW.md.
  * Build output goes to dist/client (gitignored), alongside the server's dist.
  */
+
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-
-const CLIENT_DEV_PORT = 5173
 
 export default defineConfig({
   root: 'src/client',
   plugins: [react()],
   server: {
-    port: CLIENT_DEV_PORT,
+    port: Number(process.env['CLIENT_PORT']),
   },
   build: {
-    outDir: '../../dist/client',
+    outDir: path.resolve(__dirname, 'dist/client'),
     emptyOutDir: true,
   },
   resolve: {
     alias: {
-      "@src": path.resolve(__dirname, "src")
-    }
-  }
+      '@client': path.resolve(__dirname, 'src/client'),
+      '@minigames': path.resolve(__dirname, 'src/minigames'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@config': path.resolve(__dirname, 'src/config'),
+    },
+  },
 })

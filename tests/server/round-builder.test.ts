@@ -17,7 +17,7 @@ import {
   BlockKindEnum,
   QuestionThemeEnum,
 } from '../../src/server/entities/enums'
-import { TIMER } from '../../src/shared/constants/game-config'
+import { TIMER } from '../../src/shared/constants/game-config.constants'
 
 function fakeQuestionRepo(count: number): Repository<Question> {
   const questions = Array.from({ length: count }, (_, i) =>

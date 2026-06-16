@@ -14,7 +14,7 @@ import type { Repository } from 'typeorm'
 import { GameBlock } from '../entities/game-block.entity'
 import { Question } from '../entities/question.entity'
 import { BlockKindEnum } from '../entities/enums'
-import type { GameBlockDto, GameFlowItem } from '../../shared/types/flow'
+import type { GameBlockDto, GameFlowItem } from '@shared/types/flow'
 
 /** Defaults mirror the host editor's per-block question range. */
 const DEFAULT_QUESTIONS_PER_BLOCK = 5
@@ -30,7 +30,7 @@ export class FlowService {
   public constructor(
     @InjectRepository(GameBlock) private readonly blocks: Repository<GameBlock>,
     @InjectRepository(Question) private readonly questions: Repository<Question>
-  ) {}
+  ) { }
 
   /**
    * The palette a host can build from: theme blocks that currently have

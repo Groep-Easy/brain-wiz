@@ -12,14 +12,14 @@ import type {
   AnswerAckPayload,
   RoundContentPayload,
   RoundRevealPayload,
-} from '../shared/types/index'
-import * as EVENTS from '../shared/events/socket-events'
-import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
-import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
+} from '@shared/types/index'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import type { ScalePuzzle } from '@minigames/balance-scale/shared/scaleGame'
+import { SlidingPuzzle } from '@minigames/sliding-puzzle/components/SlidingPuzzle'
 import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
-} from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
+} from '@minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'

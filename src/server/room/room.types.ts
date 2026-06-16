@@ -4,7 +4,7 @@
  * HTTP request bodies accepted by RoomsController.
  */
 import { RoomStatusEnum } from '../entities/enums'
-import type { GameFlowItem } from '../../shared/types/flow'
+import type { GameFlowItem } from '@shared/types/flow'
 
 /** The room fields needed to build a wire `RoomState`. */
 export interface RoomStateSource {

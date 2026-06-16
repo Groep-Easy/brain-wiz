@@ -6,7 +6,7 @@
  * and gives the broadcaster a single, consistent payload to send.
  */
 import { RoomStatusEnum } from '../entities/enums'
-import type { GamePhase, Player, RoomState } from '../../shared/types/index'
+import type { GamePhase, Player, RoomState } from '@shared/types/index'
 import type { RoomStateSource, PlayerSource } from './room.types'
 
 /**

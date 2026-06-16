@@ -5,7 +5,7 @@ import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { AnswerService } from '../../src/server/room/game/answer.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/events/socket-events'
+import * as EVENTS from '../../src/shared/constants/socket-events.constants'
 import type { ClientSocket } from '../../src/server/room/lobby/lobby.types'
 import type {
   AnswerAckPayload,

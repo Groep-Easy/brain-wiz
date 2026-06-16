@@ -10,7 +10,7 @@ import { RoomService } from '../../src/server/room/room.service'
 import { RoomNotInLobbyError } from '../../src/server/room/room.errors'
 import { Room } from '../../src/server/entities/room.entity'
 import { RoomStatusEnum } from '../../src/server/entities/enums'
-import { ROOM } from '../../src/shared/constants/game-config'
+import { ROOM } from '../../src/shared/constants/game-config.constants'
 
 interface FakeRoomRepo {
   repo: Repository<Room>

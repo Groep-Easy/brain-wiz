@@ -10,7 +10,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { HOST_AUTH } from '../../shared/constants/game-config'
+import { HOST_AUTH } from '@shared/constants/game-config.constants'
 import { HostAuthRecord } from './socket.types'
 
 @Injectable()
@@ -18,7 +18,7 @@ export class HostAuthThrottle {
   private readonly _records = new Map<string, HostAuthRecord>()
 
   /** Clock seam so tests can advance time deterministically. */
-  public constructor(private readonly now: () => number = Date.now) {}
+  public constructor(private readonly now: () => number = Date.now) { }
 
   /** True when this IP is currently locked out (too many recent failures). */
   public isLockedOut(ip: string): boolean {

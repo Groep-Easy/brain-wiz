@@ -9,7 +9,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { RATE_LIMIT } from '../../shared/constants/game-config'
+import { RATE_LIMIT } from '@shared/constants/game-config.constants'
 import type { RateLimitWindow } from './socket.types'
 
 @Injectable()
@@ -17,7 +17,7 @@ export class RateLimiter {
   private readonly _windows = new Map<string, RateLimitWindow>()
 
   /** Clock seam so tests can advance time deterministically. */
-  public constructor(private readonly now: () => number = Date.now) {}
+  public constructor(private readonly now: () => number = Date.now) { }
 
   /**
    * Record a message for `key` and report whether it is within budget.

@@ -15,7 +15,7 @@ import {
   BeforeUpdate,
 } from 'typeorm'
 import { RoundStatusEnum, ContentTypeEnum } from './enums'
-import type { RoundType } from '../../shared/types/index'
+import type { RoundType } from '@shared/types/index'
 import type { Room } from './room.entity'
 import type { Question } from './question.entity'
 import type { CodingChallenge } from './coding-challenge.entity'
@@ -202,9 +202,9 @@ export class Round {
     } else if (contentCount !== 1) {
       throw new BadRequestException(
         `Round must have exactly one content item. ` +
-          `Found: question=${this.questionId ? '✓' : '✗'}, ` +
-          `coding=${this.codingChallengeId ? '✓' : '✗'}, ` +
-          `puzzle=${this.puzzleId ? '✓' : '✗'}`
+        `Found: question=${this.questionId ? '✓' : '✗'}, ` +
+        `coding=${this.codingChallengeId ? '✓' : '✗'}, ` +
+        `puzzle=${this.puzzleId ? '✓' : '✗'}`
       )
     }
 

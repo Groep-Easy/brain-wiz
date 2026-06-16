@@ -1,11 +1,7 @@
-import { env } from './env-handelers'
-
-export function getServerBaseURL(): string {
-  return makeServerURL('')
-}
+import { ENV } from '@config/env'
 
 export function makeServerURL(route: string): string {
-  const raw = `http://${env.SERVER_LOCATION}:${env.SERVER_PORT}/${route}`
+  const raw = `${ENV.SERVER_BASE_URL}/${route}`
 
   let url: URL = new URL(raw)
 

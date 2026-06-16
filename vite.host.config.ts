@@ -19,12 +19,15 @@ export default defineConfig({
     port: HOST_DEV_PORT,
   },
   build: {
-    outDir: '../../dist/host',
+    outDir: path.resolve(__dirname, 'dist/host'),
     emptyOutDir: true,
   },
   resolve: {
     alias: {
-      "@src": path.resolve(__dirname, "src")
-    }
-  }
+      '@host': path.resolve(__dirname, 'src/host'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@config': path.resolve(__dirname, 'src/config'),
+      '@minigames': path.resolve(__dirname, 'src/minigames'),
+    },
+  },
 })

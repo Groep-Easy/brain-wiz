@@ -1,4 +1,4 @@
-import type { Player, ScoreMap } from '../../shared/types/index'
+import type { Player, ScoreMap } from '@shared/types/index'
 import '../styles/leaderboard.css'
 
 interface GameOverProps {
