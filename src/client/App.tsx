@@ -16,11 +16,11 @@ import type {
 import * as EVENTS from '../shared/events/socket-events'
 import { getBackendWsUrl } from '../shared/utils/env'
 import type { ScalePuzzle } from '../minigames/balance-scale/shared/scaleGame'
-import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
-import type {
-  SlidingPuzzleBoard,
-  SlidingPuzzlePuzzle,
-} from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
+import {
+  MinigameDynamicGrid,
+  minigameInitialize,
+} from '../minigames/components/MinigameDynamicGrid'
+import type { SlidingPuzzleBoard } from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -179,8 +179,10 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
-        if (content.type === 'sliding-puzzle') {
-          setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
+        switch (content.type) {
+          case 'sliding-puzzle':
+            minigameInitialize(content.type, content.publicState, setSlidingBoard)
+            break
         }
         break
       }
@@ -383,21 +385,16 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'sliding-puzzle') {
-      const puzzle = roundContent.publicState as SlidingPuzzlePuzzle
       return (
-        <section className="client-minigame client-minigame--sliding">
-          <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
-          <div className="client-minigame__actions">
-            <button
-              className="primary-btn"
-              disabled={roundSubmitted || phase === 'reveal'}
-              onClick={() => handleRoundSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
-              type="button"
-            >
-              Submit board
-            </button>
-          </div>
-        </section>
+        <MinigameDynamicGrid
+          type={roundContent.type}
+          puzzle={roundContent.publicState}
+          state={slidingBoard}
+          stateChange={setSlidingBoard}
+          submit={handleRoundSubmit}
+          submitted={roundSubmitted}
+          phase={phase}
+        />
       )
     }
 
