@@ -6,6 +6,7 @@ import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import brandLogo from '../assets/BrainWiz logo.png'
 import { getClientBaseUrl } from '../../shared/utils/env'
+import { CharacterPreview } from '../../client/components/CharacterPreview'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {
@@ -122,6 +123,11 @@ export function SetupLobby({
               ) : (
                 players.map((player) => (
                   <li key={player.id}>
+                    <CharacterPreview
+                      color={player.playerAvatar.bodyColor}
+                      faceId={player.playerAvatar.faceId}
+                      size={40}
+                    />
                     {player.name}
                     <button
                       className="kick"

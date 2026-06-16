@@ -26,6 +26,17 @@ export interface Player {
   name: string
   connected: boolean
   score: number
+  playerAvatar: PlayerAvatar
+}
+
+export interface PlayerAvatar {
+  bodyColor: string
+  faceId: number
+}
+
+export const DEFAULT_PLAYER_AVATAR: PlayerAvatar = {
+  bodyColor: '#ccb87b',
+  faceId: 0,
 }
 
 export interface RoomState {
@@ -126,6 +137,7 @@ export interface PongPayload {
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
+  playerAvatar: PlayerAvatar
   playerId?: string
   playerToken?: string
 }
@@ -134,6 +146,7 @@ export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
   reconnectToken: string
+  playerAvatar: PlayerAvatar
 }
 
 export interface PlayerJoinRejectedPayload {
