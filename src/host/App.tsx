@@ -127,7 +127,7 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as unknown as RoundContentPayload)
+            setRoundContent(data as RoundContentPayload)
             setRoundReveal(null)
             setAnsweredCount(0)
             break
@@ -138,11 +138,11 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.QUESTION_REVEAL:
-            setReveal(data as unknown as QuestionRevealPayload)
+            setReveal(data as QuestionRevealPayload)
             break
 
           case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as unknown as RoundRevealPayload)
+            setRoundReveal(data as RoundRevealPayload)
             break
 
           case EVENTS.LEADERBOARD_SHOW:
@@ -152,7 +152,7 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as unknown as RoadmapUpdate)
+            setRoadmap(data as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
