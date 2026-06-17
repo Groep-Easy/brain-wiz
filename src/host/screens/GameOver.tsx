@@ -52,7 +52,7 @@ export function GameOver({ players, finalScores, onBackToMenu }: GameOverProps):
       {/* ── Header ── */}
       <header className="go-header">
         <h1 className="go-title">Game Over</h1>
-        <p className="go-subtitle">Here's how everyone finished</p>
+        <p className="go-subtitle">Here&apos;s how everyone finished</p>
       </header>
 
       {/* ── Podium ── */}

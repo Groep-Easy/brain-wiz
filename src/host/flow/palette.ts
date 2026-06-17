@@ -52,14 +52,22 @@ export const nextUid = (): string => `f${Date.now()}-${uidCounter++}`
 /** Build a randomized flow from a given set of blocks (defaults to the palette). */
 export function randomFlowFrom(blocks: BlockDef[], size: number = DEFAULT_FLOW_SIZE): FlowItem[] {
   const pool = blocks.length > 0 ? blocks : PALETTE
+  if (pool.length === 0) {
+    return []
+  }
   const shuffled = [...pool]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+    const a = shuffled[i]
+    const b = shuffled[j]
+    if (a !== undefined && b !== undefined) {
+      shuffled[i] = b
+      shuffled[j] = a
+    }
   }
   return Array.from({ length: size }, (_, i) => {
-    const block = shuffled[i % shuffled.length]!
-    return { uid: nextUid(), blockId: block.id }
+    const block = shuffled[i % shuffled.length]
+    return { uid: nextUid(), blockId: block?.id ?? '' }
   })
 }
 

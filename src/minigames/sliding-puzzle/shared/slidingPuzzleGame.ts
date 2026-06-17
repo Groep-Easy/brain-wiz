@@ -349,13 +349,13 @@ export function scoreSlidingPuzzleBoard(
 ): SlidingPuzzleScoreBreakdown {
   const totalTiles = SOLVED_BOARD.filter((value) => value !== 0).length
   const correctTiles = countCorrectTiles(board)
-  const solved = isSolved(board)
+  const isBoardSolved = isSolved(board)
   const positionPoints = correctTiles * config.pointsPerCorrectTile
   const clampedRemaining = Math.max(
     0,
     Math.min(config.timeLimitMs, config.timeLimitMs - timeToAnswerMs)
   )
-  const speedBonus = solved
+  const speedBonus = isBoardSolved
     ? Math.round(config.solveSpeedBonus * (clampedRemaining / config.timeLimitMs))
     : 0
   const pointsAwarded = positionPoints + speedBonus
@@ -363,7 +363,7 @@ export function scoreSlidingPuzzleBoard(
   return {
     correctTiles,
     totalTiles,
-    solved,
+    solved: isBoardSolved,
     positionPoints,
     speedBonus,
     pointsAwarded,

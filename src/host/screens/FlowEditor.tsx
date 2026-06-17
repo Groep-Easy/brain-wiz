@@ -226,7 +226,7 @@ export function FlowEditor(): React.JSX.Element {
 
   const handleBack = () => {
     if (window.history.length > 1) {
-      navigate(-1)
+      void navigate(-1)
     } else {
       window.close()
     }

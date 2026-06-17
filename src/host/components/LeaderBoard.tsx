@@ -18,6 +18,15 @@ interface RoadmapProps {
   roadmap?: RoadmapUpdate
 }
 
+type TimelineItem =
+  | {
+      type: 'node'
+      questionNumber: number
+    }
+  | {
+      type: 'dot'
+    }
+
 const themeAssets: Record<string, { icon: string }> = {
   random: { icon: '🎲' },
   movies: { icon: '🎬' },
@@ -64,14 +73,15 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
   }, [leaderboard])
 
   function Roadmap({ roadmap }: RoadmapProps) {
-    if (!roadmap) {
-      return null
-    }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const { playerPos, totalQuestions, themes } = roadmap
-
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
+
+      if (!roadmap) {
+        return { playerPos: 0, total: 0, themeStarts, themeMap, timeline: [] as TimelineItem[] }
+      }
+
+      const { playerPos, totalQuestions, themes } = roadmap
 
       let cursor = 1
 
@@ -85,15 +95,6 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
         cursor += themeEntry.questionsInTheme
       }
-
-      type TimelineItem =
-        | {
-            type: 'node'
-            questionNumber: number
-          }
-        | {
-            type: 'dot'
-          }
 
       const timeline: TimelineItem[] = []
 
@@ -160,6 +161,11 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
       container.scrollLeft = playerX - viewportWidth / 3
     }, [])
+
+    // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).
+    if (!roadmap) {
+      return null
+    }
 
     return (
       <div

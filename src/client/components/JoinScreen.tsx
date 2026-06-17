@@ -54,7 +54,7 @@ interface JoinScreenProps {
 }
 
 function getRandomColor(): string {
-  return COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)]!
+  return COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)] ?? '#ffffff'
 }
 
 function getRandomFace(): number {

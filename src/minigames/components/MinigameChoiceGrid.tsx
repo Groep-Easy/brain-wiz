@@ -30,14 +30,14 @@ export function MinigameChoiceGrid({
       <div className="answer-grid">
         {choices.map((choice, index) => {
           const isCorrect = choice.id === correctChoiceId
-          const dim = phase === 'reveal' && correctChoiceId !== undefined && !isCorrect
+          const isDimmed = phase === 'reveal' && correctChoiceId !== undefined && !isCorrect
 
           return (
             <button
               aria-label={choice.label}
               className={`answer-tile minigame-answer-tile ${
                 tileClasses[index] ?? tileClasses[0] ?? 'tile-teal'
-              } ${dim ? 'is-dim' : ''} ${
+              } ${isDimmed ? 'is-dim' : ''} ${
                 phase === 'reveal' && isCorrect ? 'is-correct' : ''
               } ${choice.id === selectedChoiceId ? 'is-selected' : ''}`}
               disabled={submitted || phase === 'reveal'}

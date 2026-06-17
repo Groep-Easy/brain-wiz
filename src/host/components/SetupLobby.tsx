@@ -162,7 +162,7 @@ export function SetupLobby({
                         {player.name}
                         <button
                           className="kick"
-                          onClick={() => handleKick(player.id)}
+                          onClick={async () => handleKick(player.id)}
                           title="Remove from lobby"
                           aria-label={`Remove ${player.name}`}
                         >

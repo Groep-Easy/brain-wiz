@@ -88,71 +88,76 @@ export function App(): React.JSX.Element {
 
     socket.onmessage = (event) => {
       try {
-        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: any }
+        const { event: ev, data } = JSON.parse(event.data) as {
+          event: string
+          data: Record<string, unknown>
+        }
 
         switch (ev) {
           case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(data.room)
+            setRoomState(data.room as RoomState)
             break
 
           case EVENTS.GAME_PHASE_CHANGE:
-            setRoomState((prev) => (prev ? { ...prev, phase: data.phase } : prev))
+            setRoomState((prev) =>
+              prev ? { ...prev, phase: data.phase as RoomState['phase'] } : prev
+            )
             break
 
           case EVENTS.ROUND_START:
             if (data.round) {
-              setRound(data.round)
+              setRound(data.round as RoundSummary)
             }
             setRoundContent(null)
             setRoundReveal(null)
             break
 
           case EVENTS.TIMER_TICK:
-            setSecondsRemaining(data.secondsRemaining)
+            setSecondsRemaining(data.secondsRemaining as number)
             break
 
           case EVENTS.QUESTION_SHOW:
             if (data.question) {
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(data.question)
+              setQuestion(data.question as QuestionState)
               setReveal(null)
               setAnsweredCount(0)
             }
             break
 
           case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as RoundContentPayload)
+            setRoundContent(data as unknown as RoundContentPayload)
             setRoundReveal(null)
             setAnsweredCount(0)
             break
 
           case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(data.answered)
-            setTotalPlayers(data.total)
+            setAnsweredCount(data.answered as number)
+            setTotalPlayers(data.total as number)
             break
 
           case EVENTS.QUESTION_REVEAL:
-            setReveal(data)
+            setReveal(data as unknown as QuestionRevealPayload)
             break
 
           case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as RoundRevealPayload)
+            setRoundReveal(data as unknown as RoundRevealPayload)
             break
 
           case EVENTS.LEADERBOARD_SHOW:
             if (data.leaderboard) {
-              setLeaderboard(data.leaderboard)
+              setLeaderboard(data.leaderboard as LeaderboardEntry[])
             }
             break
 
           case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as RoadmapUpdate)
+            setRoadmap(data as unknown as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
             if (data.finalScores) {
-              setFinalScores(data.finalScores)
+              setFinalScores(data.finalScores as ScoreMap)
             }
             break
 
@@ -213,7 +218,7 @@ export function App(): React.JSX.Element {
       socketRef.current = null
       setRoomState(null)
       setStatus('closed')
-      navigate('/')
+      void navigate('/')
     }
   }
 
@@ -226,7 +231,7 @@ export function App(): React.JSX.Element {
             <CountdownCircle
               seconds={5}
               message={fatalError}
-              onComplete={() => navigate('/')}
+              onComplete={async () => navigate('/')}
             />
           </div>
         </div>
@@ -234,7 +239,7 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (!roomState || status !== 'open') {
+  if (!roomState || status !== 'open' || !roomCode || !hostToken) {
     return (
       <main className="app">
         <div className="welcome-screen">
@@ -253,8 +258,8 @@ export function App(): React.JSX.Element {
       <main className="app">
         <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
-          roomCode={roomCode!}
-          hostToken={hostToken!}
+          roomCode={roomCode}
+          hostToken={hostToken}
           players={roomState.players}
           gameFlow={roomState.gameFlow ?? []}
           onStartGame={handleStartGame}
@@ -290,7 +295,7 @@ export function App(): React.JSX.Element {
     }
     return (
       <Question
-        gameCode={roomCode!}
+        gameCode={roomCode}
         question={question}
         secondsRemaining={secondsRemaining}
         answeredCount={answeredCount}

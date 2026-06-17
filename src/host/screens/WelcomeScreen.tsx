@@ -60,7 +60,7 @@ export function WelcomeScreen(): React.JSX.Element {
       sessionStorage.setItem(`hostToken_${body.code}`, body.hostToken)
 
       // Navigate to the newly created room
-      navigate(`/host/${body.code}`)
+      void navigate(`/host/${body.code}`)
     } catch (err) {
       alert(`Error creating room: ${String(err)}`)
       setIsCreating(false)

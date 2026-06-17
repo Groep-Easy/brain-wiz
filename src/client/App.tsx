@@ -136,7 +136,7 @@ export function App(): React.JSX.Element {
     )
   }
 
-  function handleEvent(ev: string, data: any): void {
+  function handleEvent(ev: string, data: unknown): void {
     switch (ev) {
       case EVENTS.PLAYER_JOIN_ACK: {
         const ack = data as PlayerJoinAckPayload
@@ -186,7 +186,9 @@ export function App(): React.JSX.Element {
 
   try {
     localStorage.removeItem(STORAGE_KEY)
-  } catch {}
+  } catch {
+    // Ignore storage errors (e.g. private mode / disabled storage) — clearing creds is best-effort.
+  }
 
   setJoined(false)
   setJoining(false)
@@ -323,7 +325,7 @@ export function App(): React.JSX.Element {
     socket.onmessage = (event) => {
       if (socketRef.current !== socket) return
       try {
-        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: any }
+        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
         handleEvent(ev, data)
       } catch (err) {
         // eslint-disable-next-line no-console
