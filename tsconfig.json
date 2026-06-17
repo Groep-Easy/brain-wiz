@@ -37,11 +37,7 @@
     "skipLibCheck": true,
     "types": ["node"],
     "rootDir": ".",
-    "outDir": "./dist",
-    "paths": {
-      "@client/*": ["./src/client/*"],
-      "@server/*": ["./src/server/*"]
-    }
+    "outDir": "./dist"
   },
   "references": [{ "path": "src/shared" }, { "path": "src/config" }, { "path": "src/minigames" }],
   "include": [

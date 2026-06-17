@@ -26,7 +26,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@host': path.resolve(__dirname, 'src/host'),
       '@brain-wiz/shared': path.resolve(__dirname, 'src/shared'),
       '@brain-wiz/config': path.resolve(__dirname, 'src/config'),
       '@brain-wiz/minigames': path.resolve(__dirname, 'src/minigames'),
