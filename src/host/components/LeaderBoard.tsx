@@ -13,23 +13,23 @@ import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
-  roadmap?: RoadmapEntry | null
+  roadmap?: RoadmapUpdate | null
 }
 
 interface RoadmapProps {
-  roadmap?: RoadmapEntry
+  roadmap?: RoadmapUpdate
 }
 
 const themeAssets: Record<string, { icon: string }> = {
-  Random: { icon: '🎲' },
-  Movies: { icon: '🎬' },
-  Music: { icon: '🎵' },
-  Coding: { icon: '💻' },
-  Sports: { icon: '⚽' },
-  History: { icon: '📜' },
-  Math: { icon: '➗' },
-  Science: { icon: '🔬' },
-  Geography: { icon: '🌍' },
+  random: { icon: '🎲' },
+  movies: { icon: '🎬' },
+  music: { icon: '🎵' },
+  coding: { icon: '💻' },
+  sports: { icon: '⚽' },
+  history: { icon: '📜' },
+  math: { icon: '➗' },
+  science: { icon: '🔬' },
+  geography: { icon: '🌍' },
 }
 
 export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.JSX.Element {
@@ -70,9 +70,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
       return null
     }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const { playerPos, themes } = roadmap
-
-      const total = themes.reduce((sum, theme) => sum + theme.questionCount, 0)
+      const { playerPos, totalQuestions, themes } = roadmap
 
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
@@ -87,7 +85,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
         themeMap.set(cursor, themeEntry.theme)
 
-        cursor += themeEntry.questionCount
+        cursor += themeEntry.questionsInTheme
       }
 
       type TimelineItem =
@@ -101,13 +99,13 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
       const timeline: TimelineItem[] = []
 
-      for (let q = 1; q <= total; q++) {
+      for (let q = 1; q <= totalQuestions; q++) {
         timeline.push({
           type: 'node',
           questionNumber: q,
         })
 
-        if (q < total) {
+        if (q < totalQuestions) {
           timeline.push({ type: 'dot' })
           timeline.push({ type: 'dot' })
         }
@@ -115,7 +113,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
       return {
         playerPos,
-        total,
+        total: totalQuestions,
         themeStarts,
         themeMap,
         timeline,

@@ -2,7 +2,7 @@
  * @file socket-handshake.test.ts
  * @owner server-squad
  */
-import { describe, it } from 'node:test'
+import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   clientIp,
@@ -43,9 +43,42 @@ describe('parseHostTokenFromHeaders', () => {
 })
 
 describe('clientIp', () => {
-  it('reads the remote address off the socket', () => {
-    assert.equal(clientIp({ socket: { remoteAddress: '10.0.0.5' } }), '10.0.0.5')
+  let originalTrustProxy: string | undefined
+
+  beforeEach(() => {
+    originalTrustProxy = process.env['TRUST_PROXY']
   })
+
+  afterEach(() => {
+    if (originalTrustProxy === undefined) {
+      delete process.env['TRUST_PROXY']
+    } else {
+      process.env['TRUST_PROXY'] = originalTrustProxy
+    }
+  })
+
+  it('reads the remote address off the socket if TRUST_PROXY is not true', () => {
+    process.env['TRUST_PROXY'] = 'false'
+    assert.equal(
+      clientIp({
+        headers: { 'x-forwarded-for': '9.9.9.9' },
+        socket: { remoteAddress: '10.0.0.5' },
+      }),
+      '10.0.0.5'
+    )
+  })
+
+  it('reads x-forwarded-for if TRUST_PROXY is true', () => {
+    process.env['TRUST_PROXY'] = 'true'
+    assert.equal(
+      clientIp({
+        headers: { 'x-forwarded-for': '9.9.9.9, 8.8.8.8' },
+        socket: { remoteAddress: '10.0.0.5' },
+      }),
+      '9.9.9.9'
+    )
+  })
+
   it('returns empty string when unavailable', () => {
     assert.equal(clientIp(undefined), '')
     assert.equal(clientIp({}), '')

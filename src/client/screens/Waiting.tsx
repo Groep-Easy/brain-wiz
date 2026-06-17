@@ -9,7 +9,7 @@ export function Waiting({ playerName, roomCode }: WaitingProps): React.JSX.Eleme
   return (
     <>
       <audio id="party-horn" autoPlay src={partyHorn} preload="auto"></audio>
-      <div className="card">
+      <div className="game-card client-card">
         <h1>You&apos;re in! 🎉</h1>
         <p className="subtitle">
           {playerName ? `Hang tight, ${playerName} — ` : 'Hang tight — '}

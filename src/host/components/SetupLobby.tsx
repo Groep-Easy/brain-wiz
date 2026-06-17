@@ -4,9 +4,10 @@ import type { Player } from '../../shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import brandLogo from '../assets/BrainWiz logo.png'
 import { getClientBaseUrl } from '../../shared/utils/env'
 import { TIMER } from '../../shared/constants/game-config'
+import { CharacterPreview } from '../../client/components/CharacterPreview'
+import { WizardLogo } from '../../shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
 
 import useSound from 'use-sound'
@@ -76,31 +77,14 @@ export function SetupLobby({
   }
 
   return (
-    <>
-      <audio
-          ref={jazzRef}
-          id="bg-music"
-          loop
-          autoPlay
-          src={jazzMusic}
-          preload="auto">
-      </audio>
-      <div className="host-lobby-container">
-        <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
-        <header className="host-lobby-header">
-          <button
-            className="close-btn"
-            onClick={onCloseLobby}
-            title="Close lobby"
-            aria-label="Close lobby"
-          >
-            &times;
-          </button>
-          <h1>Host Lobby</h1>
-          <p className="hint">Scan the QR code or type the code on your phone to join.</p>
-        </header>
-
-        <div className="tabs">
+    <div className="host-lobby-container">
+      <header className="host-lobby-header">
+        <div className="header-left">
+          <WizardLogo size={32} />
+          <h1 className="text-logo" style={{ color: 'white' }}>BrainWiz</h1>
+        </div>
+        <audio ref={jazzRef} id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
+        <div className="header-tabs">
           <button
             className={`tab ${activeTab === 'lobby' ? 'active' : ''}`}
             onClick={() => setActiveTab('lobby')}
@@ -115,92 +99,110 @@ export function SetupLobby({
           </button>
         </div>
 
+        <div className="header-right">
+          {/* MuteButton overlays independently in the Host App, we just put Close here */}
+          <button
+            className="icon-btn close-btn"
+            onClick={onCloseLobby}
+            title="Go back"
+            aria-label="Go back"
+          >
+            &times;
+          </button>
+        </div>
+      </header>
+
+      <main className="host-lobby-main">
         {/* LOBBY PANEL */}
         <section className={`panel ${activeTab === 'lobby' ? 'active' : ''}`}>
-          <div className="lobby-grid">
-            {/* Left: QR + game PIN grouped in one block */}
-            <div className="join-block">
-              {qrCodeUrl ? (
-                <img className="qr-code-img" src={qrCodeUrl} alt="Join Game QR Code" />
-              ) : (
-                <div
-                  className="qr-code-img"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  Generating QR...
-                </div>
-              )}
-              <div className="code">{roomCode || '------'}</div>
-            </div>
-
-            {/* Right: connected players */}
-            <div className="players">
-              <h2>
-                Players <span id="player-count">({players.length})</span>
-              </h2>
-              <ul>
-                {players.length === 0 ? (
-                  <li className="empty">Waiting for players...</li>
+          <div className="lobby-content-grid">
+            {/* Left Sidebar */}
+            <aside className="lobby-sidebar">
+              <div className="join-block">
+                <p className="hint">Scan to Join</p>
+                {qrCodeUrl ? (
+                  <img className="qr-code-img" src={qrCodeUrl} alt="Join Game QR Code" />
                 ) : (
-                  players.map((player) => (
-                    <li key={player.id}>
-                      {player.name}
-                      <button
-                        className="kick"
-                        onClick={() => handleKick(player.name)}
-                        title="Remove from lobby"
-                        aria-label={`Remove ${player.name}`}
-                      >
-                        &times;
-                      </button>
-                    </li>
-                  ))
+                  <div className="qr-placeholder">Generating...</div>
                 )}
-              </ul>
-            </div>
-          </div>
+                <div className="code-label">Room Code:</div>
+                <div className="code">{roomCode || '------'}</div>
+              </div>
+            </aside>
 
-          {/* Game flow row */}
-          <div className="game-flow">
-            <h2>Game flow</h2>
-            <div className="flow-track" ref={flowTrackRef}>
-              {cells.map((cell) => {
-                const arrow = cell.arrow !== 'none' && (
-                  <span className={`flow-arrow arrow-${cell.arrow}`} aria-hidden="true">
-                    {cell.arrow === 'down' ? '↓' : cell.arrow === 'left' ? '←' : '→'}
-                  </span>
-                )
-                const style = { gridRow: cell.row + 1, gridColumn: cell.col }
-                // The final node is the add (+) block that opens the editor.
-                if (cell.logicalIndex >= gameFlow.length) {
-                  return (
-                    <div className="flow-cell" key="flow-add" style={style}>
-                      <button
-                        className="flow-block flow-add"
-                        onClick={openEditor}
-                        title="Edit game flow"
-                        aria-label="Edit game flow"
-                      >
-                        +
-                      </button>
-                      {arrow}
-                    </div>
-                  )
-                }
-                const item = gameFlow[cell.logicalIndex]
-                if (!item) return null
-                const block = blockById(item.blockId)
-                if (!block) return null
-                return (
-                  <div className="flow-cell" key={cell.logicalIndex} style={style}>
-                    <div className={`flow-block ${block.kind}`}>
-                      <span className="flow-block-icon">{block.icon}</span>
-                      <span className="flow-block-label">{block.label}</span>
-                    </div>
-                    {arrow}
-                  </div>
-                )
-              })}
+            {/* Right Main Area */}
+            <div className="lobby-main-area">
+              <div className="players-card">
+                <h2>
+                  Players <span id="player-count">({players.length})</span>
+                </h2>
+                <ul>
+                  {players.length === 0 ? (
+                    <li className="empty">Waiting for players...</li>
+                  ) : (
+                    players.map((player) => (
+                      <li key={player.id}>
+                        <CharacterPreview
+                          color={player.playerAvatar.bodyColor}
+                          faceId={player.playerAvatar.faceId}
+                          size={40}
+                        />
+                        {player.name}
+                        <button
+                          className="kick"
+                          onClick={() => handleKick(player.name)}
+                          title="Remove from lobby"
+                          aria-label={`Remove ${player.name}`}
+                        >
+                          &times;
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+
+              <div className="game-flow-card">
+                <h2>Game Flow</h2>
+                <div className="flow-track" ref={flowTrackRef}>
+                  {cells.map((cell) => {
+                    const arrow = cell.arrow !== 'none' && (
+                      <span className={`flow-arrow arrow-${cell.arrow}`} aria-hidden="true">
+                        {cell.arrow === 'down' ? '↓' : cell.arrow === 'left' ? '←' : '→'}
+                      </span>
+                    )
+                    const style = { gridRow: cell.row + 1, gridColumn: cell.col }
+                    if (cell.logicalIndex >= gameFlow.length) {
+                      return (
+                        <div className="flow-cell" key="flow-add" style={style}>
+                          <button
+                            className="flow-block flow-add"
+                            onClick={openEditor}
+                            title="Edit game flow"
+                            aria-label="Edit game flow"
+                          >
+                            +
+                          </button>
+                          {arrow}
+                        </div>
+                      )
+                    }
+                    const item = gameFlow[cell.logicalIndex]
+                    if (!item) return null
+                    const block = blockById(item.blockId)
+                    if (!block) return null
+                    return (
+                      <div className="flow-cell" key={cell.logicalIndex} style={style}>
+                        <div className={`flow-block ${block.kind}`}>
+                          <span className="flow-block-icon">{block.icon}</span>
+                          <span className="flow-block-label">{block.label}</span>
+                        </div>
+                        {arrow}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -219,11 +221,13 @@ export function SetupLobby({
             />
           </div>
         </section>
+      </main>
 
-        <button className="start-btn primary" onClick={handleStart} disabled={players.length === 0}>
+      <footer className="host-lobby-footer">
+        <button className="primary-btn" onClick={handleStart} disabled={players.length === 0}>
           Start Game
         </button>
-      </div>
-    </>
+      </footer>
+    </div>
   )
 }
