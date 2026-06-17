@@ -45,9 +45,7 @@
     "src/**/*.tsx",
     "src/**/*.d.ts",
     "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "config/**/*.ts",
-    "scripts/**/*.ts"
+    "tests/**/*.tsx"
   ],
   "exclude": ["node_modules", "dist", "src/client", "src/host", "src/minigames", "src/shared", "src/config"]
 }
