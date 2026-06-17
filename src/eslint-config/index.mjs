@@ -72,7 +72,7 @@ const STRICT_TS_RULES = {
   'no-unused-expressions': 'error',
 }
 
-export const ignores = [{ ignores: ['**/dist/**', '**/node_modules/**'] }]
+export const ignores = [{ ignores: ['**/dist/**', '**/node_modules/**', '**/vite.config.*'] }]
 
 export const base = [
   js.configs.recommended,

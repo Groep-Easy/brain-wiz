@@ -19,31 +19,16 @@ import { NodeEnv } from '@brain-wiz/shared/types/env'
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
 
-  // Allow the host display and phone client (served from their own Vite dev
-  // origins) to call the HTTP API cross-origin, e.g. POST /rooms.
   app.enableCors({
     origin: [...ENV.CORS_ORIGINS],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   })
 
-  // Use the native `ws` transport for WebSocket gateways.
   app.useWebSocketAdapter(new WsAdapter(app))
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  // ---------------------------------------------------------------------------
-  // Static frontends — served from the Vite build output.
-  // /host   → Host display Vite app  (dist/host)
-  // /client → Player phone Vite app  (dist/client)
-  //
-  // Vite base paths (/host, /client) must match these mounts so built asset
-  // URLs are correct. See vite.host.config.ts and vite.client.config.ts.
-  //
-  // /host must be mounted BEFORE /client to prevent the catch-all from
-  // swallowing /host/* sub-paths.
-  // ---------------------------------------------------------------------------
-  const distDir = path.join(__dirname, '..') // __dirname = dist/server → .. = dist/
-
+  const distDir = path.join(__dirname, '..')
   const hostDist = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
 

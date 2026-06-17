@@ -31,12 +31,12 @@
     "test:server": "tsc && tsc-alias && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && tsc-alias && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",
-    "client:dev": "vite --host --config vite.client.config.ts",
-    "client:build": "vite build --config vite.client.config.ts",
-    "client:preview": "vite preview --config vite.client.config.ts",
-    "host:dev": "vite --host --config vite.host.config.ts",
-    "host:build": "vite build --config vite.host.config.ts",
-    "host:preview": "vite preview --config vite.host.config.ts"
+    "client:dev": "vite --host --config src/client/vite.config.ts",
+    "client:build": "vite build --config src/client/vite.config.ts",
+    "client:preview": "vite preview --config src/client/vite.config.ts",
+    "host:dev": "vite --host --config src/host/vite.config.ts",
+    "host:build": "vite build --config src/host/vite.config.ts",
+    "host:preview": "vite preview --config src/host/vite.config.ts"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.21",
