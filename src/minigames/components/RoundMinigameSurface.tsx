@@ -1,7 +1,7 @@
 import type {
   RoundContentPayload,
   RoundRevealPayload,
-} from '../../shared/types/index.js'
+} from '@shared/types/index.js'
 import { BalanceScale } from '../balance-scale/components/BalanceScale.js'
 import { ScaleEquationClues } from '../balance-scale/components/ScaleEquationClues.js'
 import {

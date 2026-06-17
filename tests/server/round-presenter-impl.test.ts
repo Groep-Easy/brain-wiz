@@ -5,7 +5,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { RoundPresenterImpl } from '../../src/server/room/game/round-presenter.impl'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/events/socket-events'
+import * as EVENTS from '../../src/shared/constants/socket-events.constants'
 import type { Round } from '../../src/server/entities/round.entity'
 import type { QuestionShowPayload } from '../../src/shared/types/index'
 

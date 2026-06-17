@@ -8,8 +8,7 @@
  */
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-
-const HOST_DEV_PORT = 5174
+import path from 'path'
 
 export default defineConfig({
   root: 'src/host',
@@ -19,10 +18,18 @@ export default defineConfig({
   base: '/',
   cacheDir: '../../node_modules/.vite/host',
   server: {
-    port: HOST_DEV_PORT,
+    port: Number(process.env['HOST_PORT']),
   },
   build: {
-    outDir: '../../dist/host',
+    outDir: path.resolve(__dirname, 'dist/host'),
     emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      '@host': path.resolve(__dirname, 'src/host'),
+      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@config': path.resolve(__dirname, 'src/config'),
+      '@minigames': path.resolve(__dirname, 'src/minigames'),
+    },
   },
 })

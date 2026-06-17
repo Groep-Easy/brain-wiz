@@ -12,11 +12,11 @@ import { In, type Repository } from 'typeorm'
 import { Room } from '../entities/room.entity'
 import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
 import { generateRoomCode } from '../../shared/utils/room-code'
-import { ROUNDS, TIMER } from '../../shared/constants/game-config'
+import { ROUNDS, TIMER } from '@config/game.config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
-import { config } from '../../config/server'
-import type { GameFlowItem } from '../../shared/types/flow'
+import type { GameFlowItem } from '@shared/types/flow'
+import { ENV } from '@config/env.config'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
@@ -30,7 +30,7 @@ export class RoomService {
 
   public async createRoom(): Promise<Room> {
     const joinCode = await this.generateUniqueJoinCode()
-    const qrCodePayload = `${config.BASE_URL}/join?code=${joinCode}`
+    const qrCodePayload = `${ENV.SERVER_BASE_URL}/join?code=${joinCode}`
     const qrCodeSvg = this.qrcodeService ? await this.qrcodeService.generateSvg(qrCodePayload) : ''
 
     const room = this.rooms.create({

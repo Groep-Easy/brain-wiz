@@ -54,6 +54,15 @@ export class ConnectionRegistry {
     return room ? Array.from(room.values()) : []
   }
 
+  public getSocketByClientId(clientId: string): ClientSocket | undefined {
+    for (const [socket, membership] of this._membership.entries()) {
+      if (membership.role === 'client' && membership.clientId === clientId) {
+        return socket
+      }
+    }
+    return undefined
+  }
+
   public getRoomSockets(roomId: string): ClientSocket[] {
     const sockets = this.getClientSockets(roomId)
     const host = this._hosts.get(roomId)

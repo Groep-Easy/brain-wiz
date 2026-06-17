@@ -9,7 +9,7 @@ import { Repository } from 'typeorm'
 import { Round } from '../../entities/round.entity.js'
 import { RoundPresenter } from './game.types.js'
 import { RoomBroadcaster } from '../lobby/room-broadcaster.js'
-import * as EVENTS from '../../../shared/events/socket-events.js'
+import * as EVENTS from '../../../shared/constants/socket-events.constants.js'
 
 export const ROUND_PRESENTER = Symbol('ROUND_PRESENTER')
 

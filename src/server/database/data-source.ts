@@ -14,7 +14,7 @@
  */
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'
-import { getDatabaseConfig } from '../../config/database'
+import { getDatabaseConfig } from '@config/database.config'
 import * as entities from '../entities/index'
 
 /**
