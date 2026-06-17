@@ -47,24 +47,15 @@ async function bootstrap(): Promise<void> {
   const hostDist = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
 
-  // Host display: /host and /host/* (SPA fallback)
-  // Express v5 uses path-to-regexp v8+ which requires named wildcard params.
-  app.use('/host', express.static(hostDist))
-  app.use('/host/{*path}', (_req: express.Request, res: express.Response) => {
-    res.sendFile(path.join(hostDist, 'index.html'))
-  })
-
-  // Player client: /client and /client/* (SPA fallback)
   app.use('/client', express.static(clientDist))
   app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
 
-  // Root redirect: Send bare HTTP requests (/) to the Player Client (/client)
-  // Ignore WebSocket upgrades so the WsAdapter can handle them!
-  app.use('/', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (req.path === '/' && req.method === 'GET' && !req.headers.upgrade) {
-      return res.redirect('/client')
+  app.use('/', express.static(hostDist))
+  app.use('/{*path}', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.method === 'GET' && !req.headers.upgrade) {
+      return res.sendFile(path.join(hostDist, 'index.html'))
     }
     next()
   })

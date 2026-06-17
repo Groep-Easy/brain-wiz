@@ -29,7 +29,7 @@ import { Answer } from './screens/Answer'
 import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
-import './styles/main_style.css'
+import { CountdownCircle } from '../shared/components/CountdownCircle'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -90,6 +90,7 @@ export function App(): React.JSX.Element {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [fatalError, setFatalError] = useState<string | null>(null)
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
@@ -169,7 +170,11 @@ export function App(): React.JSX.Element {
         }
         setJoining(false)
         setJoined(false)
-        setJoinError(rejected.reason || 'Could not join the room.')
+        if (rejected.reason === 'Room not found') {
+          setFatalError('Room not found or game already started')
+        } else {
+          setJoinError(rejected.reason || 'Could not join the room.')
+        }
         break
       }
       case EVENTS.PLAYER_KICKED: {
@@ -451,6 +456,24 @@ export function App(): React.JSX.Element {
     </div>
   ) : null
 
+  if (fatalError) {
+    return (
+      <main className="app">
+        <div className="game-card client-card">
+          <CountdownCircle
+            seconds={5}
+            message={fatalError}
+            onComplete={() => {
+              window.history.replaceState({}, '', '/client')
+              setFatalError(null)
+              setJoinError(null)
+            }}
+          />
+        </div>
+      </main>
+    )
+  }
+
   if (!joined) {
     if (joining) {
       return (
@@ -511,7 +534,7 @@ export function App(): React.JSX.Element {
       return (
         <main className="app">
           {banner}
-          <div className="card">
+          <div className="game-card client-card">
             <h2>Preparing next question…</h2>
           </div>
         </main>
@@ -560,7 +583,7 @@ export function App(): React.JSX.Element {
   return (
     <main className="app">
       {banner}
-      <div className="card">
+      <div className="game-card client-card">
         <h2>Loading…</h2>
       </div>
     </main>

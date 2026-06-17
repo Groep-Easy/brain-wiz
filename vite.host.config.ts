@@ -14,8 +14,8 @@ export default defineConfig({
   root: 'src/host',
   plugins: [react()],
   // base must match the Express mount point so built asset URLs are correct.
-  // Without this, /assets/foo.js 404s because it hits the root handler, not /host.
-  base: '/host',
+  // The host app is now the root application containing the Welcome screen.
+  base: '/',
   cacheDir: '../../node_modules/.vite/host',
   server: {
     port: Number(process.env['HOST_PORT']),

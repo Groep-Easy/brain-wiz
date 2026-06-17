@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { validateDisplayName } from '../../shared/utils/display-name'
 import { CharacterPreview } from './CharacterPreview'
+import { WizardLogo } from '../../shared/components/WizardLogo'
 import type { PlayerAvatar } from '../../shared/types/index'
 import '../styles/CharacterPreview.css'
 
@@ -107,18 +108,21 @@ export function JoinScreen({
   }
 
   return (
-    <div className="card">
-      <h1>Brain Wiz</h1>
+    <div className="card join-card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+        <WizardLogo size={48} />
+        <h1 className="text-logo" style={{ color: 'white', fontSize: '3.5rem' }}>BrainWiz</h1>
+      </div>
       <p className="subtitle">Join the game</p>
       <form onSubmit={handleSubmit}>
         <div className="face-controls">
-          <button type="button" onClick={prevFace} className="arrow-btn">
+          <button type="button" onClick={prevFace} className="arrow-btn icon-btn">
             <svg width="48" height="48" viewBox="0 0 24 24">
               <polygon points="16,4 6,12 16,20" />
             </svg>
           </button>
           <CharacterPreview color={character.bodyColor} faceId={character.faceId} />
-          <button type="button" onClick={nextFace} className="arrow-btn">
+          <button type="button" onClick={nextFace} className="arrow-btn icon-btn">
             <svg width="48" height="48" viewBox="0 0 24 24">
               <polygon points="8,4 18,12 8,20" />
             </svg>
