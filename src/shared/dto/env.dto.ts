@@ -37,9 +37,6 @@ export const EnvironmentSchema = z.object({
 
   DB_LOGGING_ENABLED: z.coerce.boolean().default(DEFAULTS.DB_LOGGING_ENABLED),
 
-  PGADMIN_DEFAULT_EMAIL: z.email(),
-  PGADMIN_DEFAULT_PASSWORD: z.string(),
-
   SERVER_API_VERSION: z.string().default(DEFAULTS.SERVER_API_VERSION),
 })
 
