@@ -7,7 +7,7 @@
  * standalone bundle.
  */
 import type { JSX } from 'react'
-import { SlidingPuzzleMock } from '../../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { SlidingPuzzleMock } from '@minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 
 export function Game(): JSX.Element {
   return <SlidingPuzzleMock />

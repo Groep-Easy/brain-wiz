@@ -8,7 +8,7 @@
  *  2. All exports are Object.freeze — treat as read-only at runtime.
  *  3. Values that differ per environment belong in config/, not here.
  */
-import type { RoundType } from '../types/index'
+import type { RoundType } from '../shared/types/index'
 
 export const ROOM = Object.freeze({
   CODE_LENGTH: 4,

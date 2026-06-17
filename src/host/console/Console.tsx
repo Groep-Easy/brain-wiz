@@ -16,15 +16,15 @@ import {
   PING,
   QUESTION_REVEAL,
   QUESTION_SHOW,
-} from '../../shared/events/socket-events'
-import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
+} from '@shared/constants/socket-events.constants'
+import { WS_SUBPROTOCOL } from '@shared/constants/ws.constants'
 import type {
   LeaderboardEntry,
   LeaderboardShowPayload,
   QuestionRevealPayload,
   QuestionShowPayload,
   QuestionState,
-} from '../../shared/types'
+} from '@shared/types'
 import {
   buildWsUrl,
   parseFrame,

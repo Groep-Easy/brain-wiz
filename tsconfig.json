@@ -37,7 +37,14 @@
     "skipLibCheck": true,
     "types": ["node"],
     "rootDir": ".",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@config/*": ["./src/config/*"],
+      "@client/*": ["./src/client/*"],
+      "@server/*": ["./src/server/*"],
+      "@minigames/*": ["./src/minigames/*"],
+      "@shared/*": ["./src/shared/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

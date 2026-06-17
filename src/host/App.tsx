@@ -10,22 +10,22 @@ import type {
   RoundSummary,
   RoundContentPayload,
   RoundRevealPayload,
-} from '../shared/types/index'
+} from '@shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
 import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
-import * as EVENTS from '../shared/events/socket-events'
-import { WS_SUBPROTOCOL } from '../shared/constants/ws'
-import { getBackendWsUrl, getBackendHttpUrl } from '../shared/utils/env'
-import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
-import { CountdownCircle } from '../shared/components/CountdownCircle'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { WS_SUBPROTOCOL } from '@shared/constants/ws.constants'
+import { RoundMinigameSurface } from '@minigames/components/RoundMinigameSurface'
+import { CountdownCircle } from '@shared/components/CountdownCircle'
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
 import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
 
 import './styles/welcome.css'
+import { getBackendHttpUrl, getBackendWsUrl } from '@shared/utils/env'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)

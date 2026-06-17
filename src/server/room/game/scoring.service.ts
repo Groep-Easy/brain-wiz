@@ -20,7 +20,7 @@ import type {
   RoundRevealPayload,
   RoundType,
 } from '../../../shared/types/index'
-import * as EVENTS from '../../../shared/events/socket-events'
+import * as EVENTS from '../../../shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 import { MinigameScoreResult } from './minigames/minigame.types'
 

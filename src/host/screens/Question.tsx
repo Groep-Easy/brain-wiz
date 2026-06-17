@@ -1,4 +1,4 @@
-import type { QuestionState, QuestionRevealPayload } from '../../shared/types/index'
+import type { QuestionState, QuestionRevealPayload } from '@shared/types/index'
 import { computeAnswerStats } from '../../shared/utils/answer-stats'
 import '../styles/question.css'
 import suspenseMusic from '../../shared/SFX/Standoff.mp3'

@@ -1,4 +1,4 @@
-import type { QuestionState, PlayerAnswerResult } from '../../shared/types/index'
+import type { QuestionState, PlayerAnswerResult } from '@shared/types/index'
 import '../styles/answer.css'
 
 const SHAPES = ['▲', '◆', '●', '■']

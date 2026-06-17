@@ -18,8 +18,8 @@ import { toRoomState } from '../room.helpers'
 import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
 import { RoomStatusEnum } from '../../entities/enums'
-import * as EVENTS from '../../../shared/events/socket-events'
-import { ROOM } from '../../../shared/constants/game-config'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { ROOM } from '@config/game.config'
 import { isValidRoomCode } from '../../../shared/utils/room-code'
 import { validateDisplayName } from '../../../shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
@@ -370,5 +370,53 @@ export class LobbyService {
     if (roster.filter((c) => c.isConnected).length === 0) {
       this.gameEngine.abort(roomId)
     }
+  }
+  public async kickPlayerByRoom({
+    roomCode,
+    playerId,
+    hostToken,
+  }: {
+    roomCode: string
+    playerId: string
+    hostToken: string
+  }): Promise<{ success: boolean; reason: string | undefined }> {
+    const room = await this.rooms.findByJoinCode(roomCode)
+
+    if (!room) {
+      return { success: false, reason: 'ROOM_NOT_FOUND' }
+    }
+
+    if (!this.registry.verifyHostToken(room.id, hostToken)) {
+      return { success: false, reason: `NOT_AUTHORIZED: ${hostToken}` }
+    }
+
+    const client = await this.clients.findById(playerId)
+
+    if (!client || client.roomId !== room.id) {
+      return { success: false, reason: 'PLAYER_NOT_FOUND' }
+    }
+
+    const socket = this.registry.getSocketByClientId(playerId)
+
+    if (socket) {
+      this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_KICKED)
+
+      socket.close?.()
+
+      this.registry.unregister(socket)
+    }
+
+    this.registry.clearReconnectToken(playerId)
+
+    const timer = this.registry.clearGraceTimer(playerId)
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    await this.clients.remove(client)
+
+    await this.broadcastState(room)
+
+    return { success: true, reason: undefined }
   }
 }

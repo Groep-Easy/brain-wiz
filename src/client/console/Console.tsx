@@ -18,7 +18,7 @@ import {
   PLAYER_LEAVE,
   QUESTION_REVEAL,
   QUESTION_SHOW,
-} from '../../shared/events/socket-events'
+} from '@shared/constants/socket-events.constants'
 import type {
   AnswerAckPayload,
   LeaderboardEntry,
@@ -27,7 +27,7 @@ import type {
   QuestionRevealPayload,
   QuestionShowPayload,
   QuestionState,
-} from '../../shared/types'
+} from '@shared/types'
 import {
   parseFrame,
   parsePayload,

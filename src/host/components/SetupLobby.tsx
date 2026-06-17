@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import type { Player } from '../../shared/types/index'
+import type { Player } from '@shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
@@ -58,9 +58,34 @@ export function SetupLobby({
     onStartGame(timePerQuestion)
   }
 
-  const handleKick = (playerName: string) => {
+  const handleKick = async (playerId: string) => {
     // eslint-disable-next-line no-console
-    console.log(`Kick player: ${playerName} (Backend kick API not yet implemented)`)
+    console.log(`Kick player: ${playerId}`)
+    try {
+      console.log(hostToken)
+    const res = await fetch(`http://localhost:3000/lobbies/${roomCode}/kick`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        playerId,
+        hostToken
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      console.warn('Kick failed:', data.reason)
+      return
+    }
+
+    console.log('Player kicked')
+  } catch (err) {
+    console.error('Kick error', err)
+  }
+
   }
 
   return (
@@ -137,7 +162,7 @@ export function SetupLobby({
                         {player.name}
                         <button
                           className="kick"
-                          onClick={() => handleKick(player.name)}
+                          onClick={() => handleKick(player.id)}
                           title="Remove from lobby"
                           aria-label={`Remove ${player.name}`}
                         >
