@@ -38,7 +38,7 @@ export function SetupLobby({
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const jazzRef = useRef<HTMLAudioElement>(null)
-  const [playStartGameSound] = useSound(startGameSound);
+  const [playStartGameSound] = useSound(startGameSound)
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
   const { cells } = useMemo(
@@ -76,29 +76,28 @@ export function SetupLobby({
     console.log(`Kick player: ${playerId}`)
     try {
       console.log(hostToken)
-    const res = await fetch(`${ENV.SERVER_BASE_URL}/lobbies/${roomCode}/kick`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        playerId,
-        hostToken
-      }),
-    })
+      const res = await fetch(`${ENV.SERVER_BASE_URL}/lobbies/${roomCode}/kick`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerId,
+          hostToken,
+        }),
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (!data.success) {
-      console.warn('Kick failed:', data.reason)
-      return
+      if (!data.success) {
+        console.warn('Kick failed:', data.reason)
+        return
+      }
+
+      console.log('Player kicked')
+    } catch (err) {
+      console.error('Kick error', err)
     }
-
-    console.log('Player kicked')
-  } catch (err) {
-    console.error('Kick error', err)
-  }
-
   }
 
   return (
@@ -106,7 +105,9 @@ export function SetupLobby({
       <header className="host-lobby-header">
         <div className="header-left">
           <WizardLogo size={32} />
-          <h1 className="text-logo" style={{ color: 'white' }}>BrainWiz</h1>
+          <h1 className="text-logo" style={{ color: 'white' }}>
+            BrainWiz
+          </h1>
         </div>
         <audio ref={jazzRef} id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <div className="header-tabs">
