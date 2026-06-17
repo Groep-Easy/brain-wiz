@@ -22,11 +22,11 @@ export class BasicResponseDto {
     description: 'Indicates whether the kick action was successful',
     example: true,
   })
-  success!: boolean
+  public success!: boolean
 
   @ApiPropertyOptional({
     description: 'Reason why the action failed (if applicable)',
     example: 'NOT_AUTHORIZED',
   })
-  reason?: string
+  public reason?: string
 }

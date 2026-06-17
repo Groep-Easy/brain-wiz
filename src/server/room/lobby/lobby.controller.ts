@@ -5,7 +5,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger'
 
 @Controller('lobbies')
 export class LobbyController {
-  public constructor(private readonly lobby: LobbyService) { }
+  public constructor(private readonly lobby: LobbyService) {}
 
   @Post(':roomCode/kick')
   @ApiOperation({ summary: 'Kick a player from a room' })
@@ -14,9 +14,9 @@ export class LobbyController {
     description: 'Player successfully kicked or request was rejected',
     type: BasicResponseDto,
   })
-  async kickPlayer(
+  public async kickPlayer(
     @Param('roomCode') roomCode: string,
-    @Body() body: KickPlayerDto,
+    @Body() body: KickPlayerDto
   ): Promise<BasicResponseDto> {
     return this.lobby.kickPlayerByRoom({
       roomCode,
