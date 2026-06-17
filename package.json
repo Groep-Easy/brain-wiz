@@ -25,7 +25,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint && npm run format:check && npm run test:project-checks",
     "test:project-checks": "tsc && tsc-alias && cd dist && node --env-file=../.env --test",
-    "test:coverage": "tsc && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
+    "test:coverage": "tsc && tsc-alias && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
     "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",
