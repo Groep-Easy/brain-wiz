@@ -423,21 +423,14 @@ export function App(): React.JSX.Element {
         <section className="client-minigame client-minigame--vault-rush">
           <VaultRush
             onCodeChange={isReveal ? undefined : setVaultCode}
+            onSubmitCode={(code) => {
+              handleRoundSubmit({ code })
+            }}
             puzzle={puzzle}
             readOnly={isReveal}
             solutionCode={isReveal ? solution?.code : undefined}
+            submitted={roundSubmitted}
           />
-
-          <div className="client-minigame__actions">
-            <button
-              className="primary-btn"
-              disabled={roundSubmitted || isReveal || !/^\d{4}$/.test(vaultCode)}
-              onClick={() => handleRoundSubmit({ code: vaultCode })}
-              type="button"
-            >
-              Submit code
-            </button>
-          </div>
         </section>
       )
     }

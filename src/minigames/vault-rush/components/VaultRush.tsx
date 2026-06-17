@@ -8,7 +8,9 @@ export function VaultRush({
   puzzle,
   readOnly = false,
   solutionCode,
+  submitted = false,
   onCodeChange,
+  onSubmitCode,
 }: VaultRushProps): JSX.Element {
   const [code, setCode] = useState('')
 
@@ -53,24 +55,43 @@ export function VaultRush({
         </section>
 
         {!readOnly ? (
-          <label className="vault-rush-input-label">
-            Enter code
-            <input
-              className="vault-rush-input"
-              inputMode="numeric"
-              maxLength={MAX_CODE_LENGTH}
-              onChange={(event) => {
-                handleCodeChange(event.target.value)
-              }}
-              pattern="[0-9]*"
-              value={code}
-            />
-          </label>
+          <form
+            className="vault-rush-form"
+            onSubmit={(event) => {
+              event.preventDefault()
+
+              if (code.length !== puzzle.digitCount || submitted) {
+                return
+              }
+
+              onSubmitCode?.(code)
+            }}
+          >
+            <label className="vault-rush-input-label">
+              Enter code
+              <input
+                className="vault-rush-input"
+                inputMode="numeric"
+                maxLength={MAX_CODE_LENGTH}
+                onChange={(event) => {
+                  handleCodeChange(event.target.value)
+                }}
+                pattern="[0-9]*"
+                value={code}
+              />
+            </label>
+
+            <button
+              className="primary-btn vault-rush-submit"
+              disabled={submitted || code.length !== puzzle.digitCount}
+              type="submit"
+            >
+              Submit code
+            </button>
+          </form>
         ) : null}
 
-        {solutionCode ? (
-          <p className="vault-rush-solution">Correct code: {solutionCode}</p>
-        ) : null}
+        {solutionCode ? <p className="vault-rush-solution">Correct code: {solutionCode}</p> : null}
       </section>
     </main>
   )
