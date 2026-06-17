@@ -12,7 +12,7 @@ export default [
     languageOptions: {
       parser: parser,
       parserOptions: {
-        project: ['./tsconfig.json', './src/shared/tsconfig.json', './src/config/tsconfig.json'],
+        project: ['./tsconfig.json', './src/shared/tsconfig.json', './src/config/tsconfig.json', './src/minigames/tsconfig.json'],
       },
     },
     plugins: {
@@ -114,6 +114,7 @@ export default [
       'dist/**',
       'src/shared/dist/**',
       'src/config/dist/**',
+      'src/minigames/dist/**',
       '.eslintrc.config.mjs',
       'node_modules/**',
       'src/client/**',

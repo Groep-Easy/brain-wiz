@@ -15,13 +15,13 @@ import type {
     PlayerAvatar,
 } from '@brain-wiz/shared/types/index'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { SlidingPuzzle } from '@minigames/sliding-puzzle/components/SlidingPuzzle'
+import { SlidingPuzzle } from '@brain-wiz/minigames/sliding-puzzle/components/SlidingPuzzle'
 import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
-import { MinigameChoiceGrid } from '@minigames/components/MinigameChoiceGrid'
+import { MinigameChoiceGrid } from '@brain-wiz/minigames/components/MinigameChoiceGrid'
 import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
-} from '@minigames/sliding-puzzle/shared/slidingPuzzleGame'
+} from '@brain-wiz/minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'

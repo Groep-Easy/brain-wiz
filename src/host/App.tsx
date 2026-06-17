@@ -18,7 +18,7 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
-import { RoundMinigameSurface } from '@minigames/components/RoundMinigameSurface'
+import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'

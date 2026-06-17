@@ -4,8 +4,8 @@ import {
   HARD_SCALE_DIFFICULTY,
   generateScalePuzzle,
   type ScaleDifficulty,
-} from '../../../../minigames/balance-scale/shared/scaleGame.js'
-import { getDefaultScaleItemPool } from '../../../../minigames/balance-scale/shared/scaleGame.presets.js'
+} from '@brain-wiz/minigames/balance-scale/shared/scaleGame'
+import { getDefaultScaleItemPool } from '@brain-wiz/minigames/balance-scale/shared/scaleGame.presets'
 import { hashSeed } from '@brain-wiz/shared/utils/seeded-random'
 import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 import type {

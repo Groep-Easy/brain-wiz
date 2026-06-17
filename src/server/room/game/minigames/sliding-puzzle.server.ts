@@ -6,7 +6,7 @@ import {
   type SlidingPuzzleBoard,
   type SlidingPuzzlePuzzle,
   type SlidingPuzzleScoreConfig,
-} from '../../../../minigames/sliding-puzzle/shared/slidingPuzzleGame.js'
+} from '@brain-wiz/minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,

@@ -1,0 +1,21 @@
+{
+  "name": "@brain-wiz/minigames",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@brain-wiz/shared": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.2.7"
+  }
+}
