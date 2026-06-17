@@ -57,12 +57,12 @@ describe('vaultRushGame', () => {
       seed: 'room-1:round-4:vault-rush',
     })
 
-    const digits = getCodeDigits(round.code)
-
-    const digitOne = digits[0]!
-    const digitTwo = digits[1]!
-    const digitThree = digits[2]!
-    const digitFour = digits[3]!
+    const [digitOne, digitTwo, digitThree, digitFour] = getCodeDigits(round.code) as [
+      number,
+      number,
+      number,
+      number,
+    ]
 
     assert.ok(digitOne >= 1 && digitOne <= 4)
     assert.ok(digitTwo >= 2)
