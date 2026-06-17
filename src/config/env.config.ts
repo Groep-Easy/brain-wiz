@@ -2,7 +2,7 @@ import { EnvironmentSchema } from '@shared/dto/env.dto'
 import { NodeEnv } from '@shared/types/env'
 
 const HTTP_PORT = 80
-const HTTPS_PORT = 80
+const HTTPS_PORT = 443
 
 function makeBaseUrl(serverLocatie: string, port: number): string {
   let raw = ''
