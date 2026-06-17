@@ -8,7 +8,7 @@ import { GameEngineService } from '../../src/server/room/game/game-engine.servic
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { ROUNDS } from '../../src/config/game.config'
+import { ROUNDS } from '@brain-wiz/config/game.config'
 import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
 import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 

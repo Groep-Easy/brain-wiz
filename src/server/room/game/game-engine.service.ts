@@ -18,7 +18,7 @@ import { ClientService } from '../../client/client.service'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { toRoomState } from '../room.helpers'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { ROUNDS, TIMER } from '@config/game.config'
+import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import type {
   GamePhase as WireGamePhase,
   LeaderboardEntry,

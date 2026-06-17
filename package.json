@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "npm run build:libs && npm run build:server && npm run client:build && npm run host:build",
-    "build:libs": "tsc -b src/shared",
+    "build:libs": "tsc -b src/shared src/config",
     "build:server": "nest build",
     "start": "node --env-file=.env dist/server/index.js",
     "dev:server": "concurrently -k \"nest build --watch\" \"node --watch --env-file=.env dist/server/index.js\"",

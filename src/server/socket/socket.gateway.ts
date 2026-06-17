@@ -31,7 +31,7 @@ import {
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { ROOM, WS } from '@config/game.config'
+import { ROOM, WS } from '@brain-wiz/config/game.config'
 import { AnswerService } from '../room/game/answer.service'
 import type { PongPayload } from '@brain-wiz/shared/types/index'
 import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'

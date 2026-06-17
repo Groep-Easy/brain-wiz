@@ -22,7 +22,7 @@ import {
 import { Room } from '../../src/server/entities/room.entity'
 import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { ROOM, PLAYER } from '../../src/config/game.config'
+import { ROOM, PLAYER } from '@brain-wiz/config/game.config'
 import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'

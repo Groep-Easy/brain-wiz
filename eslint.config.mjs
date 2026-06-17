@@ -12,7 +12,7 @@ export default [
     languageOptions: {
       parser: parser,
       parserOptions: {
-        project: ['./tsconfig.json', './src/shared/tsconfig.json'],
+        project: ['./tsconfig.json', './src/shared/tsconfig.json', './src/config/tsconfig.json'],
       },
     },
     plugins: {
@@ -113,6 +113,7 @@ export default [
     ignores: [
       'dist/**',
       'src/shared/dist/**',
+      'src/config/dist/**',
       '.eslintrc.config.mjs',
       'node_modules/**',
       'src/client/**',

@@ -30,7 +30,7 @@ export default defineConfig({
       '@client': path.resolve(__dirname, 'src/client'),
       '@minigames': path.resolve(__dirname, 'src/minigames'),
       '@brain-wiz/shared': path.resolve(__dirname, 'src/shared'),
-      '@config': path.resolve(__dirname, 'src/config'),
+      '@brain-wiz/config': path.resolve(__dirname, 'src/config'),
     },
   },
 })

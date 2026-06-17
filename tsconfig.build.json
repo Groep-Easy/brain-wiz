@@ -4,7 +4,7 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "references": [{ "path": "src/shared" }],
+  "references": [{ "path": "src/shared" }, { "path": "src/config" }],
   "include": ["src/**/*.ts"],
   "exclude": [
     "node_modules",
@@ -13,6 +13,7 @@
     "src/host",
     "src/minigames",
     "src/shared",
+    "src/config",
     "tests",
     "**/*.test.ts"
   ]
