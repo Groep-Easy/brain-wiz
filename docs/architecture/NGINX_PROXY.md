@@ -78,9 +78,9 @@ internal-only (no host ports); nginx is the sole public entry point on 80/443.
 
 The UvA server is only reachable while connected to the **UvA VPN** (Cisco AnyConnect / eduVPN). Once connected:
 
-| Service        | URL                       |
-| -------------- | ------------------------- |
-| App            | `https://<server-ip>`     |
+| Service                           | URL                       |
+| --------------------------------- | ------------------------- |
+| App                               | `https://<server-ip>`     |
 | Grafana (`observability` profile) | `http://<server-ip>:3200` |
 | pgAdmin (`tools` profile)         | `http://<server-ip>:5050` |
 
@@ -117,10 +117,10 @@ nginx (writes JSON)
 
 ### Files
 
-| File                                                | Purpose                                                                  |
-| --------------------------------------------------- | ------------------------------------------------------------------------ |
-| `docker-compose.yml`                                | All services: app, nginx, db (core), pgadmin (`tools`), Loki/Promtail/Grafana (`observability`) |
-| `docker-compose.override.yml`                       | Local-dev only: publishes the DB port (never used by `make deploy`)      |
-| `Makefile`                                          | `make cert` / `make deploy` / `make deploy-obs` / `make down`            |
-| `loki/promtail-config.yml`                          | Promtail scrape config (tails nginx access + error logs)                 |
-| `loki/grafana-provisioning/datasources/loki.yml`    | Auto-provisions Loki as Grafana default datasource                       |
+| File                                             | Purpose                                                                                         |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `docker-compose.yml`                             | All services: app, nginx, db (core), pgadmin (`tools`), Loki/Promtail/Grafana (`observability`) |
+| `docker-compose.override.yml`                    | Local-dev only: publishes the DB port (never used by `make deploy`)                             |
+| `Makefile`                                       | `make cert` / `make deploy` / `make deploy-obs` / `make down`                                   |
+| `loki/promtail-config.yml`                       | Promtail scrape config (tails nginx access + error logs)                                        |
+| `loki/grafana-provisioning/datasources/loki.yml` | Auto-provisions Loki as Grafana default datasource                                              |

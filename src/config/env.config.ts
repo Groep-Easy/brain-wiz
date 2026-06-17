@@ -9,7 +9,9 @@ function makeBaseUrl(serverLocatie: string, port: number): string {
   const scheme = isHttps ? 'https' : 'http'
   // Omit the port from the URL for the standard HTTP/HTTPS ports.
   const isDefaultPort = port === HTTP_PORT || port === HTTPS_PORT
-  const raw = isDefaultPort ? `${scheme}://${serverLocatie}` : `${scheme}://${serverLocatie}:${port}`
+  const raw = isDefaultPort
+    ? `${scheme}://${serverLocatie}`
+    : `${scheme}://${serverLocatie}:${port}`
 
   let url: URL
   try {
