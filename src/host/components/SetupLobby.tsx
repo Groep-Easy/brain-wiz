@@ -8,6 +8,7 @@ import { getClientBaseUrl } from '../../shared/utils/env'
 import { CharacterPreview } from '../../client/components/CharacterPreview'
 import { WizardLogo } from '../../shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
+import { ENV } from '@config/env.config'
 
 interface SetupLobbyProps {
   roomCode: string
@@ -63,7 +64,7 @@ export function SetupLobby({
     console.log(`Kick player: ${playerId}`)
     try {
       console.log(hostToken)
-    const res = await fetch(`http://localhost:3000/lobbies/${roomCode}/kick`, {
+    const res = await fetch(`${ENV.SERVER_BASE_URL}/lobbies/${roomCode}/kick`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
