@@ -1,0 +1,194 @@
+@import './variables.css';
+
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-system);
+  font-size: var(--fs-base);
+  margin: 0;
+  background: var(--bg);
+  color: var(--dark);
+  min-height: 100vh;
+}
+
+h1 {
+  margin: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  text-align: center;
+}
+
+.app--minigame {
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+  text-align: initial;
+}
+
+/* Base Input styling */
+input,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Global 3D Button & Input Styling */
+button,
+input,
+textarea,
+.btn,
+.primary-btn,
+.start-btn,
+.icon-btn {
+  text-decoration: none;
+  font: inherit;
+  background-color: var(--btn-bg-color, #f0f0f0);
+  border: 0;
+  color: var(--btn-text-color, #242424);
+  border-radius: var(--radius-md, 0.5em);
+  font-size: 1.35rem;
+  padding: 0.375em 1em;
+  font-weight: 600;
+  text-shadow: 0 0.0625em 0 var(--btn-text-shadow, #fff);
+  box-shadow:
+    inset 0 0.0625em 0 0 var(--btn-shadow-1, #f4f4f4),
+    0 0.0625em 0 0 var(--btn-shadow-2, #efefef),
+    0 0.125em 0 0 var(--btn-shadow-3, #ececec),
+    0 0.25em 0 0 var(--btn-shadow-4, #e0e0e0),
+    0 0.3125em 0 0 var(--btn-shadow-5, #dedede),
+    0 0.375em 0 0 var(--btn-shadow-6, #dcdcdc),
+    0 0.425em 0 0 var(--btn-shadow-7, #cacaca),
+    0 0.425em 0.5em 0 var(--btn-shadow-8, #cecece);
+  transition: 0.15s ease;
+  display: inline-block;
+  text-align: center;
+}
+
+button,
+.btn,
+.primary-btn,
+.start-btn,
+.icon-btn {
+  cursor: pointer;
+}
+
+/* Specific styling for square icon buttons */
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input,
+textarea {
+  cursor: text;
+  text-align: left;
+}
+
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+}
+
+/* Hover animation to get a pixel up */
+button:hover:not(:disabled),
+.btn:hover:not(:disabled),
+.primary-btn:hover:not(:disabled),
+.start-btn:hover:not(:disabled),
+.icon-btn:hover:not(:disabled) {
+  translate: 0 -0.05em;
+}
+
+/* Active press */
+button:active:not(:disabled),
+.btn:active:not(:disabled),
+.primary-btn:active:not(:disabled),
+.start-btn:active:not(:disabled),
+.icon-btn:active:not(:disabled) {
+  translate: 0 0.225em;
+  box-shadow:
+    inset 0 0.03em 0 0 var(--btn-shadow-1, #f4f4f4),
+    0 0.03em 0 0 var(--btn-shadow-2, #efefef),
+    0 0.0625em 0 0 var(--btn-shadow-3, #ececec),
+    0 0.125em 0 0 var(--btn-shadow-4, #e0e0e0),
+    0 0.125em 0 0 var(--btn-shadow-5, #dedede),
+    0 0.2em 0 0 var(--btn-shadow-6, #dcdcdc),
+    0 0.225em 0 0 var(--btn-shadow-7, #cacaca),
+    0 0.225em 0.375em 0 var(--btn-shadow-8, #cecece);
+}
+
+/* Disabled state */
+button:disabled,
+.btn:disabled,
+.primary-btn:disabled,
+.start-btn:disabled,
+.icon-btn:disabled,
+input:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  translate: 0 0.225em;
+  box-shadow:
+    inset 0 0.03em 0 0 var(--btn-shadow-1, #f4f4f4),
+    0 0.03em 0 0 var(--btn-shadow-2, #efefef),
+    0 0.0625em 0 0 var(--btn-shadow-3, #ececec),
+    0 0.125em 0 0 var(--btn-shadow-4, #e0e0e0),
+    0 0.125em 0 0 var(--btn-shadow-5, #dedede),
+    0 0.2em 0 0 var(--btn-shadow-6, #dcdcdc),
+    0 0.225em 0 0 var(--btn-shadow-7, #cacaca),
+    0 0.225em 0.375em 0 var(--btn-shadow-8, #cecece);
+}
+
+/* Top red banner for reconnecting state */
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--coral, #ff6b6b);
+  color: white;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Base Client Card */
+.card {
+  background: var(--bg);
+  color: var(--dark);
+  border: 2px solid var(--btn-shadow-5, #dedede);
+  border-radius: var(--radius-2xl, 1.5rem);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.join-card {
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
