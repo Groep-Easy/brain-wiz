@@ -11,7 +11,7 @@ import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
-  roadmap?: RoadmapEntry | null
+  roadmap?: RoadmapUpdate | null
 }
 
 interface RoadmapProps {

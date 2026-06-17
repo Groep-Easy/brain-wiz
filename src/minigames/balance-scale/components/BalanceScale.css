@@ -25,7 +25,7 @@
   gap: 8px;
   min-height: 42px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   background: #ffffff;
   box-shadow: 0 6px 14px rgb(15 23 42 / 8%);
@@ -48,7 +48,8 @@
 }
 
 .balance-scale-equations__emoji {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
 }
 
 .balance-scale-equations__equals {
@@ -122,7 +123,8 @@
 
 .balance-scale__item-emoji,
 .balance-scale__question-mark {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
   font-size: 30px;
   text-anchor: middle;
 }
@@ -178,7 +180,7 @@
   gap: 8px;
   min-height: 42px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   background: #ffffff;
   box-shadow: 0 6px 14px rgb(15 23 42 / 8%);
@@ -201,7 +203,8 @@
 }
 
 .scale-mechanics-mock__stack-emoji {
-  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-family:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
 }
 
 .scale-mechanics-mock__equals {
@@ -225,7 +228,7 @@
   gap: 7px;
   min-width: 118px;
   border: 1px solid #98a2b3;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 9px 13px;
   background: #ffffff;
   color: #182230;
@@ -257,7 +260,7 @@
 .scale-mechanics-mock__button {
   min-width: 96px;
   border: 1px solid #98a2b3;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 9px 14px;
   background: #ffffff;
   color: #182230;

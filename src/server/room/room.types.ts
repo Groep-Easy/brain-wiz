@@ -5,6 +5,7 @@
  */
 import { RoomStatusEnum } from '../entities/enums'
 import type { GameFlowItem } from '../../shared/types/flow'
+import { PlayerAvatar } from '../../shared/types'
 
 /** The room fields needed to build a wire `RoomState`. */
 export interface RoomStateSource {
@@ -20,6 +21,7 @@ export interface PlayerSource {
   displayName: string
   isConnected: boolean
   totalScore: number
+  playerAvatar: PlayerAvatar
 }
 
 /** Body of `POST /rooms/:code/start`. */
