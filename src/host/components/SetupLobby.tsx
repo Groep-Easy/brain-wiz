@@ -4,16 +4,15 @@ import type { Player } from '@shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import { getClientBaseUrl } from '../../shared/utils/env'
-//import { TIMER } from '../../shared/constants/game-config'
+import { getClientBaseUrl } from '@shared/utils/env'
 import { CharacterPreview } from '../../client/components/CharacterPreview'
-import { WizardLogo } from '../../shared/components/WizardLogo'
+import { WizardLogo } from '@shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
 
 import useSound from 'use-sound'
-import jazzMusic from '../../shared/SFX/jazz.mp3'
-import startGameSound from '../../shared/SFX/start-game.wav'
-import { isMuted } from '../../shared/SFX/mute'
+import jazzMusic from '@shared/SFX/jazz.mp3'
+import startGameSound from '@shared/SFX/start-game.wav'
+import { isMuted } from '@shared/SFX/mute'
 
 interface SetupLobbyProps {
   roomCode: string
