@@ -11,7 +11,7 @@ import type { RoundPresenter } from './game.types'
 import type { Round } from '../../entities/round.entity'
 import type { RoundOption } from './game-events'
 import type { Answer, QuestionShowPayload, RoundContentPayload } from '../../../shared/types/index'
-import * as EVENTS from '../../../shared/events/socket-events'
+import * as EVENTS from '../../../shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 
 @Injectable()

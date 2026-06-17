@@ -7,7 +7,8 @@
  * The profanity list is a deliberately small, hand-maintained casual filter
  * (English + Dutch). It catches obvious cases, not a determined adversary.
  */
-import { PLAYER } from '../constants/game-config'
+
+import { PLAYER } from '@config/game.config'
 
 export type DisplayNameResult = { ok: true } | { ok: false; reason: string }
 

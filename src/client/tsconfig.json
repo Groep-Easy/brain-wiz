@@ -17,7 +17,13 @@
     "isolatedModules": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@client/*": ["./*"],
+      "@minigames/*": ["../minigames/*"],
+      "@config/*": ["./src/config/*"],
+      "@shared/*": ["../shared/*"]
+    }
   },
   "include": ["."]
 }

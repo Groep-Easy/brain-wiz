@@ -24,10 +24,10 @@
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint && npm run format:check && npm run test:project-checks",
-    "test:project-checks": "tsc && cd dist && node --env-file=../.env --test",
-    "test:coverage": "tsc && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
-    "test:server": "tsc && cd dist/tests/server && node --env-file=../../../.env --test",
-    "test:shared": "tsc && cd dist/tests/shared && node --test",
+    "test:project-checks": "tsc && tsc-alias && cd dist && node --env-file=../.env --test",
+    "test:coverage": "tsc && tsc-alias && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
+    "test:server": "tsc && tsc-alias && cd dist/tests/server && node --env-file=../../../.env --test",
+    "test:shared": "tsc && tsc-alias && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",
     "client:dev": "vite --host --config vite.client.config.ts",
     "client:build": "vite build --config vite.client.config.ts",
@@ -51,12 +51,14 @@
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.2.5",
+    "tsc-alias": "^1.8.17",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.1",
     "vite": "^8.0.16"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.24",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.24",
     "@nestjs/platform-express": "^11.1.24",
     "@nestjs/platform-ws": "^11.1.24",
@@ -76,7 +78,8 @@
     "socket.io": "^4.7.4",
     "typeorm": "^1.0.0",
     "use-sound": "^5.0.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "^4.4.3"
   },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "^1.1.1",

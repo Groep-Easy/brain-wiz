@@ -9,7 +9,6 @@ services:
       - .env
     environment:
       - DB_HOST=db
-      - DB_PORT=5432
     container_name: server
     depends_on:
       db:
@@ -47,8 +46,25 @@ services:
     container_name: postgres-db
     env_file:
       - .env
+    ports:
+      - '${DB_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Visualize Postgres
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    ports:
+      - "5050:80"
+    env_file:
+      - .env
+    user: root
+    depends_on:
+      - db
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------

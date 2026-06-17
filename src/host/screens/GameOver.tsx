@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Player, ScoreMap } from '../../shared/types/index'
+import type { Player, ScoreMap } from '@shared/types/index'
 import synthWave from '../../shared/SFX/synthwave.mp3'
 import '../styles/game_over.css'
 

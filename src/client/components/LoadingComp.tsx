@@ -1,4 +1,4 @@
-import '../styles/LoadingComp.css'
+import '@client/styles/LoadingComp.css'
 
 export function LoadingComp():React.JSX.Element {
   return (

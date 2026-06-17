@@ -12,16 +12,16 @@ import type {
   AnswerAckPayload,
   RoundContentPayload,
   RoundRevealPayload,
-  PlayerAvatar,
-} from '../shared/types/index'
-import * as EVENTS from '../shared/events/socket-events'
-import { getBackendWsUrl } from '../shared/utils/env'
-import { MinigameChoiceGrid } from '../minigames/components/MinigameChoiceGrid'
-import { SlidingPuzzle } from '../minigames/sliding-puzzle/components/SlidingPuzzle'
+    PlayerAvatar,
+} from '@shared/types/index'
+import * as EVENTS from '@shared/constants/socket-events.constants'
+import { SlidingPuzzle } from '@minigames/sliding-puzzle/components/SlidingPuzzle'
+import { getBackendWsUrl } from '@shared/utils/env'
+import { MinigameChoiceGrid } from '@minigames/components/MinigameChoiceGrid'
 import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
-} from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
+} from '@minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -95,6 +95,7 @@ export function App(): React.JSX.Element {
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
+  const [kicked, setKicked] = useState(false)
 
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
@@ -175,6 +176,29 @@ export function App(): React.JSX.Element {
           setJoinError(rejected.reason || 'Could not join the room.')
         }
         break
+      }
+      case EVENTS.PLAYER_KICKED: {
+  console.log('kicked')
+  setKicked(true)
+
+  credsRef.current = null
+  playerIdRef.current = null
+
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {}
+
+  setJoined(false)
+  setJoining(false)
+  setRoomState(null)
+  setFinalScores(null)
+
+  socketRef.current?.close()
+  setReconnectExhausted(false)
+
+  setJoinError('You were kicked from the lobby')
+
+  break
       }
       case EVENTS.ROOM_STATE_UPDATE:
         setRoomState(data.room as RoomState)
@@ -426,7 +450,7 @@ export function App(): React.JSX.Element {
   }
 
   const disconnected = status === 'closed'
-  const banner = disconnected ? (
+  const banner = disconnected && !kicked ? (
     <div className="banner">
       {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
     </div>

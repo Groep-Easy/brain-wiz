@@ -12,8 +12,9 @@ import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
-import { config } from '../config/server'
+import { ENV } from '@config/env.config'
 import { setSwaggerConfig } from '../config/swagger-doc'
+import { NodeEnv } from '@shared/types/env'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)
@@ -21,7 +22,7 @@ async function bootstrap(): Promise<void> {
   // Allow the host display and phone client (served from their own Vite dev
   // origins) to call the HTTP API cross-origin, e.g. POST /rooms.
   app.enableCors({
-    origin: [...config.CORS_ORIGINS],
+    origin: [...ENV.CORS_ORIGINS],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   })
 
@@ -60,11 +61,11 @@ async function bootstrap(): Promise<void> {
   })
 
   setSwaggerConfig(app)
-  await app.listen(config.PORT, '127.0.0.1')
+  await app.listen(ENV.SERVER_PORT, '127.0.0.1')
 
   // eslint-disable-next-line no-console
   console.log('\n  Brain Wiz Server Successfully Started!')
-  if (config.NODE_ENV === 'development') {
+  if (ENV.NODE_ENV === NodeEnv.Development) {
     // eslint-disable-next-line no-console
     console.log(`
   Host Display:  http://localhost:5174/host
@@ -74,9 +75,9 @@ async function bootstrap(): Promise<void> {
   } else {
     // eslint-disable-next-line no-console
     console.log(`
-  Host Display:  ${config.BASE_URL}/host
-  Player Client: ${config.BASE_URL}/client
-  REST API:      ${config.BASE_URL}/api
+  Host Display:  ${ENV.SERVER_BASE_URL}/host
+  Player Client: ${ENV.SERVER_BASE_URL}/client
+  REST API:      ${ENV.SERVER_BASE_URL}/api
     `)
   }
 }

@@ -5,11 +5,11 @@
  * score changes with layout animations.
  */
 import { useRef, useLayoutEffect, useMemo } from 'react'
-import type { LeaderboardEntry } from '../../shared/types/index'
-import type { RoadmapEntry } from '../../shared/types/index'
+import type { LeaderboardEntry } from '@shared/types/index'
+import type { RoadmapUpdate } from '@shared/types/index'
+import '../styles/leaderboard.css'
 
 import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
-import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]

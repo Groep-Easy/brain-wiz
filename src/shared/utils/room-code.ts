@@ -4,7 +4,7 @@
  * @description Room code generation and validation.
  * Lives in shared/ because server generates codes and client validates input.
  */
-import { ROOM } from '../constants/game-config'
+import { ROOM } from '@config/game.config'
 
 /** No 0/O/1/I — visually ambiguous on small phone screens */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'

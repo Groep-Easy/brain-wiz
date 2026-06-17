@@ -2,7 +2,7 @@ import type {
   RoundAnswerChoice,
   RoundContentPayload,
   RoundSubmitPayload,
-} from '../shared/types/index.js'
+} from '@shared/types/index.js'
 
 export function getRoundAnswerChoices(content: RoundContentPayload): RoundAnswerChoice[] {
   return content.answerChoices ?? []
