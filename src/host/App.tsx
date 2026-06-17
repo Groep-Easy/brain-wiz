@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import type {
   RoomState,
   LeaderboardEntry,
-  RoadmapEntry,
+  RoadmapUpdate,
   ScoreMap,
   QuestionState,
   QuestionRevealPayload,
@@ -17,25 +18,25 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
-import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
+import { getBackendWsUrl, getBackendHttpUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+import { CountdownCircle } from '../shared/components/CountdownCircle'
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
 import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
-import logo from './assets/BrainWiz logo.png'
 
-import './styles/index.css'
 import './styles/welcome.css'
-import './styles/main_style.css'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
-const JOIN_GAME_URL = `${getClientBaseUrl()}/client`
 
 export function App(): React.JSX.Element {
-  const [code, setCode] = useState<string>('')
-  const [hostToken, setHostToken] = useState<string>('')
+  const { roomCode } = useParams<{ roomCode: string }>()
+  const navigate = useNavigate()
+  const hostToken = sessionStorage.getItem(`hostToken_${roomCode}`)
+
   const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
+  const [fatalError, setFatalError] = useState<string | null>(null)
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
   const [question, setQuestion] = useState<QuestionState | null>(null)
@@ -46,7 +47,7 @@ export function App(): React.JSX.Element {
   const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
   const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [roadmap, setRoadmap] = useState<RoadmapEntry | null>(null)
+  const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -58,18 +59,21 @@ export function App(): React.JSX.Element {
     }
   }, [])
 
-  // Automatically connect WebSocket when code and hostToken are set
+  // Automatically connect WebSocket when roomCode and hostToken are set
   useEffect(() => {
-    if (!code || !hostToken) return
+    if (!roomCode || !hostToken) {
+      setFatalError('Room taken or unauthorized')
+      return
+    }
 
-    socketRef.current?.close()
     setStatus('connecting')
 
-    const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${code}`
-    const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-    socketRef.current = socket
+    const connectTimer = setTimeout(() => {
+      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${roomCode}`
+      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
+      socketRef.current = socket
 
-    socket.onopen = () => {
+      socket.onopen = () => {
       setStatus('open')
       // Reset game states
       setQuestion(null)
@@ -142,10 +146,8 @@ export function App(): React.JSX.Element {
             }
             break
 
-          case EVENTS.ROADMAP_SHOW:
-            if (data.roadmap) {
-              setRoadmap(data.roadmap)
-            }
+          case EVENTS.ROADMAP_UPDATE:
+            setRoadmap(data as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
@@ -163,42 +165,34 @@ export function App(): React.JSX.Element {
       }
     }
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       setStatus('closed')
       setRoomState(null)
-      setCode('')
-      setHostToken('')
+      if (event.code === 4004) {
+        setFatalError('Room not found or token invalid')
+      }
+      // Do not clear tokens or code so we can attempt reconnect if desired
     }
 
     socket.onerror = () => {
       // eslint-disable-next-line no-console
       console.error('WebSocket connection error')
     }
-  }, [code, hostToken])
+    }, 50)
 
-  const handleCreateRoom = async () => {
-    try {
-      const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
-      if (!res.ok) {
-        alert('Failed to create room on server')
-        return
+    return () => {
+      clearTimeout(connectTimer)
+      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
+        socketRef.current.onerror = null
       }
-      const body = (await res.json()) as { code: string; hostToken: string }
-      setCode(body.code)
-      setHostToken(body.hostToken)
-    } catch (err) {
-      alert(`Error creating room: ${String(err)}`)
+      socketRef.current?.close()
     }
-  }
-
-  const handleJoinGame = () => {
-    window.location.href = JOIN_GAME_URL
-  }
+  }, [roomCode, hostToken, navigate])
 
   const handleStartGame = async () => {
-    if (!code || !hostToken) return
+    if (!roomCode || !hostToken) return
     try {
-      const res = await fetch(`${BACKEND_HTTP_URL}/rooms/${code}/start`, {
+      const res = await fetch(`${BACKEND_HTTP_URL}/rooms/${roomCode}/start`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ hostToken }),
@@ -217,36 +211,35 @@ export function App(): React.JSX.Element {
     if (window.confirm('Are you sure you want to dissolve the lobby?')) {
       socketRef.current?.close()
       socketRef.current = null
-      setCode('')
-      setHostToken('')
       setRoomState(null)
       setStatus('closed')
+      navigate('/')
     }
   }
 
   // Dynamic Routing based on game phase
+  if (fatalError) {
+    return (
+      <main className="app">
+        <div className="welcome-screen">
+          <div className="welcome-card">
+            <CountdownCircle
+              seconds={5}
+              message={fatalError}
+              onComplete={() => navigate('/')}
+            />
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   if (!roomState || status !== 'open') {
     return (
       <main className="app">
-
         <div className="welcome-screen">
           <div className="welcome-card">
-            <img src={logo} width="300"></img>
-            <p className="subtitle">Interactive Quiz & Trivia Game</p>
-            <div className="divider"></div>
-            {status === 'connecting' ? (
-              <p>Connecting to server...</p>
-            ) : (
-              <>
-                <button className="primary-btn" onClick={handleCreateRoom}>
-                  Host Game
-                </button>
-                <div className="space"></div>
-                <button className="primary-btn" onClick={handleJoinGame}>
-                  Join Game
-                </button>
-              </>
-            )}
+            <p>Connecting to room {roomCode}...</p>
           </div>
         </div>
       </main>
@@ -258,16 +251,10 @@ export function App(): React.JSX.Element {
   if (phase === 'lobby') {
     return (
       <main className="app">
-        <audio
-          id="bg-music"
-          loop
-          autoPlay
-          src={jazzMusic}
-          preload="auto">
-        </audio>
+        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
-          roomCode={code}
-          hostToken={hostToken}
+          roomCode={roomCode!}
+          hostToken={hostToken!}
           players={roomState.players}
           gameFlow={roomState.gameFlow ?? []}
           onStartGame={handleStartGame}
@@ -303,7 +290,7 @@ export function App(): React.JSX.Element {
     }
     return (
       <Question
-        gameCode={code}
+        gameCode={roomCode!}
         question={question}
         secondsRemaining={secondsRemaining}
         answeredCount={answeredCount}

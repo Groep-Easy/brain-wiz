@@ -19,12 +19,13 @@ import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
 import { RoomStatusEnum } from '../../entities/enums'
 import * as EVENTS from '../../../shared/events/socket-events'
-import { ROOM, PLAYER } from '../../../shared/constants/game-config'
+import { ROOM } from '../../../shared/constants/game-config'
 import { isValidRoomCode } from '../../../shared/utils/room-code'
+import { validateDisplayName } from '../../../shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { RoomState } from '../../../shared/types/index'
+import type { PlayerAvatar, RoomState } from '../../../shared/types/index'
 import type { GameFlowItem } from '../../../shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
@@ -80,21 +81,17 @@ export class LobbyService {
     roomCode: string,
     playerName: string,
     playerId?: string,
-    playerToken?: string
+    playerToken?: string,
+    playerAvatar?: PlayerAvatar
   ): Promise<void> {
     if (!isValidRoomCode(roomCode)) {
       this.reject(socket, 'Invalid room code')
       return
     }
     const displayName = playerName.trim()
-    if (
-      displayName.length < PLAYER.NAME_MIN_LENGTH ||
-      displayName.length > PLAYER.NAME_MAX_LENGTH
-    ) {
-      this.reject(
-        socket,
-        `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
-      )
+    const nameResult = validateDisplayName(displayName)
+    if (!nameResult.ok) {
+      this.reject(socket, nameResult.reason)
       return
     }
 
@@ -130,7 +127,7 @@ export class LobbyService {
       return
     }
 
-    const client = await this.clients.addClient(room.id, displayName, connectionId)
+    const client = await this.clients.addClient(room.id, displayName, connectionId, playerAvatar)
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
@@ -138,6 +135,7 @@ export class LobbyService {
       playerId: client.id,
       roomCode: room.joinCode,
       reconnectToken,
+      playerAvatar: client.playerAvatar,
     })
     await this.broadcastState(room)
   }

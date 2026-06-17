@@ -46,22 +46,39 @@ async function bootstrap(): Promise<void> {
   const hostDist = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
 
-  // Host display: /host and /host/* (SPA fallback)
-  // Express v5 uses path-to-regexp v8+ which requires named wildcard params.
-  app.use('/host', express.static(hostDist))
-  app.use('/host/{*path}', (_req: express.Request, res: express.Response) => {
-    res.sendFile(path.join(hostDist, 'index.html'))
-  })
-
-  // Player client: /client and /client/* (SPA fallback)
   app.use('/client', express.static(clientDist))
   app.use('/client/{*path}', (_req: express.Request, res: express.Response) => {
     res.sendFile(path.join(clientDist, 'index.html'))
   })
+
+  app.use('/', express.static(hostDist))
+  app.use('/{*path}', (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.method === 'GET' && !req.headers.upgrade) {
+      return res.sendFile(path.join(hostDist, 'index.html'))
+    }
+    next()
+  })
+
   setSwaggerConfig(app)
   await app.listen(config.PORT, '127.0.0.1')
+
   // eslint-disable-next-line no-console
-  console.log(`REST API endpoints: ${config.BASE_URL}/api`)
+  console.log('\n  Brain Wiz Server Successfully Started!')
+  if (config.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(`
+  Host Display:  http://localhost:5174/host
+  Player Client: http://localhost:5173/client
+  REST API:      http://localhost:3000/api
+    `)
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(`
+  Host Display:  ${config.BASE_URL}/host
+  Player Client: ${config.BASE_URL}/client
+  REST API:      ${config.BASE_URL}/api
+    `)
+  }
 }
 
 void bootstrap()

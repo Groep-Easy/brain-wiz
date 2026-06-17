@@ -1,4 +1,4 @@
-# docker-compose.yml
+# docker-compose.prod.yml
 services:
   # ---------------------------------------------------------------------------
   # Brain Wiz
@@ -11,10 +11,9 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
     container_name: server
-    ports:
-      - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -24,8 +23,8 @@ services:
     image: nginx:alpine
     container_name: nginx-proxy
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
@@ -40,32 +39,16 @@ services:
   # ---------------------------------------------------------------------------
   db:
     image: postgres:16
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 10
     container_name: postgres-db
     env_file:
       - .env
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  # ---------------------------------------------------------------------------
-  # pgadmin
-  # ---------------------------------------------------------------------------
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    ports:
-      - "5050:80"
-    env_file:
-      - .env
-    environment:
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-      PGADMIN_CONFIG_LOGIN_DISABLED: "True"
-    user: root
-    depends_on:
-      - db
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -79,8 +62,7 @@ services:
       - loki_data:/loki
     restart: unless-stopped
     healthcheck:
-      test:
-        ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:3100/ready || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -107,11 +89,11 @@ services:
     image: grafana/grafana:12.0.1
     container_name: grafana
     ports:
-      - "3200:3000"
+      - '3200:3000'
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
-      GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL:-admin@brainwiz.local}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD?Error GRAFANA_ADMIN_PASSWORD is required}
+      GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL?Error GRAFANA_ADMIN_EMAIL is required}
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
     volumes:
       - grafana_data:/var/lib/grafana
@@ -125,5 +107,4 @@ volumes:
   postgres_data:
   loki_data:
   grafana_data:
-  # Shared log volume: nginx writes here, Promtail reads from the same path.
-  nginx_logs:
+  nginx_logs: # Shared log volume: nginx writes here, Promtail reads from the same path.
