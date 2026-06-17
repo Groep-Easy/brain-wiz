@@ -71,7 +71,25 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     if (!Array.isArray(options)) {
       return []
     }
-    return options as RoundAnswerChoice[]
+    return options.flatMap((option): RoundAnswerChoice[] => {
+      if (!this.isRecord(option)) {
+        return []
+      }
+      const id = option['id']
+      const label = option['label']
+      const emoji = option['emoji']
+      if (typeof id !== 'string' || typeof label !== 'string') {
+        return []
+      }
+      return [
+        {
+          id,
+          label,
+          ...(typeof emoji === 'string' ? { emoji } : {}),
+          submission: { optionId: id },
+        },
+      ]
+    })
   }
 
   public scoreSubmission(

@@ -8,6 +8,7 @@ import { getClientBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
+import { ENV } from '@brain-wiz/config/env.config'
 
 interface SetupLobbyProps {
   roomCode: string
@@ -60,7 +61,7 @@ export function SetupLobby({
 
   const handleKick = async (playerId: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/lobbies/${roomCode}/kick`, {
+      const res = await fetch(`${ENV.SERVER_BASE_URL}/lobbies/${roomCode}/kick`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

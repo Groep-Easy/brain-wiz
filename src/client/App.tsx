@@ -15,13 +15,9 @@ import type {
   PlayerAvatar,
 } from '@brain-wiz/shared/types/index'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { SlidingPuzzle } from '@brain-wiz/minigames/sliding-puzzle/components/SlidingPuzzle'
 import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+import { MinigameDynamicGrid } from '@brain-wiz/minigames/components/MinigameDynamicGrid'
 import { MinigameChoiceGrid } from '@brain-wiz/minigames/components/MinigameChoiceGrid'
-import type {
-  SlidingPuzzleBoard,
-  SlidingPuzzlePuzzle,
-} from '@brain-wiz/minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -94,7 +90,6 @@ export function App(): React.JSX.Element {
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
-  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
   const [kicked, setKicked] = useState(false)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -226,9 +221,6 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
-        if (content.type === 'sliding-puzzle') {
-          setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
-        }
         break
       }
       case EVENTS.QUESTION_REVEAL:
@@ -423,21 +415,14 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'sliding-puzzle') {
-      const puzzle = roundContent.publicState as SlidingPuzzlePuzzle
       return (
-        <section className="client-minigame client-minigame--sliding">
-          <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
-          <div className="client-minigame__actions">
-            <button
-              className="primary-btn"
-              disabled={roundSubmitted || phase === 'reveal'}
-              onClick={() => handleRoundSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
-              type="button"
-            >
-              Submit board
-            </button>
-          </div>
-        </section>
+        <MinigameDynamicGrid
+          type={'sliding-puzzle'}
+          puzzle={roundContent.publicState}
+          onSubmit={handleRoundSubmit}
+          submitted={roundSubmitted}
+          phase={phase}
+        />
       )
     }
 
