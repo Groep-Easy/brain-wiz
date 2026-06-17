@@ -5,39 +5,46 @@ import type {
   SlidingPuzzlePuzzle
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
 
-export interface MinigameDynamicGridProps {
-  init: boolean
-  type: string
-  puzzle: any
-  submit: Function | null
-  submitted: boolean | undefined
-  phase: string
+export type MinigameDynamicGridProps = {
+  type: 'sliding-puzzle'
+  puzzle: unknown
+  onSubmit: (submission: { board: SlidingPuzzleBoard }) => void
+  submitted: boolean
+  phase: 'playing'|'reveal'
+} | {
+  type: 'example'
 }
 
-export function MinigameDynamicGrid({
-    init,
-    type,
-    puzzle,
-    submit,
-    submitted,
-    phase
-}: MinigameDynamicGridProps): React.JSX.Element | null {
+// Element needs to be called in client App.tsx under renderMinigame on a game by game basis
+export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.Element | null {
+  // React hooks
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
 
-  if (init) {
-    switch (type) {
-      case 'sliding-puzzle':
-        setSlidingBoard((puzzle as SlidingPuzzlePuzzle).initialBoard)
-        return null
-
-      default:
-        return null
-    }
+  // Type guards
+  function isSlidingPuzzlePuzzle(value: unknown): value is SlidingPuzzlePuzzle {
+    const test_value = value as SlidingPuzzlePuzzle
+    return (
+      typeof test_value.id === 'string' &&
+      typeof test_value.image.id === 'string' &&
+      typeof test_value.image.url === 'string' &&
+      typeof test_value.image.alt === 'string' &&
+      Array.isArray(test_value.initialBoard) &&
+      test_value.initialBoard.every((tile) => typeof tile === 'number' && Number.isInteger(tile))
+    )
   }
+
+  // Minigame rendering
+  const type = data.type
 
   switch (type) {
     case 'sliding-puzzle':
-      puzzle = puzzle as SlidingPuzzlePuzzle
+      if (!isSlidingPuzzlePuzzle(data.puzzle)) {
+        return null
+      }
+      const puzzle = data.puzzle as SlidingPuzzlePuzzle
+      const submitted = data.submitted
+      const phase = data.phase
+
       return (
         <section className="client-minigame client-minigame--sliding">
           <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
@@ -45,7 +52,7 @@ export function MinigameDynamicGrid({
             <button
             className="primary-btn"
             disabled={submitted || phase === 'reveal'}
-              onClick={() => submit({ board: slidingBoard ?? puzzle.initialBoard })}
+              onClick={() => data.onSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
               type="button"
             >
               Submit board
@@ -54,9 +61,12 @@ export function MinigameDynamicGrid({
         </section>
       )
 
-      default:
+      case 'example':
         return (
           <section></section>
         )
+
+      default:
+        return null
   }
 }

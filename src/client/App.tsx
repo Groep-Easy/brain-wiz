@@ -174,16 +174,6 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
-        if (content.type === 'sliding-puzzle') {
-          MinigameDynamicGrid({
-            init: true,
-            type: content.type,
-            puzzle: content.publicState,
-            submit: null,
-            submitted: false,
-            phase: ''
-          })
-        }
         break
       }
       case EVENTS.QUESTION_REVEAL:
@@ -387,10 +377,9 @@ export function App(): React.JSX.Element {
     if (roundContent.type === 'sliding-puzzle') {
       return (
         <MinigameDynamicGrid
-          init={false}
-          type={roundContent.type}
+          type={'sliding-puzzle'}
           puzzle={roundContent.publicState}
-          submit={handleRoundSubmit}
+          onSubmit={handleRoundSubmit}
           submitted={roundSubmitted}
           phase={phase}
         />
