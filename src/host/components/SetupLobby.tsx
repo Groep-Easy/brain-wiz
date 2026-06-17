@@ -5,7 +5,7 @@ import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import { getClientBaseUrl } from '../../shared/utils/env'
-import { TIMER } from '../../shared/constants/game-config'
+//import { TIMER } from '../../shared/constants/game-config'
 import { CharacterPreview } from '../../client/components/CharacterPreview'
 import { WizardLogo } from '../../shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
@@ -68,7 +68,7 @@ export function SetupLobby({
     if (!isMuted()) playStartGameSound()
     setTimeout(() => {
       onStartGame(timePerQuestion)
-    }, TIMER.START_GAME_MS)
+    }, 1000) // TODO: no magic numbers
   }
 
   const handleKick = async (playerId: string) => {
