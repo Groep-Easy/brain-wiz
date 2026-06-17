@@ -3,8 +3,10 @@ import assert from 'node:assert/strict'
 import { createVaultRushRound } from '../../../src/minigames/vault-rush/shared/vaultRushGame.js'
 import { VAULT_RUSH_DIGIT_COUNT } from '../../../src/minigames/vault-rush/shared/vaultRushGame.constants.js'
 
-function getCodeDigits(code: string): number[] {
-  return code.split('').map((digit) => Number(digit))
+function getCodeDigits(code: string): [number, number, number, number] {
+  assert.match(code, /^\d{4}$/)
+
+  return [Number(code[0]), Number(code[1]), Number(code[2]), Number(code[3])]
 }
 
 describe('vaultRushGame', () => {
@@ -57,12 +59,7 @@ describe('vaultRushGame', () => {
       seed: 'room-1:round-4:vault-rush',
     })
 
-    const [digitOne, digitTwo, digitThree, digitFour] = getCodeDigits(round.code) as [
-      number,
-      number,
-      number,
-      number,
-    ]
+    const [digitOne, digitTwo, digitThree, digitFour] = getCodeDigits(round.code)
 
     assert.ok(digitOne >= 1 && digitOne <= 4)
     assert.ok(digitTwo >= 2)
