@@ -20,9 +20,9 @@ import { FlowEditor } from './screens/FlowEditor'
 import { LeaderBoard } from './components/LeaderBoard'
 import { ScaleMechanicsMock } from '@minigames/balance-scale/mock/ScaleMechanicsMock'
 import { SlidingPuzzleMock } from '@minigames/sliding-puzzle/mock/SlidingPuzzleMock'
-import { GlassFilter } from '@shared/components/GlassFilter'
-import { BackgroundGradient } from '@shared/components/BackgroundGradient'
-import '@shared/styles/global.css'
+import { GlassFilter } from '@brain-wiz/shared/components/GlassFilter'
+import { BackgroundGradient } from '@brain-wiz/shared/components/BackgroundGradient'
+import '@brain-wiz/shared/styles/global.css'
 
 const container = document.getElementById('root')
 if (!container) {

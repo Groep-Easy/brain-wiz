@@ -1,4 +1,4 @@
-import type { RoundAnswerChoice } from '../../shared/types/index.js'
+import type { RoundAnswerChoice } from '@brain-wiz/shared/types/index'
 
 const DEFAULT_TILE_CLASSES = ['tile-teal', 'tile-red', 'tile-blue', 'tile-tan'] as const
 

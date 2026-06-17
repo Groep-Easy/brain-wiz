@@ -6,8 +6,8 @@ import {
   type ScaleDifficulty,
 } from '../../../../minigames/balance-scale/shared/scaleGame.js'
 import { getDefaultScaleItemPool } from '../../../../minigames/balance-scale/shared/scaleGame.presets.js'
-import { hashSeed } from '../../../../shared/utils/seeded-random.js'
-import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
+import { hashSeed } from '@brain-wiz/shared/utils/seeded-random'
+import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,

@@ -13,7 +13,7 @@ import type {
   MinigameAdapter,
   MinigameScoreResult,
 } from './minigame.types.js'
-import type { RoundType } from '../../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 const POINTS_PER_CORRECT_TILE = 100
 const SOLVE_SPEED_BONUS = 300

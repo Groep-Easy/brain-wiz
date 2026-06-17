@@ -1,4 +1,4 @@
-import type { SlidingPuzzleBoard, SlidingPuzzlePuzzle } from '@shared/slidingPuzzleGame.js'
+import type { SlidingPuzzleBoard, SlidingPuzzlePuzzle } from '@brain-wiz/shared/slidingPuzzleGame'
 
 export interface SlidingPuzzleProps {
   puzzle: SlidingPuzzlePuzzle

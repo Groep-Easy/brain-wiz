@@ -13,10 +13,10 @@ import type {
   RoundContentPayload,
   RoundRevealPayload,
     PlayerAvatar,
-} from '@shared/types/index'
-import * as EVENTS from '@shared/constants/socket-events.constants'
+} from '@brain-wiz/shared/types/index'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { SlidingPuzzle } from '@minigames/sliding-puzzle/components/SlidingPuzzle'
-import { getBackendWsUrl } from '@shared/utils/env'
+import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 import { MinigameChoiceGrid } from '@minigames/components/MinigameChoiceGrid'
 import type {
   SlidingPuzzleBoard,
@@ -29,7 +29,7 @@ import { Answer } from './screens/Answer'
 import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
-import { CountdownCircle } from '../shared/components/CountdownCircle'
+import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'

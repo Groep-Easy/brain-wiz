@@ -1,6 +1,6 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
 import { LobbyService } from './lobby.service'
-import { KickPlayerDto } from '@shared/dto/rest-api.dto'
+import { KickPlayerDto } from '@brain-wiz/shared/dto/rest-api.dto'
 
 @Controller('lobbies')
 export class LobbyController {

@@ -29,7 +29,7 @@ export default defineConfig({
     alias: {
       '@client': path.resolve(__dirname, 'src/client'),
       '@minigames': path.resolve(__dirname, 'src/minigames'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@brain-wiz/shared': path.resolve(__dirname, 'src/shared'),
       '@config': path.resolve(__dirname, 'src/config'),
     },
   },

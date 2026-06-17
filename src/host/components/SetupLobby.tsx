@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import type { Player } from '@shared/types/index'
+import type { Player } from '@brain-wiz/shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import { getClientBaseUrl } from '../../shared/utils/env'
-import { CharacterPreview } from '../../client/components/CharacterPreview'
-import { WizardLogo } from '../../shared/components/WizardLogo'
+import { getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
 
 interface SetupLobbyProps {

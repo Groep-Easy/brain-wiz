@@ -1,5 +1,5 @@
-import { EnvironmentSchema } from '@shared/dto/env.dto'
-import { NodeEnv } from '@shared/types/env'
+import { EnvironmentSchema } from '@brain-wiz/shared/dto/env.dto'
+import { NodeEnv } from '@brain-wiz/shared/types/env'
 
 const HTTP_PORT = 80
 const HTTPS_PORT = 443

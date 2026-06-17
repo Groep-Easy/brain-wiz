@@ -2,13 +2,15 @@
   "name": "brain-wiz",
   "version": "0.1.0",
   "private": true,
+  "workspaces": ["src/*"],
   "description": "Brain Wiz — local multiplayer knowledge & puzzle game",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
   },
   "scripts": {
-    "build": "npm run build:server && npm run client:build && npm run host:build",
+    "build": "npm run build:libs && npm run build:server && npm run client:build && npm run host:build",
+    "build:libs": "tsc -b src/shared",
     "build:server": "nest build",
     "start": "node --env-file=.env dist/server/index.js",
     "dev:server": "concurrently -k \"nest build --watch\" \"node --watch --env-file=.env dist/server/index.js\"",
@@ -24,7 +26,7 @@
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint && npm run format:check && npm run test:project-checks",
-    "test:project-checks": "tsc && tsc-alias && cd dist && node --env-file=../.env --test",
+    "test:project-checks": "npm run build:libs && tsc && tsc-alias && cd dist && node --env-file=../.env --test",
     "test:coverage": "tsc && tsc-alias && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
     "test:server": "tsc && tsc-alias && cd dist/tests/server && node --env-file=../../../.env --test",
     "test:shared": "tsc && tsc-alias && cd dist/tests/shared && node --test",

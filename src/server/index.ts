@@ -14,7 +14,7 @@ import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { ENV } from '@config/env.config'
 import { setSwaggerConfig } from '../config/swagger-doc'
-import { NodeEnv } from '@shared/types/env'
+import { NodeEnv } from '@brain-wiz/shared/types/env'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule)

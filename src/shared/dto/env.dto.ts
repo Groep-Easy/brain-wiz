@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DEFAULTS } from '@shared/constants/env.constants'
+import { DEFAULTS } from '@brain-wiz/shared/constants/env.constants'
 import { NodeEnv } from '../types/env'
 
 export const EnvironmentSchema = z.object({

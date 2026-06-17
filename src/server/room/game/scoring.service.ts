@@ -19,8 +19,8 @@ import type {
   RoundPlayerResult,
   RoundRevealPayload,
   RoundType,
-} from '../../../shared/types/index'
-import * as EVENTS from '../../../shared/constants/socket-events.constants'
+} from '@brain-wiz/shared/types/index'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 import { MinigameScoreResult } from './minigames/minigame.types'
 

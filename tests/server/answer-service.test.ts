@@ -5,13 +5,13 @@ import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { AnswerService } from '../../src/server/room/game/answer.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/constants/socket-events.constants'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import type { ClientSocket } from '../../src/server/room/lobby/lobby.types'
 import type {
   AnswerAckPayload,
   AnswerSubmitPayload,
   RoundSubmitPayload,
-} from '../../src/shared/types/index'
+} from '@brain-wiz/shared/types/index'
 
 const SOCK_A = { send: (): void => undefined } as ClientSocket
 const SOCK_B = { send: (): void => undefined } as ClientSocket

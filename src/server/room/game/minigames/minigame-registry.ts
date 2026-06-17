@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { RoundType } from '../../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 import { BalanceScaleServerAdapter } from './balance-scale.server.js'
 import type { MinigameAdapter, ProceduralRoundType } from './minigame.types.js'
 import { SlidingPuzzleServerAdapter } from './sliding-puzzle.server.js'

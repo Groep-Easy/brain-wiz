@@ -3,8 +3,8 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { computeAnswerStats } from '../../src/shared/utils/answer-stats'
-import type { QuestionState, QuestionRevealPayload } from '../../src/shared/types/index'
+import { computeAnswerStats } from '@brain-wiz/shared/utils/answer-stats'
+import type { QuestionState, QuestionRevealPayload } from '@brain-wiz/shared/types/index'
 
 const QUESTION: QuestionState = {
   id: 'q1',

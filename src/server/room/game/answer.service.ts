@@ -19,8 +19,8 @@ import type {
   AnswerSubmitPayload,
   RoundSubmitPayload,
   RoundType,
-} from '@shared/types/index'
-import * as EVENTS from '@shared/constants/socket-events.constants'
+} from '@brain-wiz/shared/types/index'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 
 /** Postgres unique_violation SQLSTATE — raised when the (clientId, roundId)

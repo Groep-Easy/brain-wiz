@@ -15,7 +15,7 @@ import {
   BeforeUpdate,
 } from 'typeorm'
 import { RoundStatusEnum, ContentTypeEnum } from './enums'
-import type { RoundType } from '@shared/types/index'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 import type { Room } from './room.entity'
 import type { Question } from './question.entity'
 import type { CodingChallenge } from './coding-challenge.entity'

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getBackendHttpUrl, getClientBaseUrl } from '../../shared/utils/env'
-import { getBackendWsUrl } from '../../shared/utils/env'
-import { WizardLogo } from '../../shared/components/WizardLogo'
+import { getBackendHttpUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 
 import '../styles/welcome.css'
 

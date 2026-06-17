@@ -3,7 +3,7 @@
  * @owner server-squad
  * @description Connection-level constants for the WebSocket gateway.
  */
-import { WS_SUBPROTOCOL } from '@shared/constants/ws.constants'
+import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
 
 /** Named sentinel to avoid magic-number lint errors when testing for missing query */
 export const NO_QUERY_INDEX = -1
