@@ -3,6 +3,8 @@ import { NodeEnv } from '../types/env'
 export const DEFAULTS = {
   SERVER_PORT: 3000,
   SERVER_LOCATION: 'localhost',
+  SERVER_HOST: '0.0.0.0',
+  TRUST_PROXY: false,
 
   NODE_ENV: NodeEnv.Development,
 

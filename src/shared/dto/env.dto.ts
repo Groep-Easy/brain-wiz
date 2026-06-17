@@ -7,6 +7,20 @@ export const EnvironmentSchema = z.object({
 
   SERVER_LOCATION: z.string().default(DEFAULTS.SERVER_LOCATION),
 
+  SERVER_HOST: z.string().default(DEFAULTS.SERVER_HOST),
+
+  TRUST_PROXY: z.coerce.boolean().default(DEFAULTS.TRUST_PROXY),
+
+  CORS_ORIGINS: z
+    .string()
+    .default('')
+    .transform((raw) =>
+      raw
+        .split(',')
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0)
+    ),
+
   NODE_ENV: z.enum(NodeEnv).default(DEFAULTS.NODE_ENV),
 
   ADMIN_API_KEY: z.string(),

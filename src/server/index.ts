@@ -28,6 +28,10 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
+  if (ENV.TRUST_PROXY) {
+    app.getHttpAdapter().getInstance().set('trust proxy', 1)
+  }
+
   const distDir = path.join(__dirname, '..')
   const hostDist = path.join(distDir, 'host')
   const clientDist = path.join(distDir, 'client')
@@ -46,7 +50,8 @@ async function bootstrap(): Promise<void> {
   })
 
   setSwaggerConfig(app)
-  await app.listen(ENV.SERVER_PORT, '127.0.0.1')
+
+  await app.listen(ENV.SERVER_PORT, ENV.SERVER_HOST)
 
   // eslint-disable-next-line no-console
   console.log('\n  Brain Wiz Server Successfully Started!')

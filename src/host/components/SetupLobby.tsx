@@ -4,11 +4,12 @@ import type { Player } from '@brain-wiz/shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import { getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
-import { ENV } from '@brain-wiz/config/env.config'
+
+const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 interface SetupLobbyProps {
   roomCode: string
@@ -49,7 +50,6 @@ export function SetupLobby({
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
-           
           console.error('Failed to generate QR code:', err)
         })
     }
@@ -61,7 +61,7 @@ export function SetupLobby({
 
   const handleKick = async (playerId: string) => {
     try {
-      const res = await fetch(`${ENV.SERVER_BASE_URL}/lobbies/${roomCode}/kick`, {
+      const res = await fetch(`${BACKEND_HTTP_URL}/lobbies/${roomCode}/kick`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,0 +1,6 @@
+# This file is used to override the default settings in docker-compose.yml.
+# You can use it to set environment variables or change the configuration of the services.
+services:
+  db:
+    ports:
+      - "${DB_PORT:-5432}:5432"
