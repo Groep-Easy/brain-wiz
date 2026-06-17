@@ -50,6 +50,7 @@ export function WelcomeScreen(): React.JSX.Element {
     try {
       const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
       if (!res.ok) {
+        // eslint-disable-next-line no-alert -- intentional native error dialog
         alert('Failed to create room on server')
         setIsCreating(false)
         return
@@ -62,6 +63,7 @@ export function WelcomeScreen(): React.JSX.Element {
       // Navigate to the newly created room
       void navigate(`/host/${body.code}`)
     } catch (err) {
+      // eslint-disable-next-line no-alert -- intentional native error dialog
       alert(`Error creating room: ${String(err)}`)
       setIsCreating(false)
     }

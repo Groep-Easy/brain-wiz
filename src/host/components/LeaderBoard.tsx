@@ -160,6 +160,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
       const playerX = PADDING + playerTimelineIndex * STEP
 
       container.scrollLeft = playerX - viewportWidth / 3
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- initial scroll positioning; runs once on mount
     }, [])
 
     // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).

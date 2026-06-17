@@ -313,7 +313,7 @@ export function App(): React.JSX.Element {
         const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
         handleEvent(ev, data)
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('Failed to parse WebSocket message:', err)
       }
     }
@@ -331,7 +331,7 @@ export function App(): React.JSX.Element {
     }
 
     socket.onerror = () => {
-      // eslint-disable-next-line no-console
+       
       console.error('WebSocket connection error')
     }
   }
@@ -350,6 +350,7 @@ export function App(): React.JSX.Element {
       }
       socketRef.current?.close()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only WebSocket setup; runs once for the component lifetime
   }, [])
 
   function handleJoin(name: string, code: string, playerAvatar: PlayerAvatar): void {

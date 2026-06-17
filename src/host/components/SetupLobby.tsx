@@ -49,7 +49,7 @@ export function SetupLobby({
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
-          // eslint-disable-next-line no-console
+           
           console.error('Failed to generate QR code:', err)
         })
     }

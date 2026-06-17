@@ -60,7 +60,7 @@ export class QuestionService {
       return saved.id
     } catch (error) {
       // In a real production app, we would use a proper Logger instance here.
-      // eslint-disable-next-line no-console
+
       console.error('Failed to save question:', error)
       throw new InternalServerErrorException('Failed to save question to database')
     }

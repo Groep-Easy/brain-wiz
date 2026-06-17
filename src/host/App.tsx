@@ -165,7 +165,7 @@ export function App(): React.JSX.Element {
             break
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('Failed to parse WebSocket message:', err)
       }
     }
@@ -180,7 +180,7 @@ export function App(): React.JSX.Element {
     }
 
     socket.onerror = () => {
-      // eslint-disable-next-line no-console
+       
       console.error('WebSocket connection error')
     }
     }, 50)
@@ -204,15 +204,18 @@ export function App(): React.JSX.Element {
       })
       if (!res.ok) {
         const errorText = await res.text()
+        // eslint-disable-next-line no-alert -- intentional native error dialog
         alert(`Failed to start game: ${errorText}`)
         return
       }
     } catch (err) {
+      // eslint-disable-next-line no-alert -- intentional native error dialog
       alert(`Error starting game: ${String(err)}`)
     }
   }
 
   const handleCloseLobby = () => {
+    // eslint-disable-next-line no-alert -- intentional native confirm dialog
     if (window.confirm('Are you sure you want to dissolve the lobby?')) {
       socketRef.current?.close()
       socketRef.current = null
