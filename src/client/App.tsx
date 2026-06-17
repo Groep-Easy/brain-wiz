@@ -12,7 +12,7 @@ import type {
   AnswerAckPayload,
   RoundContentPayload,
   RoundRevealPayload,
-    PlayerAvatar,
+  PlayerAvatar,
 } from '@brain-wiz/shared/types/index'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { SlidingPuzzle } from '@brain-wiz/minigames/sliding-puzzle/components/SlidingPuzzle'
@@ -117,12 +117,6 @@ export function App(): React.JSX.Element {
   ): void {
     const socket = socketRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) return
-    console.log('📤 Sending JOIN payload:', {
-      roomCode: code,
-      playerName: name,
-      playerAvatar,
-      ...(creds ? { playerId: creds.playerId } : {}),
-    })
     socket.send(
       JSON.stringify({
         event: EVENTS.PLAYER_JOIN,
@@ -178,29 +172,28 @@ export function App(): React.JSX.Element {
         break
       }
       case EVENTS.PLAYER_KICKED: {
-  console.log('kicked')
-  setKicked(true)
+        setKicked(true)
 
-  credsRef.current = null
-  playerIdRef.current = null
+        credsRef.current = null
+        playerIdRef.current = null
 
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // Ignore storage errors (e.g. private mode / disabled storage) — clearing creds is best-effort.
-  }
+        try {
+          localStorage.removeItem(STORAGE_KEY)
+        } catch {
+          // Ignore storage errors (e.g. private mode / disabled storage) — clearing creds is best-effort.
+        }
 
-  setJoined(false)
-  setJoining(false)
-  setRoomState(null)
-  setFinalScores(null)
+        setJoined(false)
+        setJoining(false)
+        setRoomState(null)
+        setFinalScores(null)
 
-  socketRef.current?.close()
-  setReconnectExhausted(false)
+        socketRef.current?.close()
+        setReconnectExhausted(false)
 
-  setJoinError('You were kicked from the lobby')
+        setJoinError('You were kicked from the lobby')
 
-  break
+        break
       }
       case EVENTS.ROOM_STATE_UPDATE:
         setRoomState(data.room as RoomState)
@@ -452,11 +445,12 @@ export function App(): React.JSX.Element {
   }
 
   const disconnected = status === 'closed'
-  const banner = disconnected && !kicked ? (
-    <div className="banner">
-      {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
-    </div>
-  ) : null
+  const banner =
+    disconnected && !kicked ? (
+      <div className="banner">
+        {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
+      </div>
+    ) : null
 
   if (fatalError) {
     return (

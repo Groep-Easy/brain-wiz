@@ -59,33 +59,27 @@ export function SetupLobby({
   }
 
   const handleKick = async (playerId: string) => {
-    // eslint-disable-next-line no-console
-    console.log(`Kick player: ${playerId}`)
     try {
-      console.log(hostToken)
-    const res = await fetch(`http://localhost:3000/lobbies/${roomCode}/kick`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        playerId,
-        hostToken
-      }),
-    })
+      const res = await fetch(`http://localhost:3000/lobbies/${roomCode}/kick`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerId,
+          hostToken,
+        }),
+      })
 
-    const data = await res.json()
+      const data = await res.json()
 
-    if (!data.success) {
-      console.warn('Kick failed:', data.reason)
-      return
+      if (!data.success) {
+        console.warn('Kick failed:', data.reason)
+        return
+      }
+    } catch (err) {
+      console.error('Kick error', err)
     }
-
-    console.log('Player kicked')
-  } catch (err) {
-    console.error('Kick error', err)
-  }
-
   }
 
   return (
@@ -93,7 +87,9 @@ export function SetupLobby({
       <header className="host-lobby-header">
         <div className="header-left">
           <WizardLogo size={32} />
-          <h1 className="text-logo" style={{ color: 'white' }}>BrainWiz</h1>
+          <h1 className="text-logo" style={{ color: 'white' }}>
+            BrainWiz
+          </h1>
         </div>
 
         <div className="header-tabs">
