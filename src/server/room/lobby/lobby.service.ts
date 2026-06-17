@@ -29,6 +29,7 @@ import type { PlayerAvatar, RoomState } from '../../../shared/types/index'
 import type { GameFlowItem } from '../../../shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
+import { BasicResponseDto } from '@shared/dto/rest-api.dto'
 
 @Injectable()
 export class LobbyService {
@@ -379,12 +380,15 @@ export class LobbyService {
     roomCode: string
     playerId: string
     hostToken: string
-  }): Promise<{ success: boolean; reason: string | undefined }> {
+  }): Promise<BasicResponseDto> {
     const room = await this.rooms.findByJoinCode(roomCode)
 
     if (!room) {
       return { success: false, reason: 'ROOM_NOT_FOUND' }
     }
+
+    if (room.status != RoomStatusEnum.LOBBY)
+      return { success: false, reason: 'ROOM_STATUS_NOT_IN_LOBBY' }
 
     if (!this.registry.verifyHostToken(room.id, hostToken)) {
       return { success: false, reason: `NOT_AUTHORIZED: ${hostToken}` }
@@ -417,6 +421,6 @@ export class LobbyService {
 
     await this.broadcastState(room)
 
-    return { success: true, reason: undefined }
+    return { success: true }
   }
 }
