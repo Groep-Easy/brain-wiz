@@ -11,5 +11,9 @@ export const SOUNDS = Object.freeze({
 
 export function playSound(soundSource: string) {
   const audioData = new Audio(soundSource)
-  audioData.play()
+  // play() rejects when the browser blocks autoplay (no user gesture yet);
+  // that's non-fatal for sound effects, so swallow it.
+  audioData.play().catch(() => {
+    /* ignore playback/autoplay errors */
+  })
 }
