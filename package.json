@@ -2,7 +2,9 @@
   "name": "brain-wiz",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["src/*"],
+  "workspaces": [
+    "src/*"
+  ],
   "description": "Brain Wiz — local multiplayer knowledge & puzzle game",
   "engines": {
     "node": ">=20.0.0",
@@ -50,7 +52,9 @@
     "typescript-eslint": "^8.60.1",
     "vite": "^8.0.16"
   },
-  "dependencies": {},
+  "dependencies": {
+    "an-array-of-english-words": "^2.0.0"
+  },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "^1.1.1",
     "lightningcss-linux-x64-gnu": "^1.32.0"

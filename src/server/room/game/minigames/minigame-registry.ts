@@ -3,6 +3,7 @@ import type { RoundType } from '@brain-wiz/shared/types/index'
 import { BalanceScaleServerAdapter } from './balance-scale.server.js'
 import type { MinigameAdapter, ProceduralRoundType } from './minigame.types.js'
 import { SlidingPuzzleServerAdapter } from './sliding-puzzle.server.js'
+import { WordleServerAdapter } from './wordle.server.js'
 
 @Injectable()
 export class MinigameRegistry {
@@ -10,11 +11,13 @@ export class MinigameRegistry {
 
   public constructor(
     slidingPuzzle: SlidingPuzzleServerAdapter,
-    balanceScale: BalanceScaleServerAdapter
+    balanceScale: BalanceScaleServerAdapter,
+    wordle: WordleServerAdapter
   ) {
     const adapters = new Map<ProceduralRoundType, MinigameAdapter>()
     adapters.set(slidingPuzzle.type, slidingPuzzle)
     adapters.set(balanceScale.type, balanceScale)
+    adapters.set(wordle.type, wordle)
     this.adapters = adapters
   }
 

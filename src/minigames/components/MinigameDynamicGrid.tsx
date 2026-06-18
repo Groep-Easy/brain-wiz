@@ -4,6 +4,8 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
+import {WordleMock} from '../wordleGame/mock/WordleGameMock'
+import type { Guess } from '../wordleGame/shared/wordleGame.types'
 
 export type MinigameDynamicGridProps = {
   type: 'sliding-puzzle'
@@ -12,6 +14,13 @@ export type MinigameDynamicGridProps = {
   submitted: boolean
   phase: 'playing'|'reveal'
 } | {
+  type: 'wordle'
+  answer: string
+  onSubmit: (submission: { guesses: Guess[] }) => void
+  submitted: boolean
+  phase: 'playing' | 'reveal'
+}
+ | {
   type: 'example'
 }
 
@@ -58,6 +67,19 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
               Submit board
             </button>
           </div>
+        </section>
+      )
+    }
+
+    case 'wordle': {
+      return (
+        <section className="client-minigame client-minigame--wordle">
+          <WordleMock
+            answer={data.answer}
+            onSubmit={data.onSubmit}
+            submitted={data.submitted}
+
+          />
         </section>
       )
     }

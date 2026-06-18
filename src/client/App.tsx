@@ -26,6 +26,7 @@ import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { WordleMock } from '@brain-wiz/minigames/wordleGame/mock/WordleMock'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -313,7 +314,7 @@ export function App(): React.JSX.Element {
         const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
         handleEvent(ev, data)
       } catch (err) {
-         
+
         console.error('Failed to parse WebSocket message:', err)
       }
     }
@@ -331,7 +332,7 @@ export function App(): React.JSX.Element {
     }
 
     socket.onerror = () => {
-       
+
       console.error('WebSocket connection error')
     }
   }
@@ -423,6 +424,19 @@ export function App(): React.JSX.Element {
           onSubmit={handleRoundSubmit}
           submitted={roundSubmitted}
           phase={phase}
+        />
+      )
+    }
+
+    if (roundContent.type === 'wordle') {
+      const answer = (roundContent.publicState as { answer?: string }).answer ?? ''
+      return (
+        <MinigameDynamicGrid
+          type="wordle"
+          answer={answer}
+          onSubmit={handleRoundSubmit}
+          submitted={roundSubmitted}
+          phase={phase === 'reveal' ? 'reveal' : 'playing'}
         />
       )
     }

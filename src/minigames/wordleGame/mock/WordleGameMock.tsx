@@ -1,21 +1,28 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
-import { handleUnrealWord, WordleGame } from '../components/WordleGame.tsx'
+import { WordleGame } from '../components/WordleGame.tsx'
 import {
   evaluate_guess,
   get_game_state,
-  get_random_word,
   is_valid_word,
   getAmountGuesses,
   getAmountTime
 } from '../shared/wordleGame.ts'
 import { WORD_LENGTH } from '../shared/wordleGame.constants'
-import type { Guess, Tile } from '../shared/wordleGame.types'
+import type { Guess } from '../shared/wordleGame.types'
 import '../components/WordleGame.css'
 
 
-export function WordleMock(): JSX.Element {
-  const [answer] = useState<string>(get_random_word)
+interface WordleMockProps {
+  answer: string
+  // onGameEnd?: (word: string, guesses: number, time: number) => void
+  onSubmit: (submission: { guesses: Guess[] }) => void
+  submitted?: boolean
+}
+
+
+export function WordleMock({ answer, onSubmit }: WordleMockProps): JSX.Element {
+  // const [answer] = useState<string>(get_random_word)
   const [guesses, setGuesses] = useState<Guess[]>([])
   const [currentInput, setCurrentInput] = useState<string>('')
   const [revealingRow, setRevealingRow] = useState<number | null>(null)
@@ -65,6 +72,8 @@ export function WordleMock(): JSX.Element {
       const time = getAmountTime(startTime, new Date())
       const guessCount = getAmountGuesses(newGuesses)
       console.log(`Finished in ${guessCount} guesses and ${time} seconds`)
+      // onGameEnd?.(answer, guessCount, time)
+      onSubmit({ guesses: newGuesses })
     }
     }
   }

@@ -11,6 +11,9 @@ import {
 } from '../balance-scale/shared/scaleGame.js'
 import { SlidingPuzzle } from '../sliding-puzzle/components/SlidingPuzzle.js'
 import type { SlidingPuzzleBoard, SlidingPuzzlePuzzle } from '../sliding-puzzle/shared/slidingPuzzleGame.js'
+import { WordleMock } from '../wordleGame/mock/WordleGameMock.js'
+import type { Guess } from '../wordleGame/shared/wordleGame.types.js'
+
 
 export type RoundMinigameSurfaceMode = 'play' | 'display'
 export type RoundMinigameSurfacePhase = 'playing' | 'reveal'
@@ -23,6 +26,7 @@ export interface RoundMinigameSurfaceProps {
   className?: string
   showScaleEquations?: boolean
   onSubmissionChange?: (submission: unknown) => void
+  submitted?: boolean
 }
 
 /**
@@ -38,6 +42,7 @@ export function RoundMinigameSurface({
   className,
   showScaleEquations = true,
   onSubmissionChange,
+  submitted = false
 }: RoundMinigameSurfaceProps): React.JSX.Element | null {
   const classes = ['round-minigame-surface', className].filter(Boolean).join(' ')
 
@@ -71,6 +76,30 @@ export function RoundMinigameSurface({
           }
           puzzle={puzzle}
           readOnly={isReadOnly}
+        />
+      </section>
+    )
+  }
+
+  if (content.type === 'wordle') {
+    const answer = (content.publicState as { answer?: string }).answer ?? ''
+    const isReadOnly = mode === 'display'
+
+    if (isReadOnly) {
+      // Host display — show a static placeholder, no interaction needed
+      return (
+        <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+          <div className="wordle-display-placeholder">Wordle in progress…</div>
+        </section>
+      )
+    }
+
+    return (
+      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+        <WordleMock
+          answer={answer}
+          onSubmit={(submission: { guesses: Guess[] }) => onSubmissionChange?.(submission)}
+          submitted={submitted}
         />
       </section>
     )

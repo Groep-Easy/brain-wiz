@@ -20,6 +20,7 @@ export type RoundType =
   | 'head-to-head'
   | 'sliding-puzzle'
   | 'balance-scale'
+  | 'wordle'
 
 export interface Player {
   id: string
