@@ -18,18 +18,3 @@ export interface LightSwitchGenerationInput {
   id: string
   seed?: string
 }
-
-export interface LightSwitchScoreConfig {
-  pointsPerCorrectLight: number
-  solveBonus: number
-  timeLimitMs: number
-}
-
-export interface LightSwitchScoreBreakdown {
-  lightsOff: number
-  totalLights: number
-  solved: boolean
-  positionPoints: number
-  speedBonus: number
-  pointsAwarded: number
-}

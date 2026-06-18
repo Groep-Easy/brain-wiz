@@ -61,3 +61,17 @@ export interface VaultRushScoringConfig {
   solveSpeedBonus: number
   timeLimitMs: number
 }
+export interface LightSwitchScoreConfig {
+  baseScore: number
+  maxMoveBonus: number
+  timeLimitMs: number
+}
+
+export interface LightSwitchScoreBreakdown {
+  lightsOff: number
+  totalLights: number
+  solved: boolean
+  positionPoints: number
+  speedBonus: number
+  pointsAwarded: number
+}

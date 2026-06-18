@@ -21,7 +21,11 @@ export type RoundType =
   | 'sliding-puzzle'
   | 'balance-scale'
   | 'vault-rush'
+<<<<<<< HEAD
   | 'wordle'
+=======
+  | 'light-switch'
+>>>>>>> a26154b (feat(minigames): implemented server adapter for light switch minigame)
 
 export interface Player {
   id: string
