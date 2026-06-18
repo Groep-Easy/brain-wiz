@@ -66,9 +66,13 @@ export function RoundMinigameSurface({
     return (
       <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
         <SlidingPuzzle
-          onBoardChange={
-            isReadOnly ? undefined : (board: SlidingPuzzleBoard) => onSubmissionChange?.({ board })
-          }
+          {...(!isReadOnly
+            ? {
+                onBoardChange: (board: SlidingPuzzleBoard) => {
+                  if (onSubmissionChange) onSubmissionChange({ board })
+                },
+              }
+            : {})}
           puzzle={puzzle}
           readOnly={isReadOnly}
         />
