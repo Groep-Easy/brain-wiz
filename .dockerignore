@@ -5,19 +5,16 @@
 .prittierrc
 
 .git
-.git/**
+.git/\*\*
 .gitattributes
 .gitignore
 
 .github
-.github/**
+.github/\*\*
 
 .vscode
-.vscode/**
+.vscode/\*\*
 
-# Build artifacts — the image compiles a fresh dist via `npm run build`.
-# Never copy a host-built dist in: stale compiled files (e.g. removed
-# migrations) would otherwise ship and be picked up at runtime.
 dist
 dist/**
 node_modules
