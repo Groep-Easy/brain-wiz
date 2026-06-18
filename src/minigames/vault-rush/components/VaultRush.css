@@ -1,24 +1,26 @@
-:root {
-  --vault-rush-ink: #171717;
-  --vault-rush-muted: #6a7280;
-  --vault-rush-line: #d9dde5;
-  --vault-rush-panel: #f7f8fb;
-  --vault-rush-accent: #7c3aed;
-}
-
 .vault-rush-app,
 .vault-rush-app * {
   box-sizing: border-box;
 }
 
 .vault-rush-app {
+  --vault-rush-bg: #f4f1e8;
+  --vault-rush-card: #ffffff;
+  --vault-rush-ink: #222831;
+  --vault-rush-muted: #677180;
+  --vault-rush-line: #d8c99b;
+  --vault-rush-accent: #056c5c;
+  --vault-rush-gold: #ccb87b;
+
   display: grid;
   width: 100%;
   min-height: 100svh;
   place-items: center;
   padding: 18px;
   color: var(--vault-rush-ink);
-  background: #ffffff;
+  background:
+    radial-gradient(circle at top, rgba(204, 184, 123, 0.28), transparent 26rem),
+    var(--vault-rush-bg);
   font-family:
     Inter,
     ui-sans-serif,
@@ -33,15 +35,16 @@
   display: grid;
   gap: 20px;
   width: min(100%, 440px);
-  padding: 22px;
-  background: var(--vault-rush-panel);
+  padding: 24px;
+  background: var(--vault-rush-card);
   border: 1px solid var(--vault-rush-line);
-  border-radius: 18px;
+  border-radius: 22px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.1);
 }
 
 .vault-rush-header {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   text-align: center;
 }
 
@@ -50,14 +53,15 @@
   color: var(--vault-rush-accent);
   font-size: 0.75rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .vault-rush-header h1 {
   margin: 0;
-  font-size: 1.8rem;
-  line-height: 1.1;
+  color: var(--vault-rush-ink);
+  font-size: 2rem;
+  line-height: 1.05;
 }
 
 .vault-rush-subtitle {
@@ -74,27 +78,34 @@
 
 .vault-rush-code-box {
   display: grid;
-  min-height: 70px;
+  min-height: 72px;
   place-items: center;
-  background: #ffffff;
+  color: var(--vault-rush-accent);
+  background: #f9faf8;
   border: 2px solid var(--vault-rush-line);
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 2rem;
   font-weight: 900;
 }
 
 .vault-rush-clues {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .vault-rush-clue {
   margin: 0;
-  padding: 12px;
-  background: #ffffff;
+  padding: 13px 14px;
+  background: #f9faf8;
   border: 1px solid var(--vault-rush-line);
-  border-radius: 10px;
+  border-left: 5px solid var(--vault-rush-gold);
+  border-radius: 12px;
   font-weight: 800;
+}
+
+.vault-rush-form {
+  display: grid;
+  gap: 14px;
 }
 
 .vault-rush-input-label {
@@ -108,12 +119,13 @@
 }
 
 .vault-rush-input {
-  min-height: 54px;
+  width: 100%;
+  min-height: 56px;
   padding: 0 14px;
   color: var(--vault-rush-ink);
   background: #ffffff;
   border: 2px solid var(--vault-rush-line);
-  border-radius: 12px;
+  border-radius: 14px;
   font: inherit;
   font-size: 1.4rem;
   font-weight: 900;
@@ -124,11 +136,26 @@
 .vault-rush-input:focus {
   border-color: var(--vault-rush-accent);
   outline: none;
+  box-shadow: 0 0 0 4px rgba(5, 108, 92, 0.12);
+}
+
+.vault-rush-form .vault-rush-submit {
+  min-height: 54px;
+  border-radius: 14px;
+  background: var(--vault-rush-accent);
+  font-weight: 900;
+}
+
+.vault-rush-form .vault-rush-submit:not(:disabled):hover {
+  opacity: 0.95;
 }
 
 .vault-rush-solution {
   margin: 0;
+  padding: 12px;
   color: var(--vault-rush-accent);
+  background: rgba(5, 108, 92, 0.08);
+  border-radius: 12px;
   font-weight: 900;
   text-align: center;
 }
