@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Player, ScoreMap } from '@shared/types/index'
-import synthWave from '../../shared/SFX/synthwave.mp3'
+import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
+import synthWave from '@brain-wiz/shared/SFX/synthwave.mp3'
 import '../styles/game_over.css'
 
 interface GameOverProps {
@@ -55,7 +55,7 @@ export function GameOver({ players, finalScores, onBackToMenu }: GameOverProps):
         {/* ── Header ── */}
         <header className="go-header">
           <h1 className="go-title">Game Over</h1>
-          <p className="go-subtitle">Here's how everyone finished</p>
+          <p className="go-subtitle">Here&apos;s how everyone finished</p>
         </header>
 
         {/* ── Podium ── */}

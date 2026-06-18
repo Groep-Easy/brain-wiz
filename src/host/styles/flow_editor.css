@@ -1,28 +1,26 @@
 /* flow_editor.css — drag-and-drop game-flow builder on the teal→navy backdrop. */
 
 .flow-editor {
-  --teal: #056c5c;
-  --navy: #36435f;
-  --tan: #ccb87b;
-  --dark: #2a3135;
-  --red: #ba162d;
-
-  position: fixed;
-  inset: 0;
   display: flex;
   flex-direction: column;
-  padding: 24px clamp(16px, 4vw, 56px) 32px;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--sl-radius-2xl, 24px);
+  padding: 32px 48px;
   box-sizing: border-box;
-  color: #fff;
-  background: linear-gradient(160deg, var(--teal) 0%, var(--navy) 100%);
+  color: var(--sl-text-primary);
+  background-color: var(--sl-bg-main);
   overflow: hidden;
+  min-height: 0;
+  flex: 1;
 }
 
 .flow-editor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 1em;
+  margin-bottom: 1em;
 }
 
 /* Brand logo at the top-left of the editor header. */
@@ -32,30 +30,25 @@
   flex: 0 0 auto;
 }
 
-.flow-editor-header h1 {
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
+.flow-editor-header h2 {
+  font-size: clamp(1.4rem, 2vw, 2rem);
   font-weight: 800;
   margin: 0;
-  text-align: center;
+  text-align: left;
   flex: 1 1 auto;
 }
 
-.back-btn,
-.shuffle-btn {
-  /* Inherit global styles */
-  flex: 0 0 auto;
-}
-
-.shuffle-btn {
-  --btn-bg-color: var(--tan);
-  --btn-text-color: var(--dark);
+.flow-editor-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .flow-editor-hint {
-  color: rgba(255, 255, 255, 0.85);
-  text-align: center;
+  color: var(--sl-text-secondary);
+  text-align: left;
   margin: 8px 0 20px;
-  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  font-size: clamp(0.95rem, 1.1vw, 1.15rem);
 }
 
 .flow-editor-body {
@@ -75,7 +68,8 @@
 .palette h2 {
   font-size: 1.1rem;
   margin: 0 0 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--sl-text-primary);
+  font-weight: 600;
 }
 
 .palette h2:not(:first-child) {
@@ -93,18 +87,20 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--sl-radius-lg);
+  background: var(--sl-bg-main);
+  border: var(--sl-border);
   font-weight: 600;
   cursor: grab;
+  color: var(--sl-text-primary);
+  box-shadow: var(--sl-shadow-sm);
   transition:
     transform 0.15s ease,
-    background 0.15s ease;
+    box-shadow 0.15s ease;
 }
 
 .palette-block:hover {
-  background: rgba(255, 255, 255, 0.22);
+  box-shadow: var(--sl-shadow-md);
   transform: translateX(3px);
 }
 
@@ -113,8 +109,8 @@
 }
 
 .palette-block.minigame {
-  border-color: var(--tan);
-  background: rgba(204, 184, 123, 0.22);
+  border-color: rgba(0, 128, 128, 0.2);
+  background: rgba(0, 128, 128, 0.02);
 }
 
 .block-icon {
@@ -130,9 +126,9 @@
 .flow-canvas {
   flex: 1 1 auto;
   min-width: 0;
-  border-radius: var(--radius-2xl);
-  background: rgba(0, 0, 0, 0.18);
-  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: var(--sl-radius-2xl);
+  background: rgba(0, 0, 0, 0.02);
+  border: 2px dashed rgba(0, 0, 0, 0.1);
   padding: 24px;
   display: flex;
   align-items: center;
@@ -142,42 +138,20 @@
 .canvas-empty {
   margin: auto;
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  color: var(--sl-text-secondary);
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
   padding: 40px;
-  border-radius: var(--radius-xl);
+  border-radius: var(--sl-radius-xl);
   transition: background 0.15s ease;
 }
 
 .canvas-empty.over {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--sl-text-primary);
 }
 
 .canvas-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
-  box-sizing: border-box;
-  cursor: pointer;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px dashed rgba(255, 255, 255, 0.4);
-  transition:
-    transform 0.18s ease,
-    background 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.canvas-add:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .flow-canvas-track {
@@ -206,8 +180,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.4rem, 2.4vw, 2rem);
-  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  color: rgba(0, 0, 0, 0.15);
   font-weight: 800;
   pointer-events: none;
   z-index: 1;
@@ -227,14 +201,12 @@
   width: var(--flow-col-gap);
 }
 
-/* Bold downward arrow into the block directly below. */
 .canvas-arrow.arrow-down {
   top: 100%;
   left: 0;
   right: 0;
   height: var(--flow-row-gap);
-  color: var(--tan);
-  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  color: rgba(0, 0, 0, 0.15);
 }
 
 .canvas-block {
@@ -245,15 +217,25 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+  aspect-ratio: 132 / 104;
+  border-radius: var(--sl-radius-lg);
+  background: var(--sl-bg-main);
+  border: var(--sl-border);
+  box-shadow: var(--sl-shadow-sm);
   cursor: grab;
   text-align: center;
   padding: 8px;
   box-sizing: border-box;
+  color: var(--sl-text-primary);
+  font-weight: 500;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.canvas-block:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sl-shadow-md);
 }
 
 .canvas-block:active {
@@ -261,28 +243,60 @@
 }
 
 .canvas-block.minigame {
-  border-color: var(--tan);
-  background: rgba(204, 184, 123, 0.26);
+  border-color: rgba(0, 128, 128, 0.2);
+  background: rgba(0, 128, 128, 0.02);
 }
 
 .canvas-block .block-icon {
   font-size: 2rem;
 }
 
-.remove-block {
+.remove-block,
+.settings-btn {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border: none;
-  border-radius: var(--radius-round);
-  background: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  font-size: 1rem;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sl-text-secondary);
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  translate: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.remove-block {
+  top: 6px;
+  left: 6px;
+}
+
+.settings-btn {
+  top: 6px;
+  right: 6px;
+  font-size: 1rem;
+}
+
+.remove-block:hover:not(:disabled),
+.remove-block:active:not(:disabled),
+.settings-btn:hover:not(:disabled),
+.settings-btn:active:not(:disabled),
+.settings-btn.open {
+  translate: none;
+  box-shadow: none;
+}
+
+.remove-block:not(:disabled):hover {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
 }
 
 .remove-block:disabled {
@@ -290,18 +304,13 @@
   cursor: not-allowed;
 }
 
-.remove-block:not(:disabled):hover {
-  background: var(--red);
-}
-
 /* Gear on quiz blocks: opens the question-count popover. */
-.settings-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+.settings-btn:hover,
+.settings-btn.open {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--sl-text-primary);
 }
 
-/* Inline popover to set how many questions a quiz block contributes. */
 .block-settings {
   position: absolute;
   top: 32px;
@@ -312,16 +321,16 @@
   gap: 6px;
   width: 122px;
   padding: 10px;
-  border-radius: var(--radius-lg);
-  background: var(--navy);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  border-radius: var(--sl-radius-lg);
+  background: var(--sl-bg-main);
+  border: var(--sl-border);
+  box-shadow: var(--sl-shadow-md);
 }
 
 .block-settings label {
   font-size: 0.74rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--sl-text-secondary);
 }
 
 .block-settings input {
@@ -330,11 +339,16 @@
   font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--tan);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--dark);
+  border-radius: 6px;
+  border: var(--sl-border);
+  background: var(--sl-bg-main);
+  color: var(--sl-text-primary);
   box-sizing: border-box;
+}
+
+.block-settings input:focus {
+  outline: none;
+  border-color: #1a1a1a;
 }
 
 /* Insertion indicator showing where a dragged block will land, in the gap on
@@ -344,9 +358,8 @@
   top: 0;
   bottom: 0;
   width: 6px;
-  border-radius: var(--radius-sm);
-  background: var(--tan);
-  box-shadow: 0 0 16px rgba(204, 184, 123, 0.8);
+  border-radius: 4px;
+  background: #1a1a1a;
   animation: indicatorPulse 0.8s ease-in-out infinite;
   z-index: 2;
 }
@@ -383,13 +396,14 @@
 }
 
 .size-modal {
-  background: var(--navy);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-2xl);
+  background: var(--sl-bg-main);
+  border: var(--sl-border);
+  border-radius: var(--sl-radius-2xl);
   padding: 32px 36px;
   width: min(90vw, 360px);
   text-align: center;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--sl-shadow-md);
+  color: var(--sl-text-primary);
 }
 
 .size-modal h2 {
@@ -399,7 +413,7 @@
 
 .size-modal-hint {
   margin: 0 0 20px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--sl-text-secondary);
 }
 
 .size-input {
@@ -408,10 +422,15 @@
   font-size: 1.6rem;
   font-weight: 800;
   text-align: center;
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--tan);
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--dark);
+  border-radius: var(--sl-radius-lg);
+  border: var(--sl-border);
+  background: var(--sl-bg-main);
+  color: var(--sl-text-primary);
+}
+
+.size-input:focus {
+  outline: none;
+  border-color: #1a1a1a;
 }
 
 .size-modal-actions {
@@ -423,9 +442,4 @@
 .size-cancel,
 .size-confirm {
   flex: 1 1 0;
-}
-
-.size-confirm {
-  --btn-bg-color: var(--tan);
-  --btn-text-color: var(--dark);
 }

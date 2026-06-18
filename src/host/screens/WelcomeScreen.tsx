@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getBackendHttpUrl, getClientBaseUrl } from '../../shared/utils/env'
-import { getBackendWsUrl } from '../../shared/utils/env'
-import { WizardLogo } from '../../shared/components/WizardLogo'
+import { getBackendHttpUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 
 import '../styles/welcome.css'
 
@@ -46,10 +46,12 @@ export function WelcomeScreen(): React.JSX.Element {
   }, [])
 
   const handleCreateRoom = async () => {
+    if (isCreating) return
     setIsCreating(true)
     try {
       const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
       if (!res.ok) {
+        // eslint-disable-next-line no-alert -- intentional native error dialog
         alert('Failed to create room on server')
         setIsCreating(false)
         return
@@ -60,8 +62,9 @@ export function WelcomeScreen(): React.JSX.Element {
       sessionStorage.setItem(`hostToken_${body.code}`, body.hostToken)
 
       // Navigate to the newly created room
-      navigate(`/host/${body.code}`)
+      void navigate(`/host/${body.code}`)
     } catch (err) {
+      // eslint-disable-next-line no-alert -- intentional native error dialog
       alert(`Error creating room: ${String(err)}`)
       setIsCreating(false)
     }
@@ -98,33 +101,24 @@ export function WelcomeScreen(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="floating-shapes">
-        <svg className="floating-shape shape-1" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-        </svg>
-        <svg className="floating-shape shape-2" viewBox="0 0 24 24">
-          <rect x="4" y="4" width="16" height="16" rx="4" />
-        </svg>
-        <svg className="floating-shape shape-3" viewBox="0 0 24 24">
-          <polygon points="12,2 22,20 2,20" />
-        </svg>
-      </div>
 
-      <div className="hero-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+      <div
+        className="hero-content"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      >
         <WizardLogo size={80} className="hero-logo-svg" />
-        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>BrainWiz</h1>
-        {isCreating ? (
-          <p style={{ color: '#ccc' }}>Connecting to server...</p>
-        ) : (
-          <div className="hero-actions">
-            <button className="primary-btn" onClick={handleCreateRoom}>
-              Start Hosting Game
-            </button>
-            <button className="primary-btn" onClick={handleJoinGame}>
-              Join Existing Game
-            </button>
-          </div>
-        )}
+        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>
+          BrainWiz
+        </h1>
+        <div className="hero-actions">
+          <button className="primary-btn" onClick={handleCreateRoom}>
+            Start Hosting Game
+          </button>
+          <button className="primary-btn" onClick={handleJoinGame}>
+            Join Existing Game
+          </button>
+        </div>
       </div>
 
       <div className="hero-footer">

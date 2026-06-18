@@ -22,14 +22,14 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
 
   // Type guards
   function isSlidingPuzzlePuzzle(value: unknown): value is SlidingPuzzlePuzzle {
-    const test_value = value as SlidingPuzzlePuzzle
+    const testValue = value as SlidingPuzzlePuzzle
     return (
-      typeof test_value.id === 'string' &&
-      typeof test_value.image.id === 'string' &&
-      typeof test_value.image.url === 'string' &&
-      typeof test_value.image.alt === 'string' &&
-      Array.isArray(test_value.initialBoard) &&
-      test_value.initialBoard.every((tile) => typeof tile === 'number' && Number.isInteger(tile))
+      typeof testValue.id === 'string' &&
+      typeof testValue.image.id === 'string' &&
+      typeof testValue.image.url === 'string' &&
+      typeof testValue.image.alt === 'string' &&
+      Array.isArray(testValue.initialBoard) &&
+      testValue.initialBoard.every((tile) => typeof tile === 'number' && Number.isInteger(tile))
     )
   }
 
@@ -37,11 +37,11 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
   const type = data.type
 
   switch (type) {
-    case 'sliding-puzzle':
+    case 'sliding-puzzle': {
       if (!isSlidingPuzzlePuzzle(data.puzzle)) {
         return null
       }
-      const puzzle = data.puzzle as SlidingPuzzlePuzzle
+      const puzzle = data.puzzle
       const submitted = data.submitted
       const phase = data.phase
 
@@ -50,8 +50,8 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
           <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
           <div className="client-minigame__actions">
             <button
-            className="primary-btn"
-            disabled={submitted || phase === 'reveal'}
+              className="primary-btn"
+              disabled={submitted || phase === 'reveal'}
               onClick={() => data.onSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
               type="button"
             >
@@ -60,13 +60,12 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
           </div>
         </section>
       )
+    }
 
-      case 'example':
-        return (
-          <section></section>
-        )
+    case 'example':
+      return <section></section>
 
-      default:
-        return null
+    default:
+      return null
   }
 }

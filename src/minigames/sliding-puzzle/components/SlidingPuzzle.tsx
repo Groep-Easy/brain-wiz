@@ -157,6 +157,7 @@ export function SlidingPuzzle({
 
   useEffect(() => {
     resetBoard(puzzle.initialBoard)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resetBoard is stable; reset only when the puzzle changes
   }, [puzzle.id, puzzle.initialBoard])
 
   const zeroIndex = board.indexOf(0)

@@ -9,7 +9,7 @@
 import { PALETTE, nextUid } from './palette'
 import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 
-import { getBackendWsUrl, getBackendHttpUrl } from '../../shared/utils/env'
+import { getBackendWsUrl, getBackendHttpUrl } from '@brain-wiz/shared/utils/env'
 
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))

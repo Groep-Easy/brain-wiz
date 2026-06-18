@@ -159,7 +159,6 @@ export function loadDatabaseConfig(): DatabaseConfig {
       )
     }
     if (isLoggingEnabled) {
-      // eslint-disable-next-line no-console
       console.warn('WARNING: DB_LOGGING_ENABLED=true in production may impact performance')
     }
   }

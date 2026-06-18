@@ -19,7 +19,7 @@ import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
 import { WS_ALLOWED_ORIGINS } from './socket.constants'
-import { ENV } from '@config/env.config'
+import { ENV } from '@brain-wiz/config/env.config'
 
 @Module({
   imports: [LobbyModule, GameModule],

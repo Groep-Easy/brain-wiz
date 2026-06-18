@@ -11,12 +11,12 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { In, type Repository } from 'typeorm'
 import { Room } from '../entities/room.entity'
 import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
-import { generateRoomCode } from '../../shared/utils/room-code'
-import { ROUNDS, TIMER } from '@config/game.config'
+import { generateRoomCode } from '@brain-wiz/shared/utils/room-code'
+import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
-import type { GameFlowItem } from '@shared/types/flow'
-import { ENV } from '@config/env.config'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
+import { ENV } from '@brain-wiz/config/env.config'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10

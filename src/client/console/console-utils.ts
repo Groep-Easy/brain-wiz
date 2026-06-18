@@ -4,7 +4,7 @@
  * @description Types and pure helpers for the phone client's WebSocket debug
  * console (Console.tsx). Mirrors the host console so both behave the same.
  */
-import { PONG } from '@shared/constants/socket-events.constants'
+import { PONG } from '@brain-wiz/shared/constants/socket-events.constants'
 
 /** Direction of a log entry relative to the client. */
 export type Direction = 'in' | 'out' | 'info'
