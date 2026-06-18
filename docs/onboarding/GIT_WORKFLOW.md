@@ -8,11 +8,11 @@ Direct pushes to either branch are **strictly prohibited**.
 
 ## 1. Project Management
 
-| Tool | Purpose |
-|------|---------|
-| [Scrumboard](https://github.com/orgs/Groep-Easy/projects/2) | Active sprints, tasks, progress |
-| [Issues](https://github.com/Groep-Easy/brain-wiz/issues) | Bug reports & feature definitions |
-| [Pull Requests](https://github.com/Groep-Easy/brain-wiz/pulls) | All merge proposals |
+| Tool                                                           | Purpose                           |
+| -------------------------------------------------------------- | --------------------------------- |
+| [Scrumboard](https://github.com/orgs/Groep-Easy/projects/2)    | Active sprints, tasks, progress   |
+| [Issues](https://github.com/Groep-Easy/brain-wiz/issues)       | Bug reports & feature definitions |
+| [Pull Requests](https://github.com/Groep-Easy/brain-wiz/pulls) | All merge proposals               |
 
 **Claim an issue before you start work.** Assign it to yourself.
 
@@ -30,13 +30,13 @@ master          ← production only (protected, requires PR + review)
 
 ### Branch naming
 
-| Prefix | When to use | Example |
-|--------|-------------|---------|
-| `feat/` | New functionality | `feat/round-timer` |
-| `fix/` | Bug fixes | `fix/ws-reconnect` |
-| `chore/` | Docs, config, tooling | `chore/update-deps` |
+| Prefix      | When to use                             | Example                   |
+| ----------- | --------------------------------------- | ------------------------- |
+| `feat/`     | New functionality                       | `feat/round-timer`        |
+| `fix/`      | Bug fixes                               | `fix/ws-reconnect`        |
+| `chore/`    | Docs, config, tooling                   | `chore/update-deps`       |
 | `refactor/` | Code restructuring, no behaviour change | `refactor/socket-handler` |
-| `err/` | CI/pipeline error repairs | `err/lint-strict` |
+| `err/`      | CI/pipeline error repairs               | `err/lint-strict`         |
 
 ---
 
@@ -86,17 +86,24 @@ npm run validate
 
 ### Common lint errors and how to fix them
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `no-unnecessary-type-assertion` | `as unknown as T` when `data` is already `unknown` or `Record<string, unknown>` | Remove the intermediate `as unknown`; cast directly: `data as T` |
-| `@typescript-eslint/no-explicit-any` | Using `any` type | Use the specific type or `unknown` with a guard |
-| `no-console` outside allowed files | `console.log` in production code | Remove or wrap with a `// eslint-disable-next-line no-console` + comment justification |
-| `no-alert` | Native `alert()`/`confirm()` | Add `// eslint-disable-next-line no-alert -- intentional native dialog` on the line above |
+| Error                                | Cause                                                                           | Fix                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `no-unnecessary-type-assertion`      | `as unknown as T` when `data` is already `unknown` or `Record<string, unknown>` | Remove the intermediate `as unknown`; cast directly: `data as T`                          |
+| `@typescript-eslint/no-explicit-any` | Using `any` type                                                                | Use the specific type or `unknown` with a guard                                           |
+| `no-console` outside allowed files   | `console.log` in production code                                                | Remove or wrap with a `// eslint-disable-next-line no-console` + comment justification    |
+| `no-alert`                           | Native `alert()`/`confirm()`                                                    | Add `// eslint-disable-next-line no-alert -- intentional native dialog` on the line above |
 
-Run lint with auto-fix for safe fixable issues:
+### Automatic Fixes
+
+You can automatically fix most formatting and safe linting issues by running the test suite (which now auto-fixes before running tests) or by running the fix commands directly:
 
 ```bash
-npm run lint -- --fix
+# Automatically fix linting and formatting issues, then run tests
+npm run test
+
+# OR run the fixers individually:
+npm run lint:fix
+npm run format
 ```
 
 ---
