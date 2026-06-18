@@ -28,6 +28,8 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
+  setSwaggerConfig(app)
+
   if (ENV.TRUST_PROXY) {
     app.getHttpAdapter().getInstance().set('trust proxy', 1)
   }
@@ -48,8 +50,6 @@ async function bootstrap(): Promise<void> {
     }
     next()
   })
-
-  setSwaggerConfig(app)
 
   await app.listen(ENV.SERVER_PORT, ENV.SERVER_HOST)
 
