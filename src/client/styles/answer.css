@@ -11,7 +11,7 @@
   position: relative;
   height: 22px;
   background: var(--tan);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   overflow: hidden;
 }
 .answer-timer-bar {
@@ -33,7 +33,7 @@
 .answer-status {
   background: var(--surface);
   border: 1px solid var(--tan);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   padding: 0.6rem 1rem;
   font-weight: 600;
   color: var(--navy);
@@ -42,7 +42,7 @@
 
 /* Right/wrong banner (reveal) */
 .reveal-banner {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 0.9rem 1rem;
   font-size: 1.25rem;
   font-weight: 800;
@@ -71,30 +71,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 16px;
-  color: #fff;
+  /* border and border-radius handled by global button style */
   font-size: 3rem;
-  cursor: pointer;
+  /* We keep opacity/transform transitions for the selection logic, but let global button handle the active press */
   transition:
     opacity 250ms ease,
     transform 250ms ease;
 }
-.answer-tile:disabled {
-  cursor: default;
-}
 .tile-teal {
-  background: var(--teal);
+  --btn-bg-color: var(--teal);
+  --btn-text-color: #fff;
 }
 .tile-red {
-  background: var(--red);
+  --btn-bg-color: var(--red);
+  --btn-text-color: #fff;
 }
 .tile-blue {
-  background: var(--darkblue);
+  --btn-bg-color: var(--darkblue);
+  --btn-text-color: #fff;
 }
 .tile-tan {
-  background: var(--tan);
-  color: var(--dark);
+  --btn-bg-color: var(--tan);
+  --btn-text-color: var(--dark);
 }
 
 .answer-tile.is-dim {
@@ -128,6 +126,6 @@
   font-weight: 700;
   background: rgba(255, 255, 255, 0.85);
   color: var(--dark);
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   padding: 0.1rem 0.5rem;
 }

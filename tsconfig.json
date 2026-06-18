@@ -39,14 +39,13 @@
     "rootDir": ".",
     "outDir": "./dist"
   },
+  "references": [{ "path": "src/shared" }, { "path": "src/config" }, { "path": "src/minigames" }],
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.d.ts",
     "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "config/**/*.ts",
-    "scripts/**/*.ts"
+    "tests/**/*.tsx"
   ],
-  "exclude": ["node_modules", "dist", "src/client", "src/host", "src/minigames"]
+  "exclude": ["node_modules", "dist", "src/client", "src/host", "src/minigames", "src/shared", "src/config"]
 }

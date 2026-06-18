@@ -5,12 +5,17 @@
 .prittierrc
 
 .git
-.git/**
+.git/\*\*
 .gitattributes
 .gitignore
 
 .github
-.github/**
+.github/\*\*
 
 .vscode
-.vscode/**
+.vscode/\*\*
+
+dist
+dist/**
+node_modules
+node_modules/**

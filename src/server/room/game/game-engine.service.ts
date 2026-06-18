@@ -12,19 +12,20 @@ import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
 import { Round } from '../../entities/round.entity'
 import { Room } from '../../entities/room.entity'
-import { RoomStatusEnum, RoundStatusEnum } from '../../entities/enums'
+import { RoomStatusEnum, RoundStatusEnum, QuestionThemeEnum } from '../../entities/enums'
 import { RoomService } from '../room.service'
 import { ClientService } from '../../client/client.service'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { toRoomState } from '../room.helpers'
-import * as EVENTS from '../../../shared/events/socket-events'
-import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import type {
   GamePhase as WireGamePhase,
   LeaderboardEntry,
   RoundSummary,
+  RoadmapTheme,
   ScoreMap,
-} from '../../../shared/types/index'
+} from '@brain-wiz/shared/types/index'
 import {
   GamePhase,
   RoundPresenter,
@@ -128,14 +129,52 @@ export class GameEngineService {
     game.timer.cancel()
   }
 
+  private async buildRoadmapThemes(
+    roomId: string,
+    currentRoundIndex: number
+  ): Promise<RoadmapTheme[]> {
+    const rounds = await this.roundRepo
+      .createQueryBuilder('round')
+      .innerJoinAndSelect('round.question', 'question')
+      .where('round.roomId = :roomId', { roomId })
+      .orderBy('round.roundIndex', 'ASC')
+      .getMany()
+
+    const countByTheme = new Map<string, number>()
+    for (const round of rounds) {
+      if (round.question && round.roundIndex >= currentRoundIndex) {
+        const theme = round.question.theme
+        countByTheme.set(theme, (countByTheme.get(theme) ?? 0) + 1)
+      }
+    }
+
+    return Array.from(countByTheme.entries()).map(([theme, questionsInTheme]) => ({
+      theme,
+      questionsInTheme,
+    }))
+  }
+
   private async runRound(
-    room: { id: string; joinCode: string; status: RoomStatusEnum; currentRoundIndex: number },
+    room: {
+      id: string
+      joinCode: string
+      status: RoomStatusEnum
+      currentRoundIndex: number
+      totalRounds: number
+      selectedThemes: QuestionThemeEnum[]
+    },
     round: Round,
     game: RunningGame
   ): Promise<void> {
     await this.markRound(round, RoundStatusEnum.ACTIVE)
     await this.rooms.setCurrentRound(room as Room, round.roundIndex)
+
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
+    this.broadcaster.broadcastRoadmap(room.id, {
+      playerPos: round.roundIndex + 1,
+      totalQuestions: room.totalRounds,
+      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
+    })
 
     if (await this.runPhase(room, game, GamePhase.INTRO, TIMER.ROUND_INTRO_SECONDS)) {
       return
@@ -264,6 +303,7 @@ export class GameEngineService {
       total: this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT,
       type: round.gameType ?? 'quiz',
       timeLimitSeconds: round.timeLimitSeconds,
+      ...(round.question?.text ? { questionText: round.question.text } : {}),
     }
   }
 

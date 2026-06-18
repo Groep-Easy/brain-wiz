@@ -21,8 +21,9 @@ import {
 } from '../../src/server/room/lobby/lobby.errors'
 import { Room } from '../../src/server/entities/room.entity'
 import { Client } from '../../src/server/entities/client.entity'
-import * as EVENTS from '../../src/shared/events/socket-events'
-import { ROOM, PLAYER } from '../../src/shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM, PLAYER } from '@brain-wiz/config/game.config'
+import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
@@ -239,6 +240,24 @@ describe('LobbyService.joinClient input validation', () => {
       (ack?.data as { reason: string }).reason,
       `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
     )
+  })
+
+  it('rejects a profane display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'kanker')
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal((ack?.data as { reason: string }).reason, NAME_REJECTION.profane)
+  })
+
+  it('rejects a reserved display name', async () => {
+    const lobby = makeLobby()
+    const { code } = await lobby.createRoom()
+    const client = recordingSocket()
+    await lobby.joinClient(client, 'sock-1', code, 'admin')
+    const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
+    assert.equal((ack?.data as { reason: string }).reason, NAME_REJECTION.reserved)
   })
 
   it('rejects a blank (whitespace-only) display name', async () => {

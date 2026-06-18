@@ -7,10 +7,10 @@ import assert from 'node:assert/strict'
 import { GameEngineService } from '../../src/server/room/game/game-engine.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
-import * as EVENTS from '../../src/shared/events/socket-events'
-import { ROUNDS } from '../../src/shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROUNDS } from '@brain-wiz/config/game.config'
 import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
-import type { LeaderboardEntry } from '../../src/shared/types/index'
+import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 
 interface RecordingBroadcaster {
   events: string[]
@@ -18,6 +18,7 @@ interface RecordingBroadcaster {
   stateBroadcasts: unknown[]
   emitToRoom: (_roomId: string, event: string, payload?: unknown) => void
   broadcastRoomState: (_roomId: string, state: unknown) => void
+  broadcastRoadmap: (_roomId: string, payload: unknown) => void
   emitToSocket: () => void
 }
 
@@ -37,6 +38,7 @@ function recordingBroadcaster(
       onEmit?.(event, payload)
     },
     broadcastRoomState: (_roomId: string, state: unknown): void => void stateBroadcasts.push(state),
+    broadcastRoadmap: (): void => undefined,
     emitToSocket: (): void => undefined,
   }
 }
@@ -77,6 +79,22 @@ interface FakeClient {
   displayName: string
   isConnected: boolean
   joinedAt: Date
+}
+
+interface FakeQueryBuilder {
+  innerJoinAndSelect: () => FakeQueryBuilder
+  where: () => FakeQueryBuilder
+  orderBy: () => FakeQueryBuilder
+  getMany: () => Promise<unknown[]>
+}
+
+function fakeQueryBuilder(): FakeQueryBuilder {
+  return {
+    innerJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
+    where: (): FakeQueryBuilder => fakeQueryBuilder(),
+    orderBy: (): FakeQueryBuilder => fakeQueryBuilder(),
+    getMany: async (): Promise<unknown[]> => [],
+  }
 }
 
 function fakeRound(index: number): FakeRound {
@@ -174,7 +192,11 @@ function makeEngine(
     buildRounds: async (): Promise<unknown[]> =>
       Array.from({ length: ROUNDS.COUNT }, (_, i) => fakeRound(i)),
   }
-  const roundRepo = { save: async (r: unknown): Promise<unknown> => r }
+
+  const roundRepo = {
+    save: async (r: unknown): Promise<unknown> => r,
+    createQueryBuilder: (): FakeQueryBuilder => fakeQueryBuilder(),
+  }
   const presenter = {
     present: (_roomId: string, round: { roundIndex: number }): void =>
       void presentCalls.push(round.roundIndex),

@@ -10,7 +10,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { HOST_AUTH } from '../../shared/constants/game-config'
+import { HOST_AUTH } from '@brain-wiz/config/game.config'
 import { HostAuthRecord } from './socket.types'
 
 @Injectable()

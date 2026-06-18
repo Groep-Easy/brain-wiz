@@ -4,10 +4,10 @@ import {
   HARD_SCALE_DIFFICULTY,
   generateScalePuzzle,
   type ScaleDifficulty,
-} from '../../../../minigames/balance-scale/shared/scaleGame.js'
-import { getDefaultScaleItemPool } from '../../../../minigames/balance-scale/shared/scaleGame.presets.js'
-import { hashSeed } from '../../../../shared/utils/seeded-random.js'
-import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
+} from '@brain-wiz/minigames/balance-scale/shared/scaleGame'
+import { getDefaultScaleItemPool } from '@brain-wiz/minigames/balance-scale/shared/scaleGame.presets'
+import { hashSeed } from '@brain-wiz/shared/utils/seeded-random'
+import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,
@@ -71,7 +71,25 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     if (!Array.isArray(options)) {
       return []
     }
-    return options as RoundAnswerChoice[]
+    return options.flatMap((option): RoundAnswerChoice[] => {
+      if (!this.isRecord(option)) {
+        return []
+      }
+      const id = option['id']
+      const label = option['label']
+      const emoji = option['emoji']
+      if (typeof id !== 'string' || typeof label !== 'string') {
+        return []
+      }
+      return [
+        {
+          id,
+          label,
+          ...(typeof emoji === 'string' ? { emoji } : {}),
+          submission: { optionId: id },
+        },
+      ]
+    })
   }
 
   public scoreSubmission(

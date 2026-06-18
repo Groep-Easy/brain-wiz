@@ -1,25 +1,19 @@
-# docker-compose.yml
 services:
-  # ---------------------------------------------------------------------------
-  # Brain Wiz
-  # ---------------------------------------------------------------------------
   brain-wiz:
     build: .
+    container_name: brain-wiz
     env_file:
       - .env
     environment:
+      - NODE_ENV=production
       - DB_HOST=db
-      - DB_PORT=5432
-    container_name: server
-    ports:
-      - "3000:3000"
+      - TRUST_PROXY=true
+    expose:
+      - "3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
-
-  # ---------------------------------------------------------------------------
-  # Nginx
-  # ---------------------------------------------------------------------------
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
@@ -35,62 +29,52 @@ services:
       - brain-wiz
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # PostgreSQL
-  # ---------------------------------------------------------------------------
   db:
     image: postgres:16
     container_name: postgres-db
     env_file:
       - .env
-    ports:
-      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # pgadmin
-  # ---------------------------------------------------------------------------
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
+    profiles: [tools]
     ports:
       - "5050:80"
     env_file:
       - .env
-    environment:
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-      PGADMIN_CONFIG_LOGIN_DISABLED: "True"
     user: root
     depends_on:
       - db
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Observability: Loki + Promtail + Grafana
-  # ---------------------------------------------------------------------------
   loki:
     image: grafana/loki:3.5.0
     container_name: loki
+    profiles: [observability]
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki_data:/loki
-    restart: unless-stopped
     healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Promtail
-  # ---------------------------------------------------------------------------
   promtail:
     image: grafana/promtail:3.5.0
     container_name: promtail
+    profiles: [observability]
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - ./loki/promtail-config.yml:/etc/promtail/config.yml:ro
@@ -100,17 +84,15 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Grafana
-  # ---------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:12.0.1
     container_name: grafana
+    profiles: [observability]
     ports:
       - "3200:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL:-admin@brainwiz.local}
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
     volumes:
@@ -125,5 +107,4 @@ volumes:
   postgres_data:
   loki_data:
   grafana_data:
-  # Shared log volume: nginx writes here, Promtail reads from the same path.
   nginx_logs:

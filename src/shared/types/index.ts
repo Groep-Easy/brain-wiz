@@ -20,12 +20,24 @@ export type RoundType =
   | 'head-to-head'
   | 'sliding-puzzle'
   | 'balance-scale'
+  | 'vault-rush'
 
 export interface Player {
   id: string
   name: string
   connected: boolean
   score: number
+  playerAvatar: PlayerAvatar
+}
+
+export interface PlayerAvatar {
+  bodyColor: string
+  faceId: number
+}
+
+export const DEFAULT_PLAYER_AVATAR: PlayerAvatar = {
+  bodyColor: '#ccb87b',
+  faceId: 0,
 }
 
 export interface RoomState {
@@ -48,6 +60,16 @@ export interface Answer {
   text: string
 }
 
+export interface RoadmapTheme {
+  theme: string
+  questionsInTheme: number
+}
+export interface RoadmapUpdate {
+  playerPos: number
+  totalQuestions: number
+  themes: RoadmapTheme[]
+}
+
 /** playerId → cumulative score (running total at the time the map is sent) */
 export type ScoreMap = Record<string, number>
 
@@ -58,6 +80,7 @@ export interface RoundSummary {
   total: number
   type: RoundType
   timeLimitSeconds: number
+  questionText?: string
 }
 
 /** Server → all: round started (ROUND_START). */
@@ -97,18 +120,6 @@ export interface LeaderboardEntry {
   connected: boolean
 }
 
-/** One theme segment in the roadmap. */
-export interface ThemeEntry {
-  theme: string
-  questionCount: number
-}
-
-/** Roadmap shown on the leaderboard screen. */
-export interface RoadmapEntry {
-  playerPos: number
-  themes: ThemeEntry[]
-}
-
 /** Server → all: game over (GAME_OVER). */
 export interface GameOverPayload {
   finalScores: ScoreMap
@@ -128,6 +139,7 @@ export interface PongPayload {
 export interface PlayerJoinPayload {
   roomCode: string
   playerName: string
+  playerAvatar: PlayerAvatar
   playerId?: string
   playerToken?: string
 }
@@ -136,6 +148,7 @@ export interface PlayerJoinAckPayload {
   playerId: string
   roomCode: string
   reconnectToken: string
+  playerAvatar: PlayerAvatar
 }
 
 export interface PlayerJoinRejectedPayload {

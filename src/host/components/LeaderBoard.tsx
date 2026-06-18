@@ -5,34 +5,57 @@
  * score changes with layout animations.
  */
 import { useRef, useLayoutEffect, useMemo } from 'react'
-import type { LeaderboardEntry } from '../../shared/types/index'
-import type { RoadmapEntry } from '../../shared/types/index'
+import type { LeaderboardEntry, Player } from '@brain-wiz/shared/types/index'
+import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import '../styles/leaderboard.css'
+
+import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
-  roadmap?: RoadmapEntry | null
+  roadmap?: RoadmapUpdate | null
+  players?: Player[]
 }
 
 interface RoadmapProps {
-  roadmap?: RoadmapEntry
+  roadmap?: RoadmapUpdate
 }
+
+type TimelineItem =
+  | {
+      type: 'node'
+      questionNumber: number
+    }
+  | {
+      type: 'dot'
+    }
 
 const themeAssets: Record<string, { icon: string }> = {
-  Random: { icon: '🎲' },
-  Movies: { icon: '🎬' },
-  Music: { icon: '🎵' },
-  Coding: { icon: '💻' },
-  Sports: { icon: '⚽' },
-  History: { icon: '📜' },
-  Math: { icon: '➗' },
-  Science: { icon: '🔬' },
-  Geography: { icon: '🌍' },
+  random: { icon: '🎲' },
+  movies: { icon: '🎬' },
+  music: { icon: '🎵' },
+  coding: { icon: '💻' },
+  sports: { icon: '⚽' },
+  history: { icon: '📜' },
+  math: { icon: '➗' },
+  science: { icon: '🔬' },
+  geography: { icon: '🌍' },
 }
 
-export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.JSX.Element {
+export function LeaderBoard({
+  leaderboard,
+  roadmap,
+  players,
+}: LeaderBoardProps): React.JSX.Element {
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
   const previousPositions = useRef<Map<string, number>>(new Map())
+
+  const avatarByPlayerId = useMemo(() => {
+    const map = new Map<string, Player['playerAvatar']>()
+    for (const player of players ?? []) map.set(player.id, player.playerAvatar)
+    return map
+  }, [players])
 
   useLayoutEffect(() => {
     const currentPositions = new Map<string, number>()
@@ -64,16 +87,15 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
   }, [leaderboard])
 
   function Roadmap({ roadmap }: RoadmapProps) {
-    if (!roadmap) {
-      return null
-    }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const { playerPos, themes } = roadmap
-
-      const total = themes.reduce((sum, theme) => sum + theme.questionCount, 0)
-
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
+
+      if (!roadmap) {
+        return { playerPos: 0, total: 0, themeStarts, themeMap, timeline: [] as TimelineItem[] }
+      }
+
+      const { playerPos, totalQuestions, themes } = roadmap
 
       let cursor = 1
 
@@ -85,27 +107,18 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
         themeMap.set(cursor, themeEntry.theme)
 
-        cursor += themeEntry.questionCount
+        cursor += themeEntry.questionsInTheme
       }
-
-      type TimelineItem =
-        | {
-            type: 'node'
-            questionNumber: number
-          }
-        | {
-            type: 'dot'
-          }
 
       const timeline: TimelineItem[] = []
 
-      for (let q = 1; q <= total; q++) {
+      for (let q = 1; q <= totalQuestions; q++) {
         timeline.push({
           type: 'node',
           questionNumber: q,
         })
 
-        if (q < total) {
+        if (q < totalQuestions) {
           timeline.push({ type: 'dot' })
           timeline.push({ type: 'dot' })
         }
@@ -113,7 +126,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
       return {
         playerPos,
-        total,
+        total: totalQuestions,
         themeStarts,
         themeMap,
         timeline,
@@ -161,7 +174,13 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
       const playerX = PADDING + playerTimelineIndex * STEP
 
       container.scrollLeft = playerX - viewportWidth / 3
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- initial scroll positioning; runs once on mount
     }, [])
+
+    // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).
+    if (!roadmap) {
+      return null
+    }
 
     return (
       <div
@@ -212,6 +231,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
   return (
     <>
+      <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
       <div className="leaderboard-screen">
         <header className="leaderboard-header">
           <h1>Leaderboard</h1>
@@ -231,6 +251,14 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
             >
               <div className="player-info">
                 <span className="rank">#{entry.rank}</span>
+                {(() => {
+                  const avatar = avatarByPlayerId.get(entry.playerId)
+                  return avatar ? (
+                    <span className="player-avatar">
+                      <CharacterPreview color={avatar.bodyColor} faceId={avatar.faceId} size={44} />
+                    </span>
+                  ) : null
+                })()}
                 <span className="name">{entry.name}</span>
               </div>
               <div className="player-stats">

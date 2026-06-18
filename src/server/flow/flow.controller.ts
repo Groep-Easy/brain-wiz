@@ -7,7 +7,7 @@
  */
 import { Controller, Get } from '@nestjs/common'
 import { FlowService } from './flow.service'
-import type { GameBlockDto } from '../../shared/types/flow'
+import type { GameBlockDto } from '@brain-wiz/shared/types/flow'
 
 @Controller('flow')
 export class FlowController {

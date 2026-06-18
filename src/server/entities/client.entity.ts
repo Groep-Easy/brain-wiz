@@ -16,6 +16,7 @@ import {
 } from 'typeorm'
 import type { Room } from './room.entity'
 import type { ClientAnswer } from './client-answer.entity'
+import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 
 const MAX_DISPLAY_NAME_LENGTH = 64
 
@@ -49,6 +50,12 @@ export class Client {
    */
   @Column('varchar', { length: 64 })
   public displayName!: string
+
+  /**
+   * PlayerAvatar shown to other players
+   */
+  @Column({ type: 'jsonb', nullable: true })
+  public playerAvatar!: PlayerAvatar
 
   /**
    * WebSocket ID for this connection

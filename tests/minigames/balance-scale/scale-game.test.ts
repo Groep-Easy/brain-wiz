@@ -8,15 +8,15 @@ import {
   type ItemOption,
   type ScaleEquation,
   type ScalePuzzle,
-} from '../../../src/minigames/balance-scale/shared/scaleGame.js'
+} from '@brain-wiz/minigames/balance-scale/shared/scaleGame'
 import {
   EASY_SCALE_DIFFICULTY,
   HARD_SCALE_DIFFICULTY,
   REVEAL_SCALE_PHASE,
   SCALE_DIFFICULTIES,
-} from '../../../src/minigames/balance-scale/shared/scaleGame.constants.js'
-import { DEFAULT_SCALE_ITEM_POOLS } from '../../../src/minigames/balance-scale/shared/scaleGame.presets.js'
-import { SAMPLE_ITEM_POOLS } from '../../../src/minigames/balance-scale/mock/samplePuzzle.js'
+} from '@brain-wiz/minigames/balance-scale/shared/scaleGame.constants'
+import { DEFAULT_SCALE_ITEM_POOLS } from '@brain-wiz/minigames/balance-scale/shared/scaleGame.presets'
+import { SAMPLE_ITEM_POOLS } from '@brain-wiz/minigames/balance-scale/mock/samplePuzzle'
 
 const EASY_ITEM_POOL: ItemOption[] = [
   {
