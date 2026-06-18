@@ -49,6 +49,7 @@ export const HOST_AUTH = Object.freeze({
 })
 
 export const TIMER = Object.freeze({
+  START_GAME_MS: 1000,
   QUESTION_SECONDS: 30,
   REVEAL_SECONDS: 5,
   ROUND_INTRO_SECONDS: 3,

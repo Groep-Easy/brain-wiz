@@ -148,6 +148,7 @@ export function App(): React.JSX.Element {
             case EVENTS.ROUND_REVEAL:
               setRoundReveal(data as RoundRevealPayload)
               break
+
             case EVENTS.LEADERBOARD_SHOW:
               if (d.leaderboard) {
                 setLeaderboard(d.leaderboard as LeaderboardEntry[])

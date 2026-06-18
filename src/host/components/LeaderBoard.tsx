@@ -9,6 +9,8 @@ import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import '../styles/leaderboard.css'
 
+import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
+
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
   roadmap?: RoadmapUpdate | null
@@ -217,6 +219,7 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
   return (
     <>
+      <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
       <div className="leaderboard-screen">
         <header className="leaderboard-header">
           <h1>Leaderboard</h1>
