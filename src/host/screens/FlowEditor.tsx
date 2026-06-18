@@ -28,6 +28,12 @@ import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
+import useSound from 'use-sound'
+import dieSound from '@brain-wiz/shared/SFX/die.mp3'
+import dragSound from '@brain-wiz/shared/SFX/water-drop.mp3'
+import dropSound from '@brain-wiz/shared/SFX/card-drop.mp3'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+
 export interface FlowEditorProps {
   initialFlow: FlowItem[]
   onSave: (flow: FlowItem[]) => void
@@ -44,6 +50,10 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
   const [sizePicker, setSizePicker] = useState<number | null>(null)
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
+
+  const [playDieSound] = useSound(dieSound)
+  const [playDragSound] = useSound(dragSound)
+  const [playDropSound] = useSound(dropSound)
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
@@ -76,6 +86,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
     })
+    if (!isMuted()) playDropSound()
   }
 
   useEffect(() => {
@@ -84,7 +95,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const blocks = await fetchCatalog()
       if (!active) return
       setCatalog(blocks)
-      
+
       // If initialFlow is empty, generate a random one locally for the draft
       if (initialFlow.length < MIN_FLOW_BLOCKS) {
         setFlow(randomFlowFrom(blocks, DEFAULT_FLOW_SIZE))
@@ -113,12 +124,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
+    if (!isMuted()) playDragSound()
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
+    if (!isMuted()) playDragSound()
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -181,19 +194,23 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
         return next
       })
     }
+    if (!isMuted()) playDropSound()
   }
 
   const removeAt = (index: number) => {
     setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
   }
 
-  const openSizePicker = () => setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  const openSizePicker = () => {
+    setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  }
 
   const confirmShuffle = () => {
     if (sizePicker === null) return
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
+    if (!isMuted()) playDieSound()
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
@@ -210,7 +227,11 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
           <button className="cancel-btn" onClick={onCancel} title="Return without saving">
             Cancel
           </button>
-          <button className="primary-btn save-btn" onClick={() => onSave(flow)} title="Save changes">
+          <button
+            className="primary-btn save-btn"
+            onClick={() => onSave(flow)}
+            title="Save changes"
+          >
             Save
           </button>
         </div>

@@ -15,6 +15,11 @@ import '../styles/setup_lobby.css'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
+import useSound from 'use-sound'
+import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
+import startGameSound from '@brain-wiz/shared/SFX/start-game.wav'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+
 interface SetupLobbyProps {
   roomCode: string
   hostToken: string
@@ -37,6 +42,8 @@ export function SetupLobby({
   const [timePerQuestion, setTimePerQuestion] = useState(20)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
+  const jazzRef = useRef<HTMLAudioElement>(null)
+  const [playStartGameSound] = useSound(startGameSound)
   const [isEditingFlow, setIsEditingFlow] = useState(false)
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
@@ -70,7 +77,11 @@ export function SetupLobby({
   }, [roomCode])
 
   const handleStart = () => {
-    onStartGame(timePerQuestion)
+    jazzRef.current?.pause()
+    if (!isMuted()) playStartGameSound()
+    setTimeout(() => {
+      onStartGame(timePerQuestion)
+    }, 1000) // TODO: no magic numbers
   }
 
   const handleKick = async (playerId: string) => {
@@ -100,9 +111,9 @@ export function SetupLobby({
   return (
     <div className="container">
       <header className="host-lobby-header">
-        <a 
+        <a
           href="/"
-          className="header-left logo-btn" 
+          className="header-left logo-btn"
           onClick={(e) => {
             e.preventDefault()
             onCloseLobby()
@@ -115,6 +126,7 @@ export function SetupLobby({
             BrainWiz
           </h1>
         </a>
+        <audio ref={jazzRef} id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
 
         <div className="header-tabs">
           <button

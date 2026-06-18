@@ -76,118 +76,116 @@ export function App(): React.JSX.Element {
       socketRef.current = socket
 
       socket.onopen = () => {
-      setStatus('open')
-      // Reset game states
-      setQuestion(null)
-      setReveal(null)
-      setAnsweredCount(0)
-      setTotalPlayers(0)
-      setRound(null)
-      setLeaderboard([])
-      setRoadmap(null)
-      setFinalScores(null)
-    }
+        setStatus('open')
+        // Reset game states
+        setQuestion(null)
+        setReveal(null)
+        setAnsweredCount(0)
+        setTotalPlayers(0)
+        setRound(null)
+        setLeaderboard([])
+        setRoadmap(null)
+        setFinalScores(null)
+      }
 
-    socket.onmessage = (event) => {
-      try {
-        const { event: ev, data } = JSON.parse(event.data) as {
-          event: string
-          data: unknown
-        }
+      socket.onmessage = (event) => {
+        try {
+          const { event: ev, data } = JSON.parse(event.data) as {
+            event: string
+            data: unknown
+          }
 
-        // data is `unknown` — cast locally per-case for type-safe access
-        const d = data as Record<string, unknown>
+          // data is `unknown` — cast locally per-case for type-safe access
+          const d = data as Record<string, unknown>
 
-        switch (ev) {
-          case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(d.room as RoomState)
-            break
+          switch (ev) {
+            case EVENTS.ROOM_STATE_UPDATE:
+              setRoomState(d.room as RoomState)
+              break
 
-          case EVENTS.GAME_PHASE_CHANGE:
-            setRoomState((prev: RoomState | null) =>
-              prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
-            )
-            break
+            case EVENTS.GAME_PHASE_CHANGE:
+              setRoomState((prev: RoomState | null) =>
+                prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
+              )
+              break
 
-          case EVENTS.ROUND_START:
-            if (d.round) {
-              setRound(d.round as RoundSummary)
-            }
-            setRoundContent(null)
-            setRoundReveal(null)
-            break
-
-          case EVENTS.TIMER_TICK:
-            setSecondsRemaining(d.secondsRemaining as number)
-            break
-
-          case EVENTS.QUESTION_SHOW:
-            if (d.question) {
+            case EVENTS.ROUND_START:
+              if (d.round) {
+                setRound(d.round as RoundSummary)
+              }
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(d.question as QuestionState)
-              setReveal(null)
+              break
+
+            case EVENTS.TIMER_TICK:
+              setSecondsRemaining(d.secondsRemaining as number)
+              break
+
+            case EVENTS.QUESTION_SHOW:
+              if (d.question) {
+                setRoundContent(null)
+                setRoundReveal(null)
+                setQuestion(d.question as QuestionState)
+                setReveal(null)
+                setAnsweredCount(0)
+              }
+              break
+
+            case EVENTS.ROUND_CONTENT_SHOW:
+              setRoundContent(data as RoundContentPayload)
+              setRoundReveal(null)
               setAnsweredCount(0)
-            }
-            break
+              break
 
-          case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as RoundContentPayload)
-            setRoundReveal(null)
-            setAnsweredCount(0)
-            break
+            case EVENTS.ANSWER_COUNT_UPDATE:
+              setAnsweredCount(d.answered as number)
+              setTotalPlayers(d.total as number)
+              break
 
-          case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(d.answered as number)
-            setTotalPlayers(d.total as number)
-            break
+            case EVENTS.QUESTION_REVEAL:
+              setReveal(data as QuestionRevealPayload)
+              break
 
-          case EVENTS.QUESTION_REVEAL:
-            setReveal(data as QuestionRevealPayload)
-            break
+            case EVENTS.ROUND_REVEAL:
+              setRoundReveal(data as RoundRevealPayload)
+              break
 
-          case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as RoundRevealPayload)
-            break
+            case EVENTS.LEADERBOARD_SHOW:
+              if (d.leaderboard) {
+                setLeaderboard(d.leaderboard as LeaderboardEntry[])
+              }
+              break
 
-          case EVENTS.LEADERBOARD_SHOW:
-            if (d.leaderboard) {
-              setLeaderboard(d.leaderboard as LeaderboardEntry[])
-            }
-            break
+            case EVENTS.ROADMAP_UPDATE:
+              setRoadmap(data as RoadmapUpdate)
+              break
 
-          case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as RoadmapUpdate)
-            break
+            case EVENTS.GAME_OVER:
+              if (d.finalScores) {
+                setFinalScores(d.finalScores as ScoreMap)
+              }
+              break
 
-          case EVENTS.GAME_OVER:
-            if (d.finalScores) {
-              setFinalScores(d.finalScores as ScoreMap)
-            }
-            break
-
-          default:
-            break
+            default:
+              break
+          }
+        } catch (err) {
+          console.error('Failed to parse WebSocket message:', err)
         }
-      } catch (err) {
-         
-        console.error('Failed to parse WebSocket message:', err)
       }
-    }
 
-    socket.onclose = (event) => {
-      setStatus('closed')
-      setRoomState(null)
-      if (event.code === 4004) {
-        setFatalError('Room not found or token invalid')
+      socket.onclose = (event) => {
+        setStatus('closed')
+        setRoomState(null)
+        if (event.code === 4004) {
+          setFatalError('Room not found or token invalid')
+        }
+        // Do not clear tokens or code so we can attempt reconnect if desired
       }
-      // Do not clear tokens or code so we can attempt reconnect if desired
-    }
 
-    socket.onerror = () => {
-       
-      console.error('WebSocket connection error')
-    }
+      socket.onerror = () => {
+        console.error('WebSocket connection error')
+      }
     }, 50)
 
     return () => {
