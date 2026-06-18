@@ -75,6 +75,7 @@ export function VaultRush({
               Enter code
               <input
                 className="vault-rush-input"
+                disabled={submitted}
                 inputMode="numeric"
                 maxLength={MAX_CODE_LENGTH}
                 onChange={(event) => {
