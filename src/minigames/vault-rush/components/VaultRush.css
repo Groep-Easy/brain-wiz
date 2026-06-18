@@ -2,6 +2,7 @@
 .vault-rush-app * {
   box-sizing: border-box;
 }
+
 .vault-rush-app {
   --vault-rush-bg: #080a0f;
   --vault-rush-panel: #111823;
@@ -14,6 +15,7 @@
   --vault-rush-muted: #a8b0bd;
   --vault-rush-line: rgba(242, 196, 95, 0.34);
   --vault-rush-shadow: rgba(0, 0, 0, 0.45);
+
   position: relative;
   isolation: isolate;
   display: grid;
@@ -26,6 +28,7 @@
   background:
     radial-gradient(circle at 50% 18%, rgba(242, 196, 95, 0.16), transparent 30rem),
     radial-gradient(circle at 12% 82%, rgba(66, 245, 155, 0.08), transparent 22rem),
+    radial-gradient(circle at 88% 28%, rgba(255, 77, 94, 0.08), transparent 24rem),
     linear-gradient(145deg, #05070b 0%, #101722 52%, #07090d 100%);
   font-family:
     Inter,
@@ -36,25 +39,59 @@
     'Segoe UI',
     sans-serif;
 }
+
+/* Security grid background */
 .vault-rush-app::before {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: -3;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 42px 42px;
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(66, 245, 155, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(66, 245, 155, 0.035) 1px, transparent 1px);
+  background-size:
+    42px 42px,
+    42px 42px,
+    168px 168px,
+    168px 168px;
   mask-image: radial-gradient(circle at center, black, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at center, black, transparent 78%);
 }
+
+/* Side lasers and subtle side glow */
 .vault-rush-app::after {
   content: '';
   position: absolute;
-  inset: auto -20% -45% -20%;
-  z-index: -1;
-  height: 55%;
-  background: radial-gradient(circle, rgba(242, 196, 95, 0.11), transparent 62%);
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(24deg, transparent 0 46%, rgba(255, 77, 94, 0.4) 47%, transparent 49%),
+    linear-gradient(-24deg, transparent 0 46%, rgba(255, 77, 94, 0.4) 47%, transparent 49%),
+    linear-gradient(155deg, transparent 0 47%, rgba(255, 77, 94, 0.22) 48%, transparent 50%),
+    linear-gradient(-155deg, transparent 0 47%, rgba(255, 77, 94, 0.22) 48%, transparent 50%),
+    radial-gradient(circle at 0% 50%, rgba(255, 77, 94, 0.14), transparent 28rem),
+    radial-gradient(circle at 100% 50%, rgba(255, 77, 94, 0.14), transparent 28rem);
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center,
+    left center,
+    right center;
+  background-size:
+    42vw 100%,
+    42vw 100%,
+    38vw 100%,
+    38vw 100%,
+    42vw 100%,
+    42vw 100%;
+  background-repeat: no-repeat;
+  opacity: 0.72;
+  pointer-events: none;
 }
+
 .vault-rush-card {
   position: relative;
   isolation: isolate;
@@ -73,6 +110,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
+
 .vault-rush-card::before {
   content: '';
   position: absolute;
@@ -81,8 +119,8 @@
   z-index: -1;
   width: 310px;
   height: 310px;
+  border: 12px solid rgba(242, 196, 95, 0.18);
   border-radius: 50%;
-  transform: translateX(-50%);
   background:
     radial-gradient(circle, rgba(8, 10, 15, 0.72) 0 26%, transparent 27%),
     repeating-conic-gradient(
@@ -90,12 +128,13 @@
       rgba(242, 196, 95, 0.36) 0deg 9deg,
       rgba(65, 72, 84, 0.28) 9deg 18deg
     );
-  border: 12px solid rgba(242, 196, 95, 0.18);
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.7),
     0 0 44px rgba(242, 196, 95, 0.14);
   opacity: 0.7;
+  transform: translateX(-50%);
 }
+
 .vault-rush-card::after {
   content: '';
   position: absolute;
@@ -105,11 +144,52 @@
   border-radius: 22px;
   pointer-events: none;
 }
+
 .vault-rush-header {
   display: grid;
   gap: 8px;
   text-align: center;
 }
+
+/* Decorative warning panels on wide host screens */
+.vault-rush-header::before,
+.vault-rush-header::after {
+  position: fixed;
+  top: 50%;
+  display: none;
+  width: 220px;
+  padding: 16px 18px;
+  color: rgba(248, 239, 217, 0.72);
+  background:
+    linear-gradient(135deg, rgba(255, 77, 94, 0.12), rgba(255, 255, 255, 0.035)),
+    rgba(8, 10, 15, 0.42);
+  border: 1px solid rgba(255, 77, 94, 0.24);
+  border-radius: 16px;
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  line-height: 1.8;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0.82;
+  transform: translateY(-50%);
+}
+
+.vault-rush-header::before {
+  content: 'Security system\A active';
+  left: clamp(28px, 5vw, 96px);
+}
+
+.vault-rush-header::after {
+  content: 'Vault locked\A code required';
+  right: clamp(28px, 5vw, 96px);
+}
+
 .vault-rush-kicker {
   justify-self: center;
   margin: 0;
@@ -123,6 +203,7 @@
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
+
 .vault-rush-header h1 {
   margin: 0;
   color: var(--vault-rush-text);
@@ -134,12 +215,14 @@
     0 0 18px rgba(242, 196, 95, 0.18),
     0 5px 0 rgba(0, 0, 0, 0.32);
 }
+
 .vault-rush-subtitle {
   margin: 0;
   color: var(--vault-rush-muted);
   font-size: 0.98rem;
   font-weight: 750;
 }
+
 .vault-rush-code {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -154,6 +237,7 @@
     inset 0 0 24px rgba(0, 0, 0, 0.58),
     0 12px 26px rgba(0, 0, 0, 0.22);
 }
+
 .vault-rush-code-box {
   position: relative;
   display: grid;
@@ -179,6 +263,7 @@
   line-height: 1;
   text-shadow: 0 0 12px rgba(66, 245, 155, 0.42);
 }
+
 .vault-rush-code-box::after {
   content: '';
   position: absolute;
@@ -192,10 +277,12 @@
   );
   pointer-events: none;
 }
+
 .vault-rush-clues {
   display: grid;
   gap: 10px;
 }
+
 .vault-rush-clue {
   position: relative;
   margin: 0;
@@ -210,6 +297,7 @@
   font-size: 0.96rem;
   font-weight: 800;
 }
+
 .vault-rush-clue::before {
   content: '◆';
   position: absolute;
@@ -217,13 +305,15 @@
   left: 15px;
   color: var(--vault-rush-gold);
   font-size: 0.9rem;
-  transform: translateY(-50%);
   text-shadow: 0 0 12px rgba(242, 196, 95, 0.6);
+  transform: translateY(-50%);
 }
+
 .vault-rush-form {
   display: grid;
   gap: 14px;
 }
+
 .vault-rush-input-label {
   display: grid;
   gap: 9px;
@@ -233,6 +323,7 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
+
 .vault-rush-input {
   width: 100%;
   min-height: 58px;
@@ -258,6 +349,7 @@
   text-align: center;
   caret-color: var(--vault-rush-gold);
 }
+
 .vault-rush-input:focus {
   border-color: var(--vault-rush-gold);
   outline: none;
@@ -266,9 +358,11 @@
     0 0 0 4px rgba(242, 196, 95, 0.15),
     0 0 28px rgba(242, 196, 95, 0.16);
 }
+
 .vault-rush-input::placeholder {
   color: rgba(168, 176, 189, 0.72);
 }
+
 .vault-rush-form .vault-rush-submit {
   min-height: 56px;
   color: #16100a;
@@ -283,16 +377,19 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
+
 .vault-rush-form .vault-rush-submit:not(:disabled):hover {
   opacity: 1;
-  transform: translateY(-1px);
   box-shadow:
     0 18px 36px rgba(242, 196, 95, 0.24),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
+
 .vault-rush-form .vault-rush-submit:not(:disabled):active {
   transform: translateY(0);
 }
+
 .vault-rush-form .vault-rush-submit:disabled {
   color: rgba(255, 255, 255, 0.48);
   background: linear-gradient(135deg, #323946, #1d2530);
@@ -301,6 +398,7 @@
   opacity: 1;
   cursor: not-allowed;
 }
+
 .vault-rush-solution {
   margin: 0;
   padding: 12px 14px;
@@ -313,18 +411,35 @@
   text-align: center;
   text-shadow: 0 0 10px rgba(66, 245, 155, 0.24);
 }
+
+@media (min-width: 1100px) {
+  .vault-rush-header::before,
+  .vault-rush-header::after {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .vault-rush-app::after {
+    opacity: 0.35;
+  }
+}
+
 @media (max-width: 390px) {
   .vault-rush-app {
     padding: 14px;
   }
+
   .vault-rush-card {
     gap: 18px;
     border-radius: 22px;
   }
+
   .vault-rush-clue {
     padding-left: 38px;
     font-size: 0.9rem;
   }
+
   .vault-rush-input {
     letter-spacing: 0.28em;
   }
