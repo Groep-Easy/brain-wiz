@@ -32,6 +32,8 @@ import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -233,6 +235,7 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
+
         break
       }
       case EVENTS.QUESTION_REVEAL:
@@ -441,6 +444,26 @@ export function App(): React.JSX.Element {
       )
     }
 
+    if (roundContent.type === 'vault-rush') {
+      const puzzle = roundContent.publicState as VaultRushPuzzle
+      const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const isReveal = phase === 'reveal'
+
+      return (
+        <section className="client-minigame client-minigame--vault-rush">
+          <VaultRush
+            onSubmitCode={(code) => {
+              handleRoundSubmit({ code })
+            }}
+            puzzle={puzzle}
+            readOnly={isReveal}
+            solutionCode={isReveal ? solution?.code : undefined}
+            submitted={roundSubmitted}
+          />
+        </section>
+      )
+    }
+
     return null
   }
 
@@ -519,7 +542,13 @@ export function App(): React.JSX.Element {
     const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
     if (minigame) {
       return (
-        <main className={roundContent?.type === 'sliding-puzzle' ? 'app app--minigame' : 'app'}>
+        <main
+          className={
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
+              ? 'app app--minigame'
+              : 'app'
+          }
+        >
           {banner}
           {minigame}
         </main>

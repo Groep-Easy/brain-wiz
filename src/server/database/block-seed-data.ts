@@ -44,6 +44,7 @@ const THEME_BLOCKS: BlockSeed[] = [
 const MINIGAME_BLOCKS: BlockSeed[] = [
   { minigameKey: 'balance-scale', label: 'Balance Scale', icon: '⚖️' },
   { minigameKey: 'sliding-puzzle', label: 'Sliding Puzzle', icon: '🧩' },
+  { minigameKey: 'vault-rush', label: 'Vault Rush', icon: '🔐' },
 ].map((m) => ({
   id: `mini-${m.minigameKey}`,
   kind: BlockKindEnum.MINIGAME,
