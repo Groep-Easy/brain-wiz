@@ -1,7 +1,4 @@
-import type {
-  RoundContentPayload,
-  RoundRevealPayload,
-} from '@brain-wiz/shared/types/index'
+import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { BalanceScale } from '../balance-scale/components/BalanceScale.js'
 import { ScaleEquationClues } from '../balance-scale/components/ScaleEquationClues.js'
 import {
@@ -10,7 +7,10 @@ import {
   type ScalePuzzle,
 } from '../balance-scale/shared/scaleGame.js'
 import { SlidingPuzzle } from '../sliding-puzzle/components/SlidingPuzzle.js'
-import type { SlidingPuzzleBoard, SlidingPuzzlePuzzle } from '../sliding-puzzle/shared/slidingPuzzleGame.js'
+import type {
+  SlidingPuzzleBoard,
+  SlidingPuzzlePuzzle,
+} from '../sliding-puzzle/shared/slidingPuzzleGame.js'
 import { VaultRush } from '../vault-rush/components/VaultRush.js'
 import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
 
@@ -83,21 +83,28 @@ export function RoundMinigameSurface({
   }
 
   if (content.type === 'vault-rush') {
-  const puzzle = content.publicState as VaultRushPuzzle
-  const solution = reveal?.publicSolution as { code?: string } | undefined
-  const readOnly = mode === 'display' || phase === 'reveal'
+    const puzzle = content.publicState as VaultRushPuzzle
+    const solution = reveal?.publicSolution as { code?: string } | undefined
+    const readOnly = mode === 'display' || phase === 'reveal'
+    const solutionCode = phase === 'reveal' ? solution?.code : undefined
 
-  return (
-    <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-      <VaultRush
-        onCodeChange={readOnly ? undefined : (code: string) => onSubmissionChange?.({ code })}
-        puzzle={puzzle}
-        readOnly={readOnly}
-        solutionCode={phase === 'reveal' ? solution?.code : undefined}
-      />
-    </section>
-  )
-}
+    return (
+      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+        <VaultRush
+          {...(!readOnly
+            ? {
+                onCodeChange: (code: string) => {
+                  onSubmissionChange?.({ code })
+                },
+              }
+            : {})}
+          {...(solutionCode ? { solutionCode } : {})}
+          puzzle={puzzle}
+          readOnly={readOnly}
+        />
+      </section>
+    )
+  }
 
   return null
 }
