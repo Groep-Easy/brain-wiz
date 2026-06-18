@@ -1,16 +1,16 @@
 /* gradients.css - Premium animated gradient backgrounds */
 
 :root {
-  --color-bg1: 0 0 30; /* Brain-Wiz Teal */
-  --color-bg2: 0 60 200; /* Brain-Wiz Navy */
-  --color1: 18, 113, 255;
-  --color2: 221, 74, 255;
-  --color3: 100, 220, 255;
-  --color4: 200, 50, 50;
-  --color5: 180, 180, 50;
-  --color-interactive: 140, 100, 255;
-  --circle-size: 80%;
-  --blending: hard-light;
+  --color-bg1: 6 76 66;
+  --color-bg2: 26 36 62;
+  --color1: 5, 108, 92;
+  --color2: 44, 87, 168;
+  --color3: 54, 67, 95;
+  --color4: 5, 108, 92;
+  --color5: 44, 87, 168;
+  --color-interactive: 90, 170, 158;
+  --circle-size: 60%;
+  --blending: soft-light;
 }
 
 .gradient-bg-container {
@@ -55,31 +55,31 @@
 .g1 {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color1), 0.8) 0,
+      rgba(var(--color1), 0.5) 0,
       rgba(var(--color1), 0) 50%
     )
     no-repeat;
   transform-origin: center center;
   animation: moveVertical 30s ease infinite;
-  opacity: 1;
+  opacity: 0.6;
 }
 
 .g2 {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color2), 0.8) 0,
+      rgba(var(--color2), 0.5) 0,
       rgba(var(--color2), 0) 50%
     )
     no-repeat;
   transform-origin: calc(50% - 400px);
   animation: moveInCircle 20s reverse infinite;
-  opacity: 1;
+  opacity: 0.55;
 }
 
 .g3 {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color3), 0.8) 0,
+      rgba(var(--color3), 0.5) 0,
       rgba(var(--color3), 0) 50%
     )
     no-repeat;
@@ -87,25 +87,25 @@
   left: calc(50% - var(--circle-size) / 2 - 500px);
   transform-origin: calc(50% + 400px);
   animation: moveInCircle 40s linear infinite;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .g4 {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color4), 0.8) 0,
+      rgba(var(--color4), 0.5) 0,
       rgba(var(--color4), 0) 50%
     )
     no-repeat;
   transform-origin: calc(50% - 200px);
   animation: moveHorizontal 40s ease infinite;
-  opacity: 0.7;
+  opacity: 0.4;
 }
 
 .g5 {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color5), 0.8) 0,
+      rgba(var(--color5), 0.5) 0,
       rgba(var(--color5), 0) 50%
     )
     no-repeat;
@@ -115,13 +115,13 @@
   left: calc(50% - var(--circle-size));
   transform-origin: calc(50% - 800px) calc(50% + 200px);
   animation: moveInCircle 20s ease infinite;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .interactive-glow {
   background: radial-gradient(
       circle at center,
-      rgba(var(--color-interactive), 0.8) 0,
+      rgba(var(--color-interactive), 0.5) 0,
       rgba(var(--color-interactive), 0) 50%
     )
     no-repeat;
@@ -129,7 +129,7 @@
   height: 100%;
   top: -50%;
   left: -50%;
-  opacity: 0.7;
+  opacity: 0.45;
   pointer-events: none;
   will-change: transform;
 }

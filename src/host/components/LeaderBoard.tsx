@@ -5,8 +5,9 @@
  * score changes with layout animations.
  */
 import { useRef, useLayoutEffect, useMemo } from 'react'
-import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
+import type { LeaderboardEntry, Player } from '@brain-wiz/shared/types/index'
 import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import '../styles/leaderboard.css'
 
 import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
@@ -14,6 +15,7 @@ import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
   roadmap?: RoadmapUpdate | null
+  players?: Player[]
 }
 
 interface RoadmapProps {
@@ -41,9 +43,19 @@ const themeAssets: Record<string, { icon: string }> = {
   geography: { icon: '🌍' },
 }
 
-export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.JSX.Element {
+export function LeaderBoard({
+  leaderboard,
+  roadmap,
+  players,
+}: LeaderBoardProps): React.JSX.Element {
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
   const previousPositions = useRef<Map<string, number>>(new Map())
+
+  const avatarByPlayerId = useMemo(() => {
+    const map = new Map<string, Player['playerAvatar']>()
+    for (const player of players ?? []) map.set(player.id, player.playerAvatar)
+    return map
+  }, [players])
 
   useLayoutEffect(() => {
     const currentPositions = new Map<string, number>()
@@ -239,6 +251,14 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
             >
               <div className="player-info">
                 <span className="rank">#{entry.rank}</span>
+                {(() => {
+                  const avatar = avatarByPlayerId.get(entry.playerId)
+                  return avatar ? (
+                    <span className="player-avatar">
+                      <CharacterPreview color={avatar.bodyColor} faceId={avatar.faceId} size={44} />
+                    </span>
+                  ) : null
+                })()}
                 <span className="name">{entry.name}</span>
               </div>
               <div className="player-stats">

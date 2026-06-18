@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
+import { getHostBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 import '@brain-wiz/shared/styles/CharacterPreview.css'
+import '../styles/join.css'
 
 const FACE_COUNT = 4
 
@@ -107,91 +109,100 @@ export function JoinScreen({
     }
   }
 
+  const handleBackToStart = () => {
+    window.location.href = `${getHostBaseUrl()}/`
+  }
+
   return (
-    <div className="card join-card">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+    <div className="join-screen">
+      <div className="join-brand">
         <WizardLogo size={48} />
-        <h1 className="text-logo" style={{ color: 'white', fontSize: '3.5rem' }}>BrainWiz</h1>
+        <h1 className="text-logo">BrainWiz</h1>
       </div>
-      <p className="subtitle">Join the game</p>
-      <form onSubmit={handleSubmit}>
-        <div className="face-controls">
-          <button type="button" onClick={prevFace} className="arrow-btn icon-btn">
-            <svg width="48" height="48" viewBox="0 0 24 24">
-              <polygon points="16,4 6,12 16,20" />
-            </svg>
+      <div className="card join-card">
+        <p className="subtitle">Join the game</p>
+        <form onSubmit={handleSubmit}>
+          <div className="face-controls">
+            <button type="button" onClick={prevFace} className="arrow-btn icon-btn">
+              <svg width="48" height="48" viewBox="0 0 24 24">
+                <polygon points="16,4 6,12 16,20" />
+              </svg>
+            </button>
+            <CharacterPreview color={character.bodyColor} faceId={character.faceId} />
+            <button type="button" onClick={nextFace} className="arrow-btn icon-btn">
+              <svg width="48" height="48" viewBox="0 0 24 24">
+                <polygon points="8,4 18,12 8,20" />
+              </svg>
+            </button>
+          </div>
+          <div className="character-controls" style={{ position: 'relative' }}>
+            {showColorPalette && (
+              <div className="color-palette-popup">
+                {COLOR_PRESETS.map((color) => (
+                  <button
+                    key={color}
+                    className="color-swatch"
+                    style={{ backgroundColor: color }}
+                    onClick={() => {
+                      setCharacter((prev) => ({
+                        ...prev,
+                        bodyColor: color,
+                      }))
+                      setShowColorPalette(false)
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setShowColorPalette((prev) => !prev)}
+              title="Choose color"
+            >
+              <span className="color-dot" style={{ backgroundColor: character.bodyColor }} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setCharacter(createRandomCharacter())}
+              title="Randomize character"
+            >
+              🎲
+            </button>
+          </div>
+          <div className="field">
+            <label htmlFor="player-name">Your name</label>
+            <input
+              id="player-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Alex"
+              autoComplete="off"
+            />
+            {nameError ? <p className="error-text">{nameError}</p> : null}
+          </div>
+          <div className="field">
+            <label htmlFor="room-code">Room code</label>
+            <input
+              id="room-code"
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="ABCD"
+              autoComplete="off"
+            />
+          </div>
+          {error ? <p className="error-text">{error}</p> : null}
+          <button className="primary-btn" type="submit" disabled={!canJoin}>
+            Join room
           </button>
-          <CharacterPreview color={character.bodyColor} faceId={character.faceId} />
-          <button type="button" onClick={nextFace} className="arrow-btn icon-btn">
-            <svg width="48" height="48" viewBox="0 0 24 24">
-              <polygon points="8,4 18,12 8,20" />
-            </svg>
+          <button type="button" className="back-btn" onClick={handleBackToStart}>
+            ← Back to start
           </button>
-        </div>
-        <div className="character-controls" style={{ position: 'relative' }}>
-          {showColorPalette && (
-            <div className="color-palette-popup">
-              {COLOR_PRESETS.map((color) => (
-                <button
-                  key={color}
-                  className="color-swatch"
-                  style={{ backgroundColor: color }}
-                  onClick={() => {
-                    setCharacter((prev) => ({
-                      ...prev,
-                      bodyColor: color,
-                    }))
-                    setShowColorPalette(false)
-                  }}
-                />
-              ))}
-            </div>
-          )}
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => setShowColorPalette((prev) => !prev)}
-            title="Choose color"
-          >
-            <span className="color-dot" style={{ backgroundColor: character.bodyColor }} />
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => setCharacter(createRandomCharacter())}
-            title="Randomize character"
-          >
-            🎲
-          </button>
-        </div>
-        <div className="field">
-          <label htmlFor="player-name">Your name</label>
-          <input
-            id="player-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Alex"
-            autoComplete="off"
-          />
-          {nameError ? <p className="error-text">{nameError}</p> : null}
-        </div>
-        <div className="field">
-          <label htmlFor="room-code">Room code</label>
-          <input
-            id="room-code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="ABCD"
-            autoComplete="off"
-          />
-        </div>
-        {error ? <p className="error-text">{error}</p> : null}
-        <button className="primary-btn" type="submit" disabled={!canJoin}>
-          Join room
-        </button>
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

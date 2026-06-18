@@ -101,21 +101,19 @@ export function WelcomeScreen(): React.JSX.Element {
         </div>
       </div>
 
-
-
       <div
         className="hero-content"
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
       >
         <WizardLogo size={80} className="hero-logo-svg" />
-        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>
+        <h1 className="text-logo" style={{ fontSize: '5rem', margin: '16px 0', color: 'white' }}>
           BrainWiz
         </h1>
         <div className="hero-actions">
-          <button className="primary-btn" onClick={handleCreateRoom}>
+          <button className="hero-btn hero-btn--primary" onClick={handleCreateRoom}>
             Start Hosting Game
           </button>
-          <button className="primary-btn" onClick={handleJoinGame}>
+          <button className="hero-btn hero-btn--secondary" onClick={handleJoinGame}>
             Join Existing Game
           </button>
         </div>

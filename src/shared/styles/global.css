@@ -213,3 +213,13 @@ textarea:disabled {
 .shared-footer-bar p {
   margin: 0;
 }
+
+.code-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--teal, #056c5c);
+  background: rgba(5, 108, 92, 0.08);
+  border-radius: var(--radius-round, 999px);
+}

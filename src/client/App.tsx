@@ -31,6 +31,7 @@ import { Answer } from './screens/Answer'
 import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
+import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
@@ -370,6 +371,13 @@ export function App(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only WebSocket setup; runs once for the component lifetime
   }, [])
 
+  useEffect(() => {
+    const phase = roomState?.phase
+    const inGame = joined && phase != null && phase !== 'lobby'
+    document.body.classList.toggle('client-in-game', inGame)
+    return () => document.body.classList.remove('client-in-game')
+  }, [joined, roomState?.phase])
+
   function handleJoin(name: string, code: string, playerAvatar: PlayerAvatar): void {
     setJoinError(null)
     setJoining(true)
@@ -468,12 +476,14 @@ export function App(): React.JSX.Element {
   }
 
   const disconnected = status === 'closed'
-  const banner =
-    disconnected && !kicked ? (
-      <div className="banner">
-        {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
-      </div>
-    ) : null
+  const banner = (
+    <>
+      <ReconnectToast visible={disconnected && !kicked && !reconnectExhausted} />
+      {disconnected && !kicked && reconnectExhausted ? (
+        <div className="banner">Connection lost — reload the page to rejoin</div>
+      ) : null}
+    </>
+  )
 
   if (fatalError) {
     return (
@@ -600,7 +610,11 @@ export function App(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
-        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
+        <Leaderboard
+          leaderboard={leaderboard}
+          myPlayerId={myPlayerId}
+          players={roomState?.players ?? []}
+        />
       </main>
     )
   }

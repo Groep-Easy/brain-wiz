@@ -1,27 +1,33 @@
 import { useEffect, useState } from 'react'
-import { isMuted, toggleMuted, onMuteChange, watchMedia } from '@brain-wiz/shared/SFX/mute'
+import {
+  isMuted,
+  getVolume,
+  toggleMuted,
+  setVolume,
+  onMuteChange,
+  onVolumeChange,
+  watchMedia,
+} from '@brain-wiz/shared/SFX/mute'
 import '../styles/mute_button.css'
 
-/**
- * Fixed button in the top-right corner of the host display that mutes/unmutes
- * all game sound (background music + SFX). Mounted once at the host route so it
- * floats above whatever screen/phase is currently showing.
- */
 export function MuteButton({ isInline = false }: { isInline?: boolean } = {}): React.JSX.Element {
   const [muted, setMuted] = useState<boolean>(isMuted)
+  const [volume, setVolumeValue] = useState<number>(getVolume)
 
   useEffect(() => {
-    // Keep newly-mounted <audio> elements (per-screen music) in sync, and
-    // mirror state changes coming from anywhere else.
     const stopWatching = watchMedia()
-    const unsubscribe = onMuteChange(setMuted)
+    const unsubscribeMute = onMuteChange(setMuted)
+    const unsubscribeVolume = onVolumeChange(setVolumeValue)
     return () => {
       stopWatching()
-      unsubscribe()
+      unsubscribeMute()
+      unsubscribeVolume()
     }
   }, [])
 
-  return (
+  const sliderValue = muted ? 0 : volume
+
+  const speaker = (
     <button
       type="button"
       className={`mute-btn icon-btn ${!isInline ? 'mute-btn-fixed' : ''} ${muted ? 'is-muted' : 'active'}`}
@@ -62,5 +68,25 @@ export function MuteButton({ isInline = false }: { isInline?: boolean } = {}): R
         />
       </svg>
     </button>
+  )
+
+  if (!isInline) return speaker
+
+  return (
+    <div className="volume-control">
+      {speaker}
+      <input
+        type="range"
+        className="volume-slider"
+        min={0}
+        max={1}
+        step={0.01}
+        value={sliderValue}
+        onChange={(e) => setVolume(Number(e.target.value))}
+        title="Volume"
+        aria-label="Volume"
+        style={{ ['--volume-pct']: `${sliderValue * 100}%` } as React.CSSProperties}
+      />
+    </div>
   )
 }

@@ -303,6 +303,7 @@ export class GameEngineService {
       total: this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT,
       type: round.gameType ?? 'quiz',
       timeLimitSeconds: round.timeLimitSeconds,
+      ...(round.question?.text ? { questionText: round.question.text } : {}),
     }
   }
 

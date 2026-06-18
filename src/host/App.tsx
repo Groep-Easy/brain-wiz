@@ -25,7 +25,8 @@ import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { MuteButton } from './components/MuteButton'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
+import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
@@ -51,6 +52,7 @@ export function App(): React.JSX.Element {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
   const socketRef = useRef<WebSocket | null>(null)
 
@@ -219,14 +221,16 @@ export function App(): React.JSX.Element {
   }
 
   const handleCloseLobby = () => {
-    // eslint-disable-next-line no-alert -- intentional native confirm dialog
-    if (window.confirm('Are you sure you want to dissolve the lobby?')) {
-      socketRef.current?.close()
-      socketRef.current = null
-      setRoomState(null)
-      setStatus('closed')
-      void navigate('/')
-    }
+    setConfirmCloseOpen(true)
+  }
+
+  const performCloseLobby = () => {
+    setConfirmCloseOpen(false)
+    socketRef.current?.close()
+    socketRef.current = null
+    setRoomState(null)
+    setStatus('closed')
+    void navigate('/')
   }
 
   const renderPhase = () => {
@@ -254,7 +258,7 @@ export function App(): React.JSX.Element {
 
     if (phase === 'lobby') {
       return (
-        <main className="app">
+        <main className="app app--lobby">
           <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
           <SetupLobby
             roomCode={roomCode}
@@ -269,7 +273,13 @@ export function App(): React.JSX.Element {
     }
 
     if (phase === 'round-intro') {
-      return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
+      return (
+        <RoundIntro
+          index={round?.index ?? roomState.round}
+          total={round?.total ?? 0}
+          questionText={round?.questionText}
+        />
+      )
     }
 
     if (phase === 'playing' || phase === 'reveal') {
@@ -316,9 +326,9 @@ export function App(): React.JSX.Element {
 
     if (phase === 'leaderboard') {
       return (
-        <main className="app">
+        <main className="app app--solid">
           <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-          <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+          <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} players={roomState.players} />
         </main>
       )
     }
@@ -334,6 +344,16 @@ export function App(): React.JSX.Element {
     <>
       {renderPhase()}
       {roomState?.phase && roomState.phase !== 'lobby' && <MuteButton />}
+      <ConfirmDialog
+        open={confirmCloseOpen}
+        title="Dissolve lobby?"
+        message="This will close the room and disconnect all players."
+        confirmLabel="Dissolve"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={performCloseLobby}
+        onCancel={() => setConfirmCloseOpen(false)}
+      />
     </>
   )
 }
