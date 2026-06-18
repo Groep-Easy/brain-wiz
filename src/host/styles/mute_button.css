@@ -1,4 +1,4 @@
-.mute-btn {
+.mute-btn-fixed {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -29,4 +29,13 @@
 
 .mute-btn.is-muted .speaker-icon .strike {
   stroke-dashoffset: 0;
+}
+
+.speaker-icon .speaker-cone {
+  transition: transform 0.3s ease;
+  transform-origin: 6.5px 12px;
+}
+
+.mute-btn.is-muted .speaker-icon .speaker-cone {
+  transform: scale(1.8) translateX(1.5px);
 }

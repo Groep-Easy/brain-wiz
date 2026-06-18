@@ -15,7 +15,7 @@ export function CountdownCircle({
   const [timeLeft, setTimeLeft] = useState(seconds)
 
   useEffect(() => {
-    if (timeLeft <= 0) {
+    if (timeLeft < 0) {
       onComplete()
       return
     }
@@ -26,7 +26,7 @@ export function CountdownCircle({
   }, [timeLeft, onComplete])
 
   const circumference = 283
-  const progress = timeLeft / seconds
+  const progress = Math.max(0, timeLeft) / seconds
   const strokeDashoffset = circumference - progress * circumference
 
   return (
@@ -42,7 +42,7 @@ export function CountdownCircle({
             style={{ strokeDashoffset }}
           />
         </svg>
-        <div className="countdown-number">{timeLeft}</div>
+        <div className="countdown-number">{Math.max(0, timeLeft)}</div>
       </div>
       <p className="countdown-message">{message}</p>
     </div>

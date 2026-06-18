@@ -24,6 +24,8 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
+import { WelcomeScreen } from './screens/WelcomeScreen'
+import { MuteButton } from './components/MuteButton'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
@@ -90,37 +92,40 @@ export function App(): React.JSX.Element {
       try {
         const { event: ev, data } = JSON.parse(event.data) as {
           event: string
-          data: Record<string, unknown>
+          data: unknown
         }
+
+        // data is `unknown` — cast locally per-case for type-safe access
+        const d = data as Record<string, unknown>
 
         switch (ev) {
           case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(data.room as RoomState)
+            setRoomState(d.room as RoomState)
             break
 
           case EVENTS.GAME_PHASE_CHANGE:
-            setRoomState((prev) =>
-              prev ? { ...prev, phase: data.phase as RoomState['phase'] } : prev
+            setRoomState((prev: RoomState | null) =>
+              prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
             )
             break
 
           case EVENTS.ROUND_START:
-            if (data.round) {
-              setRound(data.round as RoundSummary)
+            if (d.round) {
+              setRound(d.round as RoundSummary)
             }
             setRoundContent(null)
             setRoundReveal(null)
             break
 
           case EVENTS.TIMER_TICK:
-            setSecondsRemaining(data.secondsRemaining as number)
+            setSecondsRemaining(d.secondsRemaining as number)
             break
 
           case EVENTS.QUESTION_SHOW:
-            if (data.question) {
+            if (d.question) {
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(data.question as QuestionState)
+              setQuestion(d.question as QuestionState)
               setReveal(null)
               setAnsweredCount(0)
             }
@@ -133,8 +138,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(data.answered as number)
-            setTotalPlayers(data.total as number)
+            setAnsweredCount(d.answered as number)
+            setTotalPlayers(d.total as number)
             break
 
           case EVENTS.QUESTION_REVEAL:
@@ -146,8 +151,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.LEADERBOARD_SHOW:
-            if (data.leaderboard) {
-              setLeaderboard(data.leaderboard as LeaderboardEntry[])
+            if (d.leaderboard) {
+              setLeaderboard(d.leaderboard as LeaderboardEntry[])
             }
             break
 
@@ -156,8 +161,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.GAME_OVER:
-            if (data.finalScores) {
-              setFinalScores(data.finalScores as ScoreMap)
+            if (d.finalScores) {
+              setFinalScores(d.finalScores as ScoreMap)
             }
             break
 
@@ -225,112 +230,112 @@ export function App(): React.JSX.Element {
     }
   }
 
-  // Dynamic Routing based on game phase
-  if (fatalError) {
-    return (
-      <main className="app">
-        <div className="welcome-screen">
-          <div className="welcome-card">
-            <CountdownCircle
-              seconds={5}
-              message={fatalError}
-              onComplete={async () => navigate('/')}
-            />
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  if (!roomState || status !== 'open' || !roomCode || !hostToken) {
-    return (
-      <main className="app">
-        <div className="welcome-screen">
-          <div className="welcome-card">
-            <p>Connecting to room {roomCode}...</p>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  const phase = roomState.phase
-
-  if (phase === 'lobby') {
-    return (
-      <main className="app">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
-        <SetupLobby
-          roomCode={roomCode}
-          hostToken={hostToken}
-          players={roomState.players}
-          gameFlow={roomState.gameFlow ?? []}
-          onStartGame={handleStartGame}
-          onCloseLobby={handleCloseLobby}
-        />
-      </main>
-    )
-  }
-
-  if (phase === 'round-intro') {
-    return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
-  }
-
-  if (phase === 'playing' || phase === 'reveal') {
-    if (roundContent) {
-      return (
-        <main className="app app--minigame">
-          {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
-        </main>
-      )
-    }
-
-    if (!question) {
+  const renderPhase = () => {
+    if (fatalError) {
       return (
         <main className="app">
           <div className="welcome-screen">
             <div className="welcome-card">
-              <p>Preparing next question…</p>
+              <CountdownCircle
+                seconds={5}
+                message={fatalError}
+                onComplete={async () => navigate('/')}
+              />
             </div>
           </div>
         </main>
       )
     }
-    return (
-      <Question
-        gameCode={roomCode}
-        question={question}
-        secondsRemaining={secondsRemaining}
-        answeredCount={answeredCount}
-        totalPlayers={totalPlayers}
-        reveal={phase === 'reveal' ? reveal : null}
-      />
-    )
-  }
 
-  if (phase === 'game-over' || finalScores !== null) {
-    return (
-      <GameOver
-        players={roomState.players}
-        finalScores={finalScores || {}}
-        onBackToMenu={handleCloseLobby}
-      />
-    )
-  }
+    if (!roomState || status !== 'open' || !roomCode || !hostToken) {
+      return <WelcomeScreen />
+    }
 
-  if (phase === 'leaderboard') {
+    const phase = roomState.phase
+
+    if (phase === 'lobby') {
+      return (
+        <main className="app">
+          <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
+          <SetupLobby
+            roomCode={roomCode}
+            hostToken={hostToken}
+            players={roomState.players}
+            gameFlow={roomState.gameFlow ?? []}
+            onStartGame={handleStartGame}
+            onCloseLobby={handleCloseLobby}
+          />
+        </main>
+      )
+    }
+
+    if (phase === 'round-intro') {
+      return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
+    }
+
+    if (phase === 'playing' || phase === 'reveal') {
+      if (roundContent) {
+        return (
+          <main className="app app--minigame">
+            {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
+          </main>
+        )
+      }
+
+      if (!question) {
+        return (
+          <main className="app">
+            <div className="welcome-screen">
+              <div className="welcome-card">
+                <p>Preparing next question…</p>
+              </div>
+            </div>
+          </main>
+        )
+      }
+      return (
+        <Question
+          gameCode={roomCode}
+          question={question}
+          secondsRemaining={secondsRemaining}
+          answeredCount={answeredCount}
+          totalPlayers={totalPlayers}
+          reveal={phase === 'reveal' ? reveal : null}
+        />
+      )
+    }
+
+    if (phase === 'game-over' || finalScores !== null) {
+      return (
+        <GameOver
+          players={roomState.players}
+          finalScores={finalScores || {}}
+          onBackToMenu={handleCloseLobby}
+        />
+      )
+    }
+
+    if (phase === 'leaderboard') {
+      return (
+        <main className="app">
+          <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+          <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+        </main>
+      )
+    }
+
     return (
       <main className="app">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+        <h1>Unknown Phase: {phase}</h1>
       </main>
     )
   }
 
   return (
-    <main className="app">
-      <h1>Unknown Phase: {phase}</h1>
-    </main>
+    <>
+      {renderPhase()}
+      {roomState?.phase && roomState.phase !== 'lobby' && <MuteButton />}
+    </>
   )
 }
 
