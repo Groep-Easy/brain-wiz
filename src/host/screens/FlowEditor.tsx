@@ -245,14 +245,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       <div className="flow-editor-body">
         {/* Palette */}
         <aside className="palette">
-          <h2>Themes</h2>
+          <h2>Mini-games</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'theme')
+              .filter((b) => b.kind === 'minigame')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block theme"
+                  className="palette-block minigame"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
@@ -262,14 +262,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
               ))}
           </div>
 
-          <h2>Mini-games</h2>
+          <h2>Themes</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'minigame')
+              .filter((b) => b.kind === 'theme')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block minigame"
+                  className="palette-block theme"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >

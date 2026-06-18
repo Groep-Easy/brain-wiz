@@ -106,7 +106,7 @@ export function WelcomeScreen(): React.JSX.Element {
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
       >
         <WizardLogo size={80} className="hero-logo-svg" />
-        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>
+        <h1 className="text-logo" style={{ fontSize: '5rem', margin: '16px 0', color: 'white' }}>
           BrainWiz
         </h1>
         <div className="hero-actions">
