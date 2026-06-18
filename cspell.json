@@ -16,7 +16,9 @@
     "subprotocol",
     "SUBPROTOCOL",
     "brainwiz",
-    "brain-wiz"
+    "brain-wiz",
+    "qrcode",
+    "lightningcss"
   ],
   "ignorePaths": [
     "node_modules/**",
