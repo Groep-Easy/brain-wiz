@@ -16,7 +16,6 @@ export function VaultRush({
 
   useEffect(() => {
     setCode('')
-    onCodeChange?.('')
   }, [puzzle.id])
 
   function handleCodeChange(value: string): void {

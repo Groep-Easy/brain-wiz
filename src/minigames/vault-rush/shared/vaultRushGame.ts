@@ -8,6 +8,18 @@ import type {
 
 export type { VaultRushClue, VaultRushGeneratedRound, VaultRushGenerationInput, VaultRushPuzzle }
 
+const FIRST_DIGIT_MIN = 1
+const FIRST_DIGIT_MAX = 4
+const SECOND_DIGIT_MIN = 2
+const MAX_DIGIT_VALUE = 9
+const CODE_DIGIT_SUM = 10
+const EQUATION_OFFSET_MIN = 1
+const EQUATION_OFFSET_MAX = 4
+const RANDOM_STATE_INCREMENT = 0x6d2b79f5
+const FIRST_RANDOM_SHIFT = 15
+const SECOND_RANDOM_SHIFT = 7
+const THIRD_RANDOM_SHIFT = 14
+const RANDOM_MIX_OR_VALUE = 61
 const HASH_MULTIPLIER = 31
 const HASH_INITIAL_VALUE = 2166136261
 const RANDOM_DIVISOR = 4294967296
@@ -15,10 +27,10 @@ const RANDOM_DIVISOR = 4294967296
 export function createVaultRushRound(input: VaultRushGenerationInput): VaultRushGeneratedRound {
   const random = createSeededRandom(input.seed)
 
-  const digitOne = randomInt(random, 1, 4)
-  const digitTwo = randomInt(random, 2, 9 - digitOne)
+  const digitOne = randomInt(random, FIRST_DIGIT_MIN, FIRST_DIGIT_MAX)
+  const digitTwo = randomInt(random, SECOND_DIGIT_MIN, MAX_DIGIT_VALUE - digitOne)
   const digitThree = digitOne + digitTwo
-  const digitFour = 10 - digitThree
+  const digitFour = CODE_DIGIT_SUM - digitThree
 
   const code = `${digitOne}${digitTwo}${digitThree}${digitFour}`
 
@@ -54,9 +66,9 @@ export function createVaultRushRound(input: VaultRushGenerationInput): VaultRush
 }
 
 function createSimpleEquation(answer: number, random: () => number): string {
-  const offset = randomInt(random, 1, 4)
+  const offset = randomInt(random, EQUATION_OFFSET_MIN, EQUATION_OFFSET_MAX)
 
-  if (answer + offset <= 9) {
+  if (answer + offset <= MAX_DIGIT_VALUE) {
     return `${answer + offset} - ${offset}`
   }
 
@@ -67,11 +79,11 @@ function createSeededRandom(seed: string): () => number {
   let state = hashString(seed)
 
   return () => {
-    state += 0x6d2b79f5
+    state += RANDOM_STATE_INCREMENT
     let value = state
-    value = Math.imul(value ^ (value >>> 15), value | 1)
-    value ^= value + Math.imul(value ^ (value >>> 7), value | 61)
-    return ((value ^ (value >>> 14)) >>> 0) / RANDOM_DIVISOR
+    value = Math.imul(value ^ (value >>> FIRST_RANDOM_SHIFT), value | 1)
+    value ^= value + Math.imul(value ^ (value >>> SECOND_RANDOM_SHIFT), value | RANDOM_MIX_OR_VALUE)
+    return ((value ^ (value >>> THIRD_RANDOM_SHIFT)) >>> 0) / RANDOM_DIVISOR
   }
 }
 
