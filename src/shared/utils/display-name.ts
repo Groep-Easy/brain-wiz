@@ -7,7 +7,8 @@
  * The profanity list is a deliberately small, hand-maintained casual filter
  * (English + Dutch). It catches obvious cases, not a determined adversary.
  */
-import { PLAYER } from '../constants/game-config'
+
+import { PLAYER_NAME_MIN_LENGTH, PLAYER_NAME_MAX_LENGTH } from '../constants/game-limits'
 
 export type DisplayNameResult = { ok: true } | { ok: false; reason: string }
 
@@ -54,7 +55,7 @@ export const PROFANITY_PATTERNS: readonly RegExp[] = [
  * (and their tests) reference the same values, preventing cross-module drift.
  */
 export const NAME_REJECTION = Object.freeze({
-  length: `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`,
+  length: `Display name must be ${PLAYER_NAME_MIN_LENGTH}–${PLAYER_NAME_MAX_LENGTH} characters`,
   reserved: 'That name is reserved',
   profane: 'Please choose a different name',
 })
@@ -66,7 +67,7 @@ export const NAME_REJECTION = Object.freeze({
 export function validateDisplayName(name: string): DisplayNameResult {
   const trimmed = name.trim()
 
-  if (trimmed.length < PLAYER.NAME_MIN_LENGTH || trimmed.length > PLAYER.NAME_MAX_LENGTH) {
+  if (trimmed.length < PLAYER_NAME_MIN_LENGTH || trimmed.length > PLAYER_NAME_MAX_LENGTH) {
     return { ok: false, reason: NAME_REJECTION.length }
   }
 

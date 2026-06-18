@@ -9,8 +9,11 @@ import 'reflect-metadata'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConnectionRegistry } from './connection-registry'
 import type { ClientSocket } from './lobby.types'
-import { ROOM_STATE_UPDATE, ROADMAP_UPDATE } from '../../../shared/events/socket-events'
-import type { RoomState, RoadmapUpdate } from '../../../shared/types/index'
+import {
+  ROOM_STATE_UPDATE,
+  ROADMAP_UPDATE,
+} from '@brain-wiz/shared/constants/socket-events.constants'
+import type { RoadmapUpdate, RoomState } from '@brain-wiz/shared/types/index'
 
 @Injectable()
 export class RoomBroadcaster {

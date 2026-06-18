@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsDefined, ValidateNested } from 'class-validator'
 import { Type } from 'class-transformer'
-import type { RoundType } from '../../../shared/types/index'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 export class PingDto {
   @IsNumber()

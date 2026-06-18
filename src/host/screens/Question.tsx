@@ -1,7 +1,7 @@
-import type { QuestionState, QuestionRevealPayload } from '../../shared/types/index'
-import { computeAnswerStats } from '../../shared/utils/answer-stats'
+import type { QuestionState, QuestionRevealPayload } from '@brain-wiz/shared/types/index'
+import { computeAnswerStats } from '@brain-wiz/shared/utils/answer-stats'
 import '../styles/question.css'
-import suspenseMusic from '../../shared/SFX/Standoff.mp3'
+import suspenseMusic from '@brain-wiz/shared/SFX/Standoff.mp3'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']

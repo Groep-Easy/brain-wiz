@@ -1,4 +1,4 @@
-import type { LeaderboardEntry } from '../../shared/types/index'
+import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 import '../styles/leaderboard.css'
 
 interface LeaderboardProps {

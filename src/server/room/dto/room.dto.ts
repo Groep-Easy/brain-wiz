@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsArray, IsNumber } from 'class-validator'
-import type { GameFlowItem } from '../../../shared/types/flow'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 
 export class StartRoomDto {
   @IsString()

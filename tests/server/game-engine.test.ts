@@ -7,10 +7,10 @@ import assert from 'node:assert/strict'
 import { GameEngineService } from '../../src/server/room/game/game-engine.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
-import * as EVENTS from '../../src/shared/events/socket-events'
-import { ROUNDS } from '../../src/shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROUNDS } from '@brain-wiz/config/game.config'
 import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
-import type { LeaderboardEntry } from '../../src/shared/types/index'
+import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 
 interface RecordingBroadcaster {
   events: string[]

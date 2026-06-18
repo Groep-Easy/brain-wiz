@@ -6,7 +6,7 @@ import {
   getBackendWsUrl,
   getBackendHttpUrl,
   getClientBaseUrl,
-} from '../../src/shared/utils/env'
+} from '@brain-wiz/shared/utils/env'
 
 describe('Env Utils', () => {
   let originalWindow: unknown

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { isMuted, toggleMuted, onMuteChange, watchMedia } from '../../shared/SFX/mute'
+import { isMuted, toggleMuted, onMuteChange, watchMedia } from '@brain-wiz/shared/SFX/mute'
 import '../styles/mute_button.css'
 
 /**

@@ -19,7 +19,7 @@ import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
 import { WS_ALLOWED_ORIGINS } from './socket.constants'
-import { config } from '../../config/server'
+import { ENV } from '@brain-wiz/config/env.config'
 
 @Module({
   imports: [LobbyModule, GameModule],
@@ -28,7 +28,7 @@ import { config } from '../../config/server'
     HeartbeatMonitor,
     { provide: RateLimiter, useFactory: (): RateLimiter => new RateLimiter() },
     { provide: HostAuthThrottle, useFactory: (): HostAuthThrottle => new HostAuthThrottle() },
-    { provide: WS_ALLOWED_ORIGINS, useValue: config.CORS_ORIGINS },
+    { provide: WS_ALLOWED_ORIGINS, useValue: ENV.CORS_ORIGINS },
   ],
 })
 export class SocketModule {}

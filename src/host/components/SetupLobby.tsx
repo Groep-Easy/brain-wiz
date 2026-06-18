@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import type { Player } from '../../shared/types/index'
+import type { Player } from '@brain-wiz/shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import { getClientBaseUrl } from '../../shared/utils/env'
-import { CharacterPreview } from '../../client/components/CharacterPreview'
-import { WizardLogo } from '../../shared/components/WizardLogo'
+import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/setup_lobby.css'
+
+const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 interface SetupLobbyProps {
   roomCode: string
@@ -48,7 +50,6 @@ export function SetupLobby({
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
-          // eslint-disable-next-line no-console
           console.error('Failed to generate QR code:', err)
         })
     }
@@ -58,9 +59,28 @@ export function SetupLobby({
     onStartGame(timePerQuestion)
   }
 
-  const handleKick = (playerName: string) => {
-    // eslint-disable-next-line no-console
-    console.log(`Kick player: ${playerName} (Backend kick API not yet implemented)`)
+  const handleKick = async (playerId: string) => {
+    try {
+      const res = await fetch(`${BACKEND_HTTP_URL}/lobbies/${roomCode}/kick`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerId,
+          hostToken,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        console.warn('Kick failed:', data.reason)
+        return
+      }
+    } catch (err) {
+      console.error('Kick error', err)
+    }
   }
 
   return (
@@ -68,7 +88,9 @@ export function SetupLobby({
       <header className="host-lobby-header">
         <div className="header-left">
           <WizardLogo size={32} />
-          <h1 className="text-logo" style={{ color: 'white' }}>BrainWiz</h1>
+          <h1 className="text-logo" style={{ color: 'white' }}>
+            BrainWiz
+          </h1>
         </div>
 
         <div className="header-tabs">
@@ -137,7 +159,7 @@ export function SetupLobby({
                         {player.name}
                         <button
                           className="kick"
-                          onClick={() => handleKick(player.name)}
+                          onClick={async () => handleKick(player.id)}
                           title="Remove from lobby"
                           aria-label={`Remove ${player.name}`}
                         >

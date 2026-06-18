@@ -17,6 +17,7 @@
 
 
 import type { JSX } from 'react'
+import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 import {WordleMock} from '../../minigames/wordleGame/mock/WordleGameMock.tsx'
 
 export function Game(): JSX.Element {

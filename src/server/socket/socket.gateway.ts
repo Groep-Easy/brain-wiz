@@ -30,10 +30,10 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import * as EVENTS from '../../shared/events/socket-events'
-import { ROOM, WS } from '../../shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM, WS } from '@brain-wiz/config/game.config'
 import { AnswerService } from '../room/game/answer.service'
-import type { PongPayload } from '../../shared/types/index'
+import type { PongPayload } from '@brain-wiz/shared/types/index'
 import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'

@@ -7,7 +7,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { RateLimiter } from '../../src/server/socket/rate-limiter'
-import { RATE_LIMIT } from '../../src/shared/constants/game-config'
+import { RATE_LIMIT } from '@brain-wiz/config/game.config'
 
 function clockLimiter(): { limiter: RateLimiter; advance(ms: number): void } {
   let now = 1_000

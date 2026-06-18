@@ -16,7 +16,7 @@ import {
 import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums'
 import type { Client } from './client.entity'
 import type { Round } from './round.entity'
-import type { GameFlowItem } from '../../shared/types/flow'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 
 /**
  * Room entity - represents a multiplayer game session

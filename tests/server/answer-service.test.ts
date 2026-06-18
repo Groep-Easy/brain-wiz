@@ -5,13 +5,13 @@ import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { AnswerService } from '../../src/server/room/game/answer.service'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/events/socket-events'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import type { ClientSocket } from '../../src/server/room/lobby/lobby.types'
 import type {
   AnswerAckPayload,
   AnswerSubmitPayload,
   RoundSubmitPayload,
-} from '../../src/shared/types/index'
+} from '@brain-wiz/shared/types/index'
 
 const SOCK_A = { send: (): void => undefined } as ClientSocket
 const SOCK_B = { send: (): void => undefined } as ClientSocket
@@ -280,5 +280,33 @@ describe('AnswerService', () => {
       JSON.stringify(payload.submission)
     )
     assert.equal(ack.acks[ack.acks.length - 1]?.data.accepted, true)
+  })
+
+  it('publishes ALL_PLAYERS_ANSWERED when every connected client submits a minigame round', async () => {
+    const fired: unknown[] = []
+    const minigames = {
+      get: (): unknown => ({ validateSubmission: (): boolean => true }),
+    }
+    service = new AnswerService(
+      bus,
+      registry as never,
+      broadcaster as never,
+      repo as never,
+      minigames as never
+    )
+    bus.on('ALL_PLAYERS_ANSWERED').subscribe((e) => fired.push(e))
+    openMinigameWindow(bus)
+
+    const payload: RoundSubmitPayload = {
+      roundId: 'round-1',
+      type: 'sliding-puzzle',
+      submission: { board: [1, 2, 3, 4, 5, 6, 7, 8, 0] },
+    }
+
+    await service.submitRound(SOCK_A, payload)
+    assert.equal(fired.length, 0)
+
+    await service.submitRound(SOCK_B, payload)
+    assert.equal(fired.length, 1)
   })
 })

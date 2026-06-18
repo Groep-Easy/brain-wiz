@@ -1,30 +1,25 @@
-# docker-compose.prod.yml
 services:
-  # ---------------------------------------------------------------------------
-  # Brain Wiz
-  # ---------------------------------------------------------------------------
   brain-wiz:
     build: .
+    container_name: brain-wiz
     env_file:
       - .env
     environment:
+      - NODE_ENV=production
       - DB_HOST=db
-      - DB_PORT=5432
-    container_name: server
+      - TRUST_PROXY=true
+    expose:
+      - "3000"
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
-
-  # ---------------------------------------------------------------------------
-  # Nginx
-  # ---------------------------------------------------------------------------
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
@@ -34,45 +29,52 @@ services:
       - brain-wiz
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # PostgreSQL
-  # ---------------------------------------------------------------------------
   db:
     image: postgres:16
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 10s
-      timeout: 5s
-      retries: 10
     container_name: postgres-db
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Observability: Loki + Promtail + Grafana
-  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    profiles: [tools]
+    ports:
+      - "5050:80"
+    env_file:
+      - .env
+    user: root
+    depends_on:
+      - db
+    restart: unless-stopped
+
   loki:
     image: grafana/loki:3.5.0
     container_name: loki
+    profiles: [observability]
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki_data:/loki
-    restart: unless-stopped
     healthcheck:
-      test: ['CMD-SHELL', 'wget -q --spider http://localhost:3100/ready || exit 1']
+      test:
+        ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Promtail
-  # ---------------------------------------------------------------------------
   promtail:
     image: grafana/promtail:3.5.0
     container_name: promtail
+    profiles: [observability]
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - ./loki/promtail-config.yml:/etc/promtail/config.yml:ro
@@ -82,18 +84,16 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Grafana
-  # ---------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:12.0.1
     container_name: grafana
+    profiles: [observability]
     ports:
-      - '3200:3000'
+      - "3200:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD?Error GRAFANA_ADMIN_PASSWORD is required}
-      GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL?Error GRAFANA_ADMIN_EMAIL is required}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_EMAIL: ${GRAFANA_ADMIN_EMAIL:-admin@brainwiz.local}
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
     volumes:
       - grafana_data:/var/lib/grafana
@@ -107,4 +107,4 @@ volumes:
   postgres_data:
   loki_data:
   grafana_data:
-  nginx_logs: # Shared log volume: nginx writes here, Promtail reads from the same path.
+  nginx_logs:

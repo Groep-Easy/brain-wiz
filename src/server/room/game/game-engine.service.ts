@@ -17,15 +17,15 @@ import { RoomService } from '../room.service'
 import { ClientService } from '../../client/client.service'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { toRoomState } from '../room.helpers'
-import * as EVENTS from '../../../shared/events/socket-events'
-import { ROUNDS, TIMER } from '../../../shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import type {
   GamePhase as WireGamePhase,
   LeaderboardEntry,
   RoundSummary,
   RoadmapTheme,
   ScoreMap,
-} from '../../../shared/types/index'
+} from '@brain-wiz/shared/types/index'
 import {
   GamePhase,
   RoundPresenter,

@@ -18,17 +18,18 @@ import { toRoomState } from '../room.helpers'
 import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
 import { RoomStatusEnum } from '../../entities/enums'
-import * as EVENTS from '../../../shared/events/socket-events'
-import { ROOM } from '../../../shared/constants/game-config'
-import { isValidRoomCode } from '../../../shared/utils/room-code'
-import { validateDisplayName } from '../../../shared/utils/display-name'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM } from '@brain-wiz/config/game.config'
+import { isValidRoomCode } from '@brain-wiz/shared/utils/room-code'
+import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { PlayerAvatar, RoomState } from '../../../shared/types/index'
-import type { GameFlowItem } from '../../../shared/types/flow'
+import type { PlayerAvatar, RoomState } from '@brain-wiz/shared/types/index'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
+import { BasicResponseDto } from '@brain-wiz/shared/dto/rest-api.dto'
 
 @Injectable()
 export class LobbyService {
@@ -370,5 +371,56 @@ export class LobbyService {
     if (roster.filter((c) => c.isConnected).length === 0) {
       this.gameEngine.abort(roomId)
     }
+  }
+  public async kickPlayerByRoom({
+    roomCode,
+    playerId,
+    hostToken,
+  }: {
+    roomCode: string
+    playerId: string
+    hostToken: string
+  }): Promise<BasicResponseDto> {
+    const room = await this.rooms.findByJoinCode(roomCode)
+
+    if (!room) {
+      return { success: false, reason: 'ROOM_NOT_FOUND' }
+    }
+
+    if (room.status != RoomStatusEnum.LOBBY)
+      return { success: false, reason: 'ROOM_STATUS_NOT_IN_LOBBY' }
+
+    if (!this.registry.verifyHostToken(room.id, hostToken)) {
+      return { success: false, reason: `NOT_AUTHORIZED: ${hostToken}` }
+    }
+
+    const client = await this.clients.findById(playerId)
+
+    if (!client || client.roomId !== room.id) {
+      return { success: false, reason: 'PLAYER_NOT_FOUND' }
+    }
+
+    const socket = this.registry.getSocketByClientId(playerId)
+
+    if (socket) {
+      this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_KICKED)
+
+      socket.close?.()
+
+      this.registry.unregister(socket)
+    }
+
+    this.registry.clearReconnectToken(playerId)
+
+    const timer = this.registry.clearGraceTimer(playerId)
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    await this.clients.remove(client)
+
+    await this.broadcastState(room)
+
+    return { success: true }
   }
 }

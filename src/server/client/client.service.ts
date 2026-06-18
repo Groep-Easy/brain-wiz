@@ -10,7 +10,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { type Repository } from 'typeorm'
 import { Client } from '../entities/client.entity'
-import { PlayerAvatar, DEFAULT_PLAYER_AVATAR } from '../../shared/types/index'
+import { PlayerAvatar, DEFAULT_PLAYER_AVATAR } from '@brain-wiz/shared/types/index'
 
 @Injectable()
 export class ClientService {
