@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { createVaultRushRound } from '../../../../minigames/vault-rush/shared/vaultRushGame.js'
+import { createVaultRushRound } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame.js'
 import type { RoundType } from '../../../../shared/types/index.js'
 import type {
   CreateMinigameRoundInput,
