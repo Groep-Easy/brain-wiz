@@ -89,7 +89,6 @@ export function App(): React.JSX.Element {
         setRoadmap(null)
         setFinalScores(null)
       }
-
       socket.onmessage = (event) => {
         try {
           const { event: ev, data } = JSON.parse(event.data) as {
@@ -179,9 +178,11 @@ export function App(): React.JSX.Element {
       socket.onclose = (event) => {
         setStatus('closed')
         setRoomState(null)
+
         if (event.code === 4004) {
           setFatalError('Room not found or token invalid')
         }
+
         // Do not clear tokens or code so we can attempt reconnect if desired
       }
 
@@ -362,11 +363,19 @@ function renderMinigame(
   reveal: RoundRevealPayload | null,
   phase: 'playing' | 'reveal'
 ): React.JSX.Element {
-  if (content.type === 'balance-scale' || content.type === 'sliding-puzzle') {
+  if (
+    content.type === 'balance-scale' ||
+    content.type === 'sliding-puzzle' ||
+    content.type === 'vault-rush'
+  ) {
     return (
       <RoundMinigameSurface
         className={`host-minigame ${
-          content.type === 'balance-scale' ? 'host-minigame--scale' : 'host-minigame--sliding'
+          content.type === 'balance-scale'
+            ? 'host-minigame--scale'
+            : content.type === 'vault-rush'
+              ? 'host-minigame--vault'
+              : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"

@@ -20,6 +20,7 @@ import { ScoringService } from './scoring.service'
 import { MinigameRegistry } from './minigames/minigame-registry'
 import { SlidingPuzzleServerAdapter } from './minigames/sliding-puzzle.server'
 import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
+import { VaultRushServerAdapter } from './minigames/vault-rush.server'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
@@ -29,6 +30,7 @@ import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
     GameEventBus,
     SlidingPuzzleServerAdapter,
     BalanceScaleServerAdapter,
+    VaultRushServerAdapter,
     MinigameRegistry,
     AnswerService,
     ScoringService,
