@@ -168,7 +168,6 @@ export function App(): React.JSX.Element {
               break
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.error('Failed to parse WebSocket message:', err)
         }
       }
@@ -185,7 +184,6 @@ export function App(): React.JSX.Element {
       }
 
       socket.onerror = () => {
-        // eslint-disable-next-line no-console
         console.error('WebSocket connection error')
       }
     }, 50)

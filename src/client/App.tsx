@@ -34,7 +34,6 @@ import { LoadingComp } from './components/LoadingComp'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
-import { SlidingPuzzleBoard } from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -99,8 +98,6 @@ export function App(): React.JSX.Element {
   const [reconnectExhausted, setReconnectExhausted] = useState(false)
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
-  const [vaultCode, setVaultCode] = useState('')
-  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
   const [kicked, setKicked] = useState(false)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -238,14 +235,6 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
-
-        if (content.type === 'sliding-puzzle') {
-          setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
-        }
-
-        if (content.type === 'vault-rush') {
-          setVaultCode('')
-        }
 
         break
       }
@@ -463,7 +452,6 @@ export function App(): React.JSX.Element {
       return (
         <section className="client-minigame client-minigame--vault-rush">
           <VaultRush
-            onCodeChange={isReveal ? undefined : setVaultCode}
             onSubmitCode={(code) => {
               handleRoundSubmit({ code })
             }}
