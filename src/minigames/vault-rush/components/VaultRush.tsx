@@ -20,6 +20,10 @@ export function VaultRush({
   }, [puzzle.id])
 
   function handleCodeChange(value: string): void {
+    if (submitted) {
+      return
+    }
+
     const nextCode = value.replace(/\D/g, '').slice(0, MAX_CODE_LENGTH)
 
     setCode(nextCode)
