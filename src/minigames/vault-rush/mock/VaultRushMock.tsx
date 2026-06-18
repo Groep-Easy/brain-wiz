@@ -27,8 +27,8 @@ export function VaultRushMock(): JSX.Element {
           }}
           puzzle={round.puzzle}
           readOnly={isReveal}
-          solutionCode={isReveal ? round.code : undefined}
           submitted={isSubmitted}
+          {...(isReveal ? { solutionCode: round.code } : {})}
         />
       </div>
 
@@ -52,9 +52,7 @@ export function VaultRushMock(): JSX.Element {
         <p>Submitted code: {submittedCode ?? '-'}</p>
         <p>Correct code: {round.code}</p>
 
-        {isSubmitted ? (
-          <p>{isCorrect ? 'Correct code' : 'Wrong code'}</p>
-        ) : null}
+        {isSubmitted ? <p>{isCorrect ? 'Correct code' : 'Wrong code'}</p> : null}
       </section>
     </main>
   )
