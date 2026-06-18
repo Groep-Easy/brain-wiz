@@ -34,7 +34,7 @@ cp .env.example .env
 npm install
 
 # Start database infrastructure
-npm run db:up
+docker compose up -d db
 
 # Start application watchers
 npm run dev
