@@ -43,9 +43,9 @@ export class DatabaseModule implements OnApplicationBootstrap, OnApplicationShut
 
   /**
    * On application bootstrap:
-   * 1. Initialize database connection
-   * 2. Run pending migrations (optional)
-   * 3. Validate schema integrity
+   * 1. Initialize database connection (migrations run automatically on init in
+   *    production via the DataSource `migrationsRun` option; see data-source.ts)
+   * 2. Validate schema integrity
    */
   public async onApplicationBootstrap(): Promise<void> {
     this.logger.log('Initializing database connection...')
