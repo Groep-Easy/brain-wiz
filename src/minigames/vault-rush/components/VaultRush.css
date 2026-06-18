@@ -2,27 +2,31 @@
 .vault-rush-app * {
   box-sizing: border-box;
 }
-
 .vault-rush-app {
-  --vault-rush-bg: #10151d;
-  --vault-rush-card: #18212d;
-  --vault-rush-card-soft: #202b39;
-  --vault-rush-text: #f7f3e8;
-  --vault-rush-muted: #a8b0bd;
+  --vault-rush-bg: #080a0f;
+  --vault-rush-panel: #111823;
+  --vault-rush-panel-light: #172232;
   --vault-rush-gold: #f2c45f;
   --vault-rush-gold-dark: #9f6c20;
-  --vault-rush-green: #42d889;
-  --vault-rush-line: rgba(242, 196, 95, 0.28);
-
+  --vault-rush-green: #42f59b;
+  --vault-rush-red: #ff4d5e;
+  --vault-rush-text: #f7f3e8;
+  --vault-rush-muted: #a8b0bd;
+  --vault-rush-line: rgba(242, 196, 95, 0.34);
+  --vault-rush-shadow: rgba(0, 0, 0, 0.45);
+  position: relative;
+  isolation: isolate;
   display: grid;
   width: 100%;
   min-height: 100svh;
   place-items: center;
   padding: 20px;
+  overflow: hidden;
   color: var(--vault-rush-text);
   background:
-    radial-gradient(circle at top, rgba(242, 196, 95, 0.16), transparent 28rem),
-    linear-gradient(145deg, #090d13 0%, var(--vault-rush-bg) 55%, #07090d 100%);
+    radial-gradient(circle at 50% 18%, rgba(242, 196, 95, 0.16), transparent 30rem),
+    radial-gradient(circle at 12% 82%, rgba(66, 245, 155, 0.08), transparent 22rem),
+    linear-gradient(145deg, #05070b 0%, #101722 52%, #07090d 100%);
   font-family:
     Inter,
     ui-sans-serif,
@@ -32,152 +36,216 @@
     'Segoe UI',
     sans-serif;
 }
-
+.vault-rush-app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+.vault-rush-app::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -45% -20%;
+  z-index: -1;
+  height: 55%;
+  background: radial-gradient(circle, rgba(242, 196, 95, 0.11), transparent 62%);
+}
 .vault-rush-card {
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: 22px;
-  width: min(100%, 460px);
-  padding: 26px;
+  width: min(100%, 480px);
+  padding: clamp(22px, 5vw, 34px);
   overflow: hidden;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 35%),
-    var(--vault-rush-card);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, var(--vault-rush-panel-light), var(--vault-rush-panel));
   border: 1px solid var(--vault-rush-line);
-  border-radius: 26px;
+  border-radius: 28px;
   box-shadow:
-    0 22px 54px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 24px 70px var(--vault-rush-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
-
 .vault-rush-card::before {
   content: '';
   position: absolute;
-  top: -90px;
-  right: -80px;
-  width: 210px;
-  height: 210px;
-  border: 16px solid rgba(242, 196, 95, 0.16);
+  top: -118px;
+  left: 50%;
+  z-index: -1;
+  width: 310px;
+  height: 310px;
   border-radius: 50%;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle, rgba(8, 10, 15, 0.72) 0 26%, transparent 27%),
+    repeating-conic-gradient(
+      from 12deg,
+      rgba(242, 196, 95, 0.36) 0deg 9deg,
+      rgba(65, 72, 84, 0.28) 9deg 18deg
+    );
+  border: 12px solid rgba(242, 196, 95, 0.18);
   box-shadow:
-    inset 0 0 34px rgba(0, 0, 0, 0.45),
-    0 0 28px rgba(242, 196, 95, 0.1);
+    inset 0 0 40px rgba(0, 0, 0, 0.7),
+    0 0 44px rgba(242, 196, 95, 0.14);
+  opacity: 0.7;
 }
-
+.vault-rush-card::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  z-index: -1;
+  border: 1px solid rgba(242, 196, 95, 0.12);
+  border-radius: 22px;
+  pointer-events: none;
+}
 .vault-rush-header {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   text-align: center;
 }
-
 .vault-rush-kicker {
   justify-self: center;
   margin: 0;
-  padding: 5px 11px;
-  color: #171717;
-  background: linear-gradient(135deg, var(--vault-rush-gold), #ffe5a0);
+  padding: 6px 12px;
+  color: #10151d;
+  background: linear-gradient(135deg, var(--vault-rush-gold), #ffe6a3);
   border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(242, 196, 95, 0.22);
   font-size: 0.72rem;
   font-weight: 950;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
-
 .vault-rush-header h1 {
   margin: 0;
   color: var(--vault-rush-text);
-  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  font-size: clamp(2.25rem, 10vw, 3.8rem);
   font-weight: 950;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  text-shadow:
+    0 0 18px rgba(242, 196, 95, 0.18),
+    0 5px 0 rgba(0, 0, 0, 0.32);
 }
-
 .vault-rush-subtitle {
   margin: 0;
   color: var(--vault-rush-muted);
+  font-size: 0.98rem;
   font-weight: 750;
 }
-
 .vault-rush-code {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(8px, 2vw, 12px);
   padding: 12px;
-  background: #0b1118;
-  border: 1px solid rgba(242, 196, 95, 0.22);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(255, 255, 255, 0.04)),
+    #090d13;
+  border: 1px solid rgba(242, 196, 95, 0.24);
   border-radius: 18px;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.58),
+    0 12px 26px rgba(0, 0, 0, 0.22);
 }
-
 .vault-rush-code-box {
+  position: relative;
   display: grid;
-  min-height: 74px;
+  min-height: clamp(64px, 18vw, 82px);
   place-items: center;
+  overflow: hidden;
   color: var(--vault-rush-green);
   background:
-    linear-gradient(180deg, rgba(66, 216, 137, 0.1), rgba(66, 216, 137, 0.02)),
+    linear-gradient(180deg, rgba(66, 245, 155, 0.12), rgba(66, 245, 155, 0.03)),
     #07110d;
-  border: 1px solid rgba(66, 216, 137, 0.34);
+  border: 1px solid rgba(66, 245, 155, 0.38);
   border-radius: 14px;
-  box-shadow: inset 0 0 18px rgba(66, 216, 137, 0.08);
+  box-shadow:
+    inset 0 0 20px rgba(66, 245, 155, 0.08),
+    0 0 18px rgba(66, 245, 155, 0.08);
   font-family:
     'SFMono-Regular',
     Consolas,
     'Liberation Mono',
     monospace;
-  font-size: 2.25rem;
+  font-size: clamp(2rem, 8vw, 2.7rem);
   font-weight: 950;
-  text-shadow: 0 0 10px rgba(66, 216, 137, 0.35);
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(66, 245, 155, 0.42);
 }
-
+.vault-rush-code-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    transparent 0%,
+    transparent 48%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 52%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
 .vault-rush-clues {
   display: grid;
   gap: 10px;
 }
-
 .vault-rush-clue {
   position: relative;
   margin: 0;
-  padding: 13px 14px 13px 40px;
-  color: var(--vault-rush-text);
-  background: var(--vault-rush-card-soft);
-  border: 1px solid rgba(242, 196, 95, 0.18);
+  padding: 13px 14px 13px 42px;
+  color: #f8efd9;
+  background:
+    linear-gradient(135deg, rgba(242, 196, 95, 0.11), rgba(255, 255, 255, 0.035)),
+    rgba(8, 10, 15, 0.48);
+  border: 1px solid rgba(242, 196, 95, 0.2);
   border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-size: 0.96rem;
   font-weight: 800;
 }
-
 .vault-rush-clue::before {
   content: '◆';
   position: absolute;
   top: 50%;
   left: 15px;
   color: var(--vault-rush-gold);
+  font-size: 0.9rem;
   transform: translateY(-50%);
+  text-shadow: 0 0 12px rgba(242, 196, 95, 0.6);
 }
-
 .vault-rush-form {
   display: grid;
   gap: 14px;
 }
-
 .vault-rush-input-label {
   display: grid;
   gap: 9px;
   color: var(--vault-rush-muted);
   font-size: 0.78rem;
   font-weight: 950;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
-
 .vault-rush-input {
   width: 100%;
   min-height: 58px;
   padding: 0 16px;
   color: var(--vault-rush-green);
-  background: #08100d;
-  border: 1px solid rgba(66, 216, 137, 0.36);
+  background:
+    linear-gradient(180deg, rgba(66, 245, 155, 0.08), transparent),
+    #070d0b;
+  border: 1px solid rgba(66, 245, 155, 0.38);
   border-radius: 14px;
+  box-shadow:
+    inset 0 0 22px rgba(0, 0, 0, 0.5),
+    0 0 0 4px rgba(66, 245, 155, 0.04);
   font: inherit;
   font-family:
     'SFMono-Regular',
@@ -186,61 +254,77 @@
     monospace;
   font-size: 1.45rem;
   font-weight: 950;
-  letter-spacing: 0.36em;
+  letter-spacing: 0.38em;
   text-align: center;
+  caret-color: var(--vault-rush-gold);
 }
-
 .vault-rush-input:focus {
   border-color: var(--vault-rush-gold);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(242, 196, 95, 0.14);
+  box-shadow:
+    inset 0 0 22px rgba(0, 0, 0, 0.5),
+    0 0 0 4px rgba(242, 196, 95, 0.15),
+    0 0 28px rgba(242, 196, 95, 0.16);
 }
-
+.vault-rush-input::placeholder {
+  color: rgba(168, 176, 189, 0.72);
+}
 .vault-rush-form .vault-rush-submit {
   min-height: 56px;
   color: #16100a;
-  background: linear-gradient(135deg, #ffe6a3, var(--vault-rush-gold), var(--vault-rush-gold-dark));
+  background:
+    linear-gradient(135deg, #ffe6a3 0%, var(--vault-rush-gold) 48%, #b57924 100%);
+  border: 1px solid rgba(255, 230, 163, 0.45);
   border-radius: 15px;
-  box-shadow: 0 12px 26px rgba(242, 196, 95, 0.18);
+  box-shadow:
+    0 14px 30px rgba(242, 196, 95, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
   font-weight: 950;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-
 .vault-rush-form .vault-rush-submit:not(:disabled):hover {
   opacity: 1;
   transform: translateY(-1px);
+  box-shadow:
+    0 18px 36px rgba(242, 196, 95, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
-
+.vault-rush-form .vault-rush-submit:not(:disabled):active {
+  transform: translateY(0);
+}
 .vault-rush-form .vault-rush-submit:disabled {
-  color: rgba(255, 255, 255, 0.45);
-  background: #303947;
+  color: rgba(255, 255, 255, 0.48);
+  background: linear-gradient(135deg, #323946, #1d2530);
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow: none;
   opacity: 1;
+  cursor: not-allowed;
 }
-
 .vault-rush-solution {
   margin: 0;
-  padding: 12px;
+  padding: 12px 14px;
   color: var(--vault-rush-green);
-  background: rgba(66, 216, 137, 0.08);
-  border: 1px solid rgba(66, 216, 137, 0.22);
+  background: rgba(66, 245, 155, 0.08);
+  border: 1px solid rgba(66, 245, 155, 0.25);
   border-radius: 14px;
+  box-shadow: inset 0 0 20px rgba(66, 245, 155, 0.04);
   font-weight: 950;
   text-align: center;
+  text-shadow: 0 0 10px rgba(66, 245, 155, 0.24);
 }
-
 @media (max-width: 390px) {
+  .vault-rush-app {
+    padding: 14px;
+  }
   .vault-rush-card {
-    padding: 22px;
+    gap: 18px;
     border-radius: 22px;
   }
-
-  .vault-rush-code-box {
-    min-height: 66px;
-    font-size: 2rem;
+  .vault-rush-clue {
+    padding-left: 38px;
+    font-size: 0.9rem;
   }
-
   .vault-rush-input {
     letter-spacing: 0.28em;
   }
