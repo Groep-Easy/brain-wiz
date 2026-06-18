@@ -4,23 +4,25 @@
 }
 
 .vault-rush-app {
-  --vault-rush-bg: #f4f1e8;
-  --vault-rush-card: #ffffff;
-  --vault-rush-ink: #222831;
-  --vault-rush-muted: #677180;
-  --vault-rush-line: #d8c99b;
-  --vault-rush-accent: #056c5c;
-  --vault-rush-gold: #ccb87b;
+  --vault-rush-bg: #10151d;
+  --vault-rush-card: #18212d;
+  --vault-rush-card-soft: #202b39;
+  --vault-rush-text: #f7f3e8;
+  --vault-rush-muted: #a8b0bd;
+  --vault-rush-gold: #f2c45f;
+  --vault-rush-gold-dark: #9f6c20;
+  --vault-rush-green: #42d889;
+  --vault-rush-line: rgba(242, 196, 95, 0.28);
 
   display: grid;
   width: 100%;
   min-height: 100svh;
   place-items: center;
-  padding: 18px;
-  color: var(--vault-rush-ink);
+  padding: 20px;
+  color: var(--vault-rush-text);
   background:
-    radial-gradient(circle at top, rgba(204, 184, 123, 0.28), transparent 26rem),
-    var(--vault-rush-bg);
+    radial-gradient(circle at top, rgba(242, 196, 95, 0.16), transparent 28rem),
+    linear-gradient(145deg, #090d13 0%, var(--vault-rush-bg) 55%, #07090d 100%);
   font-family:
     Inter,
     ui-sans-serif,
@@ -32,75 +34,125 @@
 }
 
 .vault-rush-card {
+  position: relative;
   display: grid;
-  gap: 20px;
-  width: min(100%, 440px);
-  padding: 24px;
-  background: var(--vault-rush-card);
+  gap: 22px;
+  width: min(100%, 460px);
+  padding: 26px;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 35%),
+    var(--vault-rush-card);
   border: 1px solid var(--vault-rush-line);
-  border-radius: 22px;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.1);
+  border-radius: 26px;
+  box-shadow:
+    0 22px 54px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.vault-rush-card::before {
+  content: '';
+  position: absolute;
+  top: -90px;
+  right: -80px;
+  width: 210px;
+  height: 210px;
+  border: 16px solid rgba(242, 196, 95, 0.16);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 34px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(242, 196, 95, 0.1);
 }
 
 .vault-rush-header {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   text-align: center;
 }
 
 .vault-rush-kicker {
+  justify-self: center;
   margin: 0;
-  color: var(--vault-rush-accent);
-  font-size: 0.75rem;
-  font-weight: 900;
+  padding: 5px 11px;
+  color: #171717;
+  background: linear-gradient(135deg, var(--vault-rush-gold), #ffe5a0);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 950;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .vault-rush-header h1 {
   margin: 0;
-  color: var(--vault-rush-ink);
-  font-size: 2rem;
-  line-height: 1.05;
+  color: var(--vault-rush-text);
+  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .vault-rush-subtitle {
   margin: 0;
   color: var(--vault-rush-muted);
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .vault-rush-code {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+  padding: 12px;
+  background: #0b1118;
+  border: 1px solid rgba(242, 196, 95, 0.22);
+  border-radius: 18px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
 }
 
 .vault-rush-code-box {
   display: grid;
-  min-height: 72px;
+  min-height: 74px;
   place-items: center;
-  color: var(--vault-rush-accent);
-  background: #f9faf8;
-  border: 2px solid var(--vault-rush-line);
+  color: var(--vault-rush-green);
+  background:
+    linear-gradient(180deg, rgba(66, 216, 137, 0.1), rgba(66, 216, 137, 0.02)),
+    #07110d;
+  border: 1px solid rgba(66, 216, 137, 0.34);
   border-radius: 14px;
-  font-size: 2rem;
-  font-weight: 900;
+  box-shadow: inset 0 0 18px rgba(66, 216, 137, 0.08);
+  font-family:
+    'SFMono-Regular',
+    Consolas,
+    'Liberation Mono',
+    monospace;
+  font-size: 2.25rem;
+  font-weight: 950;
+  text-shadow: 0 0 10px rgba(66, 216, 137, 0.35);
 }
 
 .vault-rush-clues {
   display: grid;
-  gap: 9px;
+  gap: 10px;
 }
 
 .vault-rush-clue {
+  position: relative;
   margin: 0;
-  padding: 13px 14px;
-  background: #f9faf8;
-  border: 1px solid var(--vault-rush-line);
-  border-left: 5px solid var(--vault-rush-gold);
-  border-radius: 12px;
+  padding: 13px 14px 13px 40px;
+  color: var(--vault-rush-text);
+  background: var(--vault-rush-card-soft);
+  border: 1px solid rgba(242, 196, 95, 0.18);
+  border-radius: 14px;
   font-weight: 800;
+}
+
+.vault-rush-clue::before {
+  content: '◆';
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  color: var(--vault-rush-gold);
+  transform: translateY(-50%);
 }
 
 .vault-rush-form {
@@ -110,52 +162,86 @@
 
 .vault-rush-input-label {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   color: var(--vault-rush-muted);
-  font-size: 0.8rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .vault-rush-input {
   width: 100%;
-  min-height: 56px;
-  padding: 0 14px;
-  color: var(--vault-rush-ink);
-  background: #ffffff;
-  border: 2px solid var(--vault-rush-line);
+  min-height: 58px;
+  padding: 0 16px;
+  color: var(--vault-rush-green);
+  background: #08100d;
+  border: 1px solid rgba(66, 216, 137, 0.36);
   border-radius: 14px;
   font: inherit;
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: 0.35em;
+  font-family:
+    'SFMono-Regular',
+    Consolas,
+    'Liberation Mono',
+    monospace;
+  font-size: 1.45rem;
+  font-weight: 950;
+  letter-spacing: 0.36em;
   text-align: center;
 }
 
 .vault-rush-input:focus {
-  border-color: var(--vault-rush-accent);
+  border-color: var(--vault-rush-gold);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(5, 108, 92, 0.12);
+  box-shadow: 0 0 0 4px rgba(242, 196, 95, 0.14);
 }
 
 .vault-rush-form .vault-rush-submit {
-  min-height: 54px;
-  border-radius: 14px;
-  background: var(--vault-rush-accent);
-  font-weight: 900;
+  min-height: 56px;
+  color: #16100a;
+  background: linear-gradient(135deg, #ffe6a3, var(--vault-rush-gold), var(--vault-rush-gold-dark));
+  border-radius: 15px;
+  box-shadow: 0 12px 26px rgba(242, 196, 95, 0.18);
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .vault-rush-form .vault-rush-submit:not(:disabled):hover {
-  opacity: 0.95;
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.vault-rush-form .vault-rush-submit:disabled {
+  color: rgba(255, 255, 255, 0.45);
+  background: #303947;
+  box-shadow: none;
+  opacity: 1;
 }
 
 .vault-rush-solution {
   margin: 0;
   padding: 12px;
-  color: var(--vault-rush-accent);
-  background: rgba(5, 108, 92, 0.08);
-  border-radius: 12px;
-  font-weight: 900;
+  color: var(--vault-rush-green);
+  background: rgba(66, 216, 137, 0.08);
+  border: 1px solid rgba(66, 216, 137, 0.22);
+  border-radius: 14px;
+  font-weight: 950;
   text-align: center;
+}
+
+@media (max-width: 390px) {
+  .vault-rush-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .vault-rush-code-box {
+    min-height: 66px;
+    font-size: 2rem;
+  }
+
+  .vault-rush-input {
+    letter-spacing: 0.28em;
+  }
 }
