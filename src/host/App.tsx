@@ -92,74 +92,77 @@ export function App(): React.JSX.Element {
       try {
         const { event: ev, data } = JSON.parse(event.data) as {
           event: string
-          data: Record<string, unknown>
+          data: unknown
         }
+
+        // data is `unknown` — cast locally per-case for type-safe access
+        const d = data as Record<string, unknown>
 
         switch (ev) {
           case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(data.room as RoomState)
+            setRoomState(d.room as RoomState)
             break
 
           case EVENTS.GAME_PHASE_CHANGE:
             setRoomState((prev: RoomState | null) =>
-              prev ? { ...prev, phase: data.phase as RoomState['phase'] } : prev
+              prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
             )
             break
 
           case EVENTS.ROUND_START:
-            if (data.round) {
-              setRound(data.round as RoundSummary)
+            if (d.round) {
+              setRound(d.round as RoundSummary)
             }
             setRoundContent(null)
             setRoundReveal(null)
             break
 
           case EVENTS.TIMER_TICK:
-            setSecondsRemaining(data.secondsRemaining as number)
+            setSecondsRemaining(d.secondsRemaining as number)
             break
 
           case EVENTS.QUESTION_SHOW:
-            if (data.question) {
+            if (d.question) {
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(data.question as QuestionState)
+              setQuestion(d.question as QuestionState)
               setReveal(null)
               setAnsweredCount(0)
             }
             break
 
           case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as unknown as RoundContentPayload)
+            setRoundContent(data as RoundContentPayload)
             setRoundReveal(null)
             setAnsweredCount(0)
             break
 
           case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(data.answered as number)
-            setTotalPlayers(data.total as number)
+            setAnsweredCount(d.answered as number)
+            setTotalPlayers(d.total as number)
             break
 
           case EVENTS.QUESTION_REVEAL:
-            setReveal(data as unknown as QuestionRevealPayload)
+            setReveal(data as QuestionRevealPayload)
             break
 
           case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as unknown as RoundRevealPayload)
+            setRoundReveal(data as RoundRevealPayload)
             break
 
           case EVENTS.LEADERBOARD_SHOW:
-            if (data.leaderboard) {
-              setLeaderboard(data.leaderboard as LeaderboardEntry[])
+            if (d.leaderboard) {
+              setLeaderboard(d.leaderboard as LeaderboardEntry[])
             }
             break
 
           case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as unknown as RoadmapUpdate)
+            setRoadmap(data as RoadmapUpdate)
             break
 
           case EVENTS.GAME_OVER:
-            if (data.finalScores) {
-              setFinalScores(data.finalScores as ScoreMap)
+            if (d.finalScores) {
+              setFinalScores(d.finalScores as ScoreMap)
             }
             break
 
