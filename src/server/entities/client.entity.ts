@@ -16,7 +16,7 @@ import {
 } from 'typeorm'
 import type { Room } from './room.entity'
 import type { ClientAnswer } from './client-answer.entity'
-import type { PlayerAvatar } from '../../shared/types/index'
+import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 
 const MAX_DISPLAY_NAME_LENGTH = 64
 

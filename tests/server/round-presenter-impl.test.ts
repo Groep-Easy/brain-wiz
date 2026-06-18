@@ -5,9 +5,9 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { RoundPresenterImpl } from '../../src/server/room/game/round-presenter.impl'
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
-import * as EVENTS from '../../src/shared/constants/socket-events.constants'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import type { Round } from '../../src/server/entities/round.entity'
-import type { QuestionShowPayload } from '../../src/shared/types/index'
+import type { QuestionShowPayload } from '@brain-wiz/shared/types/index'
 
 interface Emit {
   roomId: string

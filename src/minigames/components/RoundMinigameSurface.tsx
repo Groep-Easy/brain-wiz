@@ -1,7 +1,7 @@
 import type {
   RoundContentPayload,
   RoundRevealPayload,
-} from '@shared/types/index.js'
+} from '@brain-wiz/shared/types/index'
 import { BalanceScale } from '../balance-scale/components/BalanceScale.js'
 import { ScaleEquationClues } from '../balance-scale/components/ScaleEquationClues.js'
 import {
@@ -61,16 +61,16 @@ export function RoundMinigameSurface({
 
   if (content.type === 'sliding-puzzle') {
     const puzzle = content.publicState as SlidingPuzzlePuzzle
-    const readOnly = mode === 'display'
+    const isReadOnly = mode === 'display'
 
     return (
       <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
         <SlidingPuzzle
           onBoardChange={
-            readOnly ? undefined : (board: SlidingPuzzleBoard) => onSubmissionChange?.({ board })
+            isReadOnly ? undefined : (board: SlidingPuzzleBoard) => onSubmissionChange?.({ board })
           }
           puzzle={puzzle}
-          readOnly={readOnly}
+          readOnly={isReadOnly}
         />
       </section>
     )

@@ -9,7 +9,7 @@
  */
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
-import { RATE_LIMIT } from '@config/game.config'
+import { RATE_LIMIT } from '@brain-wiz/config/game.config'
 import type { RateLimitWindow } from './socket.types'
 
 @Injectable()

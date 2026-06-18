@@ -1,11 +1,25 @@
 import { z } from 'zod'
-import { DEFAULTS } from '@shared/constants/env.constants'
+import { DEFAULTS } from '@brain-wiz/shared/constants/env.constants'
 import { NodeEnv } from '../types/env'
 
 export const EnvironmentSchema = z.object({
   SERVER_PORT: z.coerce.number().default(DEFAULTS.SERVER_PORT),
 
   SERVER_LOCATION: z.string().default(DEFAULTS.SERVER_LOCATION),
+
+  SERVER_HOST: z.string().default(DEFAULTS.SERVER_HOST),
+
+  TRUST_PROXY: z.coerce.boolean().default(DEFAULTS.TRUST_PROXY),
+
+  CORS_ORIGINS: z
+    .string()
+    .default('')
+    .transform((raw) =>
+      raw
+        .split(',')
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0)
+    ),
 
   NODE_ENV: z.enum(NodeEnv).default(DEFAULTS.NODE_ENV),
 

@@ -6,14 +6,14 @@ import {
   type SlidingPuzzleBoard,
   type SlidingPuzzlePuzzle,
   type SlidingPuzzleScoreConfig,
-} from '../../../../minigames/sliding-puzzle/shared/slidingPuzzleGame.js'
+} from '@brain-wiz/minigames/sliding-puzzle/shared/slidingPuzzleGame'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,
   MinigameAdapter,
   MinigameScoreResult,
 } from './minigame.types.js'
-import type { RoundType } from '../../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 const POINTS_PER_CORRECT_TILE = 100
 const SOLVE_SPEED_BONUS = 300

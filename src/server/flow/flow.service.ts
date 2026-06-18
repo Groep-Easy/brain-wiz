@@ -14,7 +14,7 @@ import type { Repository } from 'typeorm'
 import { GameBlock } from '../entities/game-block.entity'
 import { Question } from '../entities/question.entity'
 import { BlockKindEnum } from '../entities/enums'
-import type { GameBlockDto, GameFlowItem } from '@shared/types/flow'
+import type { GameBlockDto, GameFlowItem } from '@brain-wiz/shared/types/flow'
 
 /** Defaults mirror the host editor's per-block question range. */
 const DEFAULT_QUESTIONS_PER_BLOCK = 5

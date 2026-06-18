@@ -4,14 +4,23 @@
  * @description Immutable game configuration constants.
  *
  * RULES:
- *  1. No magic numbers anywhere in the codebase — everything lives here.
+ *  1. No magic numbers anywhere in the codebase — everything lives here, EXCEPT
+ *     domain-validation limits owned by @brain-wiz/shared (room-code length,
+ *     player-name bounds). Those live in shared/constants/game-limits and are
+ *     re-composed into ROOM/PLAYER below — do NOT pull them back here, or you
+ *     re-introduce the shared↔config dependency cycle.
  *  2. All exports are Object.freeze — treat as read-only at runtime.
  *  3. Values that differ per environment belong in config/, not here.
  */
-import type { RoundType } from '../shared/types/index'
+import type { RoundType } from '@brain-wiz/shared/types/index'
+import {
+  ROOM_CODE_LENGTH,
+  PLAYER_NAME_MIN_LENGTH,
+  PLAYER_NAME_MAX_LENGTH,
+} from '@brain-wiz/shared/constants/game-limits'
 
 export const ROOM = Object.freeze({
-  CODE_LENGTH: 4,
+  CODE_LENGTH: ROOM_CODE_LENGTH,
   MAX_PLAYERS: 12,
   MIN_PLAYERS_TO_START: 2,
   JOIN_TIMEOUT_MS: 30_000,
@@ -24,8 +33,8 @@ export const RATE_LIMIT = Object.freeze({
 })
 
 export const PLAYER = Object.freeze({
-  NAME_MIN_LENGTH: 1,
-  NAME_MAX_LENGTH: 24,
+  NAME_MIN_LENGTH: PLAYER_NAME_MIN_LENGTH,
+  NAME_MAX_LENGTH: PLAYER_NAME_MAX_LENGTH,
 })
 
 export const WS = Object.freeze({

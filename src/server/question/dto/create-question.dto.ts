@@ -18,7 +18,7 @@ import {
   MAX_STRING_LENGTH,
   MAX_CORRECT_ANSWERS,
   MAX_INT_VALUE,
-} from '../../../shared/constants/validation'
+} from '@brain-wiz/shared/constants/validation'
 
 export class CreateQuestionDto {
   @ApiProperty({

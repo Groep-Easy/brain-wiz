@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { validateDisplayName } from '../../shared/utils/display-name'
-import { CharacterPreview } from './CharacterPreview'
-import { WizardLogo } from '../../shared/components/WizardLogo'
-import type { PlayerAvatar } from '../../shared/types/index'
-import '../styles/CharacterPreview.css'
+import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
+import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
+import '@brain-wiz/shared/styles/CharacterPreview.css'
 
 const FACE_COUNT = 4
 
@@ -54,7 +54,7 @@ interface JoinScreenProps {
 }
 
 function getRandomColor(): string {
-  return COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)]!
+  return COLOR_PRESETS[Math.floor(Math.random() * COLOR_PRESETS.length)] ?? '#ffffff'
 }
 
 function getRandomFace(): number {

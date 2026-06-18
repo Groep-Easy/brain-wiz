@@ -11,10 +11,10 @@ import { HostAuthThrottle } from '../../src/server/socket/host-auth-throttle.js'
 import { HeartbeatMonitor } from '../../src/server/socket/heartbeat-monitor.js'
 import { WS_SUBPROTOCOL } from '../../src/server/socket/socket.constants.js'
 import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
-import { PONG } from '../../src/shared/constants/socket-events.constants.js'
-import { ROOM, RATE_LIMIT, HOST_AUTH } from '../../src/config/game.config.js'
+import { PONG } from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM, RATE_LIMIT, HOST_AUTH } from '@brain-wiz/config/game.config'
 import type { AnswerService } from '../../src/server/room/game/answer.service.js'
-import type { AnswerSubmitPayload } from '../../src/shared/types/index.js'
+import type { AnswerSubmitPayload } from '@brain-wiz/shared/types/index'
 
 interface Call {
   method: string

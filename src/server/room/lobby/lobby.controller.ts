@@ -1,6 +1,6 @@
 import { Body, Controller, Param, Post } from '@nestjs/common'
 import { LobbyService } from './lobby.service'
-import { BasicResponseDto, KickPlayerDto } from '@shared/dto/rest-api.dto'
+import { BasicResponseDto, KickPlayerDto } from '@brain-wiz/shared/dto/rest-api.dto'
 import { ApiOperation, ApiResponse } from '@nestjs/swagger'
 
 @Controller('lobbies')
