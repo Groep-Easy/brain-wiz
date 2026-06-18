@@ -5,7 +5,7 @@
  * (Console.tsx). Kept separate from the component so the logic is easy to scan
  * and reuse without React in the way.
  */
-import { PONG } from '../../shared/events/socket-events'
+import { PONG } from '@brain-wiz/shared/constants/socket-events.constants'
 
 /** Direction of a log entry relative to the client. */
 export type Direction = 'in' | 'out' | 'info'

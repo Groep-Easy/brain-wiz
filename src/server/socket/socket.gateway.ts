@@ -30,10 +30,10 @@ import {
   type WsResponse,
 } from '@nestjs/websockets'
 import { randomUUID } from 'node:crypto'
-import * as EVENTS from '../../shared/events/socket-events'
-import { ROOM, WS } from '../../shared/constants/game-config'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM, WS } from '@brain-wiz/config/game.config'
 import { AnswerService } from '../room/game/answer.service'
-import type { PongPayload } from '../../shared/types/index'
+import type { PongPayload } from '@brain-wiz/shared/types/index'
 import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
@@ -51,6 +51,8 @@ import {
   WS_ALLOWED_ORIGINS,
   INVALID_TOKEN_CLOSE_CODE,
   INVALID_TOKEN_CLOSE_REASON,
+  ROOM_NOT_FOUND_CLOSE_CODE,
+  ROOM_NOT_FOUND_CLOSE_REASON,
 } from './socket.constants'
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
@@ -134,6 +136,7 @@ export class SocketGateway
       } else {
         this.hostAuth.recordFailure(ip)
         this.logger.warn(`Failed host auth for room ${code} from ${ip || 'unknown IP'}`)
+        ;(client as CloseableSocket).close?.(ROOM_NOT_FOUND_CLOSE_CODE, ROOM_NOT_FOUND_CLOSE_REASON)
       }
     })
   }
@@ -182,7 +185,8 @@ export class SocketGateway
       payload.roomCode,
       payload.playerName,
       payload.playerId,
-      payload.playerToken
+      payload.playerToken,
+      payload.playerAvatar
     )
   }
 

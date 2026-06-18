@@ -11,7 +11,7 @@ import {
   moveTile,
   scoreSlidingPuzzleBoard,
   solveBoard,
-} from '../../../src/minigames/sliding-puzzle/shared/slidingPuzzleGame.js'
+} from '@brain-wiz/minigames/sliding-puzzle/shared/slidingPuzzleGame'
 
 describe('slidingPuzzleGame', () => {
   it('only moves adjacent tiles', () => {

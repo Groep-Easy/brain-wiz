@@ -1,0 +1,22 @@
+{
+  "name": "@brain-wiz/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@brain-wiz/shared": "*",
+    "@nestjs/common": "^11.1.24",
+    "@nestjs/swagger": "^11.4.4"
+  }
+}

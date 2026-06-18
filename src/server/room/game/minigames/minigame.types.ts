@@ -1,4 +1,4 @@
-import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
+import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 
 export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale' | 'vault-rush'
 

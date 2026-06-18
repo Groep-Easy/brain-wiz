@@ -30,7 +30,7 @@
   color: var(--navy);
   margin: 12px 0;
   padding: 18px 24px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   /* border: 1px solid var(--tan); */
   display: flex;
   justify-content: space-between;
@@ -85,7 +85,7 @@
   font-size: 0.95rem;
   font-weight: 700;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .rank-up {

@@ -6,7 +6,7 @@
  */
 
 import type { Round } from '../../entities/round.entity'
-import type { RoundType } from '../../../shared/types/index'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 /** A round's internal sub-phase. Maps to the shared wire `GamePhase`. */
 export enum GamePhase {

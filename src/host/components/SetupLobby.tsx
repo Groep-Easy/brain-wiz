@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import type { Player } from '../../shared/types/index'
+import type { Player } from '@brain-wiz/shared/types/index'
 import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import brandLogo from '../assets/BrainWiz logo.png'
-import { getClientBaseUrl } from '../../shared/utils/env'
+import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
+import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
+import { MuteButton } from './MuteButton'
+import { FlowEditor } from '../screens/FlowEditor'
+import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
+import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
+
+const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 interface SetupLobbyProps {
   roomCode: string
@@ -30,6 +37,8 @@ export function SetupLobby({
   const [timePerQuestion, setTimePerQuestion] = useState(20)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
+  const [isEditingFlow, setIsEditingFlow] = useState(false)
+
   const flowTrackRef = useRef<HTMLDivElement>(null)
   const { cells } = useMemo(
     () => buildSerpentine(gameFlow.length + 1, MAX_FLOW_COLUMNS),
@@ -37,8 +46,16 @@ export function SetupLobby({
   )
 
   const openEditor = () => {
-    const params = new URLSearchParams({ code: roomCode, token: hostToken })
-    window.open(`/host/flow-editor?${params.toString()}`, '_blank')
+    setIsEditingFlow(true)
+  }
+
+  const handleSaveFlow = async (newFlow: FlowItem[]) => {
+    await storeRoomFlow(roomCode, hostToken, newFlow)
+    setIsEditingFlow(false)
+  }
+
+  const handleCancelFlow = () => {
+    setIsEditingFlow(false)
   }
 
   useEffect(() => {
@@ -47,7 +64,6 @@ export function SetupLobby({
       QRCode.toDataURL(joinUrl, { width: 180, margin: 2 })
         .then((url) => setQrCodeUrl(url))
         .catch((err) => {
-          // eslint-disable-next-line no-console
           console.error('Failed to generate QR code:', err)
         })
     }
@@ -57,150 +73,204 @@ export function SetupLobby({
     onStartGame(timePerQuestion)
   }
 
-  const handleKick = (playerName: string) => {
-    // eslint-disable-next-line no-console
-    console.log(`Kick player: ${playerName} (Backend kick API not yet implemented)`)
+  const handleKick = async (playerId: string) => {
+    try {
+      const res = await fetch(`${BACKEND_HTTP_URL}/lobbies/${roomCode}/kick`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          playerId,
+          hostToken,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        console.warn('Kick failed:', data.reason)
+        return
+      }
+    } catch (err) {
+      console.error('Kick error', err)
+    }
   }
 
   return (
-    <div className="host-lobby-container">
-      <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
+    <div className="container">
       <header className="host-lobby-header">
-        <button
-          className="close-btn"
-          onClick={onCloseLobby}
-          title="Close lobby"
-          aria-label="Close lobby"
+        <a 
+          href="/"
+          className="header-left logo-btn" 
+          onClick={(e) => {
+            e.preventDefault()
+            onCloseLobby()
+          }}
+          title="Return to Home Screen"
+          aria-label="Return to Home Screen"
         >
-          &times;
-        </button>
-        <h1>Host Lobby</h1>
-        <p className="hint">Scan the QR code or type the code on your phone to join.</p>
+          <WizardLogo size={40} />
+          <h1 className="text-logo" style={{ color: 'white' }}>
+            BrainWiz
+          </h1>
+        </a>
+
+        <div className="header-tabs">
+          <button
+            className={`tab ${activeTab === 'lobby' ? 'active' : ''}`}
+            onClick={() => setActiveTab('lobby')}
+          >
+            Lobby
+          </button>
+          <button
+            className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            Settings
+          </button>
+        </div>
+
+        <div className="header-right" style={{ gap: '16px' }}>
+          <MuteButton isInline />
+          <button
+            className="primary-btn start-game-btn"
+            onClick={handleStart}
+            disabled={players.length === 0}
+          >
+            Start Game
+          </button>
+        </div>
       </header>
 
-      <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'lobby' ? 'active' : ''}`}
-          onClick={() => setActiveTab('lobby')}
-        >
-          Lobby
-        </button>
-        <button
-          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-        >
-          Settings
-        </button>
-      </div>
+      <div className="host-lobby-card-overlay">
+        <main className="host-lobby-main">
+          {isEditingFlow ? (
+            <FlowEditor
+              initialFlow={toFlowItems(gameFlow)}
+              onSave={handleSaveFlow}
+              onCancel={handleCancelFlow}
+            />
+          ) : (
+            <>
+              {/* LOBBY PANEL */}
+              <section className={`panel ${activeTab === 'lobby' ? 'active' : ''}`}>
+                <div className="lobby-content-grid">
+                  {/* Left Sidebar */}
+                  <aside className="lobby-sidebar">
+                    <div className="join-block">
+                      <p className="hint">Scan to Join</p>
+                      {qrCodeUrl ? (
+                        <img className="qr-code-img" src={qrCodeUrl} alt="Join Game QR Code" />
+                      ) : (
+                        <div className="qr-placeholder">Generating...</div>
+                      )}
+                      <p className="hint">or visit</p>
+                      <div className="join-url">brain-wiz.app</div>
+                      <p className="hint">and enter code</p>
+                      <div className="join-code">{roomCode}</div>
+                    </div>
+                  </aside>
 
-      {/* LOBBY PANEL */}
-      <section className={`panel ${activeTab === 'lobby' ? 'active' : ''}`}>
-        <div className="lobby-grid">
-          {/* Left: QR + game PIN grouped in one block */}
-          <div className="join-block">
-            {qrCodeUrl ? (
-              <img className="qr-code-img" src={qrCodeUrl} alt="Join Game QR Code" />
-            ) : (
-              <div
-                className="qr-code-img"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                Generating QR...
-              </div>
-            )}
-            <div className="code">{roomCode || '------'}</div>
-          </div>
+                  {/* Right Main Content */}
+                  <div className="lobby-main-cards">
+                    <div className="players-card">
+                      <h2>
+                        Players <span id="player-count">({players.length})</span>
+                      </h2>
+                      <ul>
+                        {players.length === 0 ? (
+                          <li className="empty">Waiting for players...</li>
+                        ) : (
+                          players.map((player) => (
+                            <li key={player.id}>
+                              <CharacterPreview
+                                color={player.playerAvatar.bodyColor}
+                                faceId={player.playerAvatar.faceId}
+                                size={40}
+                              />
+                              {player.name}
+                              <button
+                                className="kick"
+                                onClick={async () => handleKick(player.id)}
+                                title="Remove from lobby"
+                                aria-label={`Remove ${player.name}`}
+                              >
+                                &times;
+                              </button>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    </div>
 
-          {/* Right: connected players */}
-          <div className="players">
-            <h2>
-              Players <span id="player-count">({players.length})</span>
-            </h2>
-            <ul>
-              {players.length === 0 ? (
-                <li className="empty">Waiting for players...</li>
-              ) : (
-                players.map((player) => (
-                  <li key={player.id}>
-                    {player.name}
-                    <button
-                      className="kick"
-                      onClick={() => handleKick(player.name)}
-                      title="Remove from lobby"
-                      aria-label={`Remove ${player.name}`}
-                    >
-                      &times;
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
-        </div>
-
-        {/* Game flow row */}
-        <div className="game-flow">
-          <h2>Game flow</h2>
-          <div className="flow-track" ref={flowTrackRef}>
-            {cells.map((cell) => {
-              const arrow = cell.arrow !== 'none' && (
-                <span className={`flow-arrow arrow-${cell.arrow}`} aria-hidden="true">
-                  {cell.arrow === 'down' ? '↓' : cell.arrow === 'left' ? '←' : '→'}
-                </span>
-              )
-              const style = { gridRow: cell.row + 1, gridColumn: cell.col }
-              // The final node is the add (+) block that opens the editor.
-              if (cell.logicalIndex >= gameFlow.length) {
-                return (
-                  <div className="flow-cell" key="flow-add" style={style}>
-                    <button
-                      className="flow-block flow-add"
-                      onClick={openEditor}
-                      title="Edit game flow"
-                      aria-label="Edit game flow"
-                    >
-                      +
-                    </button>
-                    {arrow}
+                    <div className="game-flow-card">
+                      <h2>Game Flow</h2>
+                      <div className="flow-track" ref={flowTrackRef}>
+                        {cells.map((cell) => {
+                          const arrow = cell.arrow !== 'none' && (
+                            <span className={`flow-arrow arrow-${cell.arrow}`} aria-hidden="true">
+                              {cell.arrow === 'down' ? '↓' : cell.arrow === 'left' ? '←' : '→'}
+                            </span>
+                          )
+                          const style = { gridRow: cell.row + 1, gridColumn: cell.col }
+                          if (cell.logicalIndex >= gameFlow.length) {
+                            return (
+                              <div className="flow-cell" key="flow-add" style={style}>
+                                <button
+                                  className="flow-block flow-add"
+                                  onClick={openEditor}
+                                  title="Edit game flow"
+                                  aria-label="Edit game flow"
+                                >
+                                  +
+                                </button>
+                                {arrow}
+                              </div>
+                            )
+                          }
+                          const item = gameFlow[cell.logicalIndex]
+                          if (!item) return null
+                          const block = blockById(item.blockId)
+                          if (!block) return null
+                          return (
+                            <div className="flow-cell" key={cell.logicalIndex} style={style}>
+                              <div className={`flow-block ${block.kind}`}>
+                                <span className="flow-block-icon">{block.icon}</span>
+                                <span className="flow-block-label">{block.label}</span>
+                              </div>
+                              {arrow}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
-                )
-              }
-              const item = gameFlow[cell.logicalIndex]
-              if (!item) return null
-              const block = blockById(item.blockId)
-              if (!block) return null
-              return (
-                <div className="flow-cell" key={cell.logicalIndex} style={style}>
-                  <div className={`flow-block ${block.kind}`}>
-                    <span className="flow-block-icon">{block.icon}</span>
-                    <span className="flow-block-label">{block.label}</span>
-                  </div>
-                  {arrow}
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+              </section>
 
-      {/* SETTINGS PANEL */}
-      <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
-        <div className="field">
-          <label htmlFor="time-per-question">Time per question (seconds)</label>
-          <input
-            type="number"
-            id="time-per-question"
-            value={timePerQuestion}
-            onChange={(e) => setTimePerQuestion(Number(e.target.value))}
-            min="5"
-            max="120"
-          />
-        </div>
-      </section>
+              {/* SETTINGS PANEL */}
+              <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
+                <div className="field">
+                  <label htmlFor="time-per-question">Time per question (seconds)</label>
+                  <input
+                    type="number"
+                    id="time-per-question"
+                    value={timePerQuestion}
+                    onChange={(e) => setTimePerQuestion(Number(e.target.value))}
+                    min="5"
+                    max="120"
+                  />
+                </div>
+              </section>
+            </>
+          )}
+        </main>
 
-      <button className="start-btn primary" onClick={handleStart} disabled={players.length === 0}>
-        Start Game
-      </button>
+        <footer className="shared-footer-bar">
+          <p>2026 BrainWiz™. All rights reserved.</p>
+        </footer>
+      </div>
     </div>
   )
 }

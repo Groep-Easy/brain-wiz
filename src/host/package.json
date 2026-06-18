@@ -1,0 +1,19 @@
+{
+  "name": "@brain-wiz/host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@brain-wiz/config": "*",
+    "@brain-wiz/minigames": "*",
+    "@brain-wiz/shared": "*",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.16.0"
+  }
+}

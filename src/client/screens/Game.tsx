@@ -7,8 +7,8 @@
  * standalone bundle.
  */
 import { useState, type JSX } from 'react'
-import { SlidingPuzzleMock } from '../../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
-import { VaultRushMock } from '../../minigames/vault-rush/mock/VaultRushMock'
+import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { VaultRushMock } from '@brain-wiz/minigames/vault-rush/mock/VaultRushMock'
 
 type PreviewMinigame = 'sliding-puzzle' | 'vault-rush'
 

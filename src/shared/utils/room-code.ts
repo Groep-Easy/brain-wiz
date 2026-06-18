@@ -4,7 +4,7 @@
  * @description Room code generation and validation.
  * Lives in shared/ because server generates codes and client validates input.
  */
-import { ROOM } from '../constants/game-config'
+import { ROOM_CODE_LENGTH } from '../constants/game-limits'
 
 /** No 0/O/1/I — visually ambiguous on small phone screens */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -14,7 +14,7 @@ const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
  */
 export function generateRoomCode(): string {
   let code = ''
-  for (let i = 0; i < ROOM.CODE_LENGTH; i++) {
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
     code += ALPHABET[Math.floor(Math.random() * ALPHABET.length)] ?? ''
   }
   return code
@@ -27,6 +27,6 @@ export function isValidRoomCode(code: unknown): boolean {
   if (typeof code !== 'string') {
     return false
   }
-  const pattern = new RegExp(`^[${ALPHABET}]{${ROOM.CODE_LENGTH}}$`)
+  const pattern = new RegExp(`^[${ALPHABET}]{${ROOM_CODE_LENGTH}}$`)
   return pattern.test(code.toUpperCase())
 }

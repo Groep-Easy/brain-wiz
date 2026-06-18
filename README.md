@@ -34,7 +34,7 @@ cp .env.example .env
 npm install
 
 # Start database infrastructure
-npm run db:up
+docker compose up -d db
 
 # Start application watchers
 npm run dev
@@ -57,12 +57,32 @@ npm run db:reset
 
 ## Deployment (Production/Server)
 
-```bash
-ssh -i <ssh_key_file> ubuntu@83.96.203.127
+The whole app (host, client, server) is one Node process, fronted by nginx and
+backed by Postgres — all defined in a single `docker-compose.yml`. Optional
+extras are opt-in via profiles (`tools` = pgAdmin, `observability` = Loki/
+Promtail/Grafana).
 
-# Safe production pull & startup
-npm run deploy
+**One-time setup on a fresh host:**
+
+```bash
+ssh <user>@<server-ip>
+git clone https://github.com/Groep-Easy/brain-wiz.git ~/brain-wiz && cd ~/brain-wiz
+cp .env.example .env        # then edit: set NODE_ENV=production, real secrets,
+                            # and CORS_ORIGINS=https://<server-ip-or-domain>
+make cert                   # generate the self-signed TLS cert (once)
 ```
+
+**Deploy / redeploy (pull latest + rebuild + restart):**
+
+```bash
+make deploy                 # core stack: app + nginx + db
+make deploy-obs             # core stack + observability (Loki/Promtail/Grafana)
+```
+
+`make deploy` uses `-f docker-compose.yml` explicitly, so the local-dev
+`docker-compose.override.yml` is never applied on the server (the DB stays
+internal). After deploy: app at `https://<server-ip>`, host at `/host`,
+client at `/client`. The cert is self-signed — click **Advanced → Proceed**.
 
 ## Validation & PRs
 
@@ -77,3 +97,9 @@ _Fails if lint, format, or tests fail._
 - `.env` must not be committed.
 - Rebase before work (`git pull --rebase`).
 - Do not commit build artifacts.
+
+## Acknowledgements
+
+- **Animated Backgrounds:** Adapted from [gradients-bg](https://github.com/baunov/gradients-bg).
+- **Glassmorphism:** Styled referencing Apple's VisionOS/Material liquid glass UI.
+- Detailed tracking can be found in `docs/PLAGIARISM.md`.

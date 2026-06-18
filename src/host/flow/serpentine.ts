@@ -81,10 +81,14 @@ export function buildSerpentine(length: number, columns: number): Serpentine {
   logicalInsertForSlot[0] = 0
   logicalInsertForSlot[n] = length
   for (let k = 1; k < n; k++) {
-    const prev = visual[k - 1]!
-    const sameRow = prev.rowIndex === visual[k]!.rowIndex
-    const evenRow = prev.rowIndex % 2 === 0
-    logicalInsertForSlot[k] = sameRow && !evenRow ? prev.logicalIndex : prev.logicalIndex + 1
+    const prev = visual[k - 1]
+    const current = visual[k]
+    if (prev === undefined || current === undefined) {
+      continue
+    }
+    const isSameRow = prev.rowIndex === current.rowIndex
+    const isEvenRow = prev.rowIndex % 2 === 0
+    logicalInsertForSlot[k] = isSameRow && !isEvenRow ? prev.logicalIndex : prev.logicalIndex + 1
   }
 
   return { cells, count: n, logicalInsertForSlot }

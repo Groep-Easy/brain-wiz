@@ -5,18 +5,27 @@
  * score changes with layout animations.
  */
 import { useRef, useLayoutEffect, useMemo } from 'react'
-import type { LeaderboardEntry } from '../../shared/types/index'
-import type { RoadmapUpdate } from '../../shared/types/index'
+import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
+import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import '../styles/leaderboard.css'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
-  roadmap?: RoadmapEntry | null
+  roadmap?: RoadmapUpdate | null
 }
 
 interface RoadmapProps {
   roadmap?: RoadmapUpdate
 }
+
+type TimelineItem =
+  | {
+      type: 'node'
+      questionNumber: number
+    }
+  | {
+      type: 'dot'
+    }
 
 const themeAssets: Record<string, { icon: string }> = {
   random: { icon: '🎲' },
@@ -64,14 +73,15 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
   }, [leaderboard])
 
   function Roadmap({ roadmap }: RoadmapProps) {
-    if (!roadmap) {
-      return null
-    }
     const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const { playerPos, totalQuestions, themes } = roadmap
-
       const themeStarts: { index: number; theme: string }[] = []
       const themeMap = new Map<number, string>()
+
+      if (!roadmap) {
+        return { playerPos: 0, total: 0, themeStarts, themeMap, timeline: [] as TimelineItem[] }
+      }
+
+      const { playerPos, totalQuestions, themes } = roadmap
 
       let cursor = 1
 
@@ -85,15 +95,6 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
 
         cursor += themeEntry.questionsInTheme
       }
-
-      type TimelineItem =
-        | {
-            type: 'node'
-            questionNumber: number
-          }
-        | {
-            type: 'dot'
-          }
 
       const timeline: TimelineItem[] = []
 
@@ -159,7 +160,13 @@ export function LeaderBoard({ leaderboard, roadmap }: LeaderBoardProps): React.J
       const playerX = PADDING + playerTimelineIndex * STEP
 
       container.scrollLeft = playerX - viewportWidth / 3
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- initial scroll positioning; runs once on mount
     }, [])
+
+    // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).
+    if (!roadmap) {
+      return null
+    }
 
     return (
       <div

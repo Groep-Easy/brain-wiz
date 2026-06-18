@@ -1,40 +1,41 @@
-.mute-btn {
+.mute-btn-fixed {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 1000;
+}
 
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.speaker-icon {
+  display: block;
+}
 
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: rgba(42, 49, 53, 0.55);
-  color: #fff;
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
-
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.speaker-icon .wave {
   transition:
-    background 0.2s ease,
-    transform 0.1s ease;
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  transform-origin: 11px 12px;
 }
 
-.mute-btn:hover {
-  background: rgba(42, 49, 53, 0.8);
-  opacity: 1;
+.speaker-icon .strike {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  transition: stroke-dashoffset 0.3s ease;
 }
 
-.mute-btn:active {
-  transform: scale(0.92);
+.mute-btn.is-muted .speaker-icon .wave {
+  opacity: 0;
+  transform: scale(0.5);
 }
 
-.mute-btn:focus-visible {
-  outline: 2px solid var(--teal);
-  outline-offset: 2px;
+.mute-btn.is-muted .speaker-icon .strike {
+  stroke-dashoffset: 0;
+}
+
+.speaker-icon .speaker-cone {
+  transition: transform 0.3s ease;
+  transform-origin: 6.5px 12px;
+}
+
+.mute-btn.is-muted .speaker-icon .speaker-cone {
+  transform: scale(1.8) translateX(1.5px);
 }
