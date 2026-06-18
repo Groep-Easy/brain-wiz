@@ -24,7 +24,7 @@ export function MuteButton({ isInline = false }: { isInline?: boolean } = {}): R
   return (
     <button
       type="button"
-      className={`mute-btn icon-btn ${!isInline ? 'mute-btn-fixed' : ''} ${muted ? 'is-muted active' : ''}`}
+      className={`mute-btn icon-btn ${!isInline ? 'mute-btn-fixed' : ''} ${muted ? 'is-muted' : 'active'}`}
       onClick={() => toggleMuted()}
       title={muted ? 'Unmute sound' : 'Mute sound'}
       aria-label={muted ? 'Unmute sound' : 'Mute sound'}

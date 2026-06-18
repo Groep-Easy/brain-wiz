@@ -129,7 +129,6 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ROUND_CONTENT_SHOW:
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             setRoundContent(data as unknown as RoundContentPayload)
             setRoundReveal(null)
             setAnsweredCount(0)
@@ -141,12 +140,10 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.QUESTION_REVEAL:
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             setReveal(data as unknown as QuestionRevealPayload)
             break
 
           case EVENTS.ROUND_REVEAL:
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             setRoundReveal(data as unknown as RoundRevealPayload)
             break
 
@@ -157,7 +154,6 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ROADMAP_UPDATE:
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             setRoadmap(data as unknown as RoadmapUpdate)
             break
 
