@@ -101,8 +101,6 @@ export function WelcomeScreen(): React.JSX.Element {
         </div>
       </div>
 
-
-
       <div
         className="hero-content"
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
@@ -112,10 +110,10 @@ export function WelcomeScreen(): React.JSX.Element {
           BrainWiz
         </h1>
         <div className="hero-actions">
-          <button className="primary-btn" onClick={handleCreateRoom}>
+          <button className="hero-btn hero-btn--primary" onClick={handleCreateRoom}>
             Start Hosting Game
           </button>
-          <button className="primary-btn" onClick={handleJoinGame}>
+          <button className="hero-btn hero-btn--secondary" onClick={handleJoinGame}>
             Join Existing Game
           </button>
         </div>

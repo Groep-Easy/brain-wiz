@@ -36,3 +36,12 @@ export const getClientBaseUrl = (): string => {
   if (typeof window !== 'undefined') return window.location.origin
   return 'http://localhost:3000'
 }
+
+/** Base URL of the host display app, where the welcome/start screen lives. */
+export const getHostBaseUrl = (): string => {
+  if (isDevelopment() && typeof window !== 'undefined') {
+    return `http://${window.location.hostname}:5174`
+  }
+  if (typeof window !== 'undefined') return window.location.origin
+  return 'http://localhost:3000'
+}

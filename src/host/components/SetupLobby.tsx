@@ -7,7 +7,7 @@ import { buildSerpentine } from '../flow/serpentine'
 import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
-import { MuteButton } from './MuteButton'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
@@ -38,13 +38,12 @@ export function SetupLobby({
   onStartGame,
   onCloseLobby,
 }: SetupLobbyProps): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<'lobby' | 'settings'>('lobby')
+  const [activeTab, setActiveTab] = useState<'lobby' | 'flow' | 'settings'>('lobby')
   const [timePerQuestion, setTimePerQuestion] = useState(20)
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const jazzRef = useRef<HTMLAudioElement>(null)
   const [playStartGameSound] = useSound(startGameSound)
-  const [isEditingFlow, setIsEditingFlow] = useState(false)
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
   const { cells } = useMemo(
@@ -53,16 +52,16 @@ export function SetupLobby({
   )
 
   const openEditor = () => {
-    setIsEditingFlow(true)
+    setActiveTab('flow')
   }
 
   const handleSaveFlow = async (newFlow: FlowItem[]) => {
     await storeRoomFlow(roomCode, hostToken, newFlow)
-    setIsEditingFlow(false)
+    setActiveTab('lobby')
   }
 
   const handleCancelFlow = () => {
-    setIsEditingFlow(false)
+    setActiveTab('lobby')
   }
 
   useEffect(() => {
@@ -136,6 +135,12 @@ export function SetupLobby({
             Lobby
           </button>
           <button
+            className={`tab ${activeTab === 'flow' ? 'active' : ''}`}
+            onClick={() => setActiveTab('flow')}
+          >
+            Game Flow
+          </button>
+          <button
             className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
@@ -143,21 +148,31 @@ export function SetupLobby({
           </button>
         </div>
 
-        <div className="header-right" style={{ gap: '16px' }}>
+        <div className="header-right">
           <MuteButton isInline />
           <button
-            className="primary-btn start-game-btn"
-            onClick={handleStart}
-            disabled={players.length === 0}
+            type="button"
+            className="lobby-close-btn icon-btn"
+            onClick={onCloseLobby}
+            title="Close lobby"
+            aria-label="Close lobby"
           >
-            Start Game
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
       </header>
 
       <div className="host-lobby-card-overlay">
         <main className="host-lobby-main">
-          {isEditingFlow ? (
+          {activeTab === 'flow' ? (
             <FlowEditor
               initialFlow={toFlowItems(gameFlow)}
               onSave={handleSaveFlow}
@@ -279,8 +294,15 @@ export function SetupLobby({
           )}
         </main>
 
-        <footer className="shared-footer-bar">
+        <footer className="shared-footer-bar lobby-footer">
           <p>2026 BrainWiz™. All rights reserved.</p>
+          <button
+            className="primary-btn start-game-btn"
+            onClick={handleStart}
+            disabled={players.length === 0}
+          >
+            Start Game
+          </button>
         </footer>
       </div>
     </div>

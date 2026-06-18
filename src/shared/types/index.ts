@@ -79,6 +79,7 @@ export interface RoundSummary {
   total: number
   type: RoundType
   timeLimitSeconds: number
+  questionText?: string
 }
 
 /** Server → all: round started (ROUND_START). */
