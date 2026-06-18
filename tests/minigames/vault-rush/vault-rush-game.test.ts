@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { createVaultRushRound } from '@minigames/vault-rush/shared/vaultRushGame.js'
-import { VAULT_RUSH_DIGIT_COUNT } from '@minigames/vault-rush/shared/vaultRushGame.constants.js'
+import { createVaultRushRound } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
+import { VAULT_RUSH_DIGIT_COUNT } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame.constants'
 
 function getCodeDigits(code: string): [number, number, number, number] {
   assert.match(code, /^\d{4}$/)
