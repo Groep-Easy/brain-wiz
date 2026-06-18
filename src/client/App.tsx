@@ -13,6 +13,12 @@ import type {
   RoundContentPayload,
   RoundRevealPayload,
   PlayerAvatar,
+  GamePhaseChangePayload,
+  RoundStartPayload,
+  TimerTickPayload,
+  QuestionShowPayload,
+  LeaderboardShowPayload,
+  GameOverPayload,
 } from '@brain-wiz/shared/types/index'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
@@ -191,30 +197,36 @@ export function App(): React.JSX.Element {
         break
       }
       case EVENTS.ROOM_STATE_UPDATE:
-        setRoomState(data.room as RoomState)
+        setRoomState((data as { room: RoomState }).room)
         break
-      case EVENTS.GAME_PHASE_CHANGE:
-        setRoomState((prev) => (prev ? { ...prev, phase: data.phase as GamePhase } : prev))
+      case EVENTS.GAME_PHASE_CHANGE: {
+        const { phase } = data as GamePhaseChangePayload
+        setRoomState((prev) => (prev ? { ...prev, phase } : prev))
         break
-      case EVENTS.ROUND_START:
-        if (data.round) setRound(data.round as RoundSummary)
+      }
+      case EVENTS.ROUND_START: {
+        const { round } = data as RoundStartPayload
+        if (round) setRound(round)
         setRoundContent(null)
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
         break
+      }
       case EVENTS.TIMER_TICK:
-        setSecondsRemaining(data.secondsRemaining as number)
+        setSecondsRemaining((data as TimerTickPayload).secondsRemaining)
         break
-      case EVENTS.QUESTION_SHOW:
-        if (data.question) {
+      case EVENTS.QUESTION_SHOW: {
+        const { question } = data as QuestionShowPayload
+        if (question) {
           setRoundContent(null)
           setRoundReveal(null)
-          setQuestion(data.question as QuestionState)
+          setQuestion(question)
           setReveal(null)
           setSelectedAnswerId(null)
         }
         break
+      }
       case EVENTS.ROUND_CONTENT_SHOW: {
         const content = data as RoundContentPayload
         setRoundContent(content)
@@ -229,12 +241,16 @@ export function App(): React.JSX.Element {
       case EVENTS.ROUND_REVEAL:
         setRoundReveal(data as RoundRevealPayload)
         break
-      case EVENTS.LEADERBOARD_SHOW:
-        if (data.leaderboard) setLeaderboard(data.leaderboard as LeaderboardEntry[])
+      case EVENTS.LEADERBOARD_SHOW: {
+        const { leaderboard } = data as LeaderboardShowPayload
+        if (leaderboard) setLeaderboard(leaderboard)
         break
-      case EVENTS.GAME_OVER:
-        if (data.finalScores) setFinalScores(data.finalScores as ScoreMap)
+      }
+      case EVENTS.GAME_OVER: {
+        const { finalScores } = data as GameOverPayload
+        if (finalScores) setFinalScores(finalScores)
         break
+      }
       case EVENTS.ANSWER_ACK: {
         const ack = data as AnswerAckPayload
         if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
@@ -313,7 +329,6 @@ export function App(): React.JSX.Element {
         const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
         handleEvent(ev, data)
       } catch (err) {
-         
         console.error('Failed to parse WebSocket message:', err)
       }
     }
@@ -331,7 +346,6 @@ export function App(): React.JSX.Element {
     }
 
     socket.onerror = () => {
-       
       console.error('WebSocket connection error')
     }
   }
