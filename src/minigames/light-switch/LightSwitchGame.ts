@@ -1,5 +1,3 @@
-import { createSeededRandom } from '../../shared/utils/seeded-random'
-
 import {
   MIN_LIGHTS,
   MAX_LIGHTS,
@@ -20,10 +18,20 @@ function randomInt(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min
 }
 
-function applySwitch(lights: boolean[], sw: LightSwitch): void {
-  for (const lightIndex of sw.affectedLights) {
-    lights[lightIndex] = !lights[lightIndex]
+export function applySwitch(state: boolean[], sw: LightSwitch): boolean[] {
+  const next = [...state]
+
+  for (const index of sw.affectedLights) {
+    if (next[index] !== undefined) {
+      next[index] = !next[index]
+    }
   }
+
+  return next
+}
+
+export function isSolved(state: boolean[]): boolean {
+  return state.every((v) => v === true)
 }
 
 function createLights(
@@ -34,7 +42,7 @@ function createLights(
   const maxAttempts = 3
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const state: boolean[] = Array.from({ length: lightCount }, () => true)
+    let state: boolean[] = Array.from({ length: lightCount }, () => true)
 
     const scrambleMoves = lightCount + Math.floor(random() * lightCount)
 
@@ -42,12 +50,12 @@ function createLights(
       const sw = switches[Math.floor(random() * switches.length)]
       if (!sw) continue
 
-      applySwitch(state, sw)
+      state = applySwitch(state, sw)
     }
 
-    const isSolved = state.every((v) => v === true)
+    const solved = isSolved(state)
 
-    if (!isSolved) {
+    if (!solved) {
       return state.map((isOn, id) => ({
         id,
         isOn,
@@ -55,7 +63,7 @@ function createLights(
     }
   }
 
-  /* If all attempts fail to produce a puzzle, return all lights off. */
+  // If all attempts fail to produce a puzzle, return all lights off.
   return Array.from({ length: lightCount }, (_, id) => ({
     id,
     isOn: false,
@@ -89,9 +97,7 @@ function createSwitches(
 export function createLightSwitchPuzzle(
   input: LightSwitchGenerationInput
 ): LightSwitchPuzzle {
-  const random = input.seed
-    ? createSeededRandom(input.seed)
-    : Math.random
+  const random = Math.random
 
   const lightCount = randomInt(random, MIN_LIGHTS, MAX_LIGHTS)
   const switches = createSwitches(lightCount, random)
