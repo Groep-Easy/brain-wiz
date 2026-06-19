@@ -1,0 +1,43 @@
+.light-switch-game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.light-switch-board {
+  position: relative;
+  width: 700px;
+  height: 500px;
+}
+
+.light {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #444;
+  border: 3px solid #666;
+  position: absolute;
+}
+
+.light--on {
+  background: gold;
+  box-shadow: 0 0 20px gold;
+}
+
+.switch {
+  position: absolute;
+  width: 70px;
+  height: 40px;
+}
+
+.connections {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.connections line {
+  stroke: #888;
+  stroke-width: 3;
+}

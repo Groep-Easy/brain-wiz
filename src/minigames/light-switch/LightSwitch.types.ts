@@ -18,3 +18,7 @@ export interface LightSwitchGenerationInput {
   id: string
   seed?: string
 }
+
+export interface LightSwitchGameProps {
+  puzzle: LightSwitchPuzzle
+}
