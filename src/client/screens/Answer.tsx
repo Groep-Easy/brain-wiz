@@ -1,6 +1,5 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
-import sounds from '@brain-wiz/shared/SFX/SFX'
-import correct from '@brain-wiz/shared/SFX/correct.mp3'
+import * as sounds from '@brain-wiz/shared/SFX/SFX'
 import '../styles/answer.css'
 
 const SHAPES = ['▲', '◆', '●', '■']
@@ -80,11 +79,9 @@ function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.
     return <div className="reveal-banner is-wrong">Time&apos;s up — no answer ⏰</div>
   }
   if (result.isCorrect) {
+    sounds.correctSound()
     return (
-      <>
-        <audio id="leaderboard-music" autoPlay src={correct} preload="auto"></audio>
-        <div className="reveal-banner is-correct">Correct! +{result.pointsAwarded} pts ✓</div>
-      </>
+      <div className="reveal-banner is-correct">Correct! +{result.pointsAwarded} pts ✓</div>
     )
   }
   return <div className="reveal-banner is-wrong">Not quite ✗</div>
