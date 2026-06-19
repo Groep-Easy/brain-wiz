@@ -1,4 +1,5 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
+import sounds from '@brain-wiz/shared/SFX/SFX'
 import correct from '@brain-wiz/shared/SFX/correct.mp3'
 import '../styles/answer.css'
 

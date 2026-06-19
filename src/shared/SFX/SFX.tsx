@@ -13,7 +13,7 @@ import quack from './quack.mp3'
 import startGame from './start-game.wav'
 import waterDrop from './water-drop.mp3'
 
-export function playSound(soundSource: string) {
+function playSound(soundSource: string) {
   const audioData = new Audio(soundSource)
   // play() rejects when the browser blocks autoplay (no user gesture yet);
   // that's non-fatal for sound effects, so swallow it.
