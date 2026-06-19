@@ -55,6 +55,7 @@ export const ROUND_REVEAL = 'ROUND_REVEAL'
 /** Client → server: submit answer.        Payload: { answerId, timestamp }             */
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 export const ROUND_SUBMIT = 'ROUND_SUBMIT'
+export const ROUND_PROGRESS = 'ROUND_PROGRESS'
 /** Server → client: answer received.      Payload: { received: true }                  */
 export const ANSWER_ACK = 'ANSWER_ACK'
 /** Server → all:    how many have answered.  Payload: { answered, total }      */

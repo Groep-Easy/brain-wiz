@@ -42,6 +42,19 @@ export interface RoundWindowClosed {
   reason: 'expired' | 'all-answered'
 }
 
+export interface RoundWindowFinalizeRequested {
+  type: 'ROUND_WINDOW_FINALIZE_REQUESTED'
+  roomId: string
+  roundId: string
+  reason: 'expired' | 'all-answered'
+}
+
+export interface RoundWindowFinalized {
+  type: 'ROUND_WINDOW_FINALIZED'
+  roomId: string
+  roundId: string
+}
+
 export interface RoundScored {
   type: 'ROUND_SCORED'
   roomId: string
@@ -60,6 +73,8 @@ export interface RoundWindowAborted {
 export type GameDomainEvent =
   | RoundWindowOpened
   | AllPlayersAnswered
+  | RoundWindowFinalizeRequested
+  | RoundWindowFinalized
   | RoundWindowClosed
   | RoundScored
   | RoundWindowAborted
