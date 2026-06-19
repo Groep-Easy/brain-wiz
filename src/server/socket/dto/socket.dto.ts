@@ -58,3 +58,5 @@ export class RoundSubmitDto {
   @IsOptional()
   public timestamp?: number
 }
+
+export class RoundProgressDto extends RoundSubmitDto {}
