@@ -67,6 +67,7 @@ export class LobbyService {
     await this.rooms.updateHostSocket(room, connectionId)
     const state = await this.buildState(room)
     this.broadcaster.emitToSocket(socket, EVENTS.ROOM_STATE_UPDATE, { room: state })
+    this.broadcaster.syncSocketState(room.id, socket)
     return true
   }
 
@@ -214,6 +215,7 @@ export class LobbyService {
       await this.broadcastState(room)
     }
     this.maybeTeardownRoom(roomId)
+    await this.maybeAbortGame(roomId)
   }
 
   public hasPendingRemoval(clientId: string): boolean {
@@ -227,7 +229,12 @@ export class LobbyService {
    */
   private maybeTeardownRoom(roomId: string): void {
     if (this.registry.getRoomSockets(roomId).length === 0) {
-      this.registry.clearHostToken(roomId)
+      setTimeout(() => {
+        if (this.registry.getRoomSockets(roomId).length === 0) {
+          this.registry.clearHostToken(roomId)
+          this.broadcaster.clearCache(roomId)
+        }
+      }, ROOM.RECONNECT_GRACE_MS).unref()
     }
   }
 
@@ -345,6 +352,7 @@ export class LobbyService {
     })
     this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_RECONNECTED, { playerId: client.id })
     await this.broadcastState(room)
+    this.broadcaster.syncSocketState(room.id, socket)
   }
 
   private async buildState(room: Room): Promise<RoomState> {
@@ -368,7 +376,8 @@ export class LobbyService {
       return
     }
     const roster = await this.clients.findByRoom(roomId)
-    if (roster.filter((c) => c.isConnected).length === 0) {
+    const activeOrRecovering = roster.filter((c) => c.isConnected || this.registry.hasGraceTimer(c.id)).length
+    if (activeOrRecovering === 0) {
       this.gameEngine.abort(roomId)
     }
   }
