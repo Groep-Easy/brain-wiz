@@ -98,17 +98,19 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
       const submitted = data.submitted
       const phase = data.phase
 
+      const vaultRushProps = {
+        onSubmitCode: (code: string) => {
+          data.onSubmit({ code })
+        },
+        puzzle,
+        readOnly: submitted || phase === 'reveal',
+        submitted,
+        ...(phase === 'reveal' && data.solutionCode ? { solutionCode: data.solutionCode } : {}),
+      }
+
       return (
         <section className="client-minigame client-minigame--vault-rush">
-          <VaultRush
-            onSubmitCode={(code) => {
-              data.onSubmit({ code })
-            }}
-            puzzle={puzzle}
-            readOnly={submitted || phase === 'reveal'}
-            solutionCode={phase === 'reveal' ? data.solutionCode : undefined}
-            submitted={submitted}
-          />
+          <VaultRush {...vaultRushProps} />
         </section>
       )
     }
