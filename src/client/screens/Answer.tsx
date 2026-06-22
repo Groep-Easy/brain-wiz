@@ -1,7 +1,8 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
 import { useEffect } from 'react'
 import '../styles/answer.css'
-import { correctSound, wrongSound } from '@brain-wiz/shared/SFX/SFX'
+//import { isMuted } from '@brain-wiz/shared/SFX/mute' //TODO: implement mute button
+import { popSound, correctSound, wrongSound } from '@brain-wiz/shared/SFX/SFX'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -61,7 +62,10 @@ export function Answer({
                 revealed && isCorrect ? 'is-correct' : ''
               } ${isSelected ? 'is-selected' : ''}`}
               disabled={locked}
-              onClick={() => onAnswer(answer.id)}
+              onClick={() => {
+                onAnswer(answer.id)
+                popSound()
+              }}
               aria-label={`Answer ${shape}`}
             >
               <span className="answer-shape">{shape}</span>
