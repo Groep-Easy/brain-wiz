@@ -12,6 +12,7 @@ import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
+import { ROOM } from '@brain-wiz/config/game.config'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
@@ -75,12 +76,15 @@ export function SetupLobby({
     }
   }, [roomCode])
 
+  const ONE_SECOND_TIME_OUT = 1000
+  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
+
   const handleStart = () => {
     jazzRef.current?.pause()
     if (!isMuted()) playStartGameSound()
     setTimeout(() => {
       onStartGame(timePerQuestion)
-    }, 1000) // TODO: no magic numbers
+    }, ONE_SECOND_TIME_OUT)
   }
 
   const handleKick = async (playerId: string) => {
@@ -276,7 +280,6 @@ export function SetupLobby({
                 </div>
               </section>
 
-              {/* SETTINGS PANEL */}
               <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
                 <div className="field">
                   <label htmlFor="time-per-question">Time per question (seconds)</label>
@@ -296,13 +299,23 @@ export function SetupLobby({
 
         <footer className="shared-footer-bar lobby-footer">
           <p>2026 BrainWiz™. All rights reserved.</p>
-          <button
-            className="primary-btn start-game-btn"
-            onClick={handleStart}
-            disabled={players.length === 0}
-          >
-            Start Game
-          </button>
+
+          <div className="lobby-footer-right">
+            {players.length < ROOM.MIN_PLAYERS_TO_START && (
+              <p className="players-warning">
+                Je hebt minimaal {ROOM.MIN_PLAYERS_TO_START} spelers nodig om te starten.
+                Nog {missingPlayers} speler{missingPlayers === 1 ? '' : 's'} te gaan.
+              </p>
+            )}
+
+            <button
+              className="primary-btn start-game-btn"
+              onClick={handleStart}
+              disabled={players.length < ROOM.MIN_PLAYERS_TO_START}
+            >
+              Start Game
+            </button>
+          </div>
         </footer>
       </div>
     </div>
