@@ -36,7 +36,6 @@ import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
-import { WordleMock } from '@brain-wiz/minigames/wordleGame/mock/WordleMock'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -591,10 +590,11 @@ export function App(): React.JSX.Element {
       return (
         <main
           className={
-            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush' || roundContent?.type === 'wordle'
               ? 'app app--minigame'
               : 'app'
           }
+
         >
           {banner}
           {minigame}

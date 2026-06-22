@@ -69,10 +69,20 @@ export class WordleServerAdapter implements MinigameAdapter {
     }
 
     const guessCount = getAmountGuesses(guesses)
-    const basePoints = typeof scoringConfig['basePoints'] === 'number' ? scoringConfig['basePoints'] : BASE_POINTS
-    const pointsPerExtraGuess = typeof scoringConfig['pointsPerExtraGuess'] === 'number' ? scoringConfig['pointsPerExtraGuess'] : POINTS_PER_EXTRA_GUESS
-    const solveSpeedBonus = typeof scoringConfig['solveSpeedBonus'] === 'number' ? scoringConfig['solveSpeedBonus'] : SOLVE_SPEED_BONUS
-    const timeLimitMs = typeof scoringConfig['timeLimitMs'] === 'number' ? scoringConfig['timeLimitMs'] : 60 * MILLISECONDS_PER_SECOND
+    const basePoints =
+      typeof scoringConfig['basePoints'] === 'number' ? scoringConfig['basePoints'] : BASE_POINTS
+    const pointsPerExtraGuess =
+      typeof scoringConfig['pointsPerExtraGuess'] === 'number'
+        ? scoringConfig['pointsPerExtraGuess']
+        : POINTS_PER_EXTRA_GUESS
+    const solveSpeedBonus =
+      typeof scoringConfig['solveSpeedBonus'] === 'number'
+        ? scoringConfig['solveSpeedBonus']
+        : SOLVE_SPEED_BONUS
+    const timeLimitMs =
+      typeof scoringConfig['timeLimitMs'] === 'number'
+        ? scoringConfig['timeLimitMs']
+        : 60 * MILLISECONDS_PER_SECOND
 
     // fewer guesses = more points
     const guessDeduction = (guessCount - 1) * pointsPerExtraGuess

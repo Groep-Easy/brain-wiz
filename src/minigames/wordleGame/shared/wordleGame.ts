@@ -1,103 +1,92 @@
-import { WORD_LENGTH, MAX_TRIES, FIVE_LETTER_WORDS } from "./wordleGame.constants"
-import type { Guess, Tile, GamePhase } from "./wordleGame.types"
-import type { Letter } from "./wordleGame.constants"
+import { WORD_LENGTH, MAX_TRIES, FIVE_LETTER_WORDS } from './wordleGame.constants'
+import type { Guess, Tile, GamePhase } from './wordleGame.types'
+import type { Letter } from './wordleGame.constants'
 
+const NOLETTERS = -1
+const MILLISECONDS_PER_SECOND = 1000
 
-// import { title } from "node:process"
-
-
-export function valid_input(input: string): Boolean{
-  if (input.length != WORD_LENGTH){
+export function valid_input(input: string): boolean {
+  if (input.length != WORD_LENGTH) {
     return false
-  }
-  else{
+  } else {
     return true
   }
-
 }
 
-export function evaluate_guess(guess: string, answer: string): Guess{
-
-  if (!valid_input(guess)){
+export function evaluate_guess(guess: string, answer: string): Guess {
+  if (!valid_input(guess)) {
     throw new Error(`Words must be ${WORD_LENGTH} letters long`)
   }
 
-  if (!valid_input(answer)){
+  if (!valid_input(answer)) {
     throw new Error(`Answer must be ${WORD_LENGTH} letters long`)
   }
 
-  const guess_tiles: Tile[] = []
-  const remaining_letters = answer.split("")
-
+  const guessTiles: Tile[] = []
+  const remainingLetters = answer.split('')
 
   // check for correct tiles
-  for (let i = 0; i < WORD_LENGTH; i++){
+  for (let i = 0; i < WORD_LENGTH; i++) {
+    const guessLetter = guess[i] as Letter
+    const answerLetter = answer[i] as Letter
 
-    const guess_letter = guess[i] as Letter
-    const answer_letter = answer[i] as Letter
-
-    if (guess_letter == answer_letter){
-      guess_tiles[i] = {letter: guess_letter, state: 'correct'}
-      remaining_letters.splice(remaining_letters.indexOf(answer_letter), 1)
-    }
-    else{
-      guess_tiles[i] = {
-        letter: guess_letter,
-        state: 'empty'
+    if (guessLetter == answerLetter) {
+      guessTiles[i] = { letter: guessLetter, state: 'correct' }
+      remainingLetters.splice(remainingLetters.indexOf(answerLetter), 1)
+    } else {
+      guessTiles[i] = {
+        letter: guessLetter,
+        state: 'empty',
       }
     }
-
   }
 
   // check for present tiles
 
-  for (let i = 0; i < WORD_LENGTH; i++){
+  for (let i = 0; i < WORD_LENGTH; i++) {
+    const tile = guessTiles[i] as Tile
 
-    const tile = guess_tiles[i] as Tile
-
-    if (tile.state == 'correct'){continue}
-
-    const index_remaining = remaining_letters.indexOf(tile.letter)
-
-    if (index_remaining != -1){
-      tile.state = 'present'
-      remaining_letters.splice(index_remaining, 1)
+    if (tile.state == 'correct') {
+      continue
     }
-    else{
+
+    const indexRemaining = remainingLetters.indexOf(tile.letter)
+
+    if (indexRemaining != NOLETTERS) {
+      tile.state = 'present'
+      remainingLetters.splice(indexRemaining, 1)
+    } else {
       tile.state = 'wrong'
     }
   }
 
-  return {word: guess_tiles}
+  return { word: guessTiles }
 }
 
-
-export function is_solved(guess: string, answer: string): Boolean{
+export function is_solved(guess: string, answer: string): boolean {
   return guess == answer
 }
 
-
 function guess_to_string(guess: Guess): string {
-  return guess.word.map(tile => tile.letter).join("")
+  return guess.word.map((tile) => tile.letter).join('')
 }
 
 export function get_game_state(guesses: Guess[], answer: string): GamePhase {
   if (guesses.length === 0) {
-    return "waiting"
+    return 'waiting'
   }
-  if (guesses.some(guess => is_solved(guess_to_string(guess), answer))) {
-    return "solved"
+  if (guesses.some((guess) => is_solved(guess_to_string(guess), answer))) {
+    return 'solved'
   }
   if (guesses.length >= MAX_TRIES) {
-    return "failed"
+    return 'failed'
   }
-  return "playing"
+  return 'playing'
 }
-
 
 export function get_random_word(): string {
   const index = Math.floor(Math.random() * FIVE_LETTER_WORDS.length)
-  return (FIVE_LETTER_WORDS[index] ?? "crane").toUpperCase() // crane is fallback
+  return (FIVE_LETTER_WORDS[index] ?? 'crane').toUpperCase() // crane is fallback
 }
 
 export function is_valid_word(word: string): boolean {
@@ -109,5 +98,5 @@ export function getAmountGuesses(guesses: Guess[]): number {
 }
 
 export function getAmountTime(startTime: Date, endTime: Date): number {
-  return Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+  return Math.floor((endTime.getTime() - startTime.getTime()) / MILLISECONDS_PER_SECOND)
 }

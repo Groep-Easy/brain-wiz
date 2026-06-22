@@ -1,7 +1,6 @@
-import {Tile, Guess, GamePhase} from "../shared/wordleGame.types"
+import { Tile, Guess, GamePhase } from '../shared/wordleGame.types'
 
-
-export interface WordleGameProps{
+export interface WordleGameProps {
   guesses: Guess[]
   answer: string
   gamephase: GamePhase
@@ -13,27 +12,27 @@ export interface WordleGameProps{
   showUnrealWord: boolean
   showShortWord: boolean
 }
-export interface KeyboardProps{
+export interface KeyboardProps {
   onKey: (key: string) => void
   onSubmit: () => void
   onDelete: () => void
 }
 
-export interface KeyProps{
+export interface KeyProps {
   label: Tile
   wide?: boolean
   onClick: () => void
 }
 
-export interface TileRowProps{
-  tilerow?: Guess
+export interface TileRowProps {
+  tilerow: Guess | undefined
   currentInput: string
   wordLength: number
   isactive?: boolean
   isRevealing: boolean
 }
 
-export interface TileProps{
+export interface TileProps {
   tile: Tile
   index: number
   isRevealing: boolean

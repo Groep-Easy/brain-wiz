@@ -1,9 +1,9 @@
 import './WordleGame.css'
 import type { JSX } from 'react'
-import type { WordleGameProps, TileRowProps, TileProps, KeyboardProps, KeyProps } from './WordleGame.types.ts'
-import type { Letter } from '../shared/wordleGame.constants.ts';
-import { ALPHABET } from '../shared/wordleGame.constants.ts';
-import type { TileState } from '../shared/wordleGame.types.ts';
+import type { WordleGameProps, TileRowProps, TileProps, KeyboardProps } from './WordleGame.types'
+import type { Letter } from '../shared/wordleGame.constants';
+import { ALPHABET } from '../shared/wordleGame.constants';
+import type { TileState } from '../shared/wordleGame.types';
 
 export function WordleGame(props: WordleGameProps): JSX.Element {
   const { guesses, answer, currentInput, onDelete, onKey, onSubmit, revealingRow, showUnrealWord, showShortWord} = props;

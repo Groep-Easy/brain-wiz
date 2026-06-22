@@ -23,7 +23,6 @@ import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
 import { VaultRushServerAdapter } from './minigames/vault-rush.server'
 import { WordleServerAdapter } from './minigames/wordle.server'
 
-
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
   providers: [
@@ -41,4 +40,4 @@ import { WordleServerAdapter } from './minigames/wordle.server'
   ],
   exports: [GameEngineService, GameEventBus, AnswerService],
 })
-export class GameModule { }
+export class GameModule {}
