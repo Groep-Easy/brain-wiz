@@ -1,5 +1,5 @@
 import '../styles/round_intro.css'
-import intro from '../../shared/SFX/intro.wav'
+import intro from '@brain-wiz/shared/SFX/intro.wav'
 
 interface RoundIntroProps {
   index: number

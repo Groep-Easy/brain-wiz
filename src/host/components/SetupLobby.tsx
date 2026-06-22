@@ -15,9 +15,8 @@ import '../styles/setup_lobby.css'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
-import useSound from 'use-sound'
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import startGameSound from '@brain-wiz/shared/SFX/start-game.wav'
+import * as sounds from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 interface SetupLobbyProps {
@@ -43,7 +42,6 @@ export function SetupLobby({
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const jazzRef = useRef<HTMLAudioElement>(null)
-  const [playStartGameSound] = useSound(startGameSound)
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
   const { cells } = useMemo(
@@ -77,7 +75,7 @@ export function SetupLobby({
 
   const handleStart = () => {
     jazzRef.current?.pause()
-    if (!isMuted()) playStartGameSound()
+    if (!isMuted()) sounds.startGameSound()
     setTimeout(() => {
       onStartGame(timePerQuestion)
     }, 1000) // TODO: no magic numbers
