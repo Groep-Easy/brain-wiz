@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { createVaultRushRound } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
-import type { RoundType } from '../../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,
@@ -8,7 +8,7 @@ import type {
   MinigameScoreResult,
   VaultRushPrivateState,
   VaultRushScoringConfig,
-} from './minigame.types.js'
+} from '@brain-wiz/server/room/game/minigames/minigame.types'
 
 // Points the player gets for solving the vault correctly
 const BASE_POINTS = 700

@@ -11,8 +11,8 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
 } from '../sliding-puzzle/shared/slidingPuzzleGame.js'
-import { VaultRush } from '../vault-rush/components/VaultRush.js'
-import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
+import { VaultRush } from '@brain-wiz/minigames/vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
 
 export type RoundMinigameSurfaceMode = 'play' | 'display'
 export type RoundMinigameSurfacePhase = 'playing' | 'reveal'

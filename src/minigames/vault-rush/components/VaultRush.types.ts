@@ -1,4 +1,4 @@
-import type { VaultRushPuzzle } from '../shared/vaultRushGame.js'
+import type { VaultRushPuzzle } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
 
 export interface VaultRushProps {
   puzzle: VaultRushPuzzle

@@ -3,8 +3,8 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
-import { VaultRush } from '../vault-rush/components/VaultRush'
-import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame'
+import { VaultRush } from '@brain-wiz/minigames/vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
 import {
   handleSlidingPuzzleBoardUpdate,
   type SlidingPuzzleRoundPhase,
