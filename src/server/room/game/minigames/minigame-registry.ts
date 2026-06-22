@@ -3,7 +3,7 @@ import type { RoundType } from '@brain-wiz/shared/types/index'
 import { BalanceScaleServerAdapter } from './balance-scale.server.js'
 import type { MinigameAdapter, ProceduralRoundType } from './minigame.types.js'
 import { SlidingPuzzleServerAdapter } from './sliding-puzzle.server.js'
-import { VaultRushServerAdapter } from '@brain-wiz/server/room/game/minigames/vault-rush.server'
+import { VaultRushServerAdapter } from './vault-rush.server.js'
 
 @Injectable()
 export class MinigameRegistry {
