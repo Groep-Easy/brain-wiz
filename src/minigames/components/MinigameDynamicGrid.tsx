@@ -25,7 +25,7 @@ export type MinigameDynamicGridProps =
       onSubmit: (submission: { code: string }) => void
       submitted: boolean
       phase: SlidingPuzzleRoundPhase
-      solutionCode?: string
+      solutionCode?: string | undefined
     }
   | {
       type: 'example'
