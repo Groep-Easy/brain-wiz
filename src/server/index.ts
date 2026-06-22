@@ -58,14 +58,17 @@ async function bootstrap(): Promise<void> {
   if (ENV.NODE_ENV === NodeEnv.Development) {
     // eslint-disable-next-line no-console
     console.log(`
-  Host Display:  http://localhost:5174/host
-  Player Client: http://localhost:5173/client
+  Host Display:  http://localhost:5174/ (Vite dev host)
+  Player Client: http://localhost:5173/client (Vite dev client)
   REST API:      http://localhost:3000/api
+
+  Note for local dev: The Vite ports (5173/5174) support HMR.
+  Port 3000 serves the compiled host/client files but won't auto-reload.
     `)
   } else {
     // eslint-disable-next-line no-console
     console.log(`
-  Host Display:  ${ENV.SERVER_BASE_URL}/host
+  Host Display:  ${ENV.SERVER_BASE_URL}/
   Player Client: ${ENV.SERVER_BASE_URL}/client
   REST API:      ${ENV.SERVER_BASE_URL}/api
     `)

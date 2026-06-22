@@ -9,7 +9,6 @@
  * changes via the `storage` event. A flow must keep at least MIN_FLOW_BLOCKS.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   PALETTE,
   MIN_FLOW_BLOCKS,
@@ -23,22 +22,27 @@ import {
   randomFlowFrom,
   nextUid,
 } from '../flow/palette'
-import { fetchCatalog, fetchRoomFlow, storeRoomFlow, randomizeRoomFlow } from '../flow/flow-api'
+import { fetchCatalog } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import brandLogo from '../assets/BrainWiz logo.png'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
-export function FlowEditor(): React.JSX.Element {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const code = searchParams.get('code') ?? ''
-  const token = searchParams.get('token') ?? ''
-  const serverBacked = code !== '' && token !== ''
+import useSound from 'use-sound'
+import dieSound from '@brain-wiz/shared/SFX/die.mp3'
+import dragSound from '@brain-wiz/shared/SFX/water-drop.mp3'
+import dropSound from '@brain-wiz/shared/SFX/card-drop.mp3'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+
+export interface FlowEditorProps {
+  initialFlow: FlowItem[]
+  onSave: (flow: FlowItem[]) => void
+  onCancel: () => void
+}
+
+export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
-  const [flow, setFlow] = useState<FlowItem[]>([])
-  const [ready, setReady] = useState(false)
-  const skipNextSave = useRef(true)
+  const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
   const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)
   // The slot index a dragged block would be inserted at, or null when not dragging.
   const [dropIndex, setDropIndex] = useState<number | null>(null)
@@ -46,6 +50,10 @@ export function FlowEditor(): React.JSX.Element {
   const [sizePicker, setSizePicker] = useState<number | null>(null)
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
+
+  const [playDieSound] = useSound(dieSound)
+  const [playDragSound] = useSound(dragSound)
+  const [playDropSound] = useSound(dropSound)
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
@@ -78,41 +86,25 @@ export function FlowEditor(): React.JSX.Element {
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
     })
+    if (!isMuted()) playDropSound()
   }
 
   useEffect(() => {
     let active = true
     void (async () => {
-      const [blocks, serverFlow] = await Promise.all([
-        fetchCatalog(),
-        serverBacked ? fetchRoomFlow(code) : Promise.resolve<FlowItem[]>([]),
-      ])
+      const blocks = await fetchCatalog()
       if (!active) return
       setCatalog(blocks)
-      const initial =
-        serverFlow.length >= MIN_FLOW_BLOCKS
-          ? serverFlow
-          : randomFlowFrom(blocks, DEFAULT_FLOW_SIZE)
-      skipNextSave.current = true
-      setFlow(initial)
-      setReady(true)
+
+      // If initialFlow is empty, generate a random one locally for the draft
+      if (initialFlow.length < MIN_FLOW_BLOCKS) {
+        setFlow(randomFlowFrom(blocks, DEFAULT_FLOW_SIZE))
+      }
     })()
     return () => {
       active = false
     }
-  }, [code, serverBacked])
-
-  useEffect(() => {
-    if (!ready || !serverBacked) return
-    if (skipNextSave.current) {
-      skipNextSave.current = false
-      return
-    }
-    const timer = setTimeout(() => {
-      void storeRoomFlow(code, token, flow)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [flow, ready, serverBacked, code, token])
+  }, [initialFlow])
 
   // Close the question-count popover when clicking outside it.
   useEffect(() => {
@@ -132,12 +124,14 @@ export function FlowEditor(): React.JSX.Element {
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
+    if (!isMuted()) playDragSound()
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
+    if (!isMuted()) playDragSound()
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -200,36 +194,23 @@ export function FlowEditor(): React.JSX.Element {
         return next
       })
     }
+    if (!isMuted()) playDropSound()
   }
 
   const removeAt = (index: number) => {
     setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
   }
 
-  const openSizePicker = () => setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  const openSizePicker = () => {
+    setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  }
 
   const confirmShuffle = () => {
     if (sizePicker === null) return
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
-    if (serverBacked) {
-      void randomizeRoomFlow(code, token, count)
-        .then((next) => {
-          skipNextSave.current = true
-          setFlow(next)
-        })
-        .catch(() => setFlow(randomFlowFrom(catalog, count)))
-    } else {
-      setFlow(randomFlowFrom(catalog, count))
-    }
-  }
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      void navigate(-1)
-    } else {
-      window.close()
-    }
+    setFlow(randomFlowFrom(catalog, count))
+    if (!isMuted()) playDieSound()
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
@@ -237,14 +218,23 @@ export function FlowEditor(): React.JSX.Element {
   return (
     <div className="flow-editor">
       <header className="flow-editor-header">
-        <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
-        <button className="back-btn" onClick={handleBack} aria-label="Back to lobby">
-          ← Back
-        </button>
-        <h1>Edit game flow</h1>
-        <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
-          🎲 Randomize
-        </button>
+        <WizardLogo size={40} className="brand-logo" />
+        <h2>Edit Game Flow</h2>
+        <div className="flow-editor-actions">
+          <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
+            🎲 Randomize
+          </button>
+          <button className="cancel-btn" onClick={onCancel} title="Return without saving">
+            Cancel
+          </button>
+          <button
+            className="primary-btn save-btn"
+            onClick={() => onSave(flow)}
+            title="Save changes"
+          >
+            Save
+          </button>
+        </div>
       </header>
 
       <p className="flow-editor-hint">
@@ -255,14 +245,14 @@ export function FlowEditor(): React.JSX.Element {
       <div className="flow-editor-body">
         {/* Palette */}
         <aside className="palette">
-          <h2>Themes</h2>
+          <h2>Mini-games</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'theme')
+              .filter((b) => b.kind === 'minigame')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block theme"
+                  className="palette-block minigame"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
@@ -272,14 +262,14 @@ export function FlowEditor(): React.JSX.Element {
               ))}
           </div>
 
-          <h2>Mini-games</h2>
+          <h2>Themes</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'minigame')
+              .filter((b) => b.kind === 'theme')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block minigame"
+                  className="palette-block theme"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
@@ -329,7 +319,7 @@ export function FlowEditor(): React.JSX.Element {
                     {/* Quiz (theme) blocks let the host set how many questions they contribute. */}
                     {block.kind === 'theme' && (
                       <button
-                        className={`settings-btn icon-btn ${settingsFor === item.uid ? 'open' : ''}`}
+                        className={`settings-btn ${settingsFor === item.uid ? 'open' : ''}`}
                         draggable={false}
                         onClick={(e) => {
                           e.stopPropagation()

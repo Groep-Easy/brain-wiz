@@ -49,12 +49,12 @@ export const HOST_AUTH = Object.freeze({
 })
 
 export const TIMER = Object.freeze({
+  START_GAME_MS: 1000,
   QUESTION_SECONDS: 30,
+  SLIDING_PUZZLE_SECONDS: 40,
   REVEAL_SECONDS: 5,
   ROUND_INTRO_SECONDS: 3,
-  LEADERBOARD_SECONDS: 10,
-  // Max time the engine waits for ScoringService to signal ROUND_SCORED before
-  // proceeding anyway (fallback so a scoring failure can't hang the loop).
+  LEADERBOARD_SECONDS: 6,
   SCORED_AWAIT_TIMEOUT_MS: 5_000,
 })
 
@@ -64,15 +64,14 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale'] as readonly RoundType[],
+  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale', 'vault-rush'] as readonly RoundType[],
   DEFAULT_SEQUENCE: [
     'quiz',
     'balance-scale',
     'sliding-puzzle',
+    'vault-rush',
     'quiz',
     'balance-scale',
   ] as readonly RoundType[],
-  // Number of rounds the engine plays per game. When the theme/round-selection
-  // feature lands, this becomes derived per room.
   COUNT: 5,
 })

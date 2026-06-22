@@ -24,6 +24,9 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
+import { WelcomeScreen } from './screens/WelcomeScreen'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
+import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
@@ -49,6 +52,7 @@ export function App(): React.JSX.Element {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
   const socketRef = useRef<WebSocket | null>(null)
 
@@ -74,115 +78,117 @@ export function App(): React.JSX.Element {
       socketRef.current = socket
 
       socket.onopen = () => {
-      setStatus('open')
-      // Reset game states
-      setQuestion(null)
-      setReveal(null)
-      setAnsweredCount(0)
-      setTotalPlayers(0)
-      setRound(null)
-      setLeaderboard([])
-      setRoadmap(null)
-      setFinalScores(null)
-    }
+        setStatus('open')
+        // Reset game states
+        setQuestion(null)
+        setReveal(null)
+        setAnsweredCount(0)
+        setTotalPlayers(0)
+        setRound(null)
+        setLeaderboard([])
+        setRoadmap(null)
+        setFinalScores(null)
+      }
+      socket.onmessage = (event) => {
+        try {
+          const { event: ev, data } = JSON.parse(event.data) as {
+            event: string
+            data: unknown
+          }
 
-    socket.onmessage = (event) => {
-      try {
-        const { event: ev, data } = JSON.parse(event.data) as {
-          event: string
-          data: Record<string, unknown>
-        }
+          // data is `unknown` — cast locally per-case for type-safe access
+          const d = data as Record<string, unknown>
 
-        switch (ev) {
-          case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(data.room as RoomState)
-            break
+          switch (ev) {
+            case EVENTS.ROOM_STATE_UPDATE:
+              setRoomState(d.room as RoomState)
+              break
 
-          case EVENTS.GAME_PHASE_CHANGE:
-            setRoomState((prev) =>
-              prev ? { ...prev, phase: data.phase as RoomState['phase'] } : prev
-            )
-            break
+            case EVENTS.GAME_PHASE_CHANGE:
+              setRoomState((prev: RoomState | null) =>
+                prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
+              )
+              break
 
-          case EVENTS.ROUND_START:
-            if (data.round) {
-              setRound(data.round as RoundSummary)
-            }
-            setRoundContent(null)
-            setRoundReveal(null)
-            break
-
-          case EVENTS.TIMER_TICK:
-            setSecondsRemaining(data.secondsRemaining as number)
-            break
-
-          case EVENTS.QUESTION_SHOW:
-            if (data.question) {
+            case EVENTS.ROUND_START:
+              if (d.round) {
+                setRound(d.round as RoundSummary)
+              }
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(data.question as QuestionState)
-              setReveal(null)
+              break
+
+            case EVENTS.TIMER_TICK:
+              setSecondsRemaining(d.secondsRemaining as number)
+              break
+
+            case EVENTS.QUESTION_SHOW:
+              if (d.question) {
+                setRoundContent(null)
+                setRoundReveal(null)
+                setQuestion(d.question as QuestionState)
+                setReveal(null)
+                setAnsweredCount(0)
+              }
+              break
+
+            case EVENTS.ROUND_CONTENT_SHOW:
+              setRoundContent(data as RoundContentPayload)
+              setRoundReveal(null)
               setAnsweredCount(0)
-            }
-            break
+              break
 
-          case EVENTS.ROUND_CONTENT_SHOW:
-            setRoundContent(data as RoundContentPayload)
-            setRoundReveal(null)
-            setAnsweredCount(0)
-            break
+            case EVENTS.ANSWER_COUNT_UPDATE:
+              setAnsweredCount(d.answered as number)
+              setTotalPlayers(d.total as number)
+              break
 
-          case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(data.answered as number)
-            setTotalPlayers(data.total as number)
-            break
+            case EVENTS.QUESTION_REVEAL:
+              setReveal(data as QuestionRevealPayload)
+              break
 
-          case EVENTS.QUESTION_REVEAL:
-            setReveal(data as QuestionRevealPayload)
-            break
+            case EVENTS.ROUND_REVEAL:
+              setRoundReveal(data as RoundRevealPayload)
+              break
 
-          case EVENTS.ROUND_REVEAL:
-            setRoundReveal(data as RoundRevealPayload)
-            break
+            case EVENTS.LEADERBOARD_SHOW:
+              if (d.leaderboard) {
+                setLeaderboard(d.leaderboard as LeaderboardEntry[])
+              }
+              break
 
-          case EVENTS.LEADERBOARD_SHOW:
-            if (data.leaderboard) {
-              setLeaderboard(data.leaderboard as LeaderboardEntry[])
-            }
-            break
+            case EVENTS.ROADMAP_UPDATE:
+              setRoadmap(data as RoadmapUpdate)
+              break
 
-          case EVENTS.ROADMAP_UPDATE:
-            setRoadmap(data as RoadmapUpdate)
-            break
+            case EVENTS.GAME_OVER:
+              if (d.finalScores) {
+                setFinalScores(d.finalScores as ScoreMap)
+              }
+              break
 
-          case EVENTS.GAME_OVER:
-            if (data.finalScores) {
-              setFinalScores(data.finalScores as ScoreMap)
-            }
-            break
-
-          default:
-            break
+            default:
+              break
+          }
+        } catch (err) {
+          console.error('Failed to parse WebSocket message:', err)
         }
-      } catch (err) {
-         
-        console.error('Failed to parse WebSocket message:', err)
       }
-    }
 
-    socket.onclose = (event) => {
-      setStatus('closed')
-      setRoomState(null)
-      if (event.code === 4004) {
-        setFatalError('Room not found or token invalid')
+      socket.onclose = (event) => {
+        setStatus('closed')
+        setRoomState(null)
+
+        if (event.code === 4004) {
+          setFatalError('Room not found or token invalid')
+        }
+
+        // Do not clear tokens or code so we can attempt reconnect if desired
       }
-      // Do not clear tokens or code so we can attempt reconnect if desired
-    }
 
-    socket.onerror = () => {
-       
-      console.error('WebSocket connection error')
-    }
+      socket.onerror = () => {
+        console.error('WebSocket connection error')
+      }
     }, 50)
 
     return () => {
@@ -215,122 +221,140 @@ export function App(): React.JSX.Element {
   }
 
   const handleCloseLobby = () => {
-    // eslint-disable-next-line no-alert -- intentional native confirm dialog
-    if (window.confirm('Are you sure you want to dissolve the lobby?')) {
-      socketRef.current?.close()
-      socketRef.current = null
-      setRoomState(null)
-      setStatus('closed')
-      void navigate('/')
-    }
+    setConfirmCloseOpen(true)
   }
 
-  // Dynamic Routing based on game phase
-  if (fatalError) {
-    return (
-      <main className="app">
-        <div className="welcome-screen">
-          <div className="welcome-card">
-            <CountdownCircle
-              seconds={5}
-              message={fatalError}
-              onComplete={async () => navigate('/')}
-            />
-          </div>
-        </div>
-      </main>
-    )
+  const performCloseLobby = () => {
+    setConfirmCloseOpen(false)
+    socketRef.current?.close()
+    socketRef.current = null
+    setRoomState(null)
+    setStatus('closed')
+    void navigate('/')
   }
 
-  if (!roomState || status !== 'open' || !roomCode || !hostToken) {
-    return (
-      <main className="app">
-        <div className="welcome-screen">
-          <div className="welcome-card">
-            <p>Connecting to room {roomCode}...</p>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  const phase = roomState.phase
-
-  if (phase === 'lobby') {
-    return (
-      <main className="app">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
-        <SetupLobby
-          roomCode={roomCode}
-          hostToken={hostToken}
-          players={roomState.players}
-          gameFlow={roomState.gameFlow ?? []}
-          onStartGame={handleStartGame}
-          onCloseLobby={handleCloseLobby}
-        />
-      </main>
-    )
-  }
-
-  if (phase === 'round-intro') {
-    return <RoundIntro index={round?.index ?? roomState.round} total={round?.total ?? 0} />
-  }
-
-  if (phase === 'playing' || phase === 'reveal') {
-    if (roundContent) {
-      return (
-        <main className="app app--minigame">
-          {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
-        </main>
-      )
-    }
-
-    if (!question) {
+  const renderPhase = () => {
+    if (fatalError) {
       return (
         <main className="app">
           <div className="welcome-screen">
             <div className="welcome-card">
-              <p>Preparing next question…</p>
+              <CountdownCircle
+                seconds={5}
+                message={fatalError}
+                onComplete={async () => navigate('/')}
+              />
             </div>
           </div>
         </main>
       )
     }
-    return (
-      <Question
-        gameCode={roomCode}
-        question={question}
-        secondsRemaining={secondsRemaining}
-        answeredCount={answeredCount}
-        totalPlayers={totalPlayers}
-        reveal={phase === 'reveal' ? reveal : null}
-      />
-    )
-  }
 
-  if (phase === 'game-over' || finalScores !== null) {
-    return (
-      <GameOver
-        players={roomState.players}
-        finalScores={finalScores || {}}
-        onBackToMenu={handleCloseLobby}
-      />
-    )
-  }
+    if (!roomState || status !== 'open' || !roomCode || !hostToken) {
+      return <WelcomeScreen />
+    }
 
-  if (phase === 'leaderboard') {
+    const phase = roomState.phase
+
+    if (phase === 'lobby') {
+      return (
+        <main className="app app--lobby">
+          <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
+          <SetupLobby
+            roomCode={roomCode}
+            hostToken={hostToken}
+            players={roomState.players}
+            gameFlow={roomState.gameFlow ?? []}
+            onStartGame={handleStartGame}
+            onCloseLobby={handleCloseLobby}
+          />
+        </main>
+      )
+    }
+
+    if (phase === 'round-intro') {
+      return (
+        <RoundIntro
+          index={round?.index ?? roomState.round}
+          total={round?.total ?? 0}
+          questionText={round?.questionText}
+        />
+      )
+    }
+
+    if (phase === 'playing' || phase === 'reveal') {
+      if (roundContent) {
+        return (
+          <main className="app app--minigame">
+            {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
+          </main>
+        )
+      }
+
+      if (!question) {
+        return (
+          <main className="app">
+            <div className="welcome-screen">
+              <div className="welcome-card">
+                <p>Preparing next question…</p>
+              </div>
+            </div>
+          </main>
+        )
+      }
+      return (
+        <Question
+          gameCode={roomCode}
+          question={question}
+          secondsRemaining={secondsRemaining}
+          answeredCount={answeredCount}
+          totalPlayers={totalPlayers}
+          reveal={phase === 'reveal' ? reveal : null}
+        />
+      )
+    }
+
+    if (phase === 'game-over' || finalScores !== null) {
+      return (
+        <GameOver
+          players={roomState.players}
+          finalScores={finalScores || {}}
+          onBackToMenu={handleCloseLobby}
+        />
+      )
+    }
+
+    if (phase === 'leaderboard') {
+      return (
+        <main className="app app--solid">
+          <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+          <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} players={roomState.players} />
+        </main>
+      )
+    }
+
     return (
       <main className="app">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-        <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} />
+        <h1>Unknown Phase: {phase}</h1>
       </main>
     )
   }
 
   return (
-    <main className="app">
-      <h1>Unknown Phase: {phase}</h1>
-    </main>
+    <>
+      {renderPhase()}
+      {roomState?.phase && roomState.phase !== 'lobby' && <MuteButton />}
+      <ConfirmDialog
+        open={confirmCloseOpen}
+        title="Dissolve lobby?"
+        message="This will close the room and disconnect all players."
+        confirmLabel="Dissolve"
+        cancelLabel="Cancel"
+        danger
+        onConfirm={performCloseLobby}
+        onCancel={() => setConfirmCloseOpen(false)}
+      />
+    </>
   )
 }
 
@@ -339,11 +363,19 @@ function renderMinigame(
   reveal: RoundRevealPayload | null,
   phase: 'playing' | 'reveal'
 ): React.JSX.Element {
-  if (content.type === 'balance-scale' || content.type === 'sliding-puzzle') {
+  if (
+    content.type === 'balance-scale' ||
+    content.type === 'sliding-puzzle' ||
+    content.type === 'vault-rush'
+  ) {
     return (
       <RoundMinigameSurface
         className={`host-minigame ${
-          content.type === 'balance-scale' ? 'host-minigame--scale' : 'host-minigame--sliding'
+          content.type === 'balance-scale'
+            ? 'host-minigame--scale'
+            : content.type === 'vault-rush'
+              ? 'host-minigame--vault'
+              : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"

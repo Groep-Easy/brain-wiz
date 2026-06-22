@@ -20,6 +20,7 @@ export type RoundType =
   | 'head-to-head'
   | 'sliding-puzzle'
   | 'balance-scale'
+  | 'vault-rush'
   | 'wordle'
 
 export interface Player {
@@ -80,6 +81,7 @@ export interface RoundSummary {
   total: number
   type: RoundType
   timeLimitSeconds: number
+  questionText?: string
 }
 
 /** Server → all: round started (ROUND_START). */
@@ -187,6 +189,14 @@ export interface AnswerSubmitPayload {
 
 /** Client -> server: submit a procedural/minigame result (ROUND_SUBMIT). */
 export interface RoundSubmitPayload {
+  roundId: string
+  type: RoundType
+  submission: unknown
+  timestamp?: number
+}
+
+/** Client -> server: latest procedural/minigame progress snapshot. */
+export interface RoundProgressPayload {
   roundId: string
   type: RoundType
   submission: unknown

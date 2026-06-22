@@ -34,15 +34,11 @@ export function Question({
 
   return (
     <main className="host-question-page">
-      <audio
-        id="suspense-music"
-        loop
-        autoPlay
-        src={suspenseMusic}
-        preload="auto">
-      </audio>
+      <audio id="suspense-music" loop autoPlay src={suspenseMusic} preload="auto"></audio>
       <header className="hq-top">
-        <span className="hq-code">Code: {gameCode}</span>
+        <span className="hq-code">
+          Code: <span className="code-pill">{gameCode}</span>
+        </span>
         <span className="hq-status">
           {revealed
             ? `${summary?.correctPlayers ?? 0} of ${summary?.totalAnswered ?? 0} got it right`

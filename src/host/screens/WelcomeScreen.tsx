@@ -46,6 +46,7 @@ export function WelcomeScreen(): React.JSX.Element {
   }, [])
 
   const handleCreateRoom = async () => {
+    if (isCreating) return
     setIsCreating(true)
     try {
       const res = await fetch(`${BACKEND_HTTP_URL}/rooms`, { method: 'POST' })
@@ -100,33 +101,22 @@ export function WelcomeScreen(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="floating-shapes">
-        <svg className="floating-shape shape-1" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-        </svg>
-        <svg className="floating-shape shape-2" viewBox="0 0 24 24">
-          <rect x="4" y="4" width="16" height="16" rx="4" />
-        </svg>
-        <svg className="floating-shape shape-3" viewBox="0 0 24 24">
-          <polygon points="12,2 22,20 2,20" />
-        </svg>
-      </div>
-
-      <div className="hero-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div
+        className="hero-content"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+      >
         <WizardLogo size={80} className="hero-logo-svg" />
-        <h1 className="text-logo" style={{ fontSize: '6rem', margin: '16px 0', color: 'white' }}>BrainWiz</h1>
-        {isCreating ? (
-          <p style={{ color: '#ccc' }}>Connecting to server...</p>
-        ) : (
-          <div className="hero-actions">
-            <button className="primary-btn" onClick={handleCreateRoom}>
-              Start Hosting Game
-            </button>
-            <button className="primary-btn" onClick={handleJoinGame}>
-              Join Existing Game
-            </button>
-          </div>
-        )}
+        <h1 className="text-logo" style={{ fontSize: '5rem', margin: '16px 0', color: 'white' }}>
+          BrainWiz
+        </h1>
+        <div className="hero-actions">
+          <button className="hero-btn hero-btn--primary" onClick={handleCreateRoom}>
+            Start Hosting Game
+          </button>
+          <button className="hero-btn hero-btn--secondary" onClick={handleJoinGame}>
+            Join Existing Game
+          </button>
+        </div>
       </div>
 
       <div className="hero-footer">

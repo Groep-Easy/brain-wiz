@@ -11,8 +11,15 @@ import type {
   PlayerJoinRejectedPayload,
   AnswerAckPayload,
   RoundContentPayload,
+  RoundProgressPayload,
   RoundRevealPayload,
   PlayerAvatar,
+  GamePhaseChangePayload,
+  RoundStartPayload,
+  TimerTickPayload,
+  QuestionShowPayload,
+  LeaderboardShowPayload,
+  GameOverPayload,
 } from '@brain-wiz/shared/types/index'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
@@ -25,7 +32,10 @@ import { Answer } from './screens/Answer'
 import { Leaderboard } from './screens/Leaderboard'
 import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
+import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
 import { WordleMock } from '@brain-wiz/minigames/wordleGame/mock/WordleMock'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
@@ -192,36 +202,43 @@ export function App(): React.JSX.Element {
         break
       }
       case EVENTS.ROOM_STATE_UPDATE:
-        setRoomState(data.room as RoomState)
+        setRoomState((data as { room: RoomState }).room)
         break
-      case EVENTS.GAME_PHASE_CHANGE:
-        setRoomState((prev) => (prev ? { ...prev, phase: data.phase as GamePhase } : prev))
+      case EVENTS.GAME_PHASE_CHANGE: {
+        const { phase } = data as GamePhaseChangePayload
+        setRoomState((prev) => (prev ? { ...prev, phase } : prev))
         break
-      case EVENTS.ROUND_START:
-        if (data.round) setRound(data.round as RoundSummary)
+      }
+      case EVENTS.ROUND_START: {
+        const { round } = data as RoundStartPayload
+        if (round) setRound(round)
         setRoundContent(null)
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
         break
+      }
       case EVENTS.TIMER_TICK:
-        setSecondsRemaining(data.secondsRemaining as number)
+        setSecondsRemaining((data as TimerTickPayload).secondsRemaining)
         break
-      case EVENTS.QUESTION_SHOW:
-        if (data.question) {
+      case EVENTS.QUESTION_SHOW: {
+        const { question } = data as QuestionShowPayload
+        if (question) {
           setRoundContent(null)
           setRoundReveal(null)
-          setQuestion(data.question as QuestionState)
+          setQuestion(question)
           setReveal(null)
           setSelectedAnswerId(null)
         }
         break
+      }
       case EVENTS.ROUND_CONTENT_SHOW: {
         const content = data as RoundContentPayload
         setRoundContent(content)
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
+
         break
       }
       case EVENTS.QUESTION_REVEAL:
@@ -230,12 +247,16 @@ export function App(): React.JSX.Element {
       case EVENTS.ROUND_REVEAL:
         setRoundReveal(data as RoundRevealPayload)
         break
-      case EVENTS.LEADERBOARD_SHOW:
-        if (data.leaderboard) setLeaderboard(data.leaderboard as LeaderboardEntry[])
+      case EVENTS.LEADERBOARD_SHOW: {
+        const { leaderboard } = data as LeaderboardShowPayload
+        if (leaderboard) setLeaderboard(leaderboard)
         break
-      case EVENTS.GAME_OVER:
-        if (data.finalScores) setFinalScores(data.finalScores as ScoreMap)
+      }
+      case EVENTS.GAME_OVER: {
+        const { finalScores } = data as GameOverPayload
+        if (finalScores) setFinalScores(finalScores)
         break
+      }
       case EVENTS.ANSWER_ACK: {
         const ack = data as AnswerAckPayload
         if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
@@ -354,6 +375,13 @@ export function App(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only WebSocket setup; runs once for the component lifetime
   }, [])
 
+  useEffect(() => {
+    const phase = roomState?.phase
+    const inGame = joined && phase != null && phase !== 'lobby'
+    document.body.classList.toggle('client-in-game', inGame)
+    return () => document.body.classList.remove('client-in-game')
+  }, [joined, roomState?.phase])
+
   function handleJoin(name: string, code: string, playerAvatar: PlayerAvatar): void {
     setJoinError(null)
     setJoining(true)
@@ -395,6 +423,25 @@ export function App(): React.JSX.Element {
     )
   }
 
+  function handleRoundProgress(submission: unknown): void {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN || !roundContent || roundSubmitted) return
+
+    const payload: RoundProgressPayload = {
+      roundId: roundContent.roundId,
+      type: roundContent.type,
+      submission,
+      timestamp: Date.now(),
+    }
+
+    socket.send(
+      JSON.stringify({
+        event: EVENTS.ROUND_PROGRESS,
+        data: payload,
+      })
+    )
+  }
+
   function renderMinigame(phase: 'playing' | 'reveal'): React.JSX.Element | null {
     if (!roundContent) return null
 
@@ -421,10 +468,31 @@ export function App(): React.JSX.Element {
         <MinigameDynamicGrid
           type={'sliding-puzzle'}
           puzzle={roundContent.publicState}
+          onProgress={handleRoundProgress}
           onSubmit={handleRoundSubmit}
           submitted={roundSubmitted}
           phase={phase}
         />
+      )
+    }
+
+    if (roundContent.type === 'vault-rush') {
+      const puzzle = roundContent.publicState as VaultRushPuzzle
+      const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const isReveal = phase === 'reveal'
+
+      return (
+        <section className="client-minigame client-minigame--vault-rush">
+          <VaultRush
+            onSubmitCode={(code) => {
+              handleRoundSubmit({ code })
+            }}
+            puzzle={puzzle}
+            readOnly={isReveal}
+            solutionCode={isReveal ? solution?.code : undefined}
+            submitted={roundSubmitted}
+          />
+        </section>
       )
     }
 
@@ -445,12 +513,14 @@ export function App(): React.JSX.Element {
   }
 
   const disconnected = status === 'closed'
-  const banner =
-    disconnected && !kicked ? (
-      <div className="banner">
-        {reconnectExhausted ? 'Connection lost — reload the page to rejoin' : 'Reconnecting…'}
-      </div>
-    ) : null
+  const banner = (
+    <>
+      <ReconnectToast visible={disconnected && !kicked && !reconnectExhausted} />
+      {disconnected && !kicked && reconnectExhausted ? (
+        <div className="banner">Connection lost — reload the page to rejoin</div>
+      ) : null}
+    </>
+  )
 
   if (fatalError) {
     return (
@@ -519,7 +589,13 @@ export function App(): React.JSX.Element {
     const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
     if (minigame) {
       return (
-        <main className={roundContent?.type === 'sliding-puzzle' ? 'app app--minigame' : 'app'}>
+        <main
+          className={
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
+              ? 'app app--minigame'
+              : 'app'
+          }
+        >
           {banner}
           {minigame}
         </main>
@@ -571,7 +647,11 @@ export function App(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
-        <Leaderboard leaderboard={leaderboard} myPlayerId={myPlayerId} />
+        <Leaderboard
+          leaderboard={leaderboard}
+          myPlayerId={myPlayerId}
+          players={roomState?.players ?? []}
+        />
       </main>
     )
   }

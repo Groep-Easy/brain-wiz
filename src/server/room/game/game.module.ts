@@ -20,6 +20,7 @@ import { ScoringService } from './scoring.service'
 import { MinigameRegistry } from './minigames/minigame-registry'
 import { SlidingPuzzleServerAdapter } from './minigames/sliding-puzzle.server'
 import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
+import { VaultRushServerAdapter } from './minigames/vault-rush.server'
 import { WordleServerAdapter } from './minigames/wordle.server'
 
 
@@ -31,6 +32,7 @@ import { WordleServerAdapter } from './minigames/wordle.server'
     GameEventBus,
     SlidingPuzzleServerAdapter,
     BalanceScaleServerAdapter,
+    VaultRushServerAdapter,
     WordleServerAdapter,
     MinigameRegistry,
     AnswerService,
@@ -39,4 +41,4 @@ import { WordleServerAdapter } from './minigames/wordle.server'
   ],
   exports: [GameEngineService, GameEventBus, AnswerService],
 })
-export class GameModule {}
+export class GameModule { }

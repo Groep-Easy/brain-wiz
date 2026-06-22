@@ -34,7 +34,13 @@ import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROOM, WS } from '@brain-wiz/config/game.config'
 import { AnswerService } from '../room/game/answer.service'
 import type { PongPayload } from '@brain-wiz/shared/types/index'
-import { PingDto, PlayerJoinDto, AnswerSubmitDto, RoundSubmitDto } from './dto/socket.dto'
+import {
+  PingDto,
+  PlayerJoinDto,
+  AnswerSubmitDto,
+  RoundSubmitDto,
+  RoundProgressDto,
+} from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
 import { HostAuthThrottle } from './host-auth-throttle'
@@ -219,5 +225,15 @@ export class SocketGateway
     if (!this.rateLimiter.allow(client.connectionId)) return
     if (!payload?.roundId || !payload?.type) return
     void this.answerService.submitRound(client, payload)
+  }
+
+  @SubscribeMessage(EVENTS.ROUND_PROGRESS)
+  public handleRoundProgress(
+    @MessageBody() payload: RoundProgressDto | undefined,
+    @ConnectedSocket() client: IdentifiedSocket
+  ): void {
+    if (!this.rateLimiter.allow(client.connectionId)) return
+    if (!payload?.roundId || !payload?.type) return
+    this.answerService.updateRoundProgress(client, payload)
   }
 }

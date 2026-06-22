@@ -1,5 +1,5 @@
 /* variables.css - Shared design tokens for Brain Wiz */
-@import url('https://fonts.googleapis.com/css2?family=Ephesis&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap');
 :root {
   --dark: #2a3135; /* Text, headings */
   --navy: #36435f; /* Secondary, hover */
@@ -25,8 +25,9 @@
 }
 
 .text-logo {
-  font-family: 'Ephesis', cursive;
-  font-weight: 400;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: white;
   margin: 0;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
