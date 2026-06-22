@@ -24,4 +24,6 @@ export interface GameBlockDto {
 export interface GameFlowItem {
   blockId: string
   questions?: number
+  /** Per-placed-minigame time limit in seconds. Ignored for theme blocks. */
+  timeLimitSeconds?: number
 }

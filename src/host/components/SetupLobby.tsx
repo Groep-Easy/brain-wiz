@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Player } from '@brain-wiz/shared/types/index'
-import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
+import { MAX_FLOW_COLUMNS, blockById, defaultMinigameTimeSeconds } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
@@ -265,6 +265,13 @@ export function SetupLobby({
                               <div className={`flow-block ${block.kind}`}>
                                 <span className="flow-block-icon">{block.icon}</span>
                                 <span className="flow-block-label">{block.label}</span>
+                                {block.kind === 'minigame' && (
+                                  <span className="flow-block-time">
+                                    {item.timeLimitSeconds ??
+                                      defaultMinigameTimeSeconds(item.blockId)}
+                                    s
+                                  </span>
+                                )}
                               </div>
                               {arrow}
                             </div>

@@ -455,6 +455,17 @@
   line-height: 1.2;
 }
 
+.flow-block-time {
+  min-width: 44px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(5, 108, 92, 0.08);
+  color: var(--teal, #056c5c);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .flow-arrow {
   position: absolute;
   display: flex;
