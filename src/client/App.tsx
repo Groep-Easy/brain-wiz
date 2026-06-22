@@ -34,8 +34,6 @@ import { GameOver } from './screens/GameOver'
 import { LoadingComp } from './components/LoadingComp'
 import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
-import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
-import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const STORAGE_KEY = 'brainwiz-player'
@@ -474,22 +472,17 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'vault-rush') {
-      const puzzle = roundContent.publicState as VaultRushPuzzle
       const solution = roundReveal?.publicSolution as { code?: string } | undefined
-      const isReveal = phase === 'reveal'
 
       return (
-        <section className="client-minigame client-minigame--vault-rush">
-          <VaultRush
-            onSubmitCode={(code) => {
-              handleRoundSubmit({ code })
-            }}
-            puzzle={puzzle}
-            readOnly={isReveal}
-            solutionCode={isReveal ? solution?.code : undefined}
-            submitted={roundSubmitted}
-          />
-        </section>
+        <MinigameDynamicGrid
+          type="vault-rush"
+          puzzle={roundContent.publicState}
+          onSubmit={handleRoundSubmit}
+          submitted={roundSubmitted}
+          phase={phase}
+          solutionCode={solution?.code}
+        />
       )
     }
 

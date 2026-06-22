@@ -3,6 +3,8 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
+import { VaultRush } from '../vault-rush/components/VaultRush'
+import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame'
 import {
   handleSlidingPuzzleBoardUpdate,
   type SlidingPuzzleRoundPhase,
@@ -16,6 +18,14 @@ export type MinigameDynamicGridProps =
       onProgress?: (submission: { board: SlidingPuzzleBoard }) => void
       submitted: boolean
       phase: SlidingPuzzleRoundPhase
+    }
+  | {
+      type: 'vault-rush'
+      puzzle: unknown
+      onSubmit: (submission: { code: string }) => void
+      submitted: boolean
+      phase: SlidingPuzzleRoundPhase
+      solutionCode?: string
     }
   | {
       type: 'example'
@@ -33,6 +43,17 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
       typeof testValue.image.alt === 'string' &&
       Array.isArray(testValue.initialBoard) &&
       testValue.initialBoard.every((tile) => typeof tile === 'number' && Number.isInteger(tile))
+    )
+  }
+
+  function isVaultRushPuzzle(value: unknown): value is VaultRushPuzzle {
+    const testValue = value as VaultRushPuzzle
+    return (
+      typeof testValue.id === 'string' &&
+      Array.isArray(testValue.clues) &&
+      testValue.clues.every(
+        (clue) => typeof clue.digitIndex === 'number' && typeof clue.text === 'string'
+      )
     )
   }
 
@@ -63,6 +84,30 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
             onBoardChange={handleBoardChange}
             puzzle={puzzle}
             readOnly={submitted || phase === 'reveal'}
+          />
+        </section>
+      )
+    }
+
+    case 'vault-rush': {
+      if (!isVaultRushPuzzle(data.puzzle)) {
+        return null
+      }
+
+      const puzzle = data.puzzle
+      const submitted = data.submitted
+      const phase = data.phase
+
+      return (
+        <section className="client-minigame client-minigame--vault-rush">
+          <VaultRush
+            onSubmitCode={(code) => {
+              data.onSubmit({ code })
+            }}
+            puzzle={puzzle}
+            readOnly={submitted || phase === 'reveal'}
+            solutionCode={phase === 'reveal' ? data.solutionCode : undefined}
+            submitted={submitted}
           />
         </section>
       )
