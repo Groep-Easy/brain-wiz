@@ -10,7 +10,7 @@ import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import '../styles/leaderboard.css'
 
-import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
+import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]

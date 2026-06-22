@@ -1,5 +1,7 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
+import { useEffect } from 'react'
 import '../styles/answer.css'
+import { correctSound, wrongSound } from '@brain-wiz/shared/SFX/SFX'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -74,6 +76,11 @@ export function Answer({
 }
 
 function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.JSX.Element {
+  useEffect(() => {
+    if (result?.isCorrect) correctSound()
+    else wrongSound()
+  }, [result])
+
   if (!result || result.isTimeout || result.answerId === null) {
     return <div className="reveal-banner is-wrong">Time&apos;s up — no answer ⏰</div>
   }

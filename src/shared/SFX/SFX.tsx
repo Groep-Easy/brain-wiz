@@ -12,6 +12,7 @@ import pop from './pop.mp3'
 import quack from './quack.mp3'
 import startGame from './start-game.wav'
 import waterDrop from './water-drop.mp3'
+import wrong from './wrong.mp3'
 
 function playSound(soundSource: string) {
   const audioData = new Audio(soundSource)
@@ -68,4 +69,8 @@ export function startGameSound() {
 
 export function waterDropSound() {
   playSound(waterDrop)
+}
+
+export function wrongSound() {
+  playSound(wrong)
 }
