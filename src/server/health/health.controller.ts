@@ -5,12 +5,14 @@
  * the current process health snapshot.
  */
 import { Controller, Get } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import { HealthService, type HealthStatus } from './health.service'
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger'
 
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
-  public constructor(private readonly healthService: HealthService) {}
+  public constructor(private readonly healthService: HealthService) { }
 
   @Get()
   @ApiOperation({

@@ -15,12 +15,14 @@ import {
   Post,
   Put,
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { LobbyService } from './lobby.service'
 import { RoomNotFoundError, RoomNotInLobbyError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
 import type { RoomState } from '@brain-wiz/shared/types/index'
 import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { StartRoomDto, StoreFlowDto, RandomizeFlowDto } from '../dto/room.dto'
+import { HTTP_THROTTLE } from '@brain-wiz/config/game.config'
 import {
   ApiBody,
   ApiConflictResponse,
@@ -37,6 +39,7 @@ export class RoomsController {
   public constructor(private readonly lobby: LobbyService) {}
 
   @Post()
+  @Throttle({ default: { ttl: HTTP_THROTTLE.STRICT_TTL_MS, limit: HTTP_THROTTLE.STRICT_LIMIT } })
   @ApiOperation({
     summary: 'Create a room',
     description: 'Creates a new lobby room and returns a join code + host token',
