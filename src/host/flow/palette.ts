@@ -44,6 +44,7 @@ export const PALETTE: BlockDef[] = [
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
   { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: '🔐' },
+  { id: 'mini-wordle', label: 'Wordle', kind: 'minigame', icon: '📝' },
 ]
 
 /** A flow must always contain at least this many blocks. */
