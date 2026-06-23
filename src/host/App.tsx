@@ -23,6 +23,7 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
+import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
@@ -298,8 +299,14 @@ export function App(): React.JSX.Element {
 
     if (phase === 'playing' || phase === 'reveal') {
       if (roundContent) {
+        const isVaultRushPlaying = roundContent.type === 'vault-rush' && phase === 'playing'
+
         return (
           <main className="app app--minigame">
+            {isVaultRushPlaying ? (
+              <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
+            ) : null}
+
             {renderMinigame(
               roundContent,
               roundReveal,
