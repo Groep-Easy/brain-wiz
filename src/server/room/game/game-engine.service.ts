@@ -135,17 +135,25 @@ export class GameEngineService {
   ): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
-      .innerJoinAndSelect('round.question', 'question')
+      .leftJoinAndSelect('round.question', 'question')
       .where('round.roomId = :roomId', { roomId })
       .orderBy('round.roundIndex', 'ASC')
       .getMany()
 
     const countByTheme = new Map<string, number>()
+
     for (const round of rounds) {
-      if (round.question && round.roundIndex >= currentRoundIndex) {
-        const theme = round.question.theme
-        countByTheme.set(theme, (countByTheme.get(theme) ?? 0) + 1)
+      if (round.roundIndex < currentRoundIndex) {
+        continue
       }
+
+      const theme = round.question?.theme ?? round.gameType
+
+      if (!theme) {
+        continue
+      }
+
+      countByTheme.set(theme, (countByTheme.get(theme) ?? 0) + 1)
     }
 
     return Array.from(countByTheme.entries()).map(([theme, questionsInTheme]) => ({

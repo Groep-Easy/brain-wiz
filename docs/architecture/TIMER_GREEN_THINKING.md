@@ -8,20 +8,20 @@ The implementation now only broadcasts `TIMER_TICK` events during the `playing` 
 
 This change affects:
 
-* `game-engine.service.ts`
+- `game-engine.service.ts`
 
-  * Timer ticks are only emitted when the phase needs visible countdown updates
-  * Intro, reveal and leaderboard timers still run internally without broadcasting ticks
+  - Timer ticks are only emitted when the phase needs visible countdown updates
+  - Intro, reveal and leaderboard timers still run internally without broadcasting ticks
 
-* Host `App.tsx`
+- Host `App.tsx`
 
-  * Timer ticks are ignored when the host is not in the `playing` phase
-  * Old timer state is reset when leaving active gameplay
+  - Timer ticks are ignored when the host is not in the `playing` phase
+  - Old timer state is reset when leaving active gameplay
 
-* Client `App.tsx`
+- Client `App.tsx`
 
-  * Timer ticks are ignored when the client is not in the `playing` phase
-  * This prevents unnecessary state updates and rerenders outside gameplay
+  - Timer ticks are ignored when the client is not in the `playing` phase
+  - This prevents unnecessary state updates and rerenders outside gameplay
 
 ## Why this supports green thinking
 
