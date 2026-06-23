@@ -1,7 +1,6 @@
-import words from 'an-array-of-english-words'
-
+import FIVE_LETTER_WORDS from './five-letter-words.json'
 export const WORD_LENGTH = 5
 export const MAX_TRIES = 6
 export const ALPHABET = [...'QWERTYUIOPASDFGHJKLZXCVBNM'] as const
 export type Letter = (typeof ALPHABET)[number]
-export const FIVE_LETTER_WORDS = words.filter((w) => w.length === WORD_LENGTH)
+export { FIVE_LETTER_WORDS }
