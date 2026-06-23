@@ -189,6 +189,7 @@ export class RoundBuilder {
       throw new BadRequestException(`No minigame adapter registered for round type "${type}"`)
     }
     const roundId = randomUUID()
+    const timeLimitSeconds = this.proceduralRoundSeconds(type)
     const seed = this.createProceduralRoundSeed({
       roomId: room.id,
       roundId,
@@ -198,7 +199,7 @@ export class RoundBuilder {
       roundId,
       seed,
       roundIndex: index,
-      timeLimitSeconds: TIMER.QUESTION_SECONDS,
+      timeLimitSeconds,
     })
     const round: Round = this.rounds.create({
       id: roundId,
@@ -211,10 +212,17 @@ export class RoundBuilder {
       publicState: generated.publicState,
       privateState: generated.privateState,
       scoringConfig: generated.scoringConfig,
-      timeLimitSeconds: TIMER.QUESTION_SECONDS,
+      timeLimitSeconds,
     } as DeepPartial<Round>)
 
     return this.rounds.save(round)
+  }
+
+  private proceduralRoundSeconds(type: RoundType): number {
+    if (type === 'sliding-puzzle') {
+      return TIMER.SLIDING_PUZZLE_SECONDS
+    }
+    return TIMER.QUESTION_SECONDS
   }
 
   /** Fisher–Yates shuffle, returning the same array reference (shuffled in place). */

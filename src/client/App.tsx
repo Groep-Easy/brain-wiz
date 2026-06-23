@@ -11,6 +11,7 @@ import type {
   PlayerJoinRejectedPayload,
   AnswerAckPayload,
   RoundContentPayload,
+  RoundProgressPayload,
   RoundRevealPayload,
   PlayerAvatar,
   GamePhaseChangePayload,
@@ -419,6 +420,25 @@ export function App(): React.JSX.Element {
     )
   }
 
+  function handleRoundProgress(submission: unknown): void {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN || !roundContent || roundSubmitted) return
+
+    const payload: RoundProgressPayload = {
+      roundId: roundContent.roundId,
+      type: roundContent.type,
+      submission,
+      timestamp: Date.now(),
+    }
+
+    socket.send(
+      JSON.stringify({
+        event: EVENTS.ROUND_PROGRESS,
+        data: payload,
+      })
+    )
+  }
+
   function renderMinigame(phase: 'playing' | 'reveal'): React.JSX.Element | null {
     if (!roundContent) return null
 
@@ -445,6 +465,7 @@ export function App(): React.JSX.Element {
         <MinigameDynamicGrid
           type={'sliding-puzzle'}
           puzzle={roundContent.publicState}
+          onProgress={handleRoundProgress}
           onSubmit={handleRoundSubmit}
           submitted={roundSubmitted}
           phase={phase}

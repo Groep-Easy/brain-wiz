@@ -87,12 +87,12 @@ function fakeMinigameRegistry(): unknown {
 
       return {
         type,
-        createRound: (input: { seed: string }): unknown => ({
+        createRound: (input: { seed: string; timeLimitSeconds: number }): unknown => ({
           type,
           seed: input.seed,
           publicState: { setup: type },
           privateState: { solution: type },
-          scoringConfig: { points: 100 },
+          scoringConfig: { points: 100, timeLimitSeconds: input.timeLimitSeconds },
         }),
       }
     },
@@ -139,7 +139,20 @@ describe('RoundBuilder', () => {
         ContentTypeEnum.QUESTION,
       ]
     )
-    assert.ok(rounds.every((r: Round) => r.timeLimitSeconds === TIMER.QUESTION_SECONDS))
+    assert.deepEqual(
+      rounds.map((r: Round) => r.timeLimitSeconds),
+      [
+        TIMER.QUESTION_SECONDS,
+        TIMER.QUESTION_SECONDS,
+        TIMER.SLIDING_PUZZLE_SECONDS,
+        TIMER.QUESTION_SECONDS,
+        TIMER.QUESTION_SECONDS,
+      ]
+    )
+    assert.deepEqual(rounds[2]?.scoringConfig, {
+      points: 100,
+      timeLimitSeconds: TIMER.SLIDING_PUZZLE_SECONDS,
+    })
     const quizRounds = rounds.filter((r: Round) => r.gameType === 'quiz')
     assert.ok(quizRounds.every((r: Round) => typeof r.question?.id === 'string'))
     const ids = new Set(quizRounds.map((r: Round) => r.question?.id))

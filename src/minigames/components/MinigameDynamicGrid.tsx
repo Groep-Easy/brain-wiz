@@ -1,25 +1,28 @@
-import { useState } from 'react'
 import { SlidingPuzzle } from '../sliding-puzzle/components/SlidingPuzzle'
 import type {
   SlidingPuzzleBoard,
-  SlidingPuzzlePuzzle
+  SlidingPuzzlePuzzle,
 } from '../sliding-puzzle/shared/slidingPuzzleGame'
+import {
+  handleSlidingPuzzleBoardUpdate,
+  type SlidingPuzzleRoundPhase,
+} from './slidingPuzzleAutoSubmit'
 
-export type MinigameDynamicGridProps = {
-  type: 'sliding-puzzle'
-  puzzle: unknown
-  onSubmit: (submission: { board: SlidingPuzzleBoard }) => void
-  submitted: boolean
-  phase: 'playing'|'reveal'
-} | {
-  type: 'example'
-}
+export type MinigameDynamicGridProps =
+  | {
+      type: 'sliding-puzzle'
+      puzzle: unknown
+      onSubmit: (submission: { board: SlidingPuzzleBoard }) => void
+      onProgress?: (submission: { board: SlidingPuzzleBoard }) => void
+      submitted: boolean
+      phase: SlidingPuzzleRoundPhase
+    }
+  | {
+      type: 'example'
+    }
 
 // Element needs to be called in client App.tsx under renderMinigame on a game by game basis
 export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.Element | null {
-  // React hooks
-  const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
-
   // Type guards
   function isSlidingPuzzlePuzzle(value: unknown): value is SlidingPuzzlePuzzle {
     const testValue = value as SlidingPuzzlePuzzle
@@ -44,20 +47,23 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
       const puzzle = data.puzzle
       const submitted = data.submitted
       const phase = data.phase
+      const handleBoardChange = (board: SlidingPuzzleBoard): void => {
+        handleSlidingPuzzleBoardUpdate({
+          board,
+          submitted,
+          phase,
+          onProgress: data.onProgress,
+          onSubmit: data.onSubmit,
+        })
+      }
 
       return (
         <section className="client-minigame client-minigame--sliding">
-          <SlidingPuzzle puzzle={puzzle} onBoardChange={setSlidingBoard} />
-          <div className="client-minigame__actions">
-            <button
-              className="primary-btn"
-              disabled={submitted || phase === 'reveal'}
-              onClick={() => data.onSubmit({ board: slidingBoard ?? puzzle.initialBoard })}
-              type="button"
-            >
-              Submit board
-            </button>
-          </div>
+          <SlidingPuzzle
+            onBoardChange={handleBoardChange}
+            puzzle={puzzle}
+            readOnly={submitted || phase === 'reveal'}
+          />
         </section>
       )
     }

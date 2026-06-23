@@ -14,7 +14,7 @@ import type { LobbyService } from '../../src/server/room/lobby/lobby.service.js'
 import { PONG } from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROOM, RATE_LIMIT, HOST_AUTH } from '@brain-wiz/config/game.config'
 import type { AnswerService } from '../../src/server/room/game/answer.service.js'
-import type { AnswerSubmitPayload } from '@brain-wiz/shared/types/index'
+import type { AnswerSubmitPayload, RoundProgressPayload } from '@brain-wiz/shared/types/index'
 
 interface Call {
   method: string
@@ -56,6 +56,8 @@ interface GatewayDeps {
 function fakeAnswerService(): AnswerService {
   return {
     submit: async () => undefined,
+    submitRound: async () => undefined,
+    updateRoundProgress: () => undefined,
   } as unknown as AnswerService
 }
 
@@ -404,5 +406,61 @@ describe('SocketGateway.handleAnswerSubmit', () => {
       setImmediate(r)
     })
     assert.equal(submitted.length, 0)
+  })
+})
+
+describe('SocketGateway.handleRoundProgress', () => {
+  it('delegates a rate-allowed ROUND_PROGRESS to AnswerService', async () => {
+    const updates: Array<{ socket: unknown; payload: RoundProgressPayload }> = []
+    const answerService = {
+      updateRoundProgress: (s: unknown, payload: RoundProgressPayload): void => {
+        updates.push({ socket: s, payload })
+      },
+    }
+    const rateLimiter = { allow: (): boolean => true }
+
+    const gateway = new SocketGateway(
+      {} as never,
+      rateLimiter as never,
+      {} as never,
+      {} as never,
+      answerService as never,
+      [] as never
+    )
+
+    const client = socket()
+    const payload: RoundProgressPayload = {
+      roundId: 'round-1',
+      type: 'sliding-puzzle',
+      submission: { board: [1, 2, 3, 4, 5, 6, 0, 7, 8] },
+      timestamp: 0,
+    }
+    gateway.handleRoundProgress(payload, client)
+
+    assert.equal(updates.length, 1)
+    assert.equal(updates[0]?.payload.roundId, 'round-1')
+  })
+
+  it('drops a ROUND_PROGRESS that exceeds the rate limit', () => {
+    const updates: unknown[] = []
+    const answerService = { updateRoundProgress: (): void => void updates.push(1) }
+    const rateLimiter = { allow: (): boolean => false }
+    const gateway = new SocketGateway(
+      {} as never,
+      rateLimiter as never,
+      {} as never,
+      {} as never,
+      answerService as never,
+      [] as never
+    )
+    gateway.handleRoundProgress(
+      {
+        roundId: 'round-1',
+        type: 'sliding-puzzle',
+        submission: { board: [1, 2, 3, 4, 5, 6, 0, 7, 8] },
+      },
+      socket()
+    )
+    assert.equal(updates.length, 0)
   })
 })

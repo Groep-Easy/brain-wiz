@@ -194,6 +194,14 @@ export interface RoundSubmitPayload {
   timestamp?: number
 }
 
+/** Client -> server: latest procedural/minigame progress snapshot. */
+export interface RoundProgressPayload {
+  roundId: string
+  type: RoundType
+  submission: unknown
+  timestamp?: number
+}
+
 /** Server → client: answer outcome (ANSWER_ACK). */
 export interface AnswerAckPayload {
   received: true

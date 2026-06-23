@@ -192,7 +192,7 @@ export class GameEngineService {
         game.timer.endEarly()
       })
 
-    const didAbort = await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)
+    const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds)
     earlySub.unsubscribe()
     if (didAbort) {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
@@ -252,6 +252,13 @@ export class GameEngineService {
     roundId: string,
     reason: 'expired' | 'all-answered'
   ): Promise<void> {
+    const finalized = firstValueFrom(
+      this.bus.on('ROUND_WINDOW_FINALIZED').pipe(
+        filter((e) => e.roomId === roomId && e.roundId === roundId),
+        first(),
+        timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
+      )
+    )
     const scored = firstValueFrom(
       this.bus.on('ROUND_SCORED').pipe(
         filter((e) => e.roomId === roomId && e.roundId === roundId),
@@ -259,6 +266,12 @@ export class GameEngineService {
         timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
       )
     )
+    this.bus.publish({ type: 'ROUND_WINDOW_FINALIZE_REQUESTED', roomId, roundId, reason })
+    try {
+      await finalized
+    } catch {
+      this.logger.warn(`ROUND_WINDOW_FINALIZED not received for round ${roundId}; proceeding`)
+    }
     this.bus.publish({ type: 'ROUND_WINDOW_CLOSED', roomId, roundId, reason })
     try {
       await scored
