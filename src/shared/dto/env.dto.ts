@@ -1,57 +1,75 @@
-import { z } from 'zod'
 import { DEFAULTS } from '@brain-wiz/shared/constants/env.constants'
 import { NodeEnv } from '../types/env'
 
-export const EnvironmentSchema = z.object({
-  SERVER_PORT: z.coerce.number().default(DEFAULTS.SERVER_PORT),
+function getEnvString(key: string, fallback?: string): string {
+  const value = process.env[key]
+  return value ?? (fallback as string)
+}
 
-  SERVER_LOCATION: z.string().default(DEFAULTS.SERVER_LOCATION),
+function getEnvNumber(key: string, fallback: number): number {
+  const value = process.env[key]
+  if (!value) return fallback
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? fallback : parsed
+}
 
-  SERVER_HOST: z.string().default(DEFAULTS.SERVER_HOST),
+function getEnvBoolean(key: string, fallback: boolean): boolean {
+  const value = process.env[key]
+  if (!value) return fallback
+  return value.toLowerCase() === 'true'
+}
 
-  TRUST_PROXY: z.coerce.boolean().default(DEFAULTS.TRUST_PROXY),
+function getEnvArray(key: string): string[] {
+  const value = process.env[key]
+  if (!value) return []
+  return value
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+}
 
-  CORS_ORIGINS: z
-    .string()
-    .default('')
-    .transform((raw) =>
-      raw
-        .split(',')
-        .map((o) => o.trim())
-        .filter((o) => o.length > 0)
-    ),
+export const Environment = Object.freeze({
+  SERVER_PORT: getEnvNumber('SERVER_PORT', DEFAULTS.SERVER_PORT),
 
-  NODE_ENV: z.enum(NodeEnv).default(DEFAULTS.NODE_ENV),
+  SERVER_LOCATION: getEnvString('SERVER_LOCATION', DEFAULTS.SERVER_LOCATION),
 
-  ADMIN_API_KEY: z.string(),
+  SERVER_HOST: getEnvString('SERVER_HOST', DEFAULTS.SERVER_HOST),
 
-  DB_HOST: z.string().default(DEFAULTS.DB_HOST),
+  TRUST_PROXY: getEnvBoolean('TRUST_PROXY', DEFAULTS.TRUST_PROXY),
 
-  DB_PORT: z.coerce.number().default(DEFAULTS.DB_PORT),
+  CORS_ORIGINS: getEnvArray('CORS_ORIGINS'),
 
-  DB_USERNAME: z.string(),
-  DB_PASSWORD: z.string(),
-  DB_NAME: z.string(),
+  NODE_ENV: getEnvString('NODE_ENV', DEFAULTS.NODE_ENV) as NodeEnv,
 
-  DB_SSL: z.coerce.boolean().default(DEFAULTS.DB_SSL),
+  ADMIN_API_KEY: getEnvString('ADMIN_API_KEY'),
 
-  DB_SYNCHRONIZE: z.coerce.boolean().default(DEFAULTS.DB_SYNCHRONIZE),
+  DB_HOST: getEnvString('DB_HOST', DEFAULTS.DB_HOST),
 
-  DB_DROP_SCHEMA: z.coerce.boolean().default(DEFAULTS.DB_DROP_SCHEMA),
+  DB_PORT: getEnvNumber('DB_PORT', DEFAULTS.DB_PORT),
 
-  DB_POOL_MIN: z.coerce.number().default(DEFAULTS.DB_POOL_MIN),
+  DB_USERNAME: getEnvString('DB_USERNAME'),
 
-  DB_POOL_MAX: z.coerce.number().default(DEFAULTS.DB_POOL_MAX),
+  DB_PASSWORD: getEnvString('DB_PASSWORD'),
 
-  DB_QUERY_TIMEOUT: z.coerce.number().default(DEFAULTS.DB_QUERY_TIMEOUT),
+  DB_NAME: getEnvString('DB_NAME'),
 
-  DB_IDLE_TIMEOUT: z.coerce.number().default(DEFAULTS.DB_IDLE_TIMEOUT),
+  DB_SSL: getEnvBoolean('DB_SSL', DEFAULTS.DB_SSL),
 
-  DB_LOG_LEVEL: z.string().default(DEFAULTS.DB_LOG_LEVEL),
+  DB_SYNCHRONIZE: getEnvBoolean('DB_SYNCHRONIZE', DEFAULTS.DB_SYNCHRONIZE),
 
-  DB_LOGGING_ENABLED: z.coerce.boolean().default(DEFAULTS.DB_LOGGING_ENABLED),
+  DB_DROP_SCHEMA: getEnvBoolean('DB_DROP_SCHEMA', DEFAULTS.DB_DROP_SCHEMA),
 
-  SERVER_API_VERSION: z.string().default(DEFAULTS.SERVER_API_VERSION),
+  DB_POOL_MIN: getEnvNumber('DB_POOL_MIN', DEFAULTS.DB_POOL_MIN),
+
+  DB_POOL_MAX: getEnvNumber('DB_POOL_MAX', DEFAULTS.DB_POOL_MAX),
+
+  DB_QUERY_TIMEOUT: getEnvNumber('DB_QUERY_TIMEOUT', DEFAULTS.DB_QUERY_TIMEOUT),
+
+  DB_IDLE_TIMEOUT: getEnvNumber('DB_IDLE_TIMEOUT', DEFAULTS.DB_IDLE_TIMEOUT),
+
+  DB_LOG_LEVEL: getEnvString('DB_LOG_LEVEL', DEFAULTS.DB_LOG_LEVEL),
+
+  DB_LOGGING_ENABLED: getEnvBoolean('DB_LOGGING_ENABLED', DEFAULTS.DB_LOGGING_ENABLED),
+
+  SERVER_API_VERSION: getEnvString('SERVER_API_VERSION', DEFAULTS.SERVER_API_VERSION),
 })
-
-export type Environment = z.infer<typeof EnvironmentSchema>

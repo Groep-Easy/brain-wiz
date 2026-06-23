@@ -32,6 +32,13 @@ export const RATE_LIMIT = Object.freeze({
   MAX_MESSAGES: 20,
 })
 
+export const HTTP_THROTTLE = Object.freeze({
+  DEFAULT_TTL_MS: 60_000,
+  DEFAULT_LIMIT: 100,
+  STRICT_TTL_MS: 60_000,
+  STRICT_LIMIT: 10,
+})
+
 export const PLAYER = Object.freeze({
   NAME_MIN_LENGTH: PLAYER_NAME_MIN_LENGTH,
   NAME_MAX_LENGTH: PLAYER_NAME_MAX_LENGTH,
