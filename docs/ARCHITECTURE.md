@@ -185,6 +185,9 @@ Security is enforced at the edges so the core can assume clean input:
 - **WebSocket connection guards.** Origin allow-listing, host-token throttling,
   idle-connection timeouts, inbound rate limiting, a `maxPayload` cap, and a
   heartbeat all enforced at the gateway before any business logic runs.
+- **Input validation.** Every HTTP and WebSocket payload is validated against a
+  DTO (`class-validator`) before any game logic runs; unknown fields are
+  rejected. See [Input Validation](security/validation.md).
 - **Rate limiting.** The HTTP API (`@nestjs/throttler`) and the WebSocket
   connection are both rate-limited to prevent spam and abuse, with an additional
   limit at the nginx edge in production. See [Rate Limiting](security/rate-limiting.md).

@@ -67,6 +67,10 @@ export const TIMER_TICK = 'TIMER_TICK'
 /** Server → all:    expired.              Payload: none                          */
 export const TIMER_EXPIRED = 'TIMER_EXPIRED'
 
+// ── Errors ────────────────────────────────────────────────────────────────────
+/** Server → client: an inbound message failed validation. Payload: { message, details? } */
+export const VALIDATION_ERROR = 'VALIDATION_ERROR'
+
 // ── Connectivity ────────────────────────────────────────────────────────────────
 /** Client → server: liveness probe.       Payload: { t: number }              */
 export const PING = 'PING'
