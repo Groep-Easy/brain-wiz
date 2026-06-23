@@ -234,9 +234,7 @@
   margin-top: 8px;
   padding: 10px 14px;
   color: var(--vault-rush-green);
-  background:
-    linear-gradient(180deg, rgba(66, 245, 155, 0.1), rgba(66, 245, 155, 0.025)),
-    #060d0b;
+  background: linear-gradient(180deg, rgba(66, 245, 155, 0.1), rgba(66, 245, 155, 0.025)), #060d0b;
   border: 1px solid rgba(66, 245, 155, 0.38);
   border-radius: 999px;
   box-shadow:
@@ -299,9 +297,7 @@
 
 .vault-rush-timer--danger {
   color: var(--vault-rush-red);
-  background:
-    linear-gradient(180deg, rgba(255, 77, 94, 0.16), rgba(255, 77, 94, 0.035)),
-    #12070a;
+  background: linear-gradient(180deg, rgba(255, 77, 94, 0.16), rgba(255, 77, 94, 0.035)), #12070a;
   border-color: rgba(255, 77, 94, 0.58);
   box-shadow:
     inset 0 0 22px rgba(0, 0, 0, 0.64),

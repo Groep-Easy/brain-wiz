@@ -192,7 +192,7 @@ export class GameEngineService {
         game.timer.endEarly()
       })
 
-    const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds)
+    const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds, true)
     earlySub.unsubscribe()
     if (didAbort) {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
@@ -235,12 +235,27 @@ export class GameEngineService {
     return this.timePhase(room.id, game, seconds)
   }
 
-  /** Run the active timer for one phase. Returns true if aborted. */
-  private async timePhase(roomId: string, game: RunningGame, seconds: number): Promise<boolean> {
+  /**
+   * Run the active timer for one phase.
+   * Timer ticks are only broadcast during active gameplay.
+   * Other phases still use the timer internally, but avoid unnecessary socket traffic.
+   */
+  private async timePhase(
+    roomId: string,
+    game: RunningGame,
+    seconds: number,
+    emitTicks = false
+  ): Promise<boolean> {
     const outcome = await game.timer.start(seconds, {
-      onTick: (secondsRemaining) =>
-        this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining }),
+      onTick: (secondsRemaining) => {
+        if (!emitTicks) {
+          return
+        }
+
+        this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining })
+      },
     })
+
     return outcome === TimerOutcome.ABORTED
   }
 

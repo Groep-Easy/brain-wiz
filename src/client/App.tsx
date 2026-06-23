@@ -209,6 +209,9 @@ export function App(): React.JSX.Element {
 
         if (phase === 'playing') {
           setHasPlayingTimerTick(false)
+        } else {
+          setSecondsRemaining(0)
+          setHasPlayingTimerTick(false)
         }
 
         setRoomState((prev) => (prev ? { ...prev, phase } : prev))
@@ -224,12 +227,13 @@ export function App(): React.JSX.Element {
         break
       }
       case EVENTS.TIMER_TICK: {
+        if (phaseRef.current !== 'playing') {
+          break
+        }
+
         const { secondsRemaining } = data as TimerTickPayload
         setSecondsRemaining(secondsRemaining)
-
-        if (phaseRef.current === 'playing') {
-          setHasPlayingTimerTick(true)
-        }
+        setHasPlayingTimerTick(true)
 
         break
       }
