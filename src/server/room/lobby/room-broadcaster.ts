@@ -80,14 +80,32 @@ export class RoomBroadcaster {
     }
   }
 
-  public syncSocketState(roomId: string, socket: ClientSocket): void {
+  public syncSocketState(
+    roomId: string,
+    socket: ClientSocket,
+    alreadyAnswered?: boolean,
+    previousAnswerId?: string
+  ): void {
     const cache = this._roomStateCache.get(roomId)
     if (!cache) return
 
     if (cache.roundStart) this.emitToSocket(socket, ROUND_START, cache.roundStart)
     if (cache.roadmap) this.emitToSocket(socket, ROADMAP_UPDATE, cache.roadmap)
     if (cache.phaseChange) this.emitToSocket(socket, GAME_PHASE_CHANGE, cache.phaseChange)
-    if (cache.content) this.emitToSocket(socket, cache.content.event, cache.content.data)
+    if (cache.content) {
+      if (
+        alreadyAnswered &&
+        (cache.content.event === QUESTION_SHOW || cache.content.event === ROUND_CONTENT_SHOW)
+      ) {
+        this.emitToSocket(socket, cache.content.event, {
+          ...(cache.content.data as Record<string, unknown>),
+          alreadyAnswered: true,
+          previousAnswerId,
+        })
+      } else {
+        this.emitToSocket(socket, cache.content.event, cache.content.data)
+      }
+    }
     if (cache.reveal) this.emitToSocket(socket, cache.reveal.event, cache.reveal.data)
     if (cache.timerTick) this.emitToSocket(socket, TIMER_TICK, cache.timerTick)
   }

@@ -158,6 +158,8 @@ export interface PlayerJoinRejectedPayload {
 /** Server → all: question is live (QUESTION_SHOW). */
 export interface QuestionShowPayload {
   question: QuestionState
+  alreadyAnswered?: boolean
+  previousAnswerId?: string
 }
 
 /** Server -> all: generic minigame content is live (ROUND_CONTENT_SHOW). */
@@ -175,6 +177,8 @@ export interface RoundContentPayload {
   publicState: unknown
   answerChoices?: RoundAnswerChoice[]
   timeLimitSeconds: number
+  alreadyAnswered?: boolean
+  previousAnswerId?: string
 }
 
 /** Client → server: submit an answer (ANSWER_SUBMIT). */

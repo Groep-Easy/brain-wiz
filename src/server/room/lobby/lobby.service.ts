@@ -14,6 +14,8 @@ import { ClientService } from '../../client/client.service'
 import { ConnectionRegistry } from './connection-registry'
 import { RoomBroadcaster } from './room-broadcaster'
 import { GameEngineService } from '../game/game-engine.service'
+import { AnswerService } from '../game/answer.service'
+import { GameEventBus } from '../game/game-event-bus'
 import { toRoomState } from '../room.helpers'
 import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
@@ -40,7 +42,9 @@ export class LobbyService {
     private readonly broadcaster: RoomBroadcaster,
     private readonly gameEngine: GameEngineService,
     private readonly questionService: QuestionService,
-    private readonly flow: FlowService
+    private readonly flow: FlowService,
+    private readonly answerService: AnswerService,
+    private readonly bus: GameEventBus
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -187,6 +191,7 @@ export class LobbyService {
     const room = await this.rooms.findById(membership.roomId)
     if (room) {
       this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_DISCONNECTED, { playerId: client.id })
+      this.bus.publish({ type: 'PLAYER_DISCONNECTED', roomId: room.id, clientId: client.id })
       await this.broadcastState(room)
       await this.maybeAbortGame(room.id)
     }
@@ -352,7 +357,8 @@ export class LobbyService {
     })
     this.broadcaster.emitToRoom(room.id, EVENTS.PLAYER_RECONNECTED, { playerId: client.id })
     await this.broadcastState(room)
-    this.broadcaster.syncSocketState(room.id, socket)
+    const previousAnswer = this.answerService.getClientSubmission(room.id, client.id)
+    this.broadcaster.syncSocketState(room.id, socket, previousAnswer !== undefined, previousAnswer)
   }
 
   private async buildState(room: Room): Promise<RoomState> {

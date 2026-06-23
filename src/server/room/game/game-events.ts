@@ -70,6 +70,12 @@ export interface RoundWindowAborted {
   roomId: string
 }
 
+export interface PlayerDisconnected {
+  type: 'PLAYER_DISCONNECTED'
+  roomId: string
+  clientId: string
+}
+
 export type GameDomainEvent =
   | RoundWindowOpened
   | AllPlayersAnswered
@@ -78,3 +84,4 @@ export type GameDomainEvent =
   | RoundWindowClosed
   | RoundScored
   | RoundWindowAborted
+  | PlayerDisconnected

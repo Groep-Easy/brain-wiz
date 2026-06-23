@@ -34,7 +34,7 @@ interface OpenWindow {
   scoringMode: RoundScoringMode
   shownAt: number
   options: Map<string, RoundOption>
-  submitted: Set<string>
+  submitted: Map<string, string>
   progress: Map<string, RoundProgressSnapshot>
 }
 
@@ -62,7 +62,7 @@ export class AnswerService {
         scoringMode: e.scoringMode,
         shownAt: e.shownAt,
         options: new Map((e.options ?? []).map((o) => [o.id, o])),
-        submitted: new Set<string>(),
+        submitted: new Map<string, string>(),
         progress: new Map<string, RoundProgressSnapshot>(),
       })
     })
@@ -74,6 +74,12 @@ export class AnswerService {
     })
     this.bus.on('ROUND_WINDOW_ABORTED').subscribe((e) => {
       this.windows.delete(e.roomId)
+    })
+    this.bus.on('PLAYER_DISCONNECTED').subscribe((e) => {
+      const window = this.windows.get(e.roomId)
+      if (window && this.allConnectedAnswered(e.roomId, window)) {
+        this.bus.publish({ type: 'ALL_PLAYERS_ANSWERED', roomId: e.roomId, roundId: window.roundId })
+      }
     })
   }
 
@@ -174,6 +180,18 @@ export class AnswerService {
     })
   }
 
+  public getClientSubmission(roomId: string, clientId: string): string | undefined {
+    const window = this.windows.get(roomId)
+    if (!window || !window.submitted.has(clientId)) {
+      return undefined
+    }
+    const progress = window.progress.get(clientId)
+    if (progress) {
+      return progress.answerValue
+    }
+    return window.submitted.get(clientId)
+  }
+
   private async persistSubmission(
     socket: ClientSocket,
     roomId: string,
@@ -181,7 +199,7 @@ export class AnswerService {
     window: OpenWindow,
     answerValue: string
   ): Promise<void> {
-    window.submitted.add(clientId)
+    window.submitted.set(clientId, answerValue)
     const row = this.answers.create({
       clientId,
       roundId: window.roundId,
@@ -241,7 +259,7 @@ export class AnswerService {
         continue
       }
 
-      window.submitted.add(clientId)
+      window.submitted.set(clientId, snapshot.answerValue)
       const row = this.answers.create({
         clientId,
         roundId: window.roundId,

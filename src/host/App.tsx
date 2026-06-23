@@ -32,6 +32,8 @@ import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+const MAX_RECONNECT_ATTEMPTS = 5
+const RECONNECT_DELAY_MS = 1500
 
 export function App(): React.JSX.Element {
   const { roomCode } = useParams<{ roomCode: string }>()
@@ -55,150 +57,174 @@ export function App(): React.JSX.Element {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
   const socketRef = useRef<WebSocket | null>(null)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intentionalCloseRef = useRef(false)
 
   // Disconnect on unmount
   useEffect(() => {
     return () => {
+      intentionalCloseRef.current = true
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
       socketRef.current?.close()
     }
   }, [])
 
-  // Automatically connect WebSocket when roomCode and hostToken are set
-  useEffect(() => {
+  function connect(): void {
     if (!roomCode || !hostToken) {
       setFatalError('Room taken or unauthorized')
       return
     }
 
+    intentionalCloseRef.current = false
     setStatus('connecting')
 
-    const connectTimer = setTimeout(() => {
-      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${roomCode}`
-      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-      socketRef.current = socket
+    const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${roomCode}`
+    const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
+    socketRef.current = socket
 
-      socket.onopen = () => {
-        setStatus('open')
-        // Reset game states
-        setQuestion(null)
-        setReveal(null)
-        setAnsweredCount(0)
-        setTotalPlayers(0)
-        setRound(null)
-        setLeaderboard([])
-        setRoadmap(null)
-        setFinalScores(null)
-      }
-      socket.onmessage = (event) => {
-        try {
-          const { event: ev, data } = JSON.parse(event.data) as {
-            event: string
-            data: unknown
-          }
+    socket.onopen = () => {
+      if (socketRef.current !== socket) return
+      setStatus('open')
+      reconnectAttemptsRef.current = 0
+      // Reset game states
+      setQuestion(null)
+      setReveal(null)
+      setAnsweredCount(0)
+      setTotalPlayers(0)
+      setRound(null)
+      setLeaderboard([])
+      setRoadmap(null)
+      setFinalScores(null)
+    }
+    socket.onmessage = (event) => {
+      if (socketRef.current !== socket) return
+      try {
+        const { event: ev, data } = JSON.parse(event.data) as {
+          event: string
+          data: unknown
+        }
 
-          // data is `unknown` — cast locally per-case for type-safe access
-          const d = data as Record<string, unknown>
+        // data is `unknown` — cast locally per-case for type-safe access
+        const d = data as Record<string, unknown>
 
-          switch (ev) {
-            case EVENTS.ROOM_STATE_UPDATE:
-              setRoomState(d.room as RoomState)
-              break
+        switch (ev) {
+          case EVENTS.ROOM_STATE_UPDATE:
+            setRoomState(d.room as RoomState)
+            break
 
-            case EVENTS.GAME_PHASE_CHANGE:
-              setRoomState((prev: RoomState | null) =>
-                prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
-              )
-              break
+          case EVENTS.GAME_PHASE_CHANGE:
+            setRoomState((prev: RoomState | null) =>
+              prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
+            )
+            break
 
-            case EVENTS.ROUND_START:
-              if (d.round) {
-                setRound(d.round as RoundSummary)
-              }
+          case EVENTS.ROUND_START:
+            if (d.round) {
+              setRound(d.round as RoundSummary)
+            }
+            setRoundContent(null)
+            setRoundReveal(null)
+            break
+
+          case EVENTS.TIMER_TICK:
+            setSecondsRemaining(d.secondsRemaining as number)
+            break
+
+          case EVENTS.QUESTION_SHOW:
+            if (d.question) {
               setRoundContent(null)
               setRoundReveal(null)
-              break
-
-            case EVENTS.TIMER_TICK:
-              setSecondsRemaining(d.secondsRemaining as number)
-              break
-
-            case EVENTS.QUESTION_SHOW:
-              if (d.question) {
-                setRoundContent(null)
-                setRoundReveal(null)
-                setQuestion(d.question as QuestionState)
-                setReveal(null)
-                setAnsweredCount(0)
-              }
-              break
-
-            case EVENTS.ROUND_CONTENT_SHOW:
-              setRoundContent(data as RoundContentPayload)
-              setRoundReveal(null)
+              setQuestion(d.question as QuestionState)
+              setReveal(null)
               setAnsweredCount(0)
-              break
+            }
+            break
 
-            case EVENTS.ANSWER_COUNT_UPDATE:
-              setAnsweredCount(d.answered as number)
-              setTotalPlayers(d.total as number)
-              break
+          case EVENTS.ROUND_CONTENT_SHOW:
+            setRoundContent(data as RoundContentPayload)
+            setRoundReveal(null)
+            setAnsweredCount(0)
+            break
 
-            case EVENTS.QUESTION_REVEAL:
-              setReveal(data as QuestionRevealPayload)
-              break
+          case EVENTS.ANSWER_COUNT_UPDATE:
+            setAnsweredCount(d.answered as number)
+            setTotalPlayers(d.total as number)
+            break
 
-            case EVENTS.ROUND_REVEAL:
-              setRoundReveal(data as RoundRevealPayload)
-              break
+          case EVENTS.QUESTION_REVEAL:
+            setReveal(data as QuestionRevealPayload)
+            break
 
-            case EVENTS.LEADERBOARD_SHOW:
-              if (d.leaderboard) {
-                setLeaderboard(d.leaderboard as LeaderboardEntry[])
-              }
-              break
+          case EVENTS.ROUND_REVEAL:
+            setRoundReveal(data as RoundRevealPayload)
+            break
 
-            case EVENTS.ROADMAP_UPDATE:
-              setRoadmap(data as RoadmapUpdate)
-              break
+          case EVENTS.LEADERBOARD_SHOW:
+            if (d.leaderboard) {
+              setLeaderboard(d.leaderboard as LeaderboardEntry[])
+            }
+            break
 
-            case EVENTS.GAME_OVER:
-              if (d.finalScores) {
-                setFinalScores(d.finalScores as ScoreMap)
-              }
-              break
+          case EVENTS.ROADMAP_UPDATE:
+            setRoadmap(data as RoadmapUpdate)
+            break
 
-            default:
-              break
-          }
-        } catch (err) {
-          console.error('Failed to parse WebSocket message:', err)
+          case EVENTS.GAME_OVER:
+            if (d.finalScores) {
+              setFinalScores(d.finalScores as ScoreMap)
+            }
+            break
+
+          default:
+            break
         }
+      } catch (err) {
+        console.error('Failed to parse WebSocket message:', err)
+      }
+    }
+
+    socket.onclose = (event) => {
+      if (socketRef.current !== socket) return
+      setStatus('closed')
+      
+      if (event.code === 4004) {
+        setFatalError('Room not found or token invalid')
+        return
       }
 
-      socket.onclose = (event) => {
-        setStatus('closed')
+      if (intentionalCloseRef.current) return
+
+      if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttemptsRef.current += 1
+        reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY_MS)
+      } else {
         setRoomState(null)
-
-        if (event.code === 4004) {
-          setFatalError('Room not found or token invalid')
-        }
-
-        // Do not clear tokens or code so we can attempt reconnect if desired
       }
+    }
 
-      socket.onerror = () => {
-        console.error('WebSocket connection error')
-      }
+    socket.onerror = () => {
+      console.error('WebSocket connection error')
+    }
+  }
+
+  // Automatically connect WebSocket when roomCode and hostToken are set
+  useEffect(() => {
+    const connectTimer = setTimeout(() => {
+      connect()
     }, 50)
 
     return () => {
       clearTimeout(connectTimer)
+      intentionalCloseRef.current = true
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
       if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
         socketRef.current.onerror = null
       }
       socketRef.current?.close()
     }
-  }, [roomCode, hostToken, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomCode, hostToken])
 
   const handleStartGame = async () => {
     if (!roomCode || !hostToken) return
@@ -226,6 +252,8 @@ export function App(): React.JSX.Element {
 
   const performCloseLobby = () => {
     setConfirmCloseOpen(false)
+    intentionalCloseRef.current = true
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
     socketRef.current?.close()
     socketRef.current = null
     setRoomState(null)

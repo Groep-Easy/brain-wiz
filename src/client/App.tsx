@@ -221,23 +221,35 @@ export function App(): React.JSX.Element {
         setSecondsRemaining((data as TimerTickPayload).secondsRemaining)
         break
       case EVENTS.QUESTION_SHOW: {
-        const { question } = data as QuestionShowPayload
+        const payload = data as QuestionShowPayload
+        const { question } = payload
         if (question) {
           setRoundContent(null)
           setRoundReveal(null)
           setQuestion(question)
           setReveal(null)
-          setSelectedAnswerId(null)
+          if (payload.alreadyAnswered) {
+            setRoundSubmitted(true)
+            if (payload.previousAnswerId) {
+              setSelectedAnswerId(payload.previousAnswerId)
+            }
+          } else {
+            setSelectedAnswerId(null)
+            setRoundSubmitted(false)
+          }
         }
         break
       }
       case EVENTS.ROUND_CONTENT_SHOW: {
-        const content = data as RoundContentPayload
-        setRoundContent(content)
+        const payload = data as RoundContentPayload
+        setRoundContent(payload)
         setRoundReveal(null)
-        setRoundSubmitted(false)
-        setSelectedOptionId(null)
-
+        if (payload.alreadyAnswered) {
+          setRoundSubmitted(true)
+        } else {
+          setRoundSubmitted(false)
+          setSelectedOptionId(null)
+        }
         break
       }
       case EVENTS.QUESTION_REVEAL:
@@ -258,7 +270,9 @@ export function App(): React.JSX.Element {
       }
       case EVENTS.ANSWER_ACK: {
         const ack = data as AnswerAckPayload
-        if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
+        if (ack.accepted === false && ack.reason === 'already-answered') {
+          setRoundSubmitted(true)
+        } else if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
           setSelectedAnswerId(null)
           setRoundSubmitted(false)
         }
