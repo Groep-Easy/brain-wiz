@@ -264,37 +264,25 @@ export function SetupLobby({
                             if (!item) return null
                             const block = blockById(item.blockId)
                             if (!block) return null
+
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
                                   <span className="flow-block-icon">{block.icon}</span>
                                   <span className="flow-block-label">{block.label}</span>
+                                  {block.kind === 'minigame' && (
+                                    <span className="flow-block-time">
+                                      {item.timeLimitSeconds ??
+                                        defaultMinigameTimeSeconds(item.blockId)}
+                                      s
+                                    </span>
+                                  )}
                                 </div>
                                 {arrow}
                               </div>
                             )
-                          }
-                          const item = gameFlow[cell.logicalIndex]
-                          if (!item) return null
-                          const block = blockById(item.blockId)
-                          if (!block) return null
-                          return (
-                            <div className="flow-cell" key={cell.logicalIndex} style={style}>
-                              <div className={`flow-block ${block.kind}`}>
-                                <span className="flow-block-icon">{block.icon}</span>
-                                <span className="flow-block-label">{block.label}</span>
-                                {block.kind === 'minigame' && (
-                                  <span className="flow-block-time">
-                                    {item.timeLimitSeconds ??
-                                      defaultMinigameTimeSeconds(item.blockId)}
-                                    s
-                                  </span>
-                                )}
-                              </div>
-                              {arrow}
-                            </div>
-                          )
-                        })}
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
