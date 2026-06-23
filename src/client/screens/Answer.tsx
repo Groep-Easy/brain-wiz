@@ -81,6 +81,7 @@ export function Answer({
 
 function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.JSX.Element {
   useEffect(() => {
+    if (!result || result.isTimeout || result.answerId === null) wrongSound()
     if (result?.isCorrect) correctSound()
     else wrongSound()
   }, [result])
