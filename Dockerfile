@@ -19,4 +19,6 @@ RUN npm run build
 
 RUN npm prune --omit=dev
 
+USER node
+
 CMD ["node", "dist/server/index.js"]

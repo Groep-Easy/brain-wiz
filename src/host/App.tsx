@@ -210,13 +210,11 @@ export function App(): React.JSX.Element {
       })
       if (!res.ok) {
         const errorText = await res.text()
-        // eslint-disable-next-line no-alert -- intentional native error dialog
-        alert(`Failed to start game: ${errorText}`)
+        console.error(`Failed to start game: ${errorText}`)
         return
       }
-    } catch (err) {
-      // eslint-disable-next-line no-alert -- intentional native error dialog
-      alert(`Error starting game: ${String(err)}`)
+    } catch {
+      console.error(`needs at least 2 players`)
     }
   }
 

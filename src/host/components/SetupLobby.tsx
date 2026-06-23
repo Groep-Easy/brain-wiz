@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Player } from '@brain-wiz/shared/types/index'
-import { MAX_FLOW_COLUMNS, blockById } from '../flow/palette'
+import { MAX_FLOW_COLUMNS, blockById, defaultMinigameTimeSeconds } from '../flow/palette'
 import type { StoredFlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
 import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
@@ -13,6 +13,7 @@ import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
 import { BlockIcon } from './BlockIcon'
+import { ROOM } from '@brain-wiz/config/game.config'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
@@ -272,6 +273,13 @@ export function SetupLobby({
                               <div className={`flow-block ${block.kind}`}>
                                 <BlockIcon icon={block.icon} label={block.label} />
                                 <span className="flow-block-label">{block.label}</span>
+                                {block.kind === 'minigame' && (
+                                  <span className="flow-block-time">
+                                    {item.timeLimitSeconds ??
+                                      defaultMinigameTimeSeconds(item.blockId)}
+                                    s
+                                  </span>
+                                )}
                               </div>
                               {arrow}
                             </div>
@@ -283,7 +291,6 @@ export function SetupLobby({
                 </div>
               </section>
 
-              {/* SETTINGS PANEL */}
               <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
                 <div className="field">
                   <label htmlFor="time-per-question">Time per question (seconds)</label>
@@ -303,13 +310,23 @@ export function SetupLobby({
 
         <footer className="shared-footer-bar lobby-footer">
           <p>2026 BrainWiz™. All rights reserved.</p>
-          <button
-            className="primary-btn start-game-btn"
-            onClick={handleStart}
-            disabled={players.length === 0}
-          >
-            Start Game
-          </button>
+
+          <div className="lobby-footer-right">
+            {players.length < ROOM.MIN_PLAYERS_TO_START && (
+              <p className="players-warning">
+                Je hebt minimaal {ROOM.MIN_PLAYERS_TO_START} spelers nodig om te starten.
+                Nog {missingPlayers} speler{missingPlayers === 1 ? '' : 's'} te gaan.
+              </p>
+            )}
+
+            <button
+              className="primary-btn start-game-btn"
+              onClick={handleStart}
+              disabled={players.length < ROOM.MIN_PLAYERS_TO_START}
+            >
+              Start Game
+            </button>
+          </div>
         </footer>
       </div>
     </div>

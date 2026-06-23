@@ -36,7 +36,7 @@ import {
   type Status,
 } from './console-utils'
 import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
-import './console.css'
+import '../../shared/styles/console.css'
 
 const DEFAULT_URL = getBackendWsUrl()
 

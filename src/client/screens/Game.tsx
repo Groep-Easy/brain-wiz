@@ -41,3 +41,4 @@ export function Game(): JSX.Element {
     </>
   )
 }
+
