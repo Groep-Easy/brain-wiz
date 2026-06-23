@@ -50,36 +50,16 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
   }
 
   public validateSubmission(submission: unknown): boolean {
-    if (typeof submission !== 'object' || submission === null) {
+    if (!Array.isArray(submission)) {
       return false
     }
 
-    const obj = submission as Record<string, unknown>
-
-    const switches = obj['activeSwitches']
-
-    if (!Array.isArray(switches)) {
+    if (submission.length === 0) {
       return false
     }
 
-    if (switches.length === 0) {
-      return false
-    }
-
-    return switches.every((v) => {
-      if (typeof v !== 'number') {
-        return false
-      }
-
-      if (!Number.isInteger(v)) {
-        return false
-      }
-
-      if (v < 0) {
-        return false
-      }
-
-      return true
+    return submission.every((v) => {
+      return typeof v === 'number' && Number.isInteger(v) && v >= 0
     })
   }
 
@@ -87,9 +67,10 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
     submission: unknown,
     privateState: Record<string, unknown>,
     scoringConfig: Record<string, unknown>,
-    timeToAnswerMs: number): MinigameScoreResult {
+    timeToAnswerMs: number
+  ): MinigameScoreResult {
     if (
-      typeof submission !== 'object' ||
+      !Array.isArray(submission) ||
       submission === null ||
       typeof privateState !== 'object' ||
       privateState === null ||
@@ -99,56 +80,65 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
       return { isCorrect: false, pointsAwarded: 0 }
     }
 
-    const { activeSwitches } = submission as Record<string, unknown>
-    const state = privateState as Record<string, unknown>
-    const config = scoringConfig as Record<string, unknown>
+    const puzzle = this.parsePrivateState(privateState)
+    const solved = this.checkSubmission(submission, puzzle as LightSwitchPuzzle)
 
-    if (!Array.isArray(activeSwitches)) {
-      return { isCorrect: false, pointsAwarded: 0 }
-    }
-
-    const switches = state['switches'] as LightSwitch[] | undefined
-    const initialLights = state['lights'] as any
-
-    if (!Array.isArray(switches) || !Array.isArray(initialLights)) {
-      return { isCorrect: false, pointsAwarded: 0 }
-    }
-
-    let lights = initialLights.map((l: any) => l.isOn)
-
-    for (const swIndex of activeSwitches) {
-      const sw = switches[swIndex]
-
-      if (!sw) {
-        continue
-      }
-
-      lights = applySwitch(lights, sw)
-    }
-
-    const isCorrect = lights.every((v) => v === true)
-
-    const baseScore = (config['baseScore'] as number) ?? 1000
-    const maxMoveBonus = (config['maxMoveBonus'] as number) ?? 500
-    const timeLimitMs = (config['timeLimitMs'] as number) ?? 0
-
-    const movePenalty = Math.min(activeSwitches.length * 10, maxMoveBonus)
-
-    let timeBonus = 0
-
-    if (timeLimitMs > 0) {
-      const remaining = Math.max(timeLimitMs - timeToAnswerMs, 0)
-      timeBonus = Math.floor((remaining / timeLimitMs) * maxMoveBonus)
-    }
-
-    const pointsAwarded = isCorrect
-      ? baseScore + timeBonus - movePenalty
+    const timeLimitMs = this.parseConfig(scoringConfig) as number
+    const clampedRemaining = Math.max(
+      0,
+      Math.min(timeLimitMs, timeLimitMs - timeToAnswerMs)
+    )
+    const rawScore = solved
+      ? Math.round(BASE_SCORE * (clampedRemaining / timeLimitMs))
       : 0
+    return {
+      isCorrect: solved,
+      pointsAwarded: rawScore,
+    }
+  }
+
+  private checkSubmission(
+    submission: number[],
+    puzzle: LightSwitchPuzzle
+  ): boolean {
+    let state = puzzle.lights.map((l) => l.isOn)
+
+    for (const switchIndex of submission) {
+      const sw = puzzle.switches[switchIndex]
+
+      if (!sw) continue
+
+      state = applySwitch(state, sw)
+    }
+
+    return state.every((isOn) => isOn === true)
+  }
+
+  private parsePrivateState(
+    state: Record<string, unknown>
+  ): LightSwitchPuzzle | null {
+    const lights = state['lights']
+    const switches = state['switches']
+
+    if (!Array.isArray(lights) || !Array.isArray(switches)) {
+      return null
+    }
 
     return {
-      isCorrect,
-      pointsAwarded: Math.max(pointsAwarded, 0),
+      id: typeof state['id'] === 'string' ? state['id'] : '',
+      lights: lights as LightSwitchPuzzle['lights'],
+      switches: switches as LightSwitch[],
     }
+  }
+
+  private parseConfig(config: Record<string, unknown>): number | undefined {
+    const timeLimitMs = config['timeLimitMs']
+    if (
+      typeof timeLimitMs !== 'number'
+    ) {
+      return undefined
+    }
+    return timeLimitMs
   }
 
   private toRecord(value: LightSwitchPuzzle | LightSwitchScoreConfig): Record<string, unknown> {

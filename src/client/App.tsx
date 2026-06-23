@@ -107,7 +107,13 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'light-switch') {
-      return <LightSwitchPuzzlePuzzle puzzle={roundContent.publicState as LightSwitchPuzzle} />
+      return (
+        <LightSwitchPuzzlePuzzle
+          puzzle={roundContent.publicState as LightSwitchPuzzle}
+          onProgress={handleRoundProgress}
+          onSubmit={handleRoundSubmit}
+        />
+      )
     }
 
     return null

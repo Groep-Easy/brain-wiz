@@ -21,4 +21,6 @@ export interface LightSwitchGenerationInput {
 
 export interface LightSwitchGameProps {
   puzzle: LightSwitchPuzzle
+  onProgress?: (submission: number[]) => void
+  onSubmit?: (submission: number[]) => void
 }

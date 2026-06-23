@@ -2,10 +2,13 @@ import { useEffect, useState, useRef, type JSX } from 'react'
 import type { Light, LightSwitch, LightSwitchGameProps } from './LightSwitch.types'
 import './LightSwitch.css'
 
-export function LightSwitchPuzzlePuzzle({ puzzle }: LightSwitchGameProps): JSX.Element {
-  const [moveCount, setMoveCount] = useState(0)
+export function LightSwitchPuzzlePuzzle({
+  puzzle,
+  onProgress,
+  onSubmit,
+}: LightSwitchGameProps): JSX.Element {
+  const [pressedSwitches, setPressedSwitches] = useState<number[]>([])
   const [solved, setSolved] = useState(false)
-  const solveTimerRef = useRef<number | undefined>(undefined)
 
   // CONTAINER SIZE -------------------------------------------------------------------------------
   const boardRef = useRef<HTMLDivElement>(null)
@@ -65,17 +68,25 @@ export function LightSwitchPuzzlePuzzle({ puzzle }: LightSwitchGameProps): JSX.E
   }
 
   function handleSwitchClick(lightSwitch: LightSwitch): void {
-    setMoveCount((prev) => prev + 1)
+    const nextPressedSwitches = pressedSwitches.includes(lightSwitch.id)
+      ? pressedSwitches.filter((id) => id !== lightSwitch.id)
+      : [...pressedSwitches, lightSwitch.id]
 
-    setLights((currentLights) => {
-      const nextLights = currentLights.map((light) =>
-        lightSwitch.affectedLights.includes(light.id) ? { ...light, isOn: !light.isOn } : light
-      )
+    const nextLights = lights.map((light) =>
+      lightSwitch.affectedLights.includes(light.id) ? { ...light, isOn: !light.isOn } : light
+    )
 
-      checkIfSolved(nextLights) ? setSolved(true) : setSolved(false)
+    const isSolved = checkIfSolved(nextLights)
 
-      return nextLights
-    })
+    setPressedSwitches(nextPressedSwitches)
+    setLights(nextLights)
+
+    if (isSolved) {
+      setSolved(true)
+      onSubmit?.(nextPressedSwitches)
+    } else {
+      onProgress?.(nextPressedSwitches)
+    }
   }
 
   function getSwitchPositions(switches: LightSwitch[], size: { width: number; height: number }) {
@@ -145,6 +156,7 @@ export function LightSwitchPuzzlePuzzle({ puzzle }: LightSwitchGameProps): JSX.E
           style={{ left: x, top: y }}
           onClick={() => handleSwitchClick(lightSwitch)}
           type="button"
+          disabled={solved}
         >
           S{lightSwitch.id}
         </button>
