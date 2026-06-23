@@ -52,7 +52,7 @@ export function App(): React.JSX.Element {
             <CountdownCircle
               seconds={5}
               message={h.fatalError ?? ''}
-              onComplete={async () => navigate('/')}
+              onComplete={() => void navigate('/')}
             />
           </div>
         </div>
@@ -96,7 +96,12 @@ export function App(): React.JSX.Element {
             <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
           ) : null}
 
-          {renderMinigame(h.roundContent, h.roundReveal, phase, h.secondsRemaining)}
+          {renderMinigame(
+            h.roundContent,
+            h.roundReveal,
+            phase,
+            phase === 'playing' ? h.secondsRemaining : undefined
+          )}
         </main>
       )
     }
