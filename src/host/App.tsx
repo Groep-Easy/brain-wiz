@@ -27,6 +27,7 @@ import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import { WelcomeScreen } from './screens/WelcomeScreen'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
+import { ReconnectToast } from '../client/components/ReconnectToast'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
@@ -40,7 +41,7 @@ export function App(): React.JSX.Element {
   const navigate = useNavigate()
   const hostToken = sessionStorage.getItem(`hostToken_${roomCode}`)
 
-  const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
+  const [status, setStatus] = useState<'closed' | 'connecting' | 'open' | 'reconnecting'>('closed')
   const [fatalError, setFatalError] = useState<string | null>(null)
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
@@ -186,19 +187,24 @@ export function App(): React.JSX.Element {
 
     socket.onclose = (event) => {
       if (socketRef.current !== socket) return
-      setStatus('closed')
       
       if (event.code === 4004) {
+        setStatus('closed')
         setFatalError('Room not found or token invalid')
         return
       }
 
-      if (intentionalCloseRef.current) return
+      if (intentionalCloseRef.current) {
+        setStatus('closed')
+        return
+      }
 
       if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        setStatus('reconnecting')
         reconnectAttemptsRef.current += 1
         reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY_MS)
       } else {
+        setStatus('closed')
         setRoomState(null)
       }
     }
@@ -278,7 +284,7 @@ export function App(): React.JSX.Element {
       )
     }
 
-    if (!roomState || status !== 'open' || !roomCode || !hostToken) {
+    if (!roomState || (status !== 'open' && status !== 'reconnecting') || !roomCode || !hostToken) {
       return <WelcomeScreen />
     }
 
@@ -370,6 +376,7 @@ export function App(): React.JSX.Element {
 
   return (
     <>
+      <ReconnectToast visible={status === 'reconnecting'} />
       {renderPhase()}
       {roomState?.phase && roomState.phase !== 'lobby' && <MuteButton />}
       <ConfirmDialog
