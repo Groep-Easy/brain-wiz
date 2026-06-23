@@ -21,10 +21,13 @@ export interface FlowItem {
   blockId: string
   /** How many questions a quiz (theme) block contributes. Undefined = default. */
   questions?: number
+  /** Per-placed-mini-game time limit in seconds. Undefined = default. */
+  timeLimitSeconds?: number
 }
 
 /** A flow item as stored on the server (no client-only `uid`). */
 export interface StoredFlowItem {
   blockId: string
   questions?: number
+  timeLimitSeconds?: number
 }
