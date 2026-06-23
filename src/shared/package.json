@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
+  "include": [
+    "**/*.css"
+  ],
   "//exports": "The exports map serves only compiled dist/* (for tsc + Node). Browser-only assets (.css/.mp3/.svg) are resolved by Vite via resolve.alias to source and must NOT be imported from Node-resolved packages (server/config/minigames/tests), or Node throws ERR_PACKAGE_PATH_NOT_EXPORTED.",
   "exports": {
     "./*": {

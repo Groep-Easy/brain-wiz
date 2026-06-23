@@ -1,7 +1,7 @@
 import '../styles/leaderboard.css'
 import { useEffect, useState } from 'react'
 import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
-import '../styles/game_over.css'
+// import '@brain-wiz/shared/'
 
 interface GameOverProps {
   players: Player[]
