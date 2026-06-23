@@ -13,6 +13,7 @@ import { VaultRushMock } from '@brain-wiz/minigames/vault-rush/mock/VaultRushMoc
 import { WordleMock } from '@brain-wiz/minigames/wordleGame/mock/WordleGameMock'
 
 type PreviewMinigame = 'sliding-puzzle' | 'vault-rush' | 'wordle'
+function noop(): void { /* used for testing to avoid eslint */ }
 
 export function Game(): JSX.Element {
   const [selectedMinigame, setSelectedMinigame] = useState<PreviewMinigame>('vault-rush')
@@ -62,8 +63,7 @@ function selectMinigame(selectedMinigame: PreviewMinigame): JSX.Element {
       return <VaultRushMock />
 
     case 'wordle':
-      return <WordleMock answer="APPLE" onSubmit={() => {}} />
-
+      return <WordleMock answer="APPLE" onSubmit={noop} />
     default: {
       const _exhaustive: never = selectedMinigame
       throw new Error(`Unhandled minigame: ${_exhaustive}`)
