@@ -28,7 +28,7 @@ import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
-import * as sounds from '@brain-wiz/shared/SFX/SFX'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 export interface FlowEditorProps {
@@ -79,7 +79,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
     })
-    if (!isMuted()) sounds.cardDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop)
   }
 
   useEffect(() => {
@@ -117,14 +117,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) sounds.waterDropSound()
+    if (!isMuted()) playSound(sounds.waterDrop)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) sounds.waterDropSound()
+    if (!isMuted()) playSound(sounds.waterDrop)
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -187,7 +187,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
         return next
       })
     }
-    if (!isMuted()) sounds.cardDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop)
   }
 
   const removeAt = (index: number) => {
@@ -203,7 +203,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
-    if (!isMuted()) sounds.dieSound()
+    if (!isMuted()) playSound(sounds.die)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS

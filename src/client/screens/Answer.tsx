@@ -1,8 +1,7 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
 import { useEffect } from 'react'
 import '../styles/answer.css'
-//import { isMuted } from '@brain-wiz/shared/SFX/mute' //TODO: implement mute button
-import { popSound, correctSound, wrongSound } from '@brain-wiz/shared/SFX/SFX'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -64,7 +63,7 @@ export function Answer({
               disabled={locked}
               onClick={() => {
                 onAnswer(answer.id)
-                popSound()
+                playSound(sounds.pop)
               }}
               aria-label={`Answer ${shape}`}
             >
@@ -81,9 +80,9 @@ export function Answer({
 
 function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.JSX.Element {
   useEffect(() => {
-    if (!result || result.isTimeout || result.answerId === null) wrongSound()
-    if (result?.isCorrect) correctSound()
-    else wrongSound()
+    if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong)
+    if (result?.isCorrect) playSound(sounds.correct)
+    else playSound(sounds.wrong)
   }, [result])
 
   if (!result || result.isTimeout || result.answerId === null) {

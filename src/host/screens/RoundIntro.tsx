@@ -1,5 +1,6 @@
 import '../styles/round_intro.css'
-import intro from '@brain-wiz/shared/SFX/intro.wav'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 interface RoundIntroProps {
   index: number
@@ -8,9 +9,9 @@ interface RoundIntroProps {
 }
 
 export function RoundIntro({ index, total, questionText }: RoundIntroProps): React.JSX.Element {
+  if (!isMuted()) playSound(sounds.roundIntro)
   return (
     <main className="round-intro">
-      <audio id="intro-warning" autoPlay src={intro} preload="auto"></audio>
       <div className="round-intro-card">
         <p className="round-intro-eyebrow">
           Question {index} of {total}

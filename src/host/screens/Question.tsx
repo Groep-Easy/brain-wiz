@@ -1,7 +1,8 @@
 import type { QuestionState, QuestionRevealPayload } from '@brain-wiz/shared/types/index'
 import { computeAnswerStats } from '@brain-wiz/shared/utils/answer-stats'
 import '../styles/question.css'
-import suspenseMusic from '@brain-wiz/shared/SFX/Standoff.mp3'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -32,9 +33,10 @@ export function Question({
   const summary = revealed ? computeAnswerStats(question, reveal) : null
   const stats = summary?.stats ?? null
 
+  if (!isMuted()) playSound(sounds.suspense)
+
   return (
     <main className="host-question-page">
-      <audio id="suspense-music" loop autoPlay src={suspenseMusic} preload="auto"></audio>
       <header className="hq-top">
         <span className="hq-code">
           Code: <span className="code-pill">{gameCode}</span>

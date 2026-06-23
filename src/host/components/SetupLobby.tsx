@@ -17,7 +17,7 @@ import { ROOM } from '@brain-wiz/config/game.config'
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import * as sounds from '@brain-wiz/shared/SFX/SFX'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 interface SetupLobbyProps {
@@ -79,7 +79,7 @@ export function SetupLobby({
 
   const handleStart = () => {
     jazzRef.current?.pause()
-    if (!isMuted()) sounds.startGameSound()
+    if (!isMuted()) playSound(sounds.startGame)
     setTimeout(() => {
       onStartGame(timePerQuestion)
     }, ONE_SECOND_TIME_OUT)
@@ -301,8 +301,8 @@ export function SetupLobby({
           <div className="lobby-footer-right">
             {players.length < ROOM.MIN_PLAYERS_TO_START && (
               <p className="players-warning">
-                Je hebt minimaal {ROOM.MIN_PLAYERS_TO_START} spelers nodig om te starten.
-                Nog {missingPlayers} speler{missingPlayers === 1 ? '' : 's'} te gaan.
+                You need at least {ROOM.MIN_PLAYERS_TO_START} players to start.
+                {missingPlayers} player{missingPlayers === 1 ? '' : 's'} left.
               </p>
             )}
 

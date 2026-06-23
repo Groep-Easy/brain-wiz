@@ -21,11 +21,10 @@ import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
-import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
@@ -255,9 +254,9 @@ export function App(): React.JSX.Element {
     const phase = roomState.phase
 
     if (phase === 'lobby') {
+      playSound(sounds.jazz)
       return (
         <main className="app app--lobby">
-          <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
           <SetupLobby
             roomCode={roomCode}
             hostToken={hostToken}
@@ -325,7 +324,6 @@ export function App(): React.JSX.Element {
     if (phase === 'leaderboard') {
       return (
         <main className="app app--solid">
-          <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
           <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} players={roomState.players} />
         </main>
       )

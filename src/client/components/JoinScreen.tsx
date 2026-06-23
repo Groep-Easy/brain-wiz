@@ -7,6 +7,8 @@ import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 import '@brain-wiz/shared/styles/CharacterPreview.css'
 import '../styles/join.css'
 
+import { playSound, sounds } from "@brain-wiz/shared/SFX/SFX"
+
 const FACE_COUNT = 4
 
 const COLOR_PRESETS = [
@@ -106,6 +108,7 @@ export function JoinScreen({
     const trimmedCode = code.trim().toUpperCase()
     if (trimmedName && trimmedCode) {
       onJoin(trimmedName, trimmedCode, character)
+      playSound(sounds.partyHorn)
     }
   }
 
