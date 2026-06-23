@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
 import synthWave from '@brain-wiz/shared/SFX/synthwave.mp3'
-import '../styles/game_over.css'
+import '../../shared/styles/game_over.css'
 
 interface GameOverProps {
   players: Player[]

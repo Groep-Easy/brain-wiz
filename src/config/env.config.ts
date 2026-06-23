@@ -1,4 +1,4 @@
-import { EnvironmentSchema } from '@brain-wiz/shared/dto/env.dto'
+import { Environment } from '@brain-wiz/shared/dto/env.dto'
 import { NodeEnv } from '@brain-wiz/shared/types/env'
 
 const HTTP_PORT = 80
@@ -32,12 +32,10 @@ function corsOrigins(node_env: NodeEnv, fromEnv: readonly string[]): string[] {
   return [...new Set([...DEFAULT_DEV_CORS_ORIGINS, ...fromEnv])]
 }
 
-const parsed = EnvironmentSchema.parse(process.env)
-
 const extendedEnv = {
-  ...parsed,
-  SERVER_BASE_URL: makeBaseUrl(parsed.SERVER_LOCATION, parsed.SERVER_PORT),
-  CORS_ORIGINS: corsOrigins(parsed.NODE_ENV, parsed.CORS_ORIGINS),
+  ...Environment,
+  SERVER_BASE_URL: makeBaseUrl(Environment.SERVER_LOCATION, Environment.SERVER_PORT),
+  CORS_ORIGINS: corsOrigins(Environment.NODE_ENV, Environment.CORS_ORIGINS),
 }
 
 export const ENV = Object.freeze(extendedEnv)
