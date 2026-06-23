@@ -9,6 +9,7 @@ import {
 import { WORD_LENGTH } from '../shared/wordleGame.constants'
 import type { Guess } from '../shared/wordleGame.types'
 import '../components/WordleGame.css'
+import { useEffect } from 'react'
 
 
 interface WordleMockProps {
@@ -19,6 +20,16 @@ interface WordleMockProps {
 
 
 export function WordleMock({ answer, onSubmit }: WordleMockProps): JSX.Element {
+
+
+  useEffect(() => {
+    document.body.classList.add('wordle-game-page')
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [])
+
+
   const [guesses, setGuesses] = useState<Guess[]>([])
   const [currentInput, setCurrentInput] = useState<string>('')
   const [revealingRow, setRevealingRow] = useState<number | null>(null)

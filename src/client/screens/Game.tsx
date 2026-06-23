@@ -1,3 +1,4 @@
+
 /**
  * @file Game.tsx
  * @owner client-squad
@@ -9,8 +10,9 @@
 import { useState, type JSX } from 'react'
 import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
 import { VaultRushMock } from '@brain-wiz/minigames/vault-rush/mock/VaultRushMock'
+import { WordleMock } from '@brain-wiz/minigames/wordleGame/mock/WordleGameMock'
 
-type PreviewMinigame = 'sliding-puzzle' | 'vault-rush'
+type PreviewMinigame = 'sliding-puzzle' | 'vault-rush' | 'wordle'
 
 export function Game(): JSX.Element {
   const [selectedMinigame, setSelectedMinigame] = useState<PreviewMinigame>('vault-rush')
@@ -35,10 +37,36 @@ export function Game(): JSX.Element {
         >
           Vault Rush
         </button>
+
+        <button
+          onClick={() => {
+            setSelectedMinigame('wordle')
+          }}
+          type="button"
+        >
+          Wordle
+        </button>
       </div>
 
-      {selectedMinigame === 'sliding-puzzle' ? <SlidingPuzzleMock /> : <VaultRushMock />}
+      {selectMinigame(selectedMinigame)}
     </>
   )
 }
 
+function selectMinigame(selectedMinigame: PreviewMinigame): JSX.Element {
+  switch (selectedMinigame) {
+    case 'sliding-puzzle':
+      return <SlidingPuzzleMock />
+
+    case 'vault-rush':
+      return <VaultRushMock />
+
+    case 'wordle':
+      return <WordleMock answer="APPLE" onSubmit={() => {}} />
+
+    default: {
+      const _exhaustive: never = selectedMinigame
+      throw new Error(`Unhandled minigame: ${_exhaustive}`)
+    }
+  }
+}

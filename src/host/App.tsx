@@ -232,6 +232,9 @@ export function App(): React.JSX.Element {
   }
 
   const renderPhase = () => {
+
+    document.body.classList.remove('wordle-game-page')
+
     if (fatalError) {
       return (
         <main className="app">
@@ -282,6 +285,11 @@ export function App(): React.JSX.Element {
 
     if (phase === 'playing' || phase === 'reveal') {
       if (roundContent) {
+        if (roundContent.type === 'wordle') {
+          document.body.classList.add('wordle-game-page')
+        } else {
+          document.body.classList.remove('wordle-game-page')
+        }
         return (
           <main className="app app--minigame">
             {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
@@ -380,6 +388,14 @@ function renderMinigame(
         reveal={reveal}
       />
     )
+  }
+
+  if (content.type === 'wordle') {
+  return (
+    <div className="wordle-host-waiting">
+      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+    </div>
+   )
   }
 
   return (
