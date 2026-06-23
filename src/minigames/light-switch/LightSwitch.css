@@ -1,23 +1,24 @@
 .light-switch-game {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.light-switch-board {
-  position: relative;
-  width: 700px;
-  height: 500px;
+  height: 100vh;
+  width: 100vw;
 }
 
 .light {
-  width: 60px;
-  height: 60px;
   border-radius: 50%;
   background: #444;
   border: 3px solid #666;
   position: absolute;
+
+  width: clamp(20px, 4vw, 60px);
+  height: clamp(20px, 4vw, 60px);
+  transform: translate(-50%, -50%);
+}
+
+@media (orientation: portrait) {
+  .light {
+    width: clamp(20px, 4vh, 60px);
+    height: clamp(20px, 4vh, 60px);
+  }
 }
 
 .light--on {
@@ -29,12 +30,14 @@
   position: absolute;
   width: 70px;
   height: 40px;
+
+  transform: translate(-50%, -50%);
 }
 
 .connections {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  z-index: -1;
 }
 
 .connections line {

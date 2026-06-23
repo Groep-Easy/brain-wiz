@@ -1,6 +1,7 @@
 import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 
-export type ProceduralRoundType = 'sliding-puzzle'
+export type ProceduralRoundType =
+  | 'sliding-puzzle'
   | 'balance-scale'
   | 'vault-rush'
   | 'wordle'

@@ -22,6 +22,7 @@ import { SlidingPuzzleServerAdapter } from './minigames/sliding-puzzle.server'
 import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
 import { VaultRushServerAdapter } from './minigames/vault-rush.server'
 import { WordleServerAdapter } from './minigames/wordle.server'
+import { LightSwitchServerAdapter } from './minigames/light-switch.server'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
@@ -33,6 +34,7 @@ import { WordleServerAdapter } from './minigames/wordle.server'
     BalanceScaleServerAdapter,
     VaultRushServerAdapter,
     WordleServerAdapter,
+    LightSwitchServerAdapter,
     MinigameRegistry,
     AnswerService,
     ScoringService,
@@ -40,4 +42,4 @@ import { WordleServerAdapter } from './minigames/wordle.server'
   ],
   exports: [GameEngineService, GameEventBus, AnswerService],
 })
-export class GameModule {}
+export class GameModule { }

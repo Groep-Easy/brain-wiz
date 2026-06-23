@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common'
 import {
   createLightSwitchPuzzle,
   applySwitch
-} from '../../../../minigames/light-switch/LightSwitchGame'
+} from '@brain-wiz/minigames/light-switch/LightSwitchGame'
 import type {
   LightSwitchPuzzle,
   LightSwitch
-} from '../../../../minigames/light-switch/LightSwitch.types'
+} from '@brain-wiz/minigames/light-switch/LightSwitch.types'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,

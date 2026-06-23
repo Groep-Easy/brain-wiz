@@ -14,6 +14,8 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
 import { useClientSocket } from './hooks/useClientSocket'
+import { LightSwitchPuzzlePuzzle } from '../minigames/light-switch/LightSwitch'
+import type { LightSwitchPuzzle } from '../minigames/light-switch/LightSwitch.types'
 
 function readCodeFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -102,6 +104,10 @@ export function App(): React.JSX.Element {
           phase={phase === 'reveal' ? 'reveal' : 'playing'}
         />
       )
+    }
+
+    if (roundContent.type === 'light-switch') {
+      return <LightSwitchPuzzlePuzzle puzzle={roundContent.publicState as LightSwitchPuzzle} />
     }
 
     return null
