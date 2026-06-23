@@ -45,7 +45,7 @@ export function RoundMinigameSurface({
   showScaleEquations = true,
   secondsRemaining,
   onSubmissionChange,
-  submitted = false
+  submitted = false,
 }: RoundMinigameSurfaceProps): React.JSX.Element | null {
   const classes = ['round-minigame-surface', className].filter(Boolean).join(' ')
 

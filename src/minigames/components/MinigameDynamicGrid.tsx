@@ -9,7 +9,7 @@ import {
   handleSlidingPuzzleBoardUpdate,
   type SlidingPuzzleRoundPhase,
 } from './slidingPuzzleAutoSubmit'
-import {WordleMock} from '../wordleGame/mock/WordleGameMock'
+import { WordleMock } from '../wordleGame/mock/WordleGameMock'
 import type { Guess } from '../wordleGame/shared/wordleGame.types'
 
 export type MinigameDynamicGridProps =
@@ -21,7 +21,7 @@ export type MinigameDynamicGridProps =
       submitted: boolean
       phase: SlidingPuzzleRoundPhase
     }
-    | {
+  | {
       type: 'vault-rush'
       puzzle: unknown
       onSubmit: (submission: { code: string }) => void
@@ -99,7 +99,7 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
       )
     }
 
-        case 'vault-rush': {
+    case 'vault-rush': {
       if (!isVaultRushPuzzle(data.puzzle)) {
         return null
       }
@@ -131,11 +131,7 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
     case 'wordle': {
       return (
         <section className="client-minigame client-minigame--wordle">
-          <WordleMock
-            answer={data.answer}
-            onSubmit={data.onSubmit}
-            submitted={data.submitted}
-          />
+          <WordleMock answer={data.answer} onSubmit={data.onSubmit} submitted={data.submitted} />
         </section>
       )
     }
