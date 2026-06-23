@@ -21,6 +21,7 @@ export type RoundType =
   | 'sliding-puzzle'
   | 'balance-scale'
   | 'vault-rush'
+  | 'wordle'
 
 export interface Player {
   id: string
