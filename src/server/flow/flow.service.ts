@@ -14,6 +14,12 @@ import type { Repository } from 'typeorm'
 import { GameBlock } from '../entities/game-block.entity'
 import { Question } from '../entities/question.entity'
 import { BlockKindEnum } from '../entities/enums'
+import { TIMER } from '@brain-wiz/config/game.config'
+import {
+  MAX_MINIGAME_TIME_SECONDS,
+  MINIGAME_TIME_STEP_SECONDS,
+  MIN_MINIGAME_TIME_SECONDS,
+} from '@brain-wiz/shared/constants/flow.constants'
 import type { GameBlockDto, GameFlowItem } from '@brain-wiz/shared/types/flow'
 
 /** Defaults mirror the host editor's per-block question range. */
@@ -77,7 +83,7 @@ export class FlowService {
     for (let i = 0; i < count; i++) {
       const pick = shuffled[i % shuffled.length]
       if (!pick) continue
-      flow.push(this.toFlowItem(pick.id, pick.kind, pick.available, undefined))
+      flow.push(this.toFlowItem(pick.id, pick.kind, pick.available, undefined, undefined))
     }
     return flow
   }
@@ -101,24 +107,52 @@ export class FlowService {
 
     return flow.flatMap((item) => {
       const block = byId.get(item.blockId)
-      return block ? [this.toFlowItem(block.id, block.kind, block.available, item.questions)] : []
+      return block
+        ? [
+            this.toFlowItem(
+              block.id,
+              block.kind,
+              block.available,
+              item.questions,
+              item.timeLimitSeconds
+            ),
+          ]
+        : []
     })
   }
 
-  /** Map a catalog entry + requested count into a stored flow item. */
+  /** Map a catalog entry + requested per-item settings into a stored flow item. */
   private toFlowItem(
     blockId: string,
     kind: GameBlockDto['kind'],
     available: number | undefined,
-    requested: number | undefined
+    requestedQuestions: number | undefined,
+    requestedTimeLimitSeconds: number | undefined
   ): GameFlowItem {
     if (kind !== 'theme') {
-      return { blockId }
+      return {
+        blockId,
+        timeLimitSeconds: this.normalizeMinigameTimeSeconds(blockId, requestedTimeLimitSeconds),
+      }
     }
     const cap = Math.min(MAX_QUESTIONS_PER_BLOCK, available ?? MAX_QUESTIONS_PER_BLOCK)
-    const desired = requested ?? DEFAULT_QUESTIONS_PER_BLOCK
+    const desired = requestedQuestions ?? DEFAULT_QUESTIONS_PER_BLOCK
     const questions = Math.max(MIN_QUESTIONS_PER_BLOCK, Math.min(cap, Math.round(desired)))
     return { blockId, questions }
+  }
+
+  private normalizeMinigameTimeSeconds(blockId: string, requested: number | undefined): number {
+    const fallback = this.defaultMinigameTimeSeconds(blockId)
+    const desired = Number.isFinite(requested) ? Number(requested) : fallback
+    const stepped = Math.round(desired / MINIGAME_TIME_STEP_SECONDS) * MINIGAME_TIME_STEP_SECONDS
+    return Math.max(MIN_MINIGAME_TIME_SECONDS, Math.min(MAX_MINIGAME_TIME_SECONDS, stepped))
+  }
+
+  private defaultMinigameTimeSeconds(blockId: string): number {
+    if (blockId === 'mini-sliding-puzzle') {
+      return TIMER.SLIDING_PUZZLE_SECONDS
+    }
+    return TIMER.QUESTION_SECONDS
   }
 
   /** Clamp the flow size to the allowed range. Defaults to the editor's default. */
