@@ -26,7 +26,53 @@ If a request is sent without a valid key, the server responds with:
 
 ## Endpoints
 
-### 1. Create a Question
+### 1. Room Game Flow
+
+The host can store the lobby's game flow before starting a room. The server
+normalizes the payload so every stored item is playable.
+
+- **URL:** `/rooms/:code/flow`
+- **Method:** `PUT`
+- **Auth required:** Host token in the request body
+
+#### Request Payload (JSON)
+
+```json
+{
+  "hostToken": "host-token",
+  "flow": [
+    { "blockId": "theme-science", "questions": 5 },
+    { "blockId": "mini-balance-scale", "timeLimitSeconds": 60 }
+  ]
+}
+```
+
+#### Flow Item Shape
+
+| Field              | Type     | Required | Applies to | Constraints                    | Description                              |
+| :----------------- | :------- | :------: | :--------- | :----------------------------- | :--------------------------------------- |
+| `blockId`          | `string` | **Yes**  | All blocks | Must exist in `/flow/blocks`   | Theme or mini-game block id              |
+| `questions`        | `number` |    No    | Themes     | Clamped to available questions | Number of quiz questions this theme adds |
+| `timeLimitSeconds` | `number` |    No    | Mini-games | 10-180 seconds, rounded to 10s | Per-placed-mini-game solve time          |
+
+Theme blocks ignore `timeLimitSeconds`. Mini-game blocks ignore `questions`.
+When omitted, mini-game timers use the server default for that game.
+
+#### Response
+
+```json
+{
+  "flow": [
+    { "blockId": "theme-science", "questions": 5 },
+    { "blockId": "mini-balance-scale", "timeLimitSeconds": 60 }
+  ]
+}
+```
+
+`POST /rooms/:code/flow/randomize` accepts `{ "hostToken": "...", "size": 4 }`
+and returns the same normalized flow shape.
+
+### 2. Create a Question
 
 Adds a new trivia question to the global database pool.
 

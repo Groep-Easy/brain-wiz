@@ -18,7 +18,7 @@ Nginx binds to port `3000` on the host machine and safely proxies traffic to the
 
 Nginx acts as a security buffer:
 
-- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks.
+- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks. This is the edge layer; the app adds HTTP and WebSocket limits on top — see [Rate Limiting](../security/rate-limiting.md).
 - **Error Pages**: Strips identifying server headers and serves custom HTML error pages located in `./nginx/errors/`.
 
 ### 4. Structured JSON Logging

@@ -11,8 +11,10 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
 } from '../sliding-puzzle/shared/slidingPuzzleGame.js'
-import { VaultRush } from '@brain-wiz/minigames/vault-rush/components/VaultRush'
-import type { VaultRushPuzzle } from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
+import { VaultRush } from '../vault-rush/components/VaultRush.js'
+import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
+import { WordleMock } from '../wordleGame/mock/WordleGameMock.js'
+import type { Guess } from '../wordleGame/shared/wordleGame.types.js'
 
 export type RoundMinigameSurfaceMode = 'play' | 'display'
 export type RoundMinigameSurfacePhase = 'playing' | 'reveal'
@@ -26,6 +28,7 @@ export interface RoundMinigameSurfaceProps {
   showScaleEquations?: boolean
   secondsRemaining?: number
   onSubmissionChange?: (submission: unknown) => void
+  submitted?: boolean
 }
 
 /**
@@ -42,6 +45,7 @@ export function RoundMinigameSurface({
   showScaleEquations = true,
   secondsRemaining,
   onSubmissionChange,
+  submitted = false
 }: RoundMinigameSurfaceProps): React.JSX.Element | null {
   const classes = ['round-minigame-surface', className].filter(Boolean).join(' ')
 
@@ -104,6 +108,30 @@ export function RoundMinigameSurface({
           {...(phase === 'playing' && secondsRemaining !== undefined ? { secondsRemaining } : {})}
           puzzle={puzzle}
           readOnly={readOnly}
+        />
+      </section>
+    )
+  }
+
+  if (content.type === 'wordle') {
+    const answer = (content.publicState as { answer?: string }).answer ?? ''
+    const isReadOnly = mode === 'display'
+
+    if (isReadOnly) {
+      // Host display — show a static placeholder, no interaction needed
+      return (
+        <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+          <div className="wordle-display-placeholder">Wordle in progress…</div>
+        </section>
+      )
+    }
+
+    return (
+      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+        <WordleMock
+          answer={answer}
+          onSubmit={(submission: { guesses: Guess[] }) => onSubmissionChange?.(submission)}
+          submitted={submitted}
         />
       </section>
     )

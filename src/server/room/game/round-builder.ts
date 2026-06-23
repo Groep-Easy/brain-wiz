@@ -20,6 +20,11 @@ import { Room } from '../../entities/room.entity'
 import { GameBlock } from '../../entities/game-block.entity'
 import { RoundStatusEnum, ContentTypeEnum, BlockKindEnum } from '../../entities/enums'
 import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
+import {
+  MAX_MINIGAME_TIME_SECONDS,
+  MINIGAME_TIME_STEP_SECONDS,
+  MIN_MINIGAME_TIME_SECONDS,
+} from '@brain-wiz/shared/constants/flow.constants'
 import type { RoundType } from '@brain-wiz/shared/types/index'
 import { NotEnoughQuestionsError } from './game.errors'
 import type { ProceduralRoundSeedInput } from './game.types'
@@ -35,6 +40,7 @@ interface QuizRoundSpec {
 interface ProceduralRoundSpec {
   kind: 'procedural'
   type: RoundType
+  timeLimitSeconds?: number
 }
 type RoundSpec = QuizRoundSpec | ProceduralRoundSpec
 
@@ -69,7 +75,7 @@ export class RoundBuilder {
       if (spec.kind === 'quiz') {
         built.push(await this.saveQuizRound(room, index, spec.question))
       } else {
-        built.push(await this.saveProceduralRound(room, index, spec.type))
+        built.push(await this.saveProceduralRound(room, index, spec.type, spec.timeLimitSeconds))
       }
     }
 
@@ -82,7 +88,7 @@ export class RoundBuilder {
    * Expand a host-built flow into an ordered round plan. Each theme block
    * contributes up to its requested count of distinct questions of that theme,
    * never repeating a question within the game. Each mini-game block becomes a
-   * procedural round driven by its registered adapter.
+   * procedural round driven by its registered adapter and per-item timer.
    */
   private async planFromFlow(room: Room): Promise<RoundSpec[]> {
     const catalog = await this.blocks.find()
@@ -113,7 +119,14 @@ export class RoundBuilder {
           plan.push({ kind: 'quiz', question: next })
         }
       } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
-        plan.push({ kind: 'procedural', type: block.minigameKey as RoundType })
+        const spec: ProceduralRoundSpec = {
+          kind: 'procedural',
+          type: block.minigameKey as RoundType,
+        }
+        if (item.timeLimitSeconds !== undefined) {
+          spec.timeLimitSeconds = item.timeLimitSeconds
+        }
+        plan.push(spec)
       } else {
         unknownMinigames++
       }
@@ -183,13 +196,18 @@ export class RoundBuilder {
     return this.rounds.save(round)
   }
 
-  private async saveProceduralRound(room: Room, index: number, type: RoundType): Promise<Round> {
+  private async saveProceduralRound(
+    room: Room,
+    index: number,
+    type: RoundType,
+    requestedTimeLimitSeconds?: number
+  ): Promise<Round> {
     const adapter = this.minigames.get(type)
     if (!adapter) {
       throw new BadRequestException(`No minigame adapter registered for round type "${type}"`)
     }
     const roundId = randomUUID()
-    const timeLimitSeconds = this.proceduralRoundSeconds(type)
+    const timeLimitSeconds = this.proceduralRoundSeconds(type, requestedTimeLimitSeconds)
     const seed = this.createProceduralRoundSeed({
       roomId: room.id,
       roundId,
@@ -218,7 +236,14 @@ export class RoundBuilder {
     return this.rounds.save(round)
   }
 
-  private proceduralRoundSeconds(type: RoundType): number {
+  private proceduralRoundSeconds(type: RoundType, requested?: number): number {
+    const fallback = this.defaultProceduralRoundSeconds(type)
+    const desired = Number.isFinite(requested) ? Number(requested) : fallback
+    const stepped = Math.round(desired / MINIGAME_TIME_STEP_SECONDS) * MINIGAME_TIME_STEP_SECONDS
+    return Math.max(MIN_MINIGAME_TIME_SECONDS, Math.min(MAX_MINIGAME_TIME_SECONDS, stepped))
+  }
+
+  private defaultProceduralRoundSeconds(type: RoundType): number {
     if (type === 'sliding-puzzle') {
       return TIMER.SLIDING_PUZZLE_SECONDS
     }
