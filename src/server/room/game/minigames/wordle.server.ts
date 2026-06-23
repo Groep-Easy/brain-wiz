@@ -17,6 +17,7 @@ const BASE_POINTS = 1000
 const POINTS_PER_EXTRA_GUESS = 100
 const SOLVE_SPEED_BONUS = 300
 const MILLISECONDS_PER_SECOND = 1000
+const AMOUNT_SECONDS = 60
 
 @Injectable()
 export class WordleServerAdapter implements MinigameAdapter {
@@ -82,7 +83,7 @@ export class WordleServerAdapter implements MinigameAdapter {
     const timeLimitMs =
       typeof scoringConfig['timeLimitMs'] === 'number'
         ? scoringConfig['timeLimitMs']
-        : 60 * MILLISECONDS_PER_SECOND
+        : AMOUNT_SECONDS * MILLISECONDS_PER_SECOND
 
     // fewer guesses = more points
     const guessDeduction = (guessCount - 1) * pointsPerExtraGuess
