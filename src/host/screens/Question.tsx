@@ -13,6 +13,7 @@ interface QuestionScreenProps {
   answeredCount: number
   totalPlayers: number
   reveal: QuestionRevealPayload | null
+  onSkip: () => void
 }
 
 export function Question({
@@ -22,6 +23,7 @@ export function Question({
   answeredCount,
   totalPlayers,
   reveal,
+  onSkip,
 }: QuestionScreenProps): React.JSX.Element {
   const timerPct =
     question.timeLimit > 0
@@ -44,6 +46,11 @@ export function Question({
             ? `${summary?.correctPlayers ?? 0} of ${summary?.totalAnswered ?? 0} got it right`
             : `${answeredCount} / ${totalPlayers} answered`}
         </span>
+        {!revealed && (
+          <button className="hq-skip-btn" onClick={onSkip} type="button">
+            Skip ⏩
+          </button>
+        )}
       </header>
 
       {!revealed && (
@@ -63,9 +70,8 @@ export function Question({
           return (
             <div
               key={answer.id}
-              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${
-                dim ? 'is-dim' : ''
-              } ${revealed && isCorrect ? 'is-correct' : ''}`}
+              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${dim ? 'is-dim' : ''
+                } ${revealed && isCorrect ? 'is-correct' : ''}`}
             >
               {revealed && (
                 <div className="hq-tile-bar" style={{ width: `${(stat?.fraction ?? 0) * 100}%` }} />

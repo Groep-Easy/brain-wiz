@@ -12,6 +12,7 @@ import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
+import { BlockIcon } from './BlockIcon'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
@@ -57,7 +58,7 @@ export function SetupLobby({
 
   const handleSaveFlow = async (newFlow: FlowItem[]) => {
     await storeRoomFlow(roomCode, hostToken, newFlow)
-    setActiveTab('lobby')
+    startGame()
   }
 
   const handleCancelFlow = () => {
@@ -75,12 +76,16 @@ export function SetupLobby({
     }
   }, [roomCode])
 
-  const handleStart = () => {
+  const startGame = () => {
     jazzRef.current?.pause()
     if (!isMuted()) playStartGameSound()
     setTimeout(() => {
       onStartGame(timePerQuestion)
-    }, 1000) // TODO: no magic numbers
+    }, 1000)
+  }
+
+  const handleStart = () => {
+    startGame()
   }
 
   const handleKick = async (playerId: string) => {
@@ -175,6 +180,8 @@ export function SetupLobby({
           {activeTab === 'flow' ? (
             <FlowEditor
               initialFlow={toFlowItems(gameFlow)}
+              roomCode={roomCode}
+              hostToken={hostToken}
               onSave={handleSaveFlow}
               onCancel={handleCancelFlow}
             />
@@ -263,7 +270,7 @@ export function SetupLobby({
                           return (
                             <div className="flow-cell" key={cell.logicalIndex} style={style}>
                               <div className={`flow-block ${block.kind}`}>
-                                <span className="flow-block-icon">{block.icon}</span>
+                                <BlockIcon icon={block.icon} label={block.label} />
                                 <span className="flow-block-label">{block.label}</span>
                               </div>
                               {arrow}

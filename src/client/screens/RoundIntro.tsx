@@ -8,7 +8,7 @@ export function RoundIntro({ index, total }: RoundIntroProps): React.JSX.Element
     <div className="game-card client-card">
       <p className="subtitle">Get ready…</p>
       <h1>
-        Question {index}
+        Question {index + 1}
         {total > 0 ? ` of ${total}` : ''}
       </h1>
     </div>

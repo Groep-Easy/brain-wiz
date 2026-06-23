@@ -183,6 +183,14 @@ export class GameEngineService {
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
 
+    const skipSub = this.bus
+      .on('HOST_SKIP_TIMER')
+      .pipe(filter((e) => e.roomId === room.id))
+      .subscribe(() => {
+        didEndEarly = false
+        game.timer.endEarly()
+      })
+
     let didEndEarly = false
     const earlySub = this.bus
       .on('ALL_PLAYERS_ANSWERED')
@@ -194,6 +202,7 @@ export class GameEngineService {
 
     const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds)
     earlySub.unsubscribe()
+    skipSub.unsubscribe()
     if (didAbort) {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
       return
@@ -203,6 +212,13 @@ export class GameEngineService {
     await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
 
     if (await this.runPhase(room, game, GamePhase.REVEAL, TIMER.REVEAL_SECONDS)) {
+      return
+    }
+
+    const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
+    const isLastRound = round.roundIndex === totalRounds -1
+    if (isLastRound) {
+      await this.enterPhase(room, GamePhase.GAME_OVER)
       return
     }
 

@@ -7,6 +7,28 @@
  */
 import type { BlockDef, FlowItem } from './types'
 
+import codingImg from '../../../assets/images/coding.png'
+import filmsImg from '../../../assets/images/films.png'
+import gamingImg from '../../../assets/images/gaming.png'
+import geographyImg from '../../../assets/images/geography.png'
+import historyImg from '../../../assets/images/history.png'
+import internetMemesImg from '../../../assets/images/internet&memes.png'
+import knowledgeImg from '../../../assets/images/knowledge.png'
+import musicImg from '../../../assets/images/music.png'
+import scienceImg from '../../../assets/images/science.png'
+import sportImg from '../../../assets/images/sport.png'
+import artImg from '../../../assets/images/art.png'
+import culturetImg from '../../../assets/images/culture.png'
+import otherImg from '../../../assets/images/other.png'
+import techImg from '../../../assets/images/tech.png'
+
+// Minigames
+import slidingPuzzleImg from '../../../assets/images/MG_slidingPuzzle.png'
+import scaleImg from '../../../assets/images/MG_scale.png'
+import vaultImg from '../../../assets/images/MG_vault.png'
+// import woordleImg from '../../../assets/images/MG_woordle.png';
+// import atcImg from '../../../assets/images/MG_atc.png'
+
 /** Default number of questions for a quiz block, and the allowed range. */
 export const DEFAULT_QUESTIONS_PER_BLOCK = 5
 export const MIN_QUESTIONS_PER_BLOCK = 1
@@ -14,23 +36,23 @@ export const MAX_QUESTIONS_PER_BLOCK = 20
 
 /** Every block a host can place in a flow: trivia themes + mini-games. */
 export const PALETTE: BlockDef[] = [
-  { id: 'theme-history', label: 'History', kind: 'theme', icon: '🏺' },
-  { id: 'theme-science', label: 'Science', kind: 'theme', icon: '🔬' },
-  { id: 'theme-sport', label: 'Sport', kind: 'theme', icon: '⚽' },
-  { id: 'theme-culture', label: 'Culture', kind: 'theme', icon: '🎭' },
-  { id: 'theme-geography', label: 'Geography', kind: 'theme', icon: '🌍' },
-  { id: 'theme-technology', label: 'Technology', kind: 'theme', icon: '💻' },
-  { id: 'theme-art', label: 'Art', kind: 'theme', icon: '🎨' },
-  { id: 'theme-coding', label: 'Coding', kind: 'theme', icon: '💻' },
-  { id: 'theme-films', label: 'Films', kind: 'theme', icon: '🎬' },
-  { id: 'theme-gaming', label: 'Gaming', kind: 'theme', icon: '🎮' },
-  { id: 'theme-general', label: 'General', kind: 'theme', icon: '🧠' },
-  { id: 'theme-internet', label: 'Internet', kind: 'theme', icon: '🌐' },
-  { id: 'theme-music', label: 'Music', kind: 'theme', icon: '🎵' },
-  { id: 'theme-other', label: 'Other', kind: 'theme', icon: '❓' },
-  { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
-  { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
-  { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: '🔐' },
+  { id: 'theme-history', label: 'History', kind: 'theme', icon: historyImg },
+  { id: 'theme-science', label: 'Science', kind: 'theme', icon: scienceImg },
+  { id: 'theme-sport', label: 'Sport', kind: 'theme', icon: sportImg },
+  { id: 'theme-culture', label: 'Culture', kind: 'theme', icon: culturetImg },
+  { id: 'theme-geography', label: 'Geography', kind: 'theme', icon: geographyImg },
+  { id: 'theme-technology', label: 'Technology', kind: 'theme', icon: techImg },
+  { id: 'theme-art', label: 'Art', kind: 'theme', icon: artImg },
+  { id: 'theme-coding', label: 'Coding', kind: 'theme', icon: codingImg },
+  { id: 'theme-films', label: 'Films', kind: 'theme', icon: filmsImg },
+  { id: 'theme-gaming', label: 'Gaming', kind: 'theme', icon: gamingImg },
+  { id: 'theme-general', label: 'General', kind: 'theme', icon: knowledgeImg },
+  { id: 'theme-internet', label: 'Internet', kind: 'theme', icon: internetMemesImg },
+  { id: 'theme-music', label: 'Music', kind: 'theme', icon: musicImg },
+  { id: 'theme-other', label: 'Other', kind: 'theme', icon: otherImg },
+  { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: scaleImg },
+  { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: slidingPuzzleImg },
+  { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: vaultImg },
 ]
 
 /** A flow must always contain at least this many blocks. */

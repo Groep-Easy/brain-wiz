@@ -3,9 +3,10 @@ import partyHorn from '../../shared/SFX/party-horn.mp3'
 interface WaitingProps {
   playerName: string
   roomCode: string
+  onLeave: () => void
 }
 
-export function Waiting({ playerName, roomCode }: WaitingProps): React.JSX.Element {
+export function Waiting({ playerName, roomCode, onLeave }: WaitingProps): React.JSX.Element {
   return (
     <>
       <audio id="party-horn" autoPlay src={partyHorn} preload="auto"></audio>
@@ -19,6 +20,10 @@ export function Waiting({ playerName, roomCode }: WaitingProps): React.JSX.Eleme
         <p>
           Room <span className="code-pill">{roomCode || '----'}</span>
         </p>
+        <div className="divider" />
+        <button className="leave-btn" onClick={onLeave} type="button">
+          Leave room
+        </button>
       </div>
     </>
   )

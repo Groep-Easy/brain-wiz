@@ -13,7 +13,7 @@ export function RoundIntro({ index, total, questionText }: RoundIntroProps): Rea
       <audio id="intro-warning" autoPlay src={intro} preload="auto"></audio>
       <div className="round-intro-card">
         <p className="round-intro-eyebrow">
-          Question {index} of {total}
+          Question {index + 1} of {total}
         </p>
         {questionText ? (
           <>

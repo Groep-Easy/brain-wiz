@@ -66,7 +66,8 @@ export const ANSWER_COUNT_UPDATE = 'ANSWER_COUNT_UPDATE'
 export const TIMER_TICK = 'TIMER_TICK'
 /** Server → all:    expired.              Payload: none                          */
 export const TIMER_EXPIRED = 'TIMER_EXPIRED'
-
+/** Host → server:   skip the current question timer immediately.  Payload: none */
+export const HOST_SKIP_TIMER = 'HOST_SKIP_TIMER'
 // ── Connectivity ────────────────────────────────────────────────────────────────
 /** Client → server: liveness probe.       Payload: { t: number }              */
 export const PING = 'PING'

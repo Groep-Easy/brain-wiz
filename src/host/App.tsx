@@ -224,6 +224,16 @@ export function App(): React.JSX.Element {
     setConfirmCloseOpen(true)
   }
 
+  const handleSkipTimer = () => {
+    console.log('HOST_SKIP_TIMER')
+    socketRef.current?.send(
+      JSON.stringify({
+        event: EVENTS.HOST_SKIP_TIMER,
+        data: {},
+      })
+    )
+  }
+
   const performCloseLobby = () => {
     setConfirmCloseOpen(false)
     socketRef.current?.close()
@@ -310,6 +320,7 @@ export function App(): React.JSX.Element {
           answeredCount={answeredCount}
           totalPlayers={totalPlayers}
           reveal={phase === 'reveal' ? reveal : null}
+          onSkip={handleSkipTimer}
         />
       )
     }
@@ -370,13 +381,12 @@ function renderMinigame(
   ) {
     return (
       <RoundMinigameSurface
-        className={`host-minigame ${
-          content.type === 'balance-scale'
+        className={`host-minigame ${content.type === 'balance-scale'
             ? 'host-minigame--scale'
             : content.type === 'vault-rush'
               ? 'host-minigame--vault'
               : 'host-minigame--sliding'
-        }`}
+          }`}
         content={content}
         mode="display"
         phase={phase}

@@ -273,25 +273,32 @@ export function App(): React.JSX.Element {
     // 1. Tell the app this is an intentional disconnect so it doesn't try to reconnect
     intentionalCloseRef.current = true
 
-    // 2. Clear saved credentials from local storage
+    // 2. Send PLAYER_LEAVE so the server.
+    //    Without this the player will still be visible in the lobby.
+    const socket = socketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ event: EVENTS.PLAYER_LEAVE, data: {} }))
+    }
+
+    // 3. Clear saved credentials from local storage
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {
       /* ignore */
     }
 
-    // 3. Clear all references
+    // 4. Clear all references
     credsRef.current = null
     playerIdRef.current = null
     pendingJoinRef.current = null
 
-    // 4. Close the socket connection
+    // 5. Close the socket connection
     if (socketRef.current) {
       socketRef.current.close()
       socketRef.current = null
     }
 
-    // 5. Reset all React state to initial values
+    // 6. Reset all React state to initial values
     setJoined(false)
     setJoining(false)
     setRoomState(null)
@@ -555,6 +562,7 @@ export function App(): React.JSX.Element {
         <Waiting
           playerName={credsRef.current?.playerName ?? ''}
           roomCode={credsRef.current?.roomCode ?? ''}
+          onLeave={handleLeaveRoom}
         />
       </main>
     )

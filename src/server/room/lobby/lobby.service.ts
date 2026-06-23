@@ -30,6 +30,7 @@ import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
 import { BasicResponseDto } from '@brain-wiz/shared/dto/rest-api.dto'
+import { GameEventBus } from '../game/game-event-bus'
 
 @Injectable()
 export class LobbyService {
@@ -40,7 +41,8 @@ export class LobbyService {
     private readonly broadcaster: RoomBroadcaster,
     private readonly gameEngine: GameEngineService,
     private readonly questionService: QuestionService,
-    private readonly flow: FlowService
+    private readonly flow: FlowService,
+    private readonly bus: GameEventBus
   ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
@@ -422,5 +424,15 @@ export class LobbyService {
     await this.broadcastState(room)
 
     return { success: true }
+  }
+
+  public getMembership(socket: ClientSocket) {
+    return this.registry.lookup(socket)
+  }
+
+  /** Publish a host-skip event onto the in-process bus so the engine ends the
+   *  current question timer immediately. No-op if no game is running. */
+  public publishHostSkip(roomId: string): void {
+    this.bus.publish({ type: 'HOST_SKIP_TIMER', roomId })
   }
 }
