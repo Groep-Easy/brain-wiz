@@ -34,9 +34,13 @@ export const sounds = {
 const _currentAudio = new Map<string, HTMLAudioElement>()
 
 export function playSound(soundSource: string, loop: boolean) {
-  const audioData = new Audio(soundSource)
+  let audioData = _currentAudio.get(soundSource)
+  if (!audioData) {
+    audioData = new Audio(soundSource)
+    _currentAudio.set(soundSource, audioData)
+  }
+
   audioData.loop = loop
-  _currentAudio.set(soundSource, audioData)
   // play() rejects when the browser blocks autoplay (no user gesture yet);
   // that's non-fatal for sound effects, so swallow it.
   audioData.play().catch(() => {

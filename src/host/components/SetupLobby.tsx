@@ -60,6 +60,8 @@ export function SetupLobby({
     setActiveTab('lobby')
   }
 
+  useEffect(() => {if(!isMuted()) playSound(sounds.jazz, true)}, [roomCode])
+
   useEffect(() => {
     if (roomCode) {
       const joinUrl = `${getClientBaseUrl()}/client/?code=${roomCode}`
@@ -108,8 +110,6 @@ export function SetupLobby({
       console.error('Kick error', err)
     }
   }
-
-  useEffect(() => {if(!isMuted()) playSound(sounds.jazz, true)}, [roomCode])
 
   return (
     <>
