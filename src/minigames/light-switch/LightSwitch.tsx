@@ -3,6 +3,11 @@ import type { Light, LightSwitch, LightSwitchGameProps } from './LightSwitch.typ
 import './LightSwitch.css'
 
 export function LightSwitchPuzzlePuzzle({ puzzle }: LightSwitchGameProps): JSX.Element {
+  const [moveCount, setMoveCount] = useState(0)
+  const [solved, setSolved] = useState(false)
+  const solveTimerRef = useRef<number | undefined>(undefined)
+
+  // CONTAINER SIZE -------------------------------------------------------------------------------
   const boardRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 0, height: 0 })
 
@@ -55,12 +60,22 @@ export function LightSwitchPuzzlePuzzle({ puzzle }: LightSwitchGameProps): JSX.E
   const lightPositions = getLightPositions(lights, size)
 
   // SWITCHES -------------------------------------------------------------------------------------
+  function checkIfSolved(lights: Light[]): boolean {
+    return lights.every((light) => light.isOn)
+  }
+
   function handleSwitchClick(lightSwitch: LightSwitch): void {
-    setLights((currentLights) =>
-      currentLights.map((light) =>
+    setMoveCount((prev) => prev + 1)
+
+    setLights((currentLights) => {
+      const nextLights = currentLights.map((light) =>
         lightSwitch.affectedLights.includes(light.id) ? { ...light, isOn: !light.isOn } : light
       )
-    )
+
+      checkIfSolved(nextLights) ? setSolved(true) : setSolved(false)
+
+      return nextLights
+    })
   }
 
   function getSwitchPositions(switches: LightSwitch[], size: { width: number; height: number }) {
