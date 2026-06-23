@@ -4,6 +4,7 @@ import { BalanceScaleServerAdapter } from './balance-scale.server.js'
 import type { MinigameAdapter, ProceduralRoundType } from './minigame.types.js'
 import { SlidingPuzzleServerAdapter } from './sliding-puzzle.server.js'
 import { VaultRushServerAdapter } from './vault-rush.server.js'
+import { WordleServerAdapter } from './wordle.server.js'
 
 @Injectable()
 export class MinigameRegistry {
@@ -12,12 +13,14 @@ export class MinigameRegistry {
   public constructor(
     slidingPuzzle: SlidingPuzzleServerAdapter,
     balanceScale: BalanceScaleServerAdapter,
-    vaultRush: VaultRushServerAdapter
+    vaultRush: VaultRushServerAdapter,
+    wordle: WordleServerAdapter
   ) {
     const adapters = new Map<ProceduralRoundType, MinigameAdapter>()
     adapters.set(slidingPuzzle.type, slidingPuzzle)
     adapters.set(balanceScale.type, balanceScale)
     adapters.set(vaultRush.type, vaultRush)
+    adapters.set(wordle.type, wordle)
     this.adapters = adapters
   }
 

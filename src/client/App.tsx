@@ -334,6 +334,7 @@ export function App(): React.JSX.Element {
         const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
         handleEvent(ev, data)
       } catch (err) {
+
         console.error('Failed to parse WebSocket message:', err)
       }
     }
@@ -351,6 +352,7 @@ export function App(): React.JSX.Element {
     }
 
     socket.onerror = () => {
+
       console.error('WebSocket connection error')
     }
   }
@@ -493,6 +495,19 @@ export function App(): React.JSX.Element {
       )
     }
 
+    if (roundContent.type === 'wordle') {
+      const answer = (roundContent.publicState as { answer?: string }).answer ?? ''
+      return (
+        <MinigameDynamicGrid
+          type="wordle"
+          answer={answer}
+          onSubmit={handleRoundSubmit}
+          submitted={roundSubmitted}
+          phase={phase === 'reveal' ? 'reveal' : 'playing'}
+        />
+      )
+    }
+
     return null
   }
 
@@ -575,10 +590,11 @@ export function App(): React.JSX.Element {
       return (
         <main
           className={
-            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush' || roundContent?.type === 'wordle'
               ? 'app app--minigame'
               : 'app'
           }
+
         >
           {banner}
           {minigame}
