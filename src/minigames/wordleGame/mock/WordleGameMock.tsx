@@ -13,7 +13,6 @@ import '../components/WordleGame.css'
 
 interface WordleMockProps {
   answer: string
-  // onGameEnd?: (word: string, guesses: number, time: number) => void
   onSubmit: (submission: { guesses: Guess[] }) => void
   submitted?: boolean
 }
