@@ -108,7 +108,7 @@ export function JoinScreen({
     const trimmedCode = code.trim().toUpperCase()
     if (trimmedName && trimmedCode) {
       onJoin(trimmedName, trimmedCode, character)
-      playSound(sounds.partyHorn)
+      playSound(sounds.partyHorn, false)
     }
   }
 

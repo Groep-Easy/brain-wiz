@@ -79,7 +79,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
     })
-    if (!isMuted()) playSound(sounds.cardDrop)
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   useEffect(() => {
@@ -117,14 +117,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) playSound(sounds.waterDrop)
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) playSound(sounds.waterDrop)
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -187,7 +187,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
         return next
       })
     }
-    if (!isMuted()) playSound(sounds.cardDrop)
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   const removeAt = (index: number) => {
@@ -203,7 +203,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
-    if (!isMuted()) playSound(sounds.die)
+    if (!isMuted()) playSound(sounds.die, false)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS

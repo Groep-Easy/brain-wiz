@@ -63,7 +63,7 @@ export function Answer({
               disabled={locked}
               onClick={() => {
                 onAnswer(answer.id)
-                playSound(sounds.pop)
+                playSound(sounds.pop, false)
               }}
               aria-label={`Answer ${shape}`}
             >
@@ -80,9 +80,9 @@ export function Answer({
 
 function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.JSX.Element {
   useEffect(() => {
-    if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong)
-    if (result?.isCorrect) playSound(sounds.correct)
-    else playSound(sounds.wrong)
+    if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong, false)
+    if (result?.isCorrect) playSound(sounds.correct, false)
+    else playSound(sounds.wrong, false)
   }, [result])
 
   if (!result || result.isTimeout || result.answerId === null) {

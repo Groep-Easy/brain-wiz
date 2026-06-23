@@ -1,4 +1,5 @@
 import '../styles/round_intro.css'
+import { useEffect } from 'react'
 import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
@@ -9,7 +10,7 @@ interface RoundIntroProps {
 }
 
 export function RoundIntro({ index, total, questionText }: RoundIntroProps): React.JSX.Element {
-  if (!isMuted()) playSound(sounds.roundIntro)
+  useEffect(() => {if (!isMuted()) playSound(sounds.roundIntro, false)}, [index])
   return (
     <main className="round-intro">
       <div className="round-intro-card">

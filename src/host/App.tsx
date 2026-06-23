@@ -21,13 +21,12 @@ import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
-import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
-
 import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
@@ -254,7 +253,6 @@ export function App(): React.JSX.Element {
     const phase = roomState.phase
 
     if (phase === 'lobby') {
-      playSound(sounds.jazz)
       return (
         <main className="app app--lobby">
           <SetupLobby

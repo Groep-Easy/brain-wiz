@@ -1,6 +1,6 @@
 import jazz from './jazz.mp3'
 import gameOver from './synthwave.mp3'
-import suspense from './Standoff.mp3'
+import suspense from './suspense.mp3'
 
 import cardDrop from './card-drop.mp3'
 import correct from './correct.mp3'
@@ -31,11 +31,24 @@ export const sounds = {
   wrong,
 } as const
 
-export function playSound(soundSource: string) {
+const _currentAudio = new Map<string, HTMLAudioElement>()
+
+export function playSound(soundSource: string, loop: boolean) {
   const audioData = new Audio(soundSource)
+  audioData.loop = loop
+  _currentAudio.set(soundSource, audioData)
   // play() rejects when the browser blocks autoplay (no user gesture yet);
   // that's non-fatal for sound effects, so swallow it.
   audioData.play().catch(() => {
     /* ignore playback/autoplay errors */
   })
+}
+
+export function stopSound(soundSource: string) {
+  const audioData = _currentAudio.get(soundSource)
+  if (audioData) {
+    audioData.pause()
+    audioData.currentTime = 0
+    _currentAudio.delete(soundSource)
+  }
 }
