@@ -53,7 +53,9 @@ export function App(): React.JSX.Element {
   const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
+  const [hasPlayingTimerTick, setHasPlayingTimerTick] = useState(false)
 
+  const phaseRef = useRef<RoomState['phase']>('lobby')
   const socketRef = useRef<WebSocket | null>(null)
 
   // Disconnect on unmount
@@ -104,11 +106,17 @@ export function App(): React.JSX.Element {
               setRoomState(d.room as RoomState)
               break
 
-            case EVENTS.GAME_PHASE_CHANGE:
-              setRoomState((prev: RoomState | null) =>
-                prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
-              )
+            case EVENTS.GAME_PHASE_CHANGE: {
+              const phase = d.phase as RoomState['phase']
+              phaseRef.current = phase
+
+              if (phase === 'playing') {
+                setHasPlayingTimerTick(false)
+              }
+
+              setRoomState((prev: RoomState | null) => (prev ? { ...prev, phase } : prev))
               break
+            }
 
             case EVENTS.ROUND_START:
               if (d.round) {
@@ -118,9 +126,15 @@ export function App(): React.JSX.Element {
               setRoundReveal(null)
               break
 
-            case EVENTS.TIMER_TICK:
+            case EVENTS.TIMER_TICK: {
               setSecondsRemaining(d.secondsRemaining as number)
+
+              if (phaseRef.current === 'playing') {
+                setHasPlayingTimerTick(true)
+              }
+
               break
+            }
 
             case EVENTS.QUESTION_SHOW:
               if (d.question) {
@@ -290,7 +304,7 @@ export function App(): React.JSX.Element {
               roundContent,
               roundReveal,
               phase === 'reveal' ? 'reveal' : 'playing',
-              secondsRemaining
+              hasPlayingTimerTick ? secondsRemaining : undefined
             )}
           </main>
         )
@@ -367,7 +381,7 @@ function renderMinigame(
   content: RoundContentPayload,
   reveal: RoundRevealPayload | null,
   phase: 'playing' | 'reveal',
-  secondsRemaining: number
+  secondsRemaining?: number
 ): React.JSX.Element {
   if (
     content.type === 'balance-scale' ||
@@ -387,7 +401,7 @@ function renderMinigame(
         mode="display"
         phase={phase}
         reveal={reveal}
-        secondsRemaining={secondsRemaining}
+        {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
       />
     )
   }

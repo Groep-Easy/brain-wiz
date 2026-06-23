@@ -99,7 +99,9 @@ export function App(): React.JSX.Element {
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
   const [kicked, setKicked] = useState(false)
+  const [hasPlayingTimerTick, setHasPlayingTimerTick] = useState(false)
 
+  const phaseRef = useRef<GamePhase>('lobby')
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
   const credsRef = useRef<SavedPlayer | null>(loadSavedPlayer())
@@ -203,6 +205,12 @@ export function App(): React.JSX.Element {
         break
       case EVENTS.GAME_PHASE_CHANGE: {
         const { phase } = data as GamePhaseChangePayload
+        phaseRef.current = phase
+
+        if (phase === 'playing') {
+          setHasPlayingTimerTick(false)
+        }
+
         setRoomState((prev) => (prev ? { ...prev, phase } : prev))
         break
       }
@@ -215,9 +223,16 @@ export function App(): React.JSX.Element {
         setSelectedOptionId(null)
         break
       }
-      case EVENTS.TIMER_TICK:
-        setSecondsRemaining((data as TimerTickPayload).secondsRemaining)
+      case EVENTS.TIMER_TICK: {
+        const { secondsRemaining } = data as TimerTickPayload
+        setSecondsRemaining(secondsRemaining)
+
+        if (phaseRef.current === 'playing') {
+          setHasPlayingTimerTick(true)
+        }
+
         break
+      }
       case EVENTS.QUESTION_SHOW: {
         const { question } = data as QuestionShowPayload
         if (question) {
@@ -482,7 +497,7 @@ export function App(): React.JSX.Element {
           submitted={roundSubmitted}
           phase={phase}
           solutionCode={solution?.code}
-          secondsRemaining={secondsRemaining}
+          {...(hasPlayingTimerTick ? { secondsRemaining } : {})}
         />
       )
     }
