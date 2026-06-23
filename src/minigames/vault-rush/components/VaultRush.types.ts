@@ -5,6 +5,7 @@ export interface VaultRushProps {
   readOnly?: boolean
   solutionCode?: string
   submitted?: boolean
+  secondsRemaining?: number | undefined
   onCodeChange?: (code: string) => void
   onSubmitCode?: (code: string) => void
 }

@@ -24,6 +24,7 @@ export interface RoundMinigameSurfaceProps {
   phase?: RoundMinigameSurfacePhase
   className?: string
   showScaleEquations?: boolean
+  secondsRemaining?: number
   onSubmissionChange?: (submission: unknown) => void
 }
 
@@ -39,6 +40,7 @@ export function RoundMinigameSurface({
   phase = 'playing',
   className,
   showScaleEquations = true,
+  secondsRemaining,
   onSubmissionChange,
 }: RoundMinigameSurfaceProps): React.JSX.Element | null {
   const classes = ['round-minigame-surface', className].filter(Boolean).join(' ')
@@ -99,6 +101,7 @@ export function RoundMinigameSurface({
               }
             : {})}
           {...(solutionCode ? { solutionCode } : {})}
+          {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
           puzzle={puzzle}
           readOnly={readOnly}
         />

@@ -222,6 +222,11 @@ export class RoundBuilder {
     if (type === 'sliding-puzzle') {
       return TIMER.SLIDING_PUZZLE_SECONDS
     }
+
+    if (type === 'vault-rush') {
+      return TIMER.VAULT_RUSH_SECONDS
+    }
+
     return TIMER.QUESTION_SECONDS
   }
 

@@ -482,6 +482,7 @@ export function App(): React.JSX.Element {
           submitted={roundSubmitted}
           phase={phase}
           solutionCode={solution?.code}
+          secondsRemaining={secondsRemaining}
         />
       )
     }

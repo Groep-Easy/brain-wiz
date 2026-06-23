@@ -286,7 +286,12 @@ export function App(): React.JSX.Element {
       if (roundContent) {
         return (
           <main className="app app--minigame">
-            {renderMinigame(roundContent, roundReveal, phase === 'reveal' ? 'reveal' : 'playing')}
+            {renderMinigame(
+              roundContent,
+              roundReveal,
+              phase === 'reveal' ? 'reveal' : 'playing',
+              secondsRemaining
+            )}
           </main>
         )
       }
@@ -361,7 +366,8 @@ export function App(): React.JSX.Element {
 function renderMinigame(
   content: RoundContentPayload,
   reveal: RoundRevealPayload | null,
-  phase: 'playing' | 'reveal'
+  phase: 'playing' | 'reveal',
+  secondsRemaining: number
 ): React.JSX.Element {
   if (
     content.type === 'balance-scale' ||
@@ -381,6 +387,7 @@ function renderMinigame(
         mode="display"
         phase={phase}
         reveal={reveal}
+        secondsRemaining={secondsRemaining}
       />
     )
   }

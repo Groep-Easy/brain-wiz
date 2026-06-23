@@ -26,6 +26,7 @@ export type MinigameDynamicGridProps =
       submitted: boolean
       phase: SlidingPuzzleRoundPhase
       solutionCode?: string | undefined
+      secondsRemaining?: number
     }
   | {
       type: 'example'
@@ -105,6 +106,7 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
         puzzle,
         readOnly: submitted || phase === 'reveal',
         submitted,
+        ...(data.secondsRemaining !== undefined ? { secondsRemaining: data.secondsRemaining } : {}),
         ...(phase === 'reveal' && data.solutionCode ? { solutionCode: data.solutionCode } : {}),
       }
 
