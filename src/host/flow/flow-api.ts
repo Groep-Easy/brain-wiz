@@ -12,16 +12,19 @@ import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 import { getBackendWsUrl, getBackendHttpUrl } from '@brain-wiz/shared/utils/env'
 
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
+// @ts-expect-error - Vite env variable
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
 export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
-  return items.map((it) => ({ uid: nextUid(), blockId: it.blockId, questions: it.questions }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return items.map((it) => ({ uid: nextUid(), blockId: it.blockId, questions: it.questions as any }))
 }
 
 /** Strip client-only uids before sending a flow to the server. */
 export function toStoredFlow(flow: FlowItem[]): StoredFlowItem[] {
-  return flow.map(({ blockId, questions }) => ({ blockId, questions }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return flow.map(({ blockId, questions }) => ({ blockId, questions: questions as any }))
 }
 
 /**

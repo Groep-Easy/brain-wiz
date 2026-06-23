@@ -23,7 +23,7 @@
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint:fix && npm run format && npm run test:project-checks",
-    "test:project-checks": "npm run build:libs && tsc && tsc-alias && cd dist && node --env-file=../.env --test",
+    "test:project-checks": "npm run build:libs && tsc && tsc-alias && cd dist && node --env-file=../.env --test \"tests/server/**/*.js\" \"tests/shared/**/*.js\" && cd .. && vitest run tests/reconnect --exclude \"dist/**\"",
     "test:coverage": "npm run build:libs && tsc && tsc-alias && node -e \"require('node:fs').mkdirSync('coverage', { recursive: true })\" && cd dist && node --env-file=../.env --test --experimental-test-coverage --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=../coverage/lcov.info",
     "test:shared": "npm run build:libs && tsc && tsc-alias && cd dist/tests/shared && node --test",
     "validate": "npm run lint && npm run format:check && npm run test",

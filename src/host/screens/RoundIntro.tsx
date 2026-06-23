@@ -4,7 +4,7 @@ import intro from '../../shared/SFX/intro.wav'
 interface RoundIntroProps {
   index: number
   total: number
-  questionText?: string
+  questionText?: string | undefined
 }
 
 export function RoundIntro({ index, total, questionText }: RoundIntroProps): React.JSX.Element {

@@ -31,6 +31,7 @@ import { ReconnectToast } from '../client/components/ReconnectToast'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
+// @ts-expect-error - Vite env variable
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
 const MAX_RECONNECT_ATTEMPTS = 5
@@ -111,32 +112,32 @@ export function App(): React.JSX.Element {
 
         switch (ev) {
           case EVENTS.ROOM_STATE_UPDATE:
-            setRoomState(d.room as RoomState)
+            setRoomState(d['room'] as RoomState)
             break
 
           case EVENTS.GAME_PHASE_CHANGE:
             setRoomState((prev: RoomState | null) =>
-              prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev
+              prev ? { ...prev, phase: d['phase'] as RoomState['phase'] } : prev
             )
             break
 
           case EVENTS.ROUND_START:
-            if (d.round) {
-              setRound(d.round as RoundSummary)
+            if (d['round']) {
+              setRound(d['round'] as RoundSummary)
             }
             setRoundContent(null)
             setRoundReveal(null)
             break
 
           case EVENTS.TIMER_TICK:
-            setSecondsRemaining(d.secondsRemaining as number)
+            setSecondsRemaining(d['secondsRemaining'] as number)
             break
 
           case EVENTS.QUESTION_SHOW:
-            if (d.question) {
+            if (d['question']) {
               setRoundContent(null)
               setRoundReveal(null)
-              setQuestion(d.question as QuestionState)
+              setQuestion(d['question'] as QuestionState)
               setReveal(null)
               setAnsweredCount(0)
             }
@@ -149,8 +150,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.ANSWER_COUNT_UPDATE:
-            setAnsweredCount(d.answered as number)
-            setTotalPlayers(d.total as number)
+            setAnsweredCount(d['answered'] as number)
+            setTotalPlayers(d['total'] as number)
             break
 
           case EVENTS.QUESTION_REVEAL:
@@ -162,8 +163,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.LEADERBOARD_SHOW:
-            if (d.leaderboard) {
-              setLeaderboard(d.leaderboard as LeaderboardEntry[])
+            if (d['leaderboard']) {
+              setLeaderboard(d['leaderboard'] as LeaderboardEntry[])
             }
             break
 
@@ -172,8 +173,8 @@ export function App(): React.JSX.Element {
             break
 
           case EVENTS.GAME_OVER:
-            if (d.finalScores) {
-              setFinalScores(d.finalScores as ScoreMap)
+            if (d['finalScores']) {
+              setFinalScores(d['finalScores'] as ScoreMap)
             }
             break
 

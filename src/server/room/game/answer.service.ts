@@ -78,7 +78,11 @@ export class AnswerService {
     this.bus.on('PLAYER_DISCONNECTED').subscribe((e) => {
       const window = this.windows.get(e.roomId)
       if (window && this.allConnectedAnswered(e.roomId, window)) {
-        this.bus.publish({ type: 'ALL_PLAYERS_ANSWERED', roomId: e.roomId, roundId: window.roundId })
+        this.bus.publish({
+          type: 'ALL_PLAYERS_ANSWERED',
+          roomId: e.roomId,
+          roundId: window.roundId,
+        })
       }
     })
   }

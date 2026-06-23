@@ -18,7 +18,7 @@ describe('Bug 1: Ghost Answer', () => {
     broadcaster.syncSocketState(roomId, socket, true, 'opt-b')
     
     expect(socket.send).toHaveBeenCalled()
-    const payload = JSON.parse(socket.send.mock.calls[0][0])
+    const payload = JSON.parse((socket.send.mock.calls[0]?.[0] as string) || '{}')
     expect(payload.event).toBe(QUESTION_SHOW)
     expect(payload.data.alreadyAnswered).toBe(true)
     expect(payload.data.previousAnswerId).toBe('opt-b')
@@ -33,7 +33,7 @@ describe('Bug 1: Ghost Answer', () => {
     broadcaster.emitToRoom(roomId, QUESTION_SHOW, { question: { text: 'Q1' } })
     broadcaster.syncSocketState(roomId, socket, false, undefined)
     
-    const payload = JSON.parse(socket.send.mock.calls[0][0])
+    const payload = JSON.parse((socket.send.mock.calls[0]?.[0] as string) || '{}')
     expect(payload.event).toBe(QUESTION_SHOW)
     expect(payload.data.alreadyAnswered).toBeUndefined()
   })

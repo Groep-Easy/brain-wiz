@@ -382,7 +382,9 @@ export class LobbyService {
       return
     }
     const roster = await this.clients.findByRoom(roomId)
-    const activeOrRecovering = roster.filter((c) => c.isConnected || this.registry.hasGraceTimer(c.id)).length
+    const activeOrRecovering = roster.filter(
+      (c) => c.isConnected || this.registry.hasGraceTimer(c.id)
+    ).length
     if (activeOrRecovering === 0) {
       this.gameEngine.abort(roomId)
     }

@@ -20,7 +20,7 @@ import {
   GAME_OVER,
   QUESTION_REVEAL,
   ROUND_REVEAL,
-  TIMER_TICK
+  TIMER_TICK,
 } from '@brain-wiz/shared/constants/socket-events.constants'
 import type { RoadmapUpdate, RoomState } from '@brain-wiz/shared/types/index'
 

@@ -5,7 +5,7 @@
  * RoomService/ClientService backed by in-memory fake repositories, the real
  * ConnectionRegistry/RoomBroadcaster, and recording sockets.
  */
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
 import { LobbyService } from '../../src/server/room/lobby/lobby.service'
@@ -123,7 +123,9 @@ function makeLobby(questions: Question[] = []): LobbyService {
     broadcaster,
     noopEngine,
     fakeQuestionService(questions),
-    fakeFlowService()
+    fakeFlowService(),
+    { getClientSubmission: () => undefined } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+    { publish: () => undefined } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
   )
 }
 
@@ -287,8 +289,12 @@ describe('LobbyService room teardown clears the host token', () => {
     const client = recordingSocket()
     await lobby.joinClient(client, 'sock-1', code, 'Alice')
 
+    mock.timers.enable({ apis: ['setTimeout'] })
     // No host socket connected; the lone client leaving empties the room.
     await lobby.leaveClient(client)
+
+    mock.timers.tick(ROOM.RECONNECT_GRACE_MS + 100)
+    mock.timers.reset()
 
     // Token is gone, so a host can no longer authenticate against this room.
     await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
@@ -491,7 +497,9 @@ describe('LobbyService abort-on-empty', () => {
       broadcaster,
       gameEngine,
       fakeQuestionService(),
-      fakeFlowService()
+      fakeFlowService(),
+      { getClientSubmission: () => undefined } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+      { publish: () => undefined } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
     )
     return { lobby, rooms, clients, registry, aborted }
   }
@@ -510,6 +518,14 @@ describe('LobbyService abort-on-empty', () => {
     assert.deepEqual(aborted, [])
 
     await lobby.handleDisconnect(s2)
+    assert.deepEqual(aborted, [])
+
+    const state = await lobby.getRoomState(code)
+    const aliceId = state!.players.find(p => p.name === 'Alice')!.id
+    const bobId = state!.players.find(p => p.name === 'Bob')!.id
+    await lobby.expireGrace(aliceId)
+    await lobby.expireGrace(bobId)
+
     assert.deepEqual(aborted, [roomId])
 
     const room = await rooms.findById(roomId)

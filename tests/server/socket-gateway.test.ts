@@ -359,7 +359,6 @@ describe('SocketGateway host authentication', () => {
   })
 })
 
-
 describe('SocketGateway.handleAnswerSubmit', () => {
   it('delegates a rate-allowed ANSWER_SUBMIT to AnswerService', async () => {
     const submitted: Array<{ socket: unknown; payload: AnswerSubmitPayload }> = []
@@ -465,4 +464,3 @@ describe('SocketGateway.handleRoundProgress', () => {
     assert.equal(updates.length, 0)
   })
 })
-

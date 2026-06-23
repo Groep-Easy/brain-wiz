@@ -28,7 +28,11 @@ function makeService(questionsList: Question[]): QuestionService {
       return qb
     },
   }
-  return new QuestionService(repo as unknown as import('typeorm').Repository<Question>)
+  return new QuestionService(
+    repo as unknown as import('typeorm').Repository<Question>,
+    {} as import('../../src/server/room/lobby/connection-registry').ConnectionRegistry,
+    {} as import('../../src/server/room/lobby/room-broadcaster').RoomBroadcaster
+  )
 }
 
 const sampleQuestion: Question = {
