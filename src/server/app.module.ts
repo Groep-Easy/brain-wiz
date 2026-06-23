@@ -39,8 +39,6 @@ import { FlowModule } from './flow/flow.module'
     QuestionModule,
     FlowModule,
   ],
-  providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
-export class AppModule { }
+export class AppModule {}

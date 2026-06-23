@@ -12,7 +12,7 @@ import { ApiOkResponse, ApiOperation } from '@nestjs/swagger'
 @SkipThrottle()
 @Controller('health')
 export class HealthController {
-  public constructor(private readonly healthService: HealthService) { }
+  public constructor(private readonly healthService: HealthService) {}
 
   @Get()
   @ApiOperation({
