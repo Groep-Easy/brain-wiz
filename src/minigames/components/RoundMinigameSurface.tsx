@@ -101,7 +101,7 @@ export function RoundMinigameSurface({
               }
             : {})}
           {...(solutionCode ? { solutionCode } : {})}
-          {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
+          {...(phase === 'playing' && secondsRemaining !== undefined ? { secondsRemaining } : {})}
           puzzle={puzzle}
           readOnly={readOnly}
         />
