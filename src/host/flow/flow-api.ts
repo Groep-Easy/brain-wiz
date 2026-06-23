@@ -6,7 +6,7 @@
  * via PUT/randomize). All calls degrade gracefully so the editor keeps working
  * if the backend is briefly unreachable.
  */
-import { PALETTE, nextUid } from './palette'
+import { PALETTE, blockById, defaultMinigameTimeSeconds, nextUid } from './palette'
 import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 
 import { getBackendWsUrl, getBackendHttpUrl } from '@brain-wiz/shared/utils/env'
@@ -16,12 +16,29 @@ const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
 export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
-  return items.map((it) => ({ uid: nextUid(), blockId: it.blockId, questions: it.questions }))
+  return items.map((it) => {
+    const block = blockById(it.blockId)
+    const timeLimitSeconds =
+      it.timeLimitSeconds ??
+      (block?.kind === 'minigame' ? defaultMinigameTimeSeconds(it.blockId) : undefined)
+    const item: FlowItem = {
+      uid: nextUid(),
+      blockId: it.blockId,
+    }
+    if (it.questions !== undefined) item.questions = it.questions
+    if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    return item
+  })
 }
 
 /** Strip client-only uids before sending a flow to the server. */
 export function toStoredFlow(flow: FlowItem[]): StoredFlowItem[] {
-  return flow.map(({ blockId, questions }) => ({ blockId, questions }))
+  return flow.map(({ blockId, questions, timeLimitSeconds }) => {
+    const item: StoredFlowItem = { blockId }
+    if (questions !== undefined) item.questions = questions
+    if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    return item
+  })
 }
 
 /**

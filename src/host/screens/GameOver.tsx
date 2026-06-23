@@ -3,7 +3,7 @@ import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
 
 import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
-import '../styles/game_over.css'
+import '../../shared/styles/game_over.css'
 
 interface GameOverProps {
   players: Player[]

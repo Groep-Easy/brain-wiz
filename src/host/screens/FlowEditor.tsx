@@ -18,9 +18,11 @@ import {
   DEFAULT_QUESTIONS_PER_BLOCK,
   MIN_QUESTIONS_PER_BLOCK,
   MAX_QUESTIONS_PER_BLOCK,
+  MINIGAME_TIME_STEP_SECONDS,
   blockById,
+  clampMinigameTimeSeconds,
+  createFlowItem,
   randomFlowFrom,
-  nextUid,
 } from '../flow/palette'
 import { fetchCatalog } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
@@ -57,6 +59,11 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, questions: clamped } : f)))
   }
 
+  const setMinigameTime = (uid: string, blockId: string, value: number) => {
+    const clamped = clampMinigameTimeSeconds(value, blockId)
+    setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, timeLimitSeconds: clamped } : f)))
+  }
+
   // The snake grid: cells in visual order + per-slot logical insert mapping. A
   // fixed MAX_FLOW_COLUMNS means a full flow lands as exact rows.
   const { cells, count, logicalInsertForSlot } = useMemo(
@@ -77,7 +84,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     setFlow((prev) => {
       if (prev.length >= MAX_FLOW_BLOCKS) return prev
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
-      return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
+      return pick ? [...prev, createFlowItem(pick)] : prev
     })
     if (!isMuted()) playSound(sounds.cardDrop, false)
   }
@@ -168,10 +175,11 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
     if (source === 'palette') {
       const blockId = e.dataTransfer.getData('application/x-block')
-      if (!resolveBlock(blockId)) return
+      const block = resolveBlock(blockId)
+      if (!block) return
       setFlow((prev) => {
         const next = [...prev]
-        next.splice(index, 0, { uid: nextUid(), blockId })
+        next.splice(index, 0, createFlowItem(block))
         return next
       })
     } else if (source === 'flow') {
@@ -286,6 +294,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
               if (!item) return null
               const block = resolveBlock(item.blockId)
               if (!block) return null
+              const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
               const lastCell = cell.visualPos === count - 1
               return (
                 <div
@@ -296,7 +305,9 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                   {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
                   {lastCell && dropIndex === count && <div className="drop-indicator after" />}
                   <div
-                    className={`canvas-block ${block.kind}`}
+                    className={`canvas-block ${block.kind} ${
+                      block.kind === 'minigame' ? 'has-time-control' : ''
+                    }`}
                     draggable
                     onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
                   >
@@ -326,6 +337,50 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                     )}
                     <span className="block-icon">{block.icon}</span>
                     <span className="block-label">{block.label}</span>
+                    {block.kind === 'minigame' && (
+                      <div
+                        className="minigame-time-control"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds - MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Reduce ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`-${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &lt;
+                        </button>
+                        <span className="time-value" aria-label={`${timeLimitSeconds} seconds`}>
+                          {timeLimitSeconds}s
+                        </span>
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds + MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Increase ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`+${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {cell.arrow !== 'none' && (
                     <span className={`canvas-arrow arrow-${cell.arrow}`} aria-hidden="true">

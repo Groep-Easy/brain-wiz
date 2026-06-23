@@ -15,6 +15,7 @@
 import {
   Inject,
   Logger,
+  UseFilters,
   UsePipes,
   ValidationPipe,
   type OnModuleDestroy,
@@ -43,6 +44,7 @@ import {
 } from './dto/socket.dto'
 import { LobbyService } from '../room/lobby/lobby.service'
 import { RateLimiter } from './rate-limiter'
+import { WsExceptionsFilter } from './ws-exception.filter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
 import type { CloseableSocket, IdentifiedSocket, UpgradeRequest } from './socket.types'
@@ -63,6 +65,7 @@ import {
 
 @WebSocketGateway({ maxPayload: WS.MAX_PAYLOAD_BYTES, handleProtocols: selectSubprotocol })
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+@UseFilters(new WsExceptionsFilter())
 export class SocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
 {

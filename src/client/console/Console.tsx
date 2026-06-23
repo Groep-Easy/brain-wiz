@@ -36,7 +36,7 @@ import {
   type LogEntry,
   type Status,
 } from './console-utils'
-import './console.css'
+import '../../shared/styles/console.css'
 
 const DEFAULT_URL = 'ws://localhost:3000'
 

@@ -7,21 +7,26 @@ describe('Frontend/Backend Contract Tests', () => {
     const frontendPayload = {
       uid: 'client-only-id-123',
       blockId: 'trivia-1',
-      questions: ['q1', 'q2'],
+      questions: 2,
+      timeLimitSeconds: 50,
     }
 
     // Backend StoredFlowItem expects no uid
     const toStoredFlow = (flow: unknown[]): Record<string, unknown>[] =>
-      (flow as { blockId: string; questions: string[] }[]).map(({ blockId, questions }) => ({
-        blockId,
-        questions,
-      }))
+      (flow as { blockId: string; questions: number; timeLimitSeconds: number }[]).map(
+        ({ blockId, questions, timeLimitSeconds }) => ({
+          blockId,
+          questions,
+          timeLimitSeconds,
+        })
+      )
 
     const backendPayload = toStoredFlow([frontendPayload])
 
     assert.ok(backendPayload[0])
     assert.equal(backendPayload[0]['blockId'], 'trivia-1')
-    assert.deepEqual(backendPayload[0]['questions'], ['q1', 'q2'])
+    assert.equal(backendPayload[0]['questions'], 2)
+    assert.equal(backendPayload[0]['timeLimitSeconds'], 50)
     assert.ok(backendPayload[0])
     assert.equal((backendPayload[0] as { uid?: string }).uid, undefined)
   })
