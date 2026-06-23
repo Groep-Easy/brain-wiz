@@ -1,10 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { App } from '../../src/host/App'
 
 describe('Bug 3: Host Reconnect UX', () => {
-  let mockWebSocket: any
+  type MockFn = ReturnType<typeof vi.fn>
+  interface MockWebSocket {
+    send: MockFn
+    close: MockFn
+    addEventListener: MockFn
+    removeEventListener: MockFn
+    readyState: number
+    onopen?: () => void
+    onmessage?: (event: { data: string }) => void
+    onclose?: (event: { code: number }) => void
+    onerror?: (event: Error) => void
+  }
+  let mockWebSocket: MockWebSocket
 
   beforeEach(() => {
     mockWebSocket = {
@@ -15,16 +27,16 @@ describe('Bug 3: Host Reconnect UX', () => {
       readyState: WebSocket.OPEN
     }
     global.WebSocket = class {
-      send = mockWebSocket.send
-      close = mockWebSocket.close
-      addEventListener = mockWebSocket.addEventListener
-      removeEventListener = mockWebSocket.removeEventListener
-      readyState = mockWebSocket.readyState
-      set onopen(fn: any) { mockWebSocket.onopen = fn }
-      set onmessage(fn: any) { mockWebSocket.onmessage = fn }
-      set onclose(fn: any) { mockWebSocket.onclose = fn }
-      set onerror(fn: any) { mockWebSocket.onerror = fn }
-    } as any
+      public send = mockWebSocket.send
+      public close = mockWebSocket.close
+      public addEventListener = mockWebSocket.addEventListener
+      public removeEventListener = mockWebSocket.removeEventListener
+      public readyState = mockWebSocket.readyState
+      public set onopen(fn: () => void) { mockWebSocket.onopen = fn }
+      public set onmessage(fn: (event: { data: string }) => void) { mockWebSocket.onmessage = fn }
+      public set onclose(fn: (event: { code: number }) => void) { mockWebSocket.onclose = fn }
+      public set onerror(fn: (event: Error) => void) { mockWebSocket.onerror = fn }
+    } as unknown as typeof WebSocket
     vi.useFakeTimers()
   })
 
@@ -34,7 +46,7 @@ describe('Bug 3: Host Reconnect UX', () => {
     sessionStorage.clear()
   })
 
-  async function setupHost() {
+  async function setupHost(): Promise<void> {
     sessionStorage.setItem('hostToken_ROOM', 'token')
     
     render(
@@ -45,12 +57,13 @@ describe('Bug 3: Host Reconnect UX', () => {
       </MemoryRouter>
     )
 
-    await act(async () => { vi.advanceTimersByTime(100) })
+    const SETUP_TIMEOUT_MS = 100
+    await act(async () => { vi.advanceTimersByTime(SETUP_TIMEOUT_MS) })
     await act(async () => { if (mockWebSocket.onopen) mockWebSocket.onopen() })
 
     // Simulate HOST_JOIN_ACK
     await act(async () => {
-      mockWebSocket.onmessage({ data: JSON.stringify({
+      mockWebSocket.onmessage?.({ data: JSON.stringify({
         event: 'HOST_JOIN_ACK',
         data: {}
       })})
@@ -58,7 +71,7 @@ describe('Bug 3: Host Reconnect UX', () => {
 
     // Simulate ROOM_STATE_UPDATE
     await act(async () => {
-      mockWebSocket.onmessage({ data: JSON.stringify({
+      mockWebSocket.onmessage?.({ data: JSON.stringify({
         event: 'ROOM_STATE_UPDATE',
         data: { room: { id: 'ROOM', phase: 'lobby', players: [] } }
       })})
@@ -81,12 +94,13 @@ describe('Bug 3: Host Reconnect UX', () => {
   it('SCENARIO B - exhausted retries transitions to closed', async () => {
     await setupHost()
     
-    // Fail 5 times
-    for (let i = 0; i < 5; i++) {
+    const MAX_RETRIES = 5
+    const RECONNECT_DELAY_MS = 5000
+    for (let i = 0; i < MAX_RETRIES; i++) {
       await act(async () => {
         if (mockWebSocket.onclose) mockWebSocket.onclose({ code: 1006 })
       })
-      await act(async () => { vi.advanceTimersByTime(5000) })
+      await act(async () => { vi.advanceTimersByTime(RECONNECT_DELAY_MS) })
     }
 
     // It should now be closed and return WelcomeScreen or an error screen

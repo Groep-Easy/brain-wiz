@@ -5,12 +5,13 @@ import { App } from '../../src/client/App'
 import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
 import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
 import { QUESTION_SHOW, ROOM_STATE_UPDATE } from '@brain-wiz/shared/constants/socket-events.constants'
+import type { ClientSocket } from '../../src/server/room/lobby/lobby.types.js'
 
 describe('Bug 1: Ghost Answer', () => {
   it('SCENARIO A - player has a prior answer', () => {
     const registry = new ConnectionRegistry()
     const broadcaster = new RoomBroadcaster(registry)
-    const socket = { send: vi.fn(), on: vi.fn(), close: vi.fn() } as any
+    const socket = { send: vi.fn(), on: vi.fn(), close: vi.fn() } as unknown as ClientSocket & { send: ReturnType<typeof vi.fn> }
     const roomId = 'room-1'
     
     broadcaster.emitToRoom(roomId, QUESTION_SHOW, { question: { text: 'Q1' } })
@@ -26,7 +27,7 @@ describe('Bug 1: Ghost Answer', () => {
   it('SCENARIO B - player has NOT answered yet', () => {
     const registry = new ConnectionRegistry()
     const broadcaster = new RoomBroadcaster(registry)
-    const socket = { send: vi.fn(), on: vi.fn(), close: vi.fn() } as any
+    const socket = { send: vi.fn(), on: vi.fn(), close: vi.fn() } as unknown as ClientSocket & { send: ReturnType<typeof vi.fn> }
     const roomId = 'room-1'
     
     broadcaster.emitToRoom(roomId, QUESTION_SHOW, { question: { text: 'Q1' } })
@@ -38,7 +39,19 @@ describe('Bug 1: Ghost Answer', () => {
   })
 
   describe('Client State Handler', () => {
-    let mockWebSocket: any
+    type MockFn = ReturnType<typeof vi.fn>
+    interface MockWebSocket {
+      send: MockFn
+      close: MockFn
+      addEventListener: MockFn
+      removeEventListener: MockFn
+      readyState: number
+      onopen?: () => void
+      onmessage?: (event: { data: string }) => void
+      onclose?: (event: { code: number }) => void
+      onerror?: (event: Error) => void
+    }
+    let mockWebSocket: MockWebSocket
 
     beforeEach(() => {
       mockWebSocket = {
@@ -49,16 +62,16 @@ describe('Bug 1: Ghost Answer', () => {
         readyState: WebSocket.OPEN
       }
       global.WebSocket = class {
-        send = mockWebSocket.send
-        close = mockWebSocket.close
-        addEventListener = mockWebSocket.addEventListener
-        removeEventListener = mockWebSocket.removeEventListener
-        readyState = mockWebSocket.readyState
-        set onopen(fn: any) { mockWebSocket.onopen = fn }
-        set onmessage(fn: any) { mockWebSocket.onmessage = fn }
-        set onclose(fn: any) { mockWebSocket.onclose = fn }
-        set onerror(fn: any) { mockWebSocket.onerror = fn }
-      } as any
+        public send = mockWebSocket.send
+        public close = mockWebSocket.close
+        public addEventListener = mockWebSocket.addEventListener
+        public removeEventListener = mockWebSocket.removeEventListener
+        public readyState = mockWebSocket.readyState
+        public set onopen(fn: () => void) { mockWebSocket.onopen = fn }
+        public set onmessage(fn: (event: { data: string }) => void) { mockWebSocket.onmessage = fn }
+        public set onclose(fn: (event: { code: number }) => void) { mockWebSocket.onclose = fn }
+        public set onerror(fn: (event: Error) => void) { mockWebSocket.onerror = fn }
+      } as unknown as typeof WebSocket
       vi.useFakeTimers()
     })
 
@@ -79,8 +92,9 @@ describe('Bug 1: Ghost Answer', () => {
         </MemoryRouter>
       )
 
+      const SETUP_TIMEOUT_MS = 100
       await act(async () => {
-        vi.advanceTimersByTime(100)
+        vi.advanceTimersByTime(SETUP_TIMEOUT_MS)
       })
 
       // Trigger socket onopen
@@ -90,17 +104,17 @@ describe('Bug 1: Ghost Answer', () => {
 
       // Send PLAYER_JOIN_ACK to transition to joined=true
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({ event: 'PLAYER_JOIN_ACK', data: { playerId: 'p1', reconnectToken: 'tk' } }) })
+        mockWebSocket.onmessage?.({ data: JSON.stringify({ event: 'PLAYER_JOIN_ACK', data: { playerId: 'p1', reconnectToken: 'tk' } }) })
       })
 
       // Send room state
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({ event: ROOM_STATE_UPDATE, data: { room: { phase: 'playing', players: [] } } }) })
+        mockWebSocket.onmessage?.({ data: JSON.stringify({ event: ROOM_STATE_UPDATE, data: { room: { phase: 'playing', players: [] } } }) })
       })
 
       // Send QUESTION_SHOW with alreadyAnswered
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({
+        mockWebSocket.onmessage?.({ data: JSON.stringify({
           event: QUESTION_SHOW,
           data: {
             question: { text: 'Q1', type: 'multiple-choice', answers: [{ id: 'opt-b', text: 'Option B' }] },
@@ -125,8 +139,9 @@ describe('Bug 1: Ghost Answer', () => {
         </MemoryRouter>
       )
 
+      const SETUP_TIMEOUT_MS = 100
       await act(async () => {
-        vi.advanceTimersByTime(100)
+        vi.advanceTimersByTime(SETUP_TIMEOUT_MS)
       })
 
       await act(async () => {
@@ -134,15 +149,15 @@ describe('Bug 1: Ghost Answer', () => {
       })
 
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({ event: 'PLAYER_JOIN_ACK', data: { playerId: 'p1', reconnectToken: 'tk' } }) })
+        mockWebSocket.onmessage?.({ data: JSON.stringify({ event: 'PLAYER_JOIN_ACK', data: { playerId: 'p1', reconnectToken: 'tk' } }) })
       })
 
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({ event: ROOM_STATE_UPDATE, data: { room: { phase: 'playing', players: [] } } }) })
+        mockWebSocket.onmessage?.({ data: JSON.stringify({ event: ROOM_STATE_UPDATE, data: { room: { phase: 'playing', players: [] } } }) })
       })
 
       await act(async () => {
-        mockWebSocket.onmessage({ data: JSON.stringify({
+        mockWebSocket.onmessage?.({ data: JSON.stringify({
           event: QUESTION_SHOW,
           data: {
             question: { text: 'Q1', type: 'multiple-choice', answers: [{ id: 'opt-b', text: 'Option B' }] },

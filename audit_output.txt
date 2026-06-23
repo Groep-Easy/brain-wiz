@@ -1,0 +1,245 @@
+### 1. git diff --name-status
+A	tests/helpers/mockSocket.ts
+A	vitest.config.ts
+
+### 2. find fix-*.js
+
+### 3. ls -la tests/reconnect/
+total 40
+drwxr-xr-x@  6 anton  staff   192 Jun 23 11:25 .
+drwxr-xr-x@ 11 anton  staff   352 Jun 23 11:18 ..
+-rw-r--r--@  1 anton  staff  5805 Jun 23 11:20 bug1-ghost-answer.test.tsx
+-rw-r--r--@  1 anton  staff  3952 Jun 23 11:24 bug2-already-answered.test.tsx
+-rw-r--r--@  1 anton  staff  3510 Jun 23 11:25 bug3-host-reconnect.test.tsx
+-rw-r--r--@  1 anton  staff  3725 Jun 23 11:25 bug4-hostage-timer.test.ts
+
+### 4. grep host App.tsx for onclose/status/roomState/reconnect/attempt
+44:  const [status, setStatus] = useState<'closed' | 'connecting' | 'open' | 'reconnecting'>('closed')
+46:  const [roomState, setRoomState] = useState<RoomState | null>(null)
+61:  const reconnectAttemptsRef = useRef(0)
+62:  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+69:      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+81:    setStatus('connecting')
+89:      setStatus('open')
+90:      reconnectAttemptsRef.current = 0
+114:            setRoomState(d.room as RoomState)
+118:            setRoomState((prev: RoomState | null) =>
+188:    socket.onclose = (event) => {
+192:        setStatus('closed')
+198:        setStatus('closed')
+202:      if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+203:        setStatus('reconnecting')
+204:        reconnectAttemptsRef.current += 1
+205:        reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY_MS)
+207:        setStatus('closed')
+208:        setRoomState(null)
+226:      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+262:    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+265:    setRoomState(null)
+266:    setStatus('closed')
+287:    if (!roomState || (status !== 'open' && status !== 'reconnecting') || !roomCode || !hostToken) {
+379:      <ReconnectToast visible={status === 'reconnecting'} />
+
+### 5. grep host App.tsx for ReconnectToast/WelcomeScreen
+27:import { WelcomeScreen } from './screens/WelcomeScreen'
+30:import { ReconnectToast } from '../client/components/ReconnectToast'
+288:      return <WelcomeScreen />
+379:      <ReconnectToast visible={status === 'reconnecting'} />
+
+### 6. npx vitest run tests/reconnect/
+failed to load config from /Users/anton/Documents/Projects/brain-wiz/vitest.config.ts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+
+[31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+JSONError { path: "/Users/anton/Documents/Projects/brain-wiz/package.json", message: "key must be a string at line 53 column 1", line: 53, column: 1 }
+
+    at aggregateBindingErrorsIntoJsError (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34962:17)
+    at async bundleAndLoadConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34870:18)
+    at async loadConfigFromFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34839:42)
+    at async resolveConfig (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34465:22)
+    at async _createServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:26197:65)
+    at async createViteServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:8835:17)
+    at async createVitest (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:14221:18) {
+  errors: [Getter/Setter]
+}
+
+
+
+
+### 7. Bug 1 revert test
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+failed to load config from /Users/anton/Documents/Projects/brain-wiz/vitest.config.ts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+
+[31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+JSONError { path: "/Users/anton/Documents/Projects/brain-wiz/package.json", message: "key must be a string at line 53 column 1", line: 53, column: 1 }
+
+    at aggregateBindingErrorsIntoJsError (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34962:17)
+    at async bundleAndLoadConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34870:18)
+    at async loadConfigFromFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34839:42)
+    at async resolveConfig (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34465:22)
+    at async _createServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:26197:65)
+    at async createViteServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:8835:17)
+    at async createVitest (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:14221:18) {
+  errors: [Getter/Setter]
+}
+
+
+
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+The stash entry is kept in case you need it again.
+
+### 8. Bug 2 revert test
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+failed to load config from /Users/anton/Documents/Projects/brain-wiz/vitest.config.ts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+
+[31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+JSONError { path: "/Users/anton/Documents/Projects/brain-wiz/package.json", message: "key must be a string at line 53 column 1", line: 53, column: 1 }
+
+    at aggregateBindingErrorsIntoJsError (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34962:17)
+    at async bundleAndLoadConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34870:18)
+    at async loadConfigFromFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34839:42)
+    at async resolveConfig (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34465:22)
+    at async _createServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:26197:65)
+    at async createViteServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:8835:17)
+    at async createVitest (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:14221:18) {
+  errors: [Getter/Setter]
+}
+
+
+
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+The stash entry is kept in case you need it again.
+
+### 9. Bug 3 revert test
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+failed to load config from /Users/anton/Documents/Projects/brain-wiz/vitest.config.ts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+
+[31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+JSONError { path: "/Users/anton/Documents/Projects/brain-wiz/package.json", message: "key must be a string at line 53 column 1", line: 53, column: 1 }
+
+    at aggregateBindingErrorsIntoJsError (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34962:17)
+    at async bundleAndLoadConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34870:18)
+    at async loadConfigFromFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34839:42)
+    at async resolveConfig (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34465:22)
+    at async _createServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:26197:65)
+    at async createViteServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:8835:17)
+    at async createVitest (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:14221:18) {
+  errors: [Getter/Setter]
+}
+
+
+
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+The stash entry is kept in case you need it again.
+
+### 10. Bug 4 revert test
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+failed to load config from /Users/anton/Documents/Projects/brain-wiz/vitest.config.ts
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+
+[31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+JSONError { path: "/Users/anton/Documents/Projects/brain-wiz/package.json", message: "key must be a string at line 53 column 1", line: 53, column: 1 }
+
+    at aggregateBindingErrorsIntoJsError (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34962:17)
+    at async bundleAndLoadConfigFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34870:18)
+    at async loadConfigFromFile (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34839:42)
+    at async resolveConfig (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:34465:22)
+    at async _createServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vite/dist/node/chunks/node.js:26197:65)
+    at async createViteServer (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:8835:17)
+    at async createVitest (file:///Users/anton/Documents/Projects/brain-wiz/node_modules/vitest/dist/chunks/cli-api.24X8XwN1.js:14221:18) {
+  errors: [Getter/Setter]
+}
+
+
+
+error: could not write index
+package-lock.json: needs merge
+package.json: needs merge
+src/server/question/question.module.ts: needs merge
+src/server/question/question.service.ts: needs merge
+tests/server/socket-gateway.test.ts: needs merge
+The stash entry is kept in case you need it again.
+
+### 11. Full suite — final number
+
+### 12. Lint
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.4
+
+Error: Invalid package config /Users/anton/Documents/Projects/brain-wiz/package.json.
+    at getPackageScopeConfig (node:internal/modules/package_json_reader:149:33)
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:225:25)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:854:18)
+    at defaultResolve (node:internal/modules/esm/resolve:984:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:137:49)
+
