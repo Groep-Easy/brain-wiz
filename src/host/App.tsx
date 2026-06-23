@@ -1,23 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import type {
-  RoomState,
-  LeaderboardEntry,
-  RoadmapUpdate,
-  ScoreMap,
-  QuestionState,
-  QuestionRevealPayload,
-  RoundSummary,
-  RoundContentPayload,
-  RoundRevealPayload,
-} from '@brain-wiz/shared/types/index'
+import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
 import { Question } from './screens/Question'
 import { LeaderBoard } from './components/LeaderBoard'
 import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
-import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
@@ -29,337 +17,154 @@ import { WelcomeScreen } from './screens/WelcomeScreen'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
-import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
-
-const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
-const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
+import { useHostSocket } from './hooks/useHostSocket'
+import type { ActiveRoom } from './App.interfaces'
 
 export function App(): React.JSX.Element {
   const { roomCode } = useParams<{ roomCode: string }>()
   const navigate = useNavigate()
   const hostToken = sessionStorage.getItem(`hostToken_${roomCode}`)
 
-  const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
-  const [fatalError, setFatalError] = useState<string | null>(null)
-  const [roomState, setRoomState] = useState<RoomState | null>(null)
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
-  const [question, setQuestion] = useState<QuestionState | null>(null)
-  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
-  const [answeredCount, setAnsweredCount] = useState<number>(0)
-  const [totalPlayers, setTotalPlayers] = useState<number>(0)
-  const [round, setRound] = useState<RoundSummary | null>(null)
-  const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
-  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
-  const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
+  const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
-  const [hasPlayingTimerTick, setHasPlayingTimerTick] = useState(false)
 
-  const phaseRef = useRef<RoomState['phase']>('lobby')
-  const socketRef = useRef<WebSocket | null>(null)
-
-  // Disconnect on unmount
-  useEffect(() => {
-    return () => {
-      socketRef.current?.close()
-    }
-  }, [])
-
-  // Automatically connect WebSocket when roomCode and hostToken are set
-  useEffect(() => {
-    if (!roomCode || !hostToken) {
-      setFatalError('Room taken or unauthorized')
-      return
-    }
-
-    setStatus('connecting')
-
-    const connectTimer = setTimeout(() => {
-      const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${roomCode}`
-      const socket = new WebSocket(wsUrl, [WS_SUBPROTOCOL, hostToken])
-      socketRef.current = socket
-
-      socket.onopen = () => {
-        setStatus('open')
-        // Reset game states
-        setQuestion(null)
-        setReveal(null)
-        setAnsweredCount(0)
-        setTotalPlayers(0)
-        setRound(null)
-        setLeaderboard([])
-        setRoadmap(null)
-        setFinalScores(null)
-      }
-      socket.onmessage = (event) => {
-        try {
-          const { event: ev, data } = JSON.parse(event.data) as {
-            event: string
-            data: unknown
-          }
-
-          // data is `unknown` — cast locally per-case for type-safe access
-          const d = data as Record<string, unknown>
-
-          switch (ev) {
-            case EVENTS.ROOM_STATE_UPDATE:
-              setRoomState(d.room as RoomState)
-              break
-
-            case EVENTS.GAME_PHASE_CHANGE: {
-              const phase = d.phase as RoomState['phase']
-              phaseRef.current = phase
-
-              if (phase === 'playing') {
-                setHasPlayingTimerTick(false)
-              } else {
-                setSecondsRemaining(0)
-                setHasPlayingTimerTick(false)
-              }
-
-              setRoomState((prev: RoomState | null) => (prev ? { ...prev, phase } : prev))
-              break
-            }
-
-            case EVENTS.ROUND_START:
-              if (d.round) {
-                setRound(d.round as RoundSummary)
-              }
-              setRoundContent(null)
-              setRoundReveal(null)
-              break
-
-            case EVENTS.TIMER_TICK: {
-              if (phaseRef.current !== 'playing') {
-                break
-              }
-
-              setSecondsRemaining(d.secondsRemaining as number)
-              setHasPlayingTimerTick(true)
-
-              break
-            }
-
-            case EVENTS.QUESTION_SHOW:
-              if (d.question) {
-                setRoundContent(null)
-                setRoundReveal(null)
-                setQuestion(d.question as QuestionState)
-                setReveal(null)
-                setAnsweredCount(0)
-              }
-              break
-
-            case EVENTS.ROUND_CONTENT_SHOW:
-              setRoundContent(data as RoundContentPayload)
-              setRoundReveal(null)
-              setAnsweredCount(0)
-              break
-
-            case EVENTS.ANSWER_COUNT_UPDATE:
-              setAnsweredCount(d.answered as number)
-              setTotalPlayers(d.total as number)
-              break
-
-            case EVENTS.QUESTION_REVEAL:
-              setReveal(data as QuestionRevealPayload)
-              break
-
-            case EVENTS.ROUND_REVEAL:
-              setRoundReveal(data as RoundRevealPayload)
-              break
-
-            case EVENTS.LEADERBOARD_SHOW:
-              if (d.leaderboard) {
-                setLeaderboard(d.leaderboard as LeaderboardEntry[])
-              }
-              break
-
-            case EVENTS.ROADMAP_UPDATE:
-              setRoadmap(data as RoadmapUpdate)
-              break
-
-            case EVENTS.GAME_OVER:
-              if (d.finalScores) {
-                setFinalScores(d.finalScores as ScoreMap)
-              }
-              break
-
-            default:
-              break
-          }
-        } catch (err) {
-          console.error('Failed to parse WebSocket message:', err)
-        }
-      }
-
-      socket.onclose = (event) => {
-        setStatus('closed')
-        setRoomState(null)
-
-        if (event.code === 4004) {
-          setFatalError('Room not found or token invalid')
-        }
-
-        // Do not clear tokens or code so we can attempt reconnect if desired
-      }
-
-      socket.onerror = () => {
-        console.error('WebSocket connection error')
-      }
-    }, 50)
-
-    return () => {
-      clearTimeout(connectTimer)
-      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
-        socketRef.current.onerror = null
-      }
-      socketRef.current?.close()
-    }
-  }, [roomCode, hostToken, navigate])
-
-  const handleStartGame = async () => {
-    if (!roomCode || !hostToken) return
-    try {
-      const res = await fetch(`${BACKEND_HTTP_URL}/rooms/${roomCode}/start`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ hostToken }),
-      })
-      if (!res.ok) {
-        const errorText = await res.text()
-        console.error(`Failed to start game: ${errorText}`)
-        return
-      }
-    } catch {
-      console.error(`needs at least 2 players`)
-    }
-  }
-
-  const handleCloseLobby = () => {
+  const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
   }
 
-  const performCloseLobby = () => {
+  const performCloseLobby = (): void => {
     setConfirmCloseOpen(false)
-    socketRef.current?.close()
-    socketRef.current = null
-    setRoomState(null)
-    setStatus('closed')
+    h.closeConnection()
     void navigate('/')
   }
 
-  const renderPhase = () => {
-    if (fatalError) {
+  /** Narrow the connection to a fully-ready room, or null when not connected. */
+  function activeRoom(): ActiveRoom | null {
+    if (!h.roomState || h.status !== 'open' || !roomCode || !hostToken) return null
+    return { code: roomCode, token: hostToken, room: h.roomState }
+  }
+
+  function renderFatal(): React.JSX.Element {
+    return (
+      <main className="app">
+        <div className="welcome-screen">
+          <div className="welcome-card">
+            <CountdownCircle
+              seconds={5}
+              message={h.fatalError ?? ''}
+              onComplete={async () => navigate('/')}
+            />
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  function renderLobby(active: ActiveRoom): React.JSX.Element {
+    return (
+      <main className="app app--lobby">
+        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
+        <SetupLobby
+          roomCode={active.code}
+          hostToken={active.token}
+          players={active.room.players}
+          gameFlow={active.room.gameFlow ?? []}
+          onStartGame={h.handleStartGame}
+          onCloseLobby={handleCloseLobby}
+        />
+      </main>
+    )
+  }
+
+  function renderRoundIntro(active: ActiveRoom): React.JSX.Element {
+    return (
+      <RoundIntro
+        index={h.round?.index ?? active.room.round}
+        total={h.round?.total ?? 0}
+        questionText={h.round?.questionText}
+      />
+    )
+  }
+
+  function renderGameplay(active: ActiveRoom, phase: 'playing' | 'reveal'): React.JSX.Element {
+    if (h.roundContent) {
+      const isVaultRushPlaying = h.roundContent.type === 'vault-rush' && phase === 'playing'
+
+      return (
+        <main className="app app--minigame">
+          {isVaultRushPlaying ? (
+            <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
+          ) : null}
+
+          {renderMinigame(h.roundContent, h.roundReveal, phase, h.secondsRemaining)}
+        </main>
+      )
+    }
+
+    if (!h.question) {
       return (
         <main className="app">
           <div className="welcome-screen">
             <div className="welcome-card">
-              <CountdownCircle
-                seconds={5}
-                message={fatalError}
-                onComplete={async () => navigate('/')}
-              />
+              <p>Preparing next question…</p>
             </div>
           </div>
         </main>
       )
     }
 
-    if (!roomState || status !== 'open' || !roomCode || !hostToken) {
-      return <WelcomeScreen />
-    }
+    return (
+      <Question
+        gameCode={active.code}
+        question={h.question}
+        secondsRemaining={h.secondsRemaining}
+        answeredCount={h.answeredCount}
+        totalPlayers={h.totalPlayers}
+        reveal={phase === 'reveal' ? h.reveal : null}
+      />
+    )
+  }
 
-    const phase = roomState.phase
+  function renderGameOver(active: ActiveRoom): React.JSX.Element {
+    return (
+      <GameOver
+        players={active.room.players}
+        finalScores={h.finalScores || {}}
+        onBackToMenu={handleCloseLobby}
+      />
+    )
+  }
 
-    if (phase === 'lobby') {
-      return (
-        <main className="app app--lobby">
-          <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
-          <SetupLobby
-            roomCode={roomCode}
-            hostToken={hostToken}
-            players={roomState.players}
-            gameFlow={roomState.gameFlow ?? []}
-            onStartGame={handleStartGame}
-            onCloseLobby={handleCloseLobby}
-          />
-        </main>
-      )
-    }
-
-    if (phase === 'round-intro') {
-      return (
-        <RoundIntro
-          index={round?.index ?? roomState.round}
-          total={round?.total ?? 0}
-          questionText={round?.questionText}
+  function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
+    return (
+      <main className="app app--solid">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard
+          leaderboard={h.leaderboard}
+          roadmap={h.roadmap}
+          players={active.room.players}
         />
-      )
-    }
+      </main>
+    )
+  }
+
+  function renderPhase(): React.JSX.Element {
+    if (h.fatalError) return renderFatal()
+
+    const active = activeRoom()
+    if (!active) return <WelcomeScreen />
+
+    const phase = active.room.phase
+
+    if (phase === 'lobby') return renderLobby(active)
+    if (phase === 'round-intro') return renderRoundIntro(active)
 
     if (phase === 'playing' || phase === 'reveal') {
-      if (roundContent) {
-        const isVaultRushPlaying = roundContent.type === 'vault-rush' && phase === 'playing'
-
-        return (
-          <main className="app app--minigame">
-            {isVaultRushPlaying ? (
-              <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
-            ) : null}
-
-            {renderMinigame(
-              roundContent,
-              roundReveal,
-              phase === 'reveal' ? 'reveal' : 'playing',
-              hasPlayingTimerTick ? secondsRemaining : undefined
-            )}
-          </main>
-        )
-      }
-
-      if (!question) {
-        return (
-          <main className="app">
-            <div className="welcome-screen">
-              <div className="welcome-card">
-                <p>Preparing next question…</p>
-              </div>
-            </div>
-          </main>
-        )
-      }
-      return (
-        <Question
-          gameCode={roomCode}
-          question={question}
-          secondsRemaining={secondsRemaining}
-          answeredCount={answeredCount}
-          totalPlayers={totalPlayers}
-          reveal={phase === 'reveal' ? reveal : null}
-        />
-      )
+      return renderGameplay(active, phase === 'reveal' ? 'reveal' : 'playing')
     }
 
-    if (phase === 'game-over' || finalScores !== null) {
-      return (
-        <GameOver
-          players={roomState.players}
-          finalScores={finalScores || {}}
-          onBackToMenu={handleCloseLobby}
-        />
-      )
-    }
-
-    if (phase === 'leaderboard') {
-      return (
-        <main className="app app--solid">
-          <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-          <LeaderBoard leaderboard={leaderboard} roadmap={roadmap} players={roomState.players} />
-        </main>
-      )
-    }
+    if (phase === 'game-over' || h.finalScores !== null) return renderGameOver(active)
+    if (phase === 'leaderboard') return renderLeaderboard(active)
 
     return (
       <main className="app">
@@ -371,7 +176,7 @@ export function App(): React.JSX.Element {
   return (
     <>
       {renderPhase()}
-      {roomState?.phase && roomState.phase !== 'lobby' && <MuteButton />}
+      {h.roomState?.phase && h.roomState.phase !== 'lobby' && <MuteButton />}
       <ConfirmDialog
         open={confirmCloseOpen}
         title="Dissolve lobby?"
@@ -399,12 +204,13 @@ function renderMinigame(
   ) {
     return (
       <RoundMinigameSurface
-        className={`host-minigame ${content.type === 'balance-scale'
-          ? 'host-minigame--scale'
-          : content.type === 'vault-rush'
-            ? 'host-minigame--vault'
-            : 'host-minigame--sliding'
-          }`}
+        className={`host-minigame ${
+          content.type === 'balance-scale'
+            ? 'host-minigame--scale'
+            : content.type === 'vault-rush'
+              ? 'host-minigame--vault'
+              : 'host-minigame--sliding'
+        }`}
         content={content}
         mode="display"
         phase={phase}

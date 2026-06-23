@@ -28,7 +28,9 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  setSwaggerConfig(app)
+  if (ENV.NODE_ENV !== NodeEnv.Production) {
+    setSwaggerConfig(app)
+  }
 
   if (ENV.TRUST_PROXY) {
     app.getHttpAdapter().getInstance().set('trust proxy', 1)
