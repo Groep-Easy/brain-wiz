@@ -1,4 +1,7 @@
-import { createVaultRushRound, type VaultRushGeneratedRound } from '../shared/vaultRushGame.js'
+import {
+  createVaultRushRound,
+  type VaultRushGeneratedRound,
+} from '@brain-wiz/minigames/vault-rush/shared/vaultRushGame'
 
 export function getSampleVaultRushRound(index: number): VaultRushGeneratedRound {
   return createVaultRushRound({

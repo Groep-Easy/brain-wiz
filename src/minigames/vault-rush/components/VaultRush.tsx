@@ -9,6 +9,7 @@ export function VaultRush({
   readOnly = false,
   solutionCode,
   submitted = false,
+  secondsRemaining,
   onCodeChange,
   onSubmitCode,
 }: VaultRushProps): JSX.Element {
@@ -17,6 +18,10 @@ export function VaultRush({
   useEffect(() => {
     setCode('')
   }, [puzzle.id])
+
+  const showTimer = typeof secondsRemaining === 'number' && !solutionCode
+  const isTimerDanger = showTimer && secondsRemaining <= 5
+  const timerText = showTimer ? String(secondsRemaining).padStart(2, '0') : '--'
 
   function handleCodeChange(value: string): void {
     if (submitted) {
@@ -36,6 +41,17 @@ export function VaultRush({
           <p className="vault-rush-kicker">Mini-game</p>
           <h1>Vault Rush</h1>
           <p className="vault-rush-subtitle">Crack the 4-digit vault code</p>
+
+          {showTimer ? (
+            <div
+              className={`vault-rush-timer ${isTimerDanger ? 'vault-rush-timer--danger' : ''}`}
+              aria-live="polite"
+            >
+              <span className="vault-rush-timer-label">Time left</span>
+              <span className="vault-rush-timer-display">{timerText}</span>
+              <span className="vault-rush-timer-unit">sec</span>
+            </div>
+          ) : null}
         </header>
 
         <div aria-label="Vault code" className="vault-rush-code">

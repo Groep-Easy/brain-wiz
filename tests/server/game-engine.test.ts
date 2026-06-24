@@ -83,6 +83,7 @@ interface FakeClient {
 }
 
 interface FakeQueryBuilder {
+  leftJoinAndSelect: () => FakeQueryBuilder
   innerJoinAndSelect: () => FakeQueryBuilder
   where: () => FakeQueryBuilder
   orderBy: () => FakeQueryBuilder
@@ -91,6 +92,7 @@ interface FakeQueryBuilder {
 
 function fakeQueryBuilder(): FakeQueryBuilder {
   return {
+    leftJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
     innerJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
     where: (): FakeQueryBuilder => fakeQueryBuilder(),
     orderBy: (): FakeQueryBuilder => fakeQueryBuilder(),
