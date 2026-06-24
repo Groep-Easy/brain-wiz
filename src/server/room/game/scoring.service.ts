@@ -173,6 +173,26 @@ export class ScoringService {
 
       const result = scoreRow(row)
 
+      if (ctx.roundType === 'bonk-air') {
+        const parsed = this.parseSubmission(row.answerValue)
+        const solution =
+          typeof parsed === 'object' && parsed !== null
+            ? (parsed as { solution?: unknown }).solution
+            : undefined
+        const paths =
+          typeof solution === 'object' && solution !== null
+            ? Object.values(solution as Record<string, unknown>)
+            : []
+        const complete = paths.filter(
+          (p) =>
+            typeof p === 'object' && p !== null && (p as { complete?: unknown }).complete === true
+        ).length
+        this.logger.log(
+          `[bonk-air] score client=${row.clientId} drawn=${paths.length} complete=${complete} ` +
+            `points=${result.pointsAwarded} isCorrect=${result.isCorrect}`
+        )
+      }
+
       row.isCorrect = result.isCorrect
       row.pointsAwarded = result.pointsAwarded
 

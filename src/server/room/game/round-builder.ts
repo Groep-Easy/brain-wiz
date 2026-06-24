@@ -40,6 +40,7 @@ interface QuizRoundSpec {
 interface ProceduralRoundSpec {
   kind: 'procedural'
   type: RoundType
+  difficulty?: number
   timeLimitSeconds?: number
 }
 type RoundSpec = QuizRoundSpec | ProceduralRoundSpec
@@ -75,7 +76,15 @@ export class RoundBuilder {
       if (spec.kind === 'quiz') {
         built.push(await this.saveQuizRound(room, index, spec.question))
       } else {
-        built.push(await this.saveProceduralRound(room, index, spec.type, spec.timeLimitSeconds))
+        built.push(
+          await this.saveProceduralRound(
+            room,
+            index,
+            spec.type,
+            spec.difficulty,
+            spec.timeLimitSeconds
+          )
+        )
       }
     }
 
@@ -104,7 +113,7 @@ export class RoundBuilder {
       if (block.kind === BlockKindEnum.THEME && block.theme) {
         plan.push(...this.planThemeBlock(block.theme, item.questions, byTheme))
       } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
-        plan.push(this.planMinigameBlock(block.minigameKey, item.timeLimitSeconds))
+        plan.push(this.planMinigameBlock(block.minigameKey, item.timeLimitSeconds, item.difficulty))
       } else {
         unknownMinigames++
       }
@@ -145,11 +154,18 @@ export class RoundBuilder {
     return specs
   }
 
-  /** Build a procedural round spec for a mini-game block, honoring its per-item timer. */
-  private planMinigameBlock(minigameKey: string, timeLimitSeconds?: number): ProceduralRoundSpec {
+  /** Build a procedural round spec for a mini-game block, honoring its per-item timer and difficulty. */
+  private planMinigameBlock(
+    minigameKey: string,
+    timeLimitSeconds?: number,
+    difficulty?: number
+  ): ProceduralRoundSpec {
     const spec: ProceduralRoundSpec = { kind: 'procedural', type: minigameKey as RoundType }
     if (timeLimitSeconds !== undefined) {
       spec.timeLimitSeconds = timeLimitSeconds
+    }
+    if (difficulty !== undefined) {
+      spec.difficulty = difficulty
     }
     return spec
   }
@@ -223,6 +239,7 @@ export class RoundBuilder {
     room: Room,
     index: number,
     type: RoundType,
+    difficulty?: number,
     requestedTimeLimitSeconds?: number
   ): Promise<Round> {
     const adapter = this.minigames.get(type)
@@ -241,6 +258,7 @@ export class RoundBuilder {
       seed,
       roundIndex: index,
       timeLimitSeconds,
+      ...(difficulty !== undefined ? { difficulty } : {}),
     })
     const round: Round = this.rounds.create({
       id: roundId,

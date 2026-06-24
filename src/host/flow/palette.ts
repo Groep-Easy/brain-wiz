@@ -31,8 +31,8 @@ import techImg from '../../../assets/images/tech.png'
 import slidingPuzzleImg from '../../../assets/images/MG_slidingPuzzle.png'
 import scaleImg from '../../../assets/images/MG_scale.png'
 import vaultImg from '../../../assets/images/MG_vault.png'
-// import woordleImg from '../../../assets/images/MG_woordle.png';
-// import atcImg from '../../../assets/images/MG_atc.png'
+import woordleImg from '../../../assets/images/MG_woordle.png';
+import atcImg from '../../../assets/images/MG_atc.png'
 
 /** Default number of questions for a quiz block, and the allowed range. */
 export const DEFAULT_QUESTIONS_PER_BLOCK = 5
@@ -66,6 +66,8 @@ export const PALETTE: BlockDef[] = [
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: scaleImg },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: slidingPuzzleImg },
   { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: vaultImg },
+  { id: 'mini-bonk-air', label: 'Bonk Air', kind: 'minigame', icon: atcImg },
+  { id: 'mini-wordle', label: 'Guess the Word', kind: 'minigame', icon: woordleImg },
 ]
 
 /** A flow must always contain at least this many blocks. */

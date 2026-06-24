@@ -79,6 +79,30 @@ describe('clientIp', () => {
     )
   })
 
+  it('takes the first entry when x-forwarded-for arrives as an array', () => {
+    process.env['TRUST_PROXY'] = 'true'
+    assert.equal(
+      clientIp({
+        headers: { 'x-forwarded-for': ['9.9.9.9, 8.8.8.8', '1.1.1.1'] },
+        socket: { remoteAddress: '10.0.0.5' },
+      }),
+      '9.9.9.9'
+    )
+  })
+
+  it('falls back to the remote address when the forwarded header is missing', () => {
+    process.env['TRUST_PROXY'] = 'true'
+    assert.equal(clientIp({ headers: {}, socket: { remoteAddress: '10.0.0.5' } }), '10.0.0.5')
+  })
+
+  it('keeps the (empty) forwarded result rather than falling back when the header is present', () => {
+    process.env['TRUST_PROXY'] = 'true'
+    assert.equal(
+      clientIp({ headers: { 'x-forwarded-for': '   ' }, socket: { remoteAddress: '10.0.0.5' } }),
+      ''
+    )
+  })
+
   it('returns empty string when unavailable', () => {
     assert.equal(clientIp(undefined), '')
     assert.equal(clientIp({}), '')
