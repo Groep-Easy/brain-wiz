@@ -31,7 +31,7 @@ import techImg from '../../../assets/images/tech.png'
 import slidingPuzzleImg from '../../../assets/images/MG_slidingPuzzle.png'
 import scaleImg from '../../../assets/images/MG_scale.png'
 import vaultImg from '../../../assets/images/MG_vault.png'
-import woordleImg from '../../../assets/images/MG_woordle.png';
+import woordleImg from '../../../assets/images/MG_woordle.png'
 import atcImg from '../../../assets/images/MG_atc.png'
 
 /** Default number of questions for a quiz block, and the allowed range. */
@@ -67,6 +67,7 @@ export const PALETTE: BlockDef[] = [
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: slidingPuzzleImg },
   { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: vaultImg },
   { id: 'mini-bonk-air', label: 'Bonk Air', kind: 'minigame', icon: atcImg },
+  { id: 'mini-light-switch', label: 'Light Switch Puzzle', kind: 'minigame', icon: knowledgeImg },
   { id: 'mini-wordle', label: 'Guess the Word', kind: 'minigame', icon: woordleImg },
 ]
 
