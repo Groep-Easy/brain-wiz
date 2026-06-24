@@ -6,6 +6,7 @@ import type { CreateQuestionDto } from './dto/create-question.dto.js'
 
 const MAX_ANSWERS = 2
 const MAX_USED_IDS = 1000
+const DEFAULT_BASE_POINTS = 1000
 
 @Injectable()
 export class QuestionService {
@@ -51,8 +52,7 @@ export class QuestionService {
       wrongAnswers: wrongAnswers,
       imagePath: dto.imagePath || '',
       timeLimitSeconds: dto.timeLimitSeconds || null,
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      basePoints: dto.basePoints ?? 1000,
+      basePoints: dto.basePoints ?? DEFAULT_BASE_POINTS,
     })
 
     try {
