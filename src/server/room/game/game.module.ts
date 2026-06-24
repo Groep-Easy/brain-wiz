@@ -42,4 +42,4 @@ import { LightSwitchServerAdapter } from './minigames/light-switch.server'
   ],
   exports: [GameEngineService, GameEventBus, AnswerService],
 })
-export class GameModule { }
+export class GameModule {}

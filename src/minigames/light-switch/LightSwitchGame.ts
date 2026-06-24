@@ -3,7 +3,7 @@ import {
   MAX_LIGHTS,
   SWITCH_COUNT,
   MIN_AFFECTED_LIGHTS,
-  MAX_AFFECTED_LIGHTS
+  MAX_AFFECTED_LIGHTS,
 } from './LightSwitch.constants.js'
 
 import type {
@@ -12,7 +12,6 @@ import type {
   LightSwitchGenerationInput,
   LightSwitchPuzzle,
 } from './LightSwitch.types.js'
-
 
 function randomInt(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min
@@ -34,11 +33,7 @@ export function isSolved(state: boolean[]): boolean {
   return state.every((v) => v === true)
 }
 
-function createLights(
-  lightCount: number,
-  switches: LightSwitch[],
-  random: () => number
-): Light[] {
+function createLights(lightCount: number, switches: LightSwitch[], random: () => number): Light[] {
   const maxAttempts = 3
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -53,9 +48,9 @@ function createLights(
       state = applySwitch(state, sw)
     }
 
-    const solved = isSolved(state)
+    const isSolvedStatus = isSolved(state)
 
-    if (!solved) {
+    if (!isSolvedStatus) {
       return state.map((isOn, id) => ({
         id,
         isOn,
@@ -70,16 +65,9 @@ function createLights(
   }))
 }
 
-function createSwitches(
-  lightCount: number,
-  random: () => number
-): LightSwitch[] {
+function createSwitches(lightCount: number, random: () => number): LightSwitch[] {
   return Array.from({ length: SWITCH_COUNT }, (_, index) => {
-    const affectedCount = randomInt(
-      random,
-      MIN_AFFECTED_LIGHTS,
-      MAX_AFFECTED_LIGHTS
-    )
+    const affectedCount = randomInt(random, MIN_AFFECTED_LIGHTS, MAX_AFFECTED_LIGHTS)
 
     const affectedLights = new Set<number>()
 
@@ -94,9 +82,7 @@ function createSwitches(
   })
 }
 
-export function createLightSwitchPuzzle(
-  input: LightSwitchGenerationInput
-): LightSwitchPuzzle {
+export function createLightSwitchPuzzle(input: LightSwitchGenerationInput): LightSwitchPuzzle {
   const random = Math.random
 
   const lightCount = randomInt(random, MIN_LIGHTS, MAX_LIGHTS)

@@ -8,7 +8,7 @@ export function LightSwitchPuzzlePuzzle({
   onSubmit,
 }: LightSwitchGameProps): JSX.Element {
   const [pressedSwitches, setPressedSwitches] = useState<number[]>([])
-  const [solved, setSolved] = useState(false)
+  const [isSolved, setIsSolved] = useState(false)
 
   // CONTAINER SIZE -------------------------------------------------------------------------------
   const boardRef = useRef<HTMLDivElement>(null)
@@ -76,13 +76,13 @@ export function LightSwitchPuzzlePuzzle({
       lightSwitch.affectedLights.includes(light.id) ? { ...light, isOn: !light.isOn } : light
     )
 
-    const isSolved = checkIfSolved(nextLights)
+    const solvedStatus = checkIfSolved(nextLights)
 
     setPressedSwitches(nextPressedSwitches)
     setLights(nextLights)
 
-    if (isSolved) {
-      setSolved(true)
+    if (solvedStatus) {
+      setIsSolved(true)
       onSubmit?.(nextPressedSwitches)
     } else {
       onProgress?.(nextPressedSwitches)
@@ -156,7 +156,7 @@ export function LightSwitchPuzzlePuzzle({
           style={{ left: x, top: y }}
           onClick={() => handleSwitchClick(lightSwitch)}
           type="button"
-          disabled={solved}
+          disabled={isSolved}
         >
           S{lightSwitch.id}
         </button>

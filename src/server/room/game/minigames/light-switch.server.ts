@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import {
   createLightSwitchPuzzle,
-  applySwitch
+  applySwitch,
 } from '@brain-wiz/minigames/light-switch/LightSwitchGame'
 import type {
   LightSwitchPuzzle,
-  LightSwitch
+  LightSwitch,
 } from '@brain-wiz/minigames/light-switch/LightSwitch.types'
 import type {
   CreateMinigameRoundInput,
@@ -31,13 +31,13 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
   public createRound(input: CreateMinigameRoundInput): GeneratedMinigameRound {
     const puzzle = createLightSwitchPuzzle({
       id: input.roundId,
-      seed: input.seed
+      seed: input.seed,
     })
 
     const scoringConfig: LightSwitchScoreConfig = {
       baseScore: BASE_SCORE,
       maxMoveBonus: MAX_MOVE_BONUS,
-      timeLimitMs: input.timeLimitSeconds * MILLISECONDS_PER_SECOND
+      timeLimitMs: input.timeLimitSeconds * MILLISECONDS_PER_SECOND,
     }
 
     return {
@@ -45,7 +45,7 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
       seed: input.seed,
       publicState: this.toRecord(puzzle),
       privateState: this.toRecord(puzzle),
-      scoringConfig: this.toRecord(scoringConfig)
+      scoringConfig: this.toRecord(scoringConfig),
     }
   }
 
@@ -81,26 +81,18 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
     }
 
     const puzzle = this.parsePrivateState(privateState)
-    const solved = this.checkSubmission(submission, puzzle as LightSwitchPuzzle)
+    const isSolved = this.checkSubmission(submission, puzzle as LightSwitchPuzzle)
 
     const timeLimitMs = this.parseConfig(scoringConfig) as number
-    const clampedRemaining = Math.max(
-      0,
-      Math.min(timeLimitMs, timeLimitMs - timeToAnswerMs)
-    )
-    const rawScore = solved
-      ? Math.round(BASE_SCORE * (clampedRemaining / timeLimitMs))
-      : 0
+    const clampedRemaining = Math.max(0, Math.min(timeLimitMs, timeLimitMs - timeToAnswerMs))
+    const rawScore = isSolved ? Math.round(BASE_SCORE * (clampedRemaining / timeLimitMs)) : 0
     return {
-      isCorrect: solved,
+      isCorrect: isSolved,
       pointsAwarded: rawScore,
     }
   }
 
-  private checkSubmission(
-    submission: number[],
-    puzzle: LightSwitchPuzzle
-  ): boolean {
+  private checkSubmission(submission: number[], puzzle: LightSwitchPuzzle): boolean {
     let state = puzzle.lights.map((l) => l.isOn)
 
     for (const switchIndex of submission) {
@@ -114,9 +106,7 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
     return state.every((isOn) => isOn === true)
   }
 
-  private parsePrivateState(
-    state: Record<string, unknown>
-  ): LightSwitchPuzzle | null {
+  private parsePrivateState(state: Record<string, unknown>): LightSwitchPuzzle | null {
     const lights = state['lights']
     const switches = state['switches']
 
@@ -133,9 +123,7 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
 
   private parseConfig(config: Record<string, unknown>): number | undefined {
     const timeLimitMs = config['timeLimitMs']
-    if (
-      typeof timeLimitMs !== 'number'
-    ) {
+    if (typeof timeLimitMs !== 'number') {
       return undefined
     }
     return timeLimitMs
