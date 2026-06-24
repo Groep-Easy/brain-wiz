@@ -125,6 +125,18 @@ describe('clientSocketReducer — gameplay events', () => {
     assert.equal(next.secondsRemaining, 12)
   })
 
+  it('ROUND_FEEDBACK stores feedback that the next round/question/content clears', () => {
+    const fed = server(base(), EVENTS.ROUND_FEEDBACK, {
+      roundId: 'r1',
+      type: 'wordle',
+      feedback: { ok: true },
+    })
+    assert.deepEqual(fed.roundFeedback, { roundId: 'r1', type: 'wordle', feedback: { ok: true } })
+    assert.equal(server(fed, EVENTS.ROUND_START, { round: { id: 'r2' } }).roundFeedback, null)
+    assert.equal(server(fed, EVENTS.ROUND_CONTENT_SHOW, { roundId: 'r2' }).roundFeedback, null)
+    assert.equal(server(fed, EVENTS.QUESTION_SHOW, { question: { id: 'q1' } }).roundFeedback, null)
+  })
+
   it('QUESTION_SHOW sets the question but ignores an empty payload', () => {
     const shown = server(base(), EVENTS.QUESTION_SHOW, { question: { id: 'q1' } })
     assert.deepEqual(shown.question, { id: 'q1' })

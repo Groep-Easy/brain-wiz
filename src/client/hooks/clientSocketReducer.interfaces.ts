@@ -10,6 +10,7 @@ import type {
   QuestionState,
   RoomState,
   RoundContentPayload,
+  RoundFeedbackPayload,
   RoundRevealPayload,
   RoundSummary,
   ScoreMap,
@@ -35,6 +36,7 @@ export interface ClientSocketState {
   selectedAnswerId: string | null
   reveal: QuestionRevealPayload | null
   roundContent: RoundContentPayload | null
+  roundFeedback: RoundFeedbackPayload | null
   roundReveal: RoundRevealPayload | null
   leaderboard: LeaderboardEntry[]
   finalScores: ScoreMap | null

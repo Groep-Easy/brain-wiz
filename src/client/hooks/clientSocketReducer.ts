@@ -17,6 +17,7 @@ import type {
   QuestionShowPayload,
   RoomState,
   RoundContentPayload,
+  RoundFeedbackPayload,
   RoundRevealPayload,
   RoundStartPayload,
   TimerTickPayload,
@@ -36,6 +37,7 @@ export function createInitialClientState(saved: SavedPlayer | null): ClientSocke
     selectedAnswerId: null,
     reveal: null,
     roundContent: null,
+    roundFeedback: null,
     roundReveal: null,
     leaderboard: [],
     finalScores: null,
@@ -112,6 +114,7 @@ function reduceServerEvent(
         ...state,
         round: round ?? state.round,
         roundContent: null,
+        roundFeedback: null,
         roundReveal: null,
         roundSubmitted: false,
         selectedOptionId: null,
@@ -127,6 +130,7 @@ function reduceServerEvent(
       return {
         ...state,
         roundContent: null,
+        roundFeedback: null,
         roundReveal: null,
         question,
         reveal: null,
@@ -137,10 +141,13 @@ function reduceServerEvent(
       return {
         ...state,
         roundContent: data as RoundContentPayload,
+        roundFeedback: null,
         roundReveal: null,
         roundSubmitted: false,
         selectedOptionId: null,
       }
+    case EVENTS.ROUND_FEEDBACK:
+      return { ...state, roundFeedback: data as RoundFeedbackPayload }
     case EVENTS.QUESTION_REVEAL:
       return { ...state, reveal: data as QuestionRevealPayload }
     case EVENTS.ROUND_REVEAL:

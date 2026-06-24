@@ -38,6 +38,15 @@ h1 {
   text-align: initial;
 }
 
+/* body.game-page .client-minigame--wordle,
+body.game-page .client-minigame--wordle * {
+  background: transparent;
+} */
+
+body.wordle-game-page {
+  --bg: transparent;
+}
+
 /* Base Input styling */
 input,
 textarea {
