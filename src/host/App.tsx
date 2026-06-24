@@ -10,7 +10,6 @@ import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinig
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
@@ -158,7 +157,6 @@ export function App(): React.JSX.Element {
   function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--solid">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
         <LeaderBoard
           leaderboard={h.leaderboard}
           roadmap={h.roadmap}
