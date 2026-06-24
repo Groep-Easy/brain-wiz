@@ -81,7 +81,12 @@ function fakeRoomRepo(): Repository<Room> {
 function fakeMinigameRegistry(): unknown {
   return {
     get: (type: string): unknown => {
-      if (type !== 'sliding-puzzle' && type !== 'balance-scale' && type !== 'vault-rush') {
+      if (
+        type !== 'sliding-puzzle' &&
+        type !== 'balance-scale' &&
+        type !== 'vault-rush' &&
+        type !== 'light-switch'
+      ) {
         return undefined
       }
 

@@ -207,7 +207,8 @@ function renderMinigame(
   if (
     content.type === 'balance-scale' ||
     content.type === 'sliding-puzzle' ||
-    content.type === 'vault-rush'
+    content.type === 'vault-rush' ||
+    content.type === 'light-switch'
   ) {
     return (
       <RoundMinigameSurface
@@ -216,7 +217,9 @@ function renderMinigame(
             ? 'host-minigame--scale'
             : content.type === 'vault-rush'
               ? 'host-minigame--vault'
-              : 'host-minigame--sliding'
+              : content.type === 'light-switch'
+                ? 'host-minigame--light'
+                : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"
