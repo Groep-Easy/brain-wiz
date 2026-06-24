@@ -10,6 +10,7 @@ import type {
   PlayerJoinRejectedPayload,
   AnswerAckPayload,
   RoundContentPayload,
+  RoundFeedbackPayload,
   RoundProgressPayload,
   RoundRevealPayload,
   PlayerAvatar,
@@ -47,6 +48,7 @@ export function useClientSocket() {
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null)
   const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
   const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
+  const [roundFeedback, setRoundFeedback] = useState<RoundFeedbackPayload | null>(null)
   const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
@@ -142,6 +144,7 @@ export function useClientSocket() {
       const { round } = data as RoundStartPayload
       if (round) setRound(round)
       setRoundContent(null)
+      setRoundFeedback(null)
       setRoundReveal(null)
       setRoundSubmitted(false)
       setSelectedOptionId(null)
@@ -153,6 +156,7 @@ export function useClientSocket() {
       const { question } = data as QuestionShowPayload
       if (question) {
         setRoundContent(null)
+        setRoundFeedback(null)
         setRoundReveal(null)
         setQuestion(question)
         setReveal(null)
@@ -162,9 +166,13 @@ export function useClientSocket() {
     [EVENTS.ROUND_CONTENT_SHOW]: (data) => {
       const content = data as RoundContentPayload
       setRoundContent(content)
+      setRoundFeedback(null)
       setRoundReveal(null)
       setRoundSubmitted(false)
       setSelectedOptionId(null)
+    },
+    [EVENTS.ROUND_FEEDBACK]: (data) => {
+      setRoundFeedback(data as RoundFeedbackPayload)
     },
     [EVENTS.QUESTION_REVEAL]: (data) => {
       setReveal(data as QuestionRevealPayload)
@@ -345,6 +353,7 @@ export function useClientSocket() {
     setRound(null)
     setQuestion(null)
     setReveal(null)
+    setRoundFeedback(null)
     setLeaderboard([])
     setFinalScores(null)
     setJoinError(null)
@@ -372,6 +381,7 @@ export function useClientSocket() {
     selectedAnswerId,
     reveal,
     roundContent,
+    roundFeedback,
     roundReveal,
     leaderboard,
     finalScores,

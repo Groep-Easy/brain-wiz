@@ -13,6 +13,10 @@ import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
+import type {
+  WordleFeedback,
+  WordlePublicState,
+} from '../minigames/wordleGame/shared/wordleGame.types'
 import { useClientSocket } from './hooks/useClientSocket'
 import { LightSwitchPuzzlePuzzle } from '../minigames/light-switch/LightSwitch'
 import type { LightSwitchPuzzle } from '../minigames/light-switch/LightSwitch.types'
@@ -94,12 +98,19 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'wordle') {
-      const answer = (roundContent.publicState as { answer?: string }).answer ?? ''
+      const publicState = roundContent.publicState as WordlePublicState
+      const feedback =
+        s.roundFeedback?.roundId === roundContent.roundId
+          ? (s.roundFeedback.feedback as WordleFeedback)
+          : null
       return (
         <MinigameDynamicGrid
           type="wordle"
-          answer={answer}
+          feedback={feedback}
+          onGuess={s.handleRoundProgress}
           onSubmit={s.handleRoundSubmit}
+          publicState={publicState}
+          roundId={roundContent.roundId}
           submitted={s.roundSubmitted}
           phase={phase === 'reveal' ? 'reveal' : 'playing'}
         />

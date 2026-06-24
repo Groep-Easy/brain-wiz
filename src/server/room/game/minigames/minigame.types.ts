@@ -35,6 +35,7 @@ export interface MinigameAdapter {
   accepts(type: RoundType): type is ProceduralRoundType
   getAnswerChoices?(publicState: Record<string, unknown>): RoundAnswerChoice[]
   validateSubmission(submission: unknown): boolean
+  getProgressFeedback?(submission: unknown, privateState: Record<string, unknown>): unknown
   scoreSubmission(
     submission: unknown,
     privateState: Record<string, unknown>,
@@ -49,6 +50,17 @@ export interface BalanceScalePrivateState {
 
 export interface BalanceScaleScoringConfig {
   basePoints: number
+  solveSpeedBonus: number
+  timeLimitMs: number
+}
+
+export interface WordlePrivateState {
+  answer: string
+}
+
+export interface WordleScoringConfig {
+  basePoints: number
+  pointsPerExtraGuess: number
   solveSpeedBonus: number
   timeLimitMs: number
 }

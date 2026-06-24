@@ -52,6 +52,8 @@ export const ROUND_CONTENT_SHOW = 'ROUND_CONTENT_SHOW'
 /** Server → all:    answer reveal.        Payload: { correctAnswer, playerAnswers }     */
 export const QUESTION_REVEAL = 'QUESTION_REVEAL'
 export const ROUND_REVEAL = 'ROUND_REVEAL'
+/** Server -> client: procedural/minigame progress feedback. Payload: { roundId, type, feedback } */
+export const ROUND_FEEDBACK = 'ROUND_FEEDBACK'
 /** Client → server: submit answer.        Payload: { answerId, timestamp }             */
 export const ANSWER_SUBMIT = 'ANSWER_SUBMIT'
 export const ROUND_SUBMIT = 'ROUND_SUBMIT'

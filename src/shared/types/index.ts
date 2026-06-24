@@ -205,6 +205,13 @@ export interface RoundProgressPayload {
 }
 
 /** Server → client: answer outcome (ANSWER_ACK). */
+/** Server -> client: feedback for an in-progress procedural/minigame attempt. */
+export interface RoundFeedbackPayload {
+  roundId: string
+  type: RoundType
+  feedback: unknown
+}
+
 export interface AnswerAckPayload {
   received: true
   accepted: boolean
