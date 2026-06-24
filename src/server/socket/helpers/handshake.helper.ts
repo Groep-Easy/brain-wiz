@@ -37,19 +37,25 @@ export function parseHostTokenFromHeaders(headers: UpgradeRequest['headers']): s
     .find((part) => part.length > 0 && part !== WS_SUBPROTOCOL)
 }
 
+/**
+ * The first IP in an `x-forwarded-for` header (which may arrive as a string or a
+ * string[]). Returns the parsed value (possibly '') when the header is usable, or
+ * undefined when there is no usable header so the caller can fall back.
+ */
+function firstForwardedIp(forwarded: string | string[] | undefined): string | undefined {
+  const headerValue = Array.isArray(forwarded) ? forwarded[0] : forwarded
+  if (typeof headerValue !== 'string' || headerValue.length === 0) {
+    return undefined
+  }
+  return (headerValue.split(',')[0] ?? '').trim()
+}
+
 /** Best-effort client IP for throttling/logging; '' when unavailable. */
 export function clientIp(request: UpgradeRequest | undefined): string {
   if (process.env['TRUST_PROXY'] === 'true') {
-    const forwarded = request?.headers?.['x-forwarded-for']
-    if (typeof forwarded === 'string' && forwarded.length > 0) {
-      const parts = forwarded.split(',')
-      return (parts[0] || '').trim()
-    } else if (Array.isArray(forwarded) && forwarded.length > 0) {
-      const first = forwarded[0]
-      if (typeof first === 'string') {
-        const parts = first.split(',')
-        return (parts[0] || '').trim()
-      }
+    const forwarded = firstForwardedIp(request?.headers?.['x-forwarded-for'])
+    if (forwarded !== undefined) {
+      return forwarded
     }
   }
   return request?.socket?.remoteAddress ?? ''

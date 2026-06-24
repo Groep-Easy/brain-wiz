@@ -29,8 +29,6 @@ export function App(): React.JSX.Element {
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
-  // makes sure the playing guess the word text shows up at host screen only when
-  // Guess the word is playing
   useEffect(() => {
     if (h.roundContent?.type === 'wordle') {
       document.body.classList.add('wordle-game-page')
@@ -172,6 +170,10 @@ export function App(): React.JSX.Element {
     const active = activeRoom()
     if (!active) return <WelcomeScreen />
 
+    return renderActivePhase(active)
+  }
+
+  function renderActivePhase(active: ActiveRoom): React.JSX.Element {
     const phase = active.room.phase
 
     if (phase === 'lobby') return renderLobby(active)
@@ -242,11 +244,11 @@ function renderMinigame(
   }
 
   if (content.type === 'wordle') {
-  return (
-    <div className="wordle-host-waiting">
-      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
-    </div>
-   )
+    return (
+      <div className="wordle-host-waiting">
+        <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+      </div>
+    )
   }
 
   return (
