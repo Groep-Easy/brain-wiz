@@ -26,6 +26,13 @@ import {
 } from '../flow/palette'
 import { fetchCatalog } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
+import {
+  insertBlock,
+  moveBlock,
+  removeBlockAt,
+  setBlockMinigameTime,
+  setBlockQuestions,
+} from '../flow/flowMutations'
 import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
@@ -52,16 +59,11 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
-    const clamped = Math.min(
-      MAX_QUESTIONS_PER_BLOCK,
-      Math.max(MIN_QUESTIONS_PER_BLOCK, Math.round(value) || MIN_QUESTIONS_PER_BLOCK)
-    )
-    setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, questions: clamped } : f)))
+    setFlow((prev) => setBlockQuestions(prev, uid, value))
   }
 
   const setMinigameTime = (uid: string, blockId: string, value: number) => {
-    const clamped = clampMinigameTimeSeconds(value, blockId)
-    setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, timeLimitSeconds: clamped } : f)))
+    setFlow((prev) => setBlockMinigameTime(prev, uid, blockId, value))
   }
 
   // The snake grid: cells in visual order + per-slot logical insert mapping. A
@@ -121,17 +123,17 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
   // --- Drag sources -------------------------------------------------------
   const onPaletteDragStart = (e: React.DragEvent, blockId: string) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -177,29 +179,17 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const blockId = e.dataTransfer.getData('application/x-block')
       const block = resolveBlock(blockId)
       if (!block) return
-      setFlow((prev) => {
-        const next = [...prev]
-        next.splice(index, 0, createFlowItem(block))
-        return next
-      })
+      setFlow((prev) => insertBlock(prev, index, block))
     } else if (source === 'flow') {
       const from = Number(e.dataTransfer.getData('application/x-index'))
       if (Number.isNaN(from)) return
-      setFlow((prev) => {
-        const next = [...prev]
-        const [moved] = next.splice(from, 1)
-        if (!moved) return prev
-        // The removed item shifts later indices left by one.
-        const target = from < index ? index - 1 : index
-        next.splice(target, 0, moved)
-        return next
-      })
+      setFlow((prev) => moveBlock(prev, from, index))
     }
     if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   const removeAt = (index: number) => {
-    setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
+    setFlow((prev) => removeBlockAt(prev, index))
   }
 
   const openSizePicker = () => {

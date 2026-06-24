@@ -34,7 +34,7 @@ export function rttNote(raw: string): string {
   return ''
 }
 
-/** Build a ws:// URL with a query string from the given params. */
+/** Build a WebSocket URL with a query string from the given params. */
 export function buildWsUrl(base: string, params: Record<string, string>): string {
   const url = new URL(base)
   for (const [key, value] of Object.entries(params)) {
@@ -43,7 +43,7 @@ export function buildWsUrl(base: string, params: Record<string, string>): string
   return url.toString()
 }
 
-/** Derive the HTTP base (for REST calls) from a ws:// / wss:// URL. */
+/** Derive the HTTP(S) base for REST calls from a WebSocket URL. */
 export function wsToHttp(wsUrl: string): string {
   return wsUrl.replace(/^ws/i, 'http').replace(/\/+$/, '')
 }

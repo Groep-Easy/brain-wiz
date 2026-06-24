@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
-
-import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
-import { isMuted } from '@brain-wiz/shared/SFX/mute'
 import '../../shared/styles/game_over.css'
+
+import { sounds } from '@brain-wiz/shared/SFX/SFX'
 
 interface GameOverProps {
   players: Player[]
@@ -50,10 +49,9 @@ export function GameOver({ players, finalScores, onBackToMenu }: GameOverProps):
   const podiumHeights: Record<number, string> = { 1: '180px', 2: '130px', 3: '100px' }
   const podiumLabels: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
-  if (!isMuted()) playSound(sounds.gameOver, true)
-
   return (
     <>
+      <audio src={sounds.gameOver} loop autoPlay></audio>
       <main className={`go-page${visible ? ' go-page--visible' : ''}`}>
         {/* ── Header ── */}
         <header className="go-header">
