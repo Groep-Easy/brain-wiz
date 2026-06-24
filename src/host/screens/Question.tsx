@@ -1,7 +1,10 @@
 import type { QuestionState, QuestionRevealPayload } from '@brain-wiz/shared/types/index'
 import { computeAnswerStats } from '@brain-wiz/shared/utils/answer-stats'
 import '../styles/question.css'
-import suspenseMusic from '@brain-wiz/shared/SFX/Standoff.mp3'
+import { useEffect } from 'react'
+
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+import { playSound, sounds, stopSound } from '@brain-wiz/shared/SFX/SFX'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -34,6 +37,11 @@ export function Question({
   const summary = revealed ? computeAnswerStats(question, reveal) : null
   const stats = summary?.stats ?? null
 
+  useEffect(() => {if (!isMuted()) playSound(sounds.suspense, true)}, [question])
+  if (revealed) {
+    stopSound(sounds.suspense)
+  }
+
   return (
     <main className="host-question-page">
       <audio id="suspense-music" loop autoPlay src={suspenseMusic} preload="auto"></audio>
@@ -53,37 +61,39 @@ export function Question({
         )}
       </header>
 
-      {!revealed && (
-        <div className="hq-timer">
-          <div className="hq-timer-bar" style={{ width: `${timerPct}%` }} />
-          <span className="hq-timer-label">{secondsRemaining}s</span>
-        </div>
-      )}
+        {!revealed && (
+          <div className="hq-timer">
+            <div className="hq-timer-bar" style={{ width: `${timerPct}%` }} />
+            <span className="hq-timer-label">{secondsRemaining}s</span>
+          </div>
+        )}
 
-      <h1 className="hq-question">{question.text}</h1>
+        <h1 className="hq-question">{question.text}</h1>
 
-      <div className="hq-answers">
-        {question.answers.map((answer, i) => {
-          const stat = stats?.[i]
-          const isCorrect = stat?.correct ?? false
-          const dim = revealed && !isCorrect
-          return (
-            <div
-              key={answer.id}
-              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${dim ? 'is-dim' : ''
+        <div className="hq-answers">
+          {question.answers.map((answer, i) => {
+            const stat = stats?.[i]
+            const isCorrect = stat?.correct ?? false
+            const dim = revealed && !isCorrect
+            return (
+              <div
+                key={answer.id}
+                className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${
+                  dim ? 'is-dim' : ''
                 } ${revealed && isCorrect ? 'is-correct' : ''}`}
-            >
-              {revealed && (
-                <div className="hq-tile-bar" style={{ width: `${(stat?.fraction ?? 0) * 100}%` }} />
-              )}
-              <span className="hq-tile-shape">{SHAPES[i] ?? ''}</span>
-              <span className="hq-tile-text">{answer.text}</span>
-              {revealed && <span className="hq-tile-count">{stat?.count ?? 0}</span>}
-              {revealed && isCorrect && <span className="hq-tile-check">✓</span>}
-            </div>
-          )
-        })}
-      </div>
-    </main>
+              >
+                {revealed && (
+                  <div className="hq-tile-bar" style={{ width: `${(stat?.fraction ?? 0) * 100}%` }} />
+                )}
+                <span className="hq-tile-shape">{SHAPES[i] ?? ''}</span>
+                <span className="hq-tile-text">{answer.text}</span>
+                {revealed && <span className="hq-tile-count">{stat?.count ?? 0}</span>}
+                {revealed && isCorrect && <span className="hq-tile-check">✓</span>}
+              </div>
+            )
+          })}
+        </div>
+      </main>
+    </>
   )
 }
