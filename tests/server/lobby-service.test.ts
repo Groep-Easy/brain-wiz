@@ -27,6 +27,7 @@ import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
+import { GameEventBus } from '../../src/server/room/game/game-event-bus';
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
@@ -108,9 +109,7 @@ function fakeFlowService(): FlowService {
 }
 
 function fakeGameEventBus(): GameEventBus {
-  return {
-    publish: (): void => undefined,
-  } as unknown as GameEventBus
+  return new GameEventBus()
 }
 
 function makeLobby(questions: Question[] = []): LobbyService {
@@ -568,8 +567,8 @@ describe('LobbyService abort-on-empty', () => {
       clients,
       registry,
       broadcaster,
-      noopEngine,
-      fakeQuestionService(questions),
+      gameEngine,
+      fakeQuestionService(),
       fakeFlowService(),
       fakeGameEventBus()
     )
