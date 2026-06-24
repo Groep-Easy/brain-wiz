@@ -23,7 +23,9 @@ function makeService(questionsList: Question[]): QuestionService {
           }
           return qb
         },
-        getMany: async (): Promise<Question[]> => list,
+        orderBy: (): unknown => qb,
+        limit: (): unknown => qb,
+        getOne: async (): Promise<Question | null> => list[0] ?? null,
       }
       return qb
     },

@@ -11,11 +11,14 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
+import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
+
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
+
 import { useHostSocket } from './hooks/useHostSocket'
 import type { ActiveRoom } from './App.interfaces'
 
@@ -64,7 +67,7 @@ export function App(): React.JSX.Element {
             <CountdownCircle
               seconds={5}
               message={h.fatalError ?? ''}
-              onComplete={async () => navigate('/')}
+              onComplete={() => void navigate('/')}
             />
           </div>
         </div>
@@ -100,9 +103,20 @@ export function App(): React.JSX.Element {
 
   function renderGameplay(active: ActiveRoom, phase: 'playing' | 'reveal'): React.JSX.Element {
     if (h.roundContent) {
+      const isVaultRushPlaying = h.roundContent.type === 'vault-rush' && phase === 'playing'
+
       return (
         <main className="app app--minigame">
-          {renderMinigame(h.roundContent, h.roundReveal, phase)}
+          {isVaultRushPlaying ? (
+            <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
+          ) : null}
+
+          {renderMinigame(
+            h.roundContent,
+            h.roundReveal,
+            phase,
+            phase === 'playing' ? h.secondsRemaining : undefined
+          )}
         </main>
       )
     }
@@ -164,9 +178,11 @@ export function App(): React.JSX.Element {
 
     if (phase === 'lobby') return renderLobby(active)
     if (phase === 'round-intro') return renderRoundIntro(active)
+
     if (phase === 'playing' || phase === 'reveal') {
       return renderGameplay(active, phase === 'reveal' ? 'reveal' : 'playing')
     }
+
     if (phase === 'game-over' || h.finalScores !== null) return renderGameOver(active)
     if (phase === 'leaderboard') return renderLeaderboard(active)
 
@@ -198,12 +214,14 @@ export function App(): React.JSX.Element {
 function renderMinigame(
   content: RoundContentPayload,
   reveal: RoundRevealPayload | null,
-  phase: 'playing' | 'reveal'
+  phase: 'playing' | 'reveal',
+  secondsRemaining?: number
 ): React.JSX.Element {
   if (
     content.type === 'balance-scale' ||
     content.type === 'sliding-puzzle' ||
-    content.type === 'vault-rush'
+    content.type === 'vault-rush' ||
+    content.type === 'light-switch'
   ) {
     return (
       <RoundMinigameSurface
@@ -212,12 +230,15 @@ function renderMinigame(
             ? 'host-minigame--scale'
             : content.type === 'vault-rush'
               ? 'host-minigame--vault'
-              : 'host-minigame--sliding'
+              : content.type === 'light-switch'
+                ? 'host-minigame--light'
+                : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"
         phase={phase}
         reveal={reveal}
+        {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
       />
     )
   }

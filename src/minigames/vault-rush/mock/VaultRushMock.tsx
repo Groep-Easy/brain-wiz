@@ -1,7 +1,6 @@
 import { useMemo, useState, type JSX } from 'react'
-import { VaultRush } from '../components/VaultRush.js'
+import { VaultRush } from '@brain-wiz/minigames/vault-rush/components/VaultRush'
 import { getSampleVaultRushRound } from './samplePuzzle.js'
-import '../mock/samplePuzzle.js'
 
 export function VaultRushMock(): JSX.Element {
   const [puzzleIndex, setPuzzleIndex] = useState(0)
