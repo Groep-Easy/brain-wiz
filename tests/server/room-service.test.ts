@@ -15,35 +15,92 @@ import { ROOM } from '@brain-wiz/config/game.config'
 interface FakeRoomRepo {
   repo: Repository<Room>
   saved: Room[]
-  findOneCalls: () => number
 }
 
+interface FakeRoomQueryBuilder {
+  where(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  andWhere(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  getOne(): Promise<Room | null>
+}
+
+const makeRoomId = (value: number): string =>
+  `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`
+
 /**
- * @param existsFor codes for which findOne should report an existing room
+ * @param existsFor codes for which the fake query builder should report an existing room
  */
 function makeFakeRepo(existsFor: string[] = []): FakeRoomRepo {
   const saved: Room[] = []
-  let findOneCalls = 0
   const exists = new Set(existsFor)
+
   const repo = {
     create: (partial: Partial<Room>): Room => Object.assign(new Room(), partial),
+
     save: async (room: Room): Promise<Room> => {
       if (!room.id) {
-        room.id = `room-${saved.length + 1}`
+        room.id = makeRoomId(saved.length + 1)
       }
       saved.push(room)
       return room
     },
-    findOne: async (options: { where?: { joinCode?: string } }): Promise<Room | null> => {
-      findOneCalls++
-      const code = options.where?.joinCode
-      if (code !== undefined && exists.has(code)) {
-        return Object.assign(new Room(), { id: 'existing', joinCode: code })
+
+    createQueryBuilder: (): FakeRoomQueryBuilder => {
+      let joinCodeFilter: string | undefined
+      let idFilter: string | undefined
+      let statusesFilter: RoomStatusEnum[] | undefined
+
+      const queryBuilder: FakeRoomQueryBuilder = {
+        where: (condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          if (condition.includes('room.joinCode')) {
+            joinCodeFilter = params['joinCode'] as string
+          }
+
+          if (condition.includes('room.id')) {
+            idFilter = params['id'] as string
+          }
+
+          return queryBuilder
+        },
+
+        andWhere: (_condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          statusesFilter = params['statuses'] as RoomStatusEnum[]
+          return queryBuilder
+        },
+
+        getOne: async (): Promise<Room | null> => {
+          if (joinCodeFilter !== undefined && exists.has(joinCodeFilter)) {
+            return Object.assign(new Room(), {
+              id: makeRoomId(999999),
+              joinCode: joinCodeFilter,
+              status: RoomStatusEnum.LOBBY,
+            })
+          }
+
+          return (
+            saved.find((room) => {
+              if (joinCodeFilter !== undefined && room.joinCode !== joinCodeFilter) {
+                return false
+              }
+
+              if (idFilter !== undefined && room.id !== idFilter) {
+                return false
+              }
+
+              if (statusesFilter !== undefined && !statusesFilter.includes(room.status)) {
+                return false
+              }
+
+              return true
+            }) ?? null
+          )
+        },
       }
-      return null
+
+      return queryBuilder
     },
   } as unknown as Repository<Room>
-  return { repo, saved, findOneCalls: () => findOneCalls }
+
+  return { repo, saved }
 }
 
 describe('RoomService.createRoom', () => {
@@ -62,21 +119,30 @@ describe('RoomService.createRoom', () => {
 
   it('retries code generation when the first code already exists', async () => {
     // Make the FIRST generated code collide, forcing a second attempt.
-    const { repo, findOneCalls } = makeFakeRepo()
+    const { repo } = makeFakeRepo()
     const service = new RoomService(repo)
-    // Patch findOne to collide once, then succeed.
+    // Patch createQueryBuilder to collide once, then succeed.
     let calls = 0
-    ;(repo as unknown as { findOne: () => Promise<Room | null> }).findOne =
-      async (): Promise<Room | null> => {
-        calls++
-        return calls === 1 ? Object.assign(new Room(), { id: 'x' }) : null
+    ;(repo as unknown as { createQueryBuilder: () => FakeRoomQueryBuilder }).createQueryBuilder =
+      (): FakeRoomQueryBuilder => {
+        const queryBuilder: FakeRoomQueryBuilder = {
+          where: (): FakeRoomQueryBuilder => queryBuilder,
+          andWhere: (): FakeRoomQueryBuilder => queryBuilder,
+          getOne: async (): Promise<Room | null> => {
+            calls++
+            return calls === 1
+              ? Object.assign(new Room(), { id: makeRoomId(999999), status: RoomStatusEnum.LOBBY })
+              : null
+          },
+        }
+
+        return queryBuilder
       }
 
     const room = await service.createRoom()
 
     assert.ok(room.joinCode.length === ROOM.CODE_LENGTH)
     assert.equal(calls, 2)
-    void findOneCalls
   })
 })
 

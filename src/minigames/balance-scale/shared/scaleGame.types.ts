@@ -35,10 +35,6 @@ export interface ScalePuzzle {
   addTo: ScaleSlotPosition
   options: ItemOption[]
   equations: ScaleEquation[]
-  /**
-   * Keep server-side while players are answering.
-   * Client answer payload: { roomId, playerId, puzzleId, optionId }.
-   */
   correctOptionId?: string
 }
 
@@ -54,9 +50,10 @@ export interface ScalePuzzleGenerationInput {
   id: string
   seed?: string
   difficulty: ScaleDifficulty
-  /**
-   * Later: load from DB/static content by room/round.
-   * Store image references here, not image binary data.
-   */
   itemPool: ItemOption[]
+}
+
+export interface ScaleVariantLayout {
+  placed: ReadonlyArray<readonly [itemIndex: number, side: Side]>
+  addTo: Side
 }

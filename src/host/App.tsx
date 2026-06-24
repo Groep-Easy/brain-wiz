@@ -9,13 +9,13 @@ import { GameOver } from './screens/GameOver'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
-import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 // import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
+import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 import { useHostSocket } from './hooks/useHostSocket'
@@ -51,6 +51,7 @@ export function App(): React.JSX.Element {
   }
 
   const performCloseLobby = (): void => {
+    stopSound(sounds.jazz)
     setConfirmCloseOpen(false)
     h.closeConnection()
     void navigate('/')
@@ -81,7 +82,6 @@ export function App(): React.JSX.Element {
   function renderLobby(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--lobby">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={active.code}
           hostToken={active.token}
