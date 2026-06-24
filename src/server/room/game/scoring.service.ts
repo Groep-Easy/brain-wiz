@@ -12,30 +12,18 @@ import { ClientAnswer } from '../../entities/client-answer.entity'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { ClientService } from '../../client/client.service'
 import { GameEventBus } from './game-event-bus'
-import type { RoundOption, RoundScoringMode } from './game-events'
 import type {
   PlayerAnswerResult,
   QuestionRevealPayload,
   RoundPlayerResult,
   RoundRevealPayload,
-  RoundType,
 } from '@brain-wiz/shared/types/index'
+import type { RoundScoringJob, ScoringContext } from './game.types'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 import { MinigameScoreResult } from './minigames/minigame.types'
 
 const MS_PER_SECOND = 1000
-
-interface ScoringContext {
-  roundId: string
-  roundType: RoundType
-  scoringMode: RoundScoringMode
-  options: Map<string, RoundOption>
-  timeLimitMs: number
-  basePoints: number
-  privateState?: Record<string, unknown>
-  scoringConfig?: Record<string, unknown>
-}
 
 @Injectable()
 export class ScoringService {
@@ -77,10 +65,11 @@ export class ScoringService {
       }
       const rows = await this.answers.find({ where: { roundId } })
       const roster = await this.clients.findByRoom(roomId)
+      const job: RoundScoringJob = { roomId, roundId, ctx, rows, roster }
       if (ctx.scoringMode === 'minigame') {
-        await this.scoreMinigame(roomId, roundId, ctx, rows, roster)
+        await this.scoreMinigame(job)
       } else {
-        await this.scoreQuiz(roomId, roundId, ctx, rows, roster)
+        await this.scoreQuiz(job)
       }
     } catch (error) {
       this.logger.error(`Scoring failed for room ${roomId}: ${String(error)}`)
@@ -90,13 +79,8 @@ export class ScoringService {
     }
   }
 
-  private async scoreQuiz(
-    roomId: string,
-    roundId: string,
-    ctx: ScoringContext,
-    rows: ClientAnswer[],
-    roster: Awaited<ReturnType<ClientService['findByRoom']>>
-  ): Promise<void> {
+  private async scoreQuiz(job: RoundScoringJob): Promise<void> {
+    const { roomId, roundId, ctx, rows, roster } = job
     const playerAnswers: Record<string, PlayerAnswerResult> = {}
     const answered = new Set<string>()
 
@@ -152,13 +136,8 @@ export class ScoringService {
     return Math.round(ctx.basePoints * (clamped / ctx.timeLimitMs))
   }
 
-  private async scoreMinigame(
-    roomId: string,
-    roundId: string,
-    ctx: ScoringContext,
-    rows: ClientAnswer[],
-    roster: Awaited<ReturnType<ClientService['findByRoom']>>
-  ): Promise<void> {
+  private async scoreMinigame(job: RoundScoringJob): Promise<void> {
+    const { roomId, roundId, ctx, rows, roster } = job
     const adapter = this.minigames?.get(ctx.roundType)
 
     const playerResults: Record<string, RoundPlayerResult> = {}
