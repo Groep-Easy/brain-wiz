@@ -94,7 +94,28 @@ export class RoundBuilder {
     const catalog = await this.blocks.find()
     const blockById = new Map(catalog.map((b) => [b.id, b]))
     const pool = await this.questions.find()
-    // Group the question pool by theme so we can hand out distinct questions.
+    const byTheme = this.groupQuestionsByTheme(pool)
+
+    const plan: RoundSpec[] = []
+    let unknownMinigames = 0
+    for (const item of room.gameFlow) {
+      const block = blockById.get(item.blockId)
+      if (!block) continue
+      if (block.kind === BlockKindEnum.THEME && block.theme) {
+        plan.push(...this.planThemeBlock(block.theme, item.questions, byTheme))
+      } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
+        plan.push(this.planMinigameBlock(block.minigameKey, item.timeLimitSeconds))
+      } else {
+        unknownMinigames++
+      }
+    }
+
+    this.warnUnknownBlocks(room, unknownMinigames)
+    return plan
+  }
+
+  /** Group the question pool by theme, each group pre-shuffled for distinct hand-out. */
+  private groupQuestionsByTheme(pool: Question[]): Map<string, Question[]> {
     const byTheme = new Map<string, Question[]>()
     for (const q of pool) {
       const list = byTheme.get(q.theme) ?? []
@@ -104,41 +125,43 @@ export class RoundBuilder {
     for (const [theme, list] of byTheme) {
       byTheme.set(theme, this.shuffled(list))
     }
+    return byTheme
+  }
 
-    const plan: RoundSpec[] = []
-    let unknownMinigames = 0
-    for (const item of room.gameFlow) {
-      const block = blockById.get(item.blockId)
-      if (!block) continue
-      if (block.kind === BlockKindEnum.THEME && block.theme) {
-        const available = byTheme.get(block.theme) ?? []
-        const want = item.questions ?? DEFAULT_QUESTIONS_PER_BLOCK
-        for (let n = 0; n < want; n++) {
-          const next = available.pop()
-          if (!next) break
-          plan.push({ kind: 'quiz', question: next })
-        }
-      } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
-        const spec: ProceduralRoundSpec = {
-          kind: 'procedural',
-          type: block.minigameKey as RoundType,
-        }
-        if (item.timeLimitSeconds !== undefined) {
-          spec.timeLimitSeconds = item.timeLimitSeconds
-        }
-        plan.push(spec)
-      } else {
-        unknownMinigames++
-      }
+  /** Take up to `want` distinct questions of `theme`, consuming them from the pool. */
+  private planThemeBlock(
+    theme: string,
+    want: number | undefined,
+    byTheme: Map<string, Question[]>
+  ): QuizRoundSpec[] {
+    const available = byTheme.get(theme) ?? []
+    const count = want ?? DEFAULT_QUESTIONS_PER_BLOCK
+    const specs: QuizRoundSpec[] = []
+    for (let n = 0; n < count; n++) {
+      const next = available.pop()
+      if (!next) break
+      specs.push({ kind: 'quiz', question: next })
     }
+    return specs
+  }
 
+  /** Build a procedural round spec for a mini-game block, honoring its per-item timer. */
+  private planMinigameBlock(minigameKey: string, timeLimitSeconds?: number): ProceduralRoundSpec {
+    const spec: ProceduralRoundSpec = { kind: 'procedural', type: minigameKey as RoundType }
+    if (timeLimitSeconds !== undefined) {
+      spec.timeLimitSeconds = timeLimitSeconds
+    }
+    return spec
+  }
+
+  /** Log a single warning summarizing any blocks that could not be planned. */
+  private warnUnknownBlocks(room: Room, unknownMinigames: number): void {
     if (unknownMinigames > 0) {
       this.logger.warn(
         `Skipped ${unknownMinigames} unrecognized block(s) in room ${room.id}: ` +
           `blocks must be a theme with questions or a mini-game with a minigameKey.`
       )
     }
-    return plan
   }
 
   /**
@@ -247,6 +270,11 @@ export class RoundBuilder {
     if (type === 'sliding-puzzle') {
       return TIMER.SLIDING_PUZZLE_SECONDS
     }
+
+    if (type === 'vault-rush') {
+      return TIMER.VAULT_RUSH_SECONDS
+    }
+
     return TIMER.QUESTION_SECONDS
   }
 
