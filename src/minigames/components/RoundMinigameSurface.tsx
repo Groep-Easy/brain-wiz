@@ -14,7 +14,7 @@ import type {
 import { VaultRush } from '../vault-rush/components/VaultRush.js'
 import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
 import { WordleMock } from '../wordleGame/mock/WordleGameMock.js'
-import type { Guess } from '../wordleGame/shared/wordleGame.types.js'
+import type { WordlePublicState, WordleSubmission } from '../wordleGame/shared/wordleGame.types.js'
 import { BonkAir } from '../bonk-air/components/BonkAir.js'
 import type { BonkAirPuzzle } from '../bonk-air/shared/bonkAirGame.js'
 
@@ -134,7 +134,9 @@ export function RoundMinigameSurface({
   }
 
   if (content.type === 'wordle') {
-    const answer = (content.publicState as { answer?: string }).answer ?? ''
+    const publicState = content.publicState as Partial<WordlePublicState>
+    const wordLength = publicState.wordLength ?? 5
+    const maxTries = publicState.maxTries ?? 6
     const isReadOnly = mode === 'display'
 
     if (isReadOnly) {
@@ -149,9 +151,12 @@ export function RoundMinigameSurface({
     return (
       <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
         <WordleMock
-          answer={answer}
-          onSubmit={(submission: { guesses: Guess[] }) => onSubmissionChange?.(submission)}
+          maxTries={maxTries}
+          onGuess={(submission: WordleSubmission) => onSubmissionChange?.(submission)}
+          onSubmit={(submission: WordleSubmission) => onSubmissionChange?.(submission)}
+          roundId={content.roundId}
           submitted={submitted}
+          wordLength={wordLength}
         />
       </section>
     )
