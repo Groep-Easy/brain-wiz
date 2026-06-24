@@ -1,103 +1,26 @@
-import { useEffect, useRef, useState } from 'react'
-import type {
-  RoomState,
-  LeaderboardEntry,
-  RoadmapUpdate,
-  ScoreMap,
-  QuestionState,
-  QuestionRevealPayload,
-  RoundSummary,
-  RoundContentPayload,
-  RoundRevealPayload,
-} from '@brain-wiz/shared/types/index'
-import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { useEffect, useReducer, useRef } from 'react'
 import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
-import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
-
-const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
-const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
-const CONNECT_DELAY_MS = 50
+import { hostSocketReducer, createInitialHostState } from './hostSocketReducer'
+import { BACKEND_HTTP_URL, BACKEND_WS_URL, CONNECT_DELAY_MS } from './useHostSocket.constants'
 
 /**
- * Owns the host WebSocket: it connects for a given room/token, translates
- * inbound events into React state, and exposes actions to start the game or
- * tear the connection down. The screen layer only renders the returned state.
+ * Owns the host WebSocket: it connects for a given room/token and feeds inbound
+ * events to the pure `hostSocketReducer` (unit-tested separately). The host is a
+ * passive display, so this hook only receives state and exposes actions to start
+ * the game or tear the connection down; the screen layer renders the result.
  */
 export function useHostSocket(roomCode: string | undefined, hostToken: string | null) {
-  const [status, setStatus] = useState<'closed' | 'connecting' | 'open'>('closed')
-  const [fatalError, setFatalError] = useState<string | null>(null)
-  const [roomState, setRoomState] = useState<RoomState | null>(null)
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(0)
-  const [question, setQuestion] = useState<QuestionState | null>(null)
-  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
-  const [answeredCount, setAnsweredCount] = useState<number>(0)
-  const [totalPlayers, setTotalPlayers] = useState<number>(0)
-  const [round, setRound] = useState<RoundSummary | null>(null)
-  const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
-  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [roadmap, setRoadmap] = useState<RoadmapUpdate | null>(null)
-  const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
+  const [state, dispatch] = useReducer(hostSocketReducer, createInitialHostState())
 
   const socketRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
     if (!roomCode || !hostToken) {
-      setFatalError('Room taken or unauthorized')
+      dispatch({ type: 'unauthorized' })
       return
     }
 
-    const resetGameState = (): void => {
-      setQuestion(null)
-      setReveal(null)
-      setAnsweredCount(0)
-      setTotalPlayers(0)
-      setRound(null)
-      setLeaderboard([])
-      setRoadmap(null)
-      setFinalScores(null)
-    }
-
-    const handlers: Record<string, (d: Record<string, unknown>, raw: unknown) => void> = {
-      [EVENTS.ROOM_STATE_UPDATE]: (d) => setRoomState(d.room as RoomState),
-      [EVENTS.GAME_PHASE_CHANGE]: (d) =>
-        setRoomState((prev) => (prev ? { ...prev, phase: d.phase as RoomState['phase'] } : prev)),
-      [EVENTS.ROUND_START]: (d) => {
-        if (d.round) setRound(d.round as RoundSummary)
-        setRoundContent(null)
-        setRoundReveal(null)
-      },
-      [EVENTS.TIMER_TICK]: (d) => setSecondsRemaining(d.secondsRemaining as number),
-      [EVENTS.QUESTION_SHOW]: (d) => {
-        if (d.question) {
-          setRoundContent(null)
-          setRoundReveal(null)
-          setQuestion(d.question as QuestionState)
-          setReveal(null)
-          setAnsweredCount(0)
-        }
-      },
-      [EVENTS.ROUND_CONTENT_SHOW]: (_d, raw) => {
-        setRoundContent(raw as RoundContentPayload)
-        setRoundReveal(null)
-        setAnsweredCount(0)
-      },
-      [EVENTS.ANSWER_COUNT_UPDATE]: (d) => {
-        setAnsweredCount(d.answered as number)
-        setTotalPlayers(d.total as number)
-      },
-      [EVENTS.QUESTION_REVEAL]: (_d, raw) => setReveal(raw as QuestionRevealPayload),
-      [EVENTS.ROUND_REVEAL]: (_d, raw) => setRoundReveal(raw as RoundRevealPayload),
-      [EVENTS.LEADERBOARD_SHOW]: (d) => {
-        if (d.leaderboard) setLeaderboard(d.leaderboard as LeaderboardEntry[])
-      },
-      [EVENTS.ROADMAP_UPDATE]: (_d, raw) => setRoadmap(raw as RoadmapUpdate),
-      [EVENTS.GAME_OVER]: (d) => {
-        if (d.finalScores) setFinalScores(d.finalScores as ScoreMap)
-      },
-    }
-
-    setStatus('connecting')
+    dispatch({ type: 'connecting' })
 
     const connectTimer = setTimeout(() => {
       const wsUrl = `${BACKEND_WS_URL}/?role=host&code=${roomCode}`
@@ -105,32 +28,20 @@ export function useHostSocket(roomCode: string | undefined, hostToken: string | 
       socketRef.current = socket
 
       socket.onopen = () => {
-        setStatus('open')
-        resetGameState()
+        dispatch({ type: 'opened' })
       }
 
       socket.onmessage = (event) => {
         try {
-          const { event: ev, data } = JSON.parse(event.data) as {
-            event: string
-            data: unknown
-          }
-          // data is `unknown` — cast locally per-case for type-safe access
-          const d = data as Record<string, unknown>
-          handlers[ev]?.(d, data)
+          const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
+          dispatch({ type: 'serverEvent', event: ev, data })
         } catch (err) {
           console.error('Failed to parse WebSocket message:', err)
         }
       }
 
       socket.onclose = (event) => {
-        setStatus('closed')
-        setRoomState(null)
-
-        if (event.code === 4004) {
-          setFatalError('Room not found or token invalid')
-        }
-
+        dispatch({ type: 'closed', code: event.code })
         // Do not clear tokens or code so we can attempt reconnect if desired
       }
 
@@ -176,25 +87,11 @@ export function useHostSocket(roomCode: string | undefined, hostToken: string | 
   const closeConnection = (): void => {
     socketRef.current?.close()
     socketRef.current = null
-    setRoomState(null)
-    setStatus('closed')
+    dispatch({ type: 'closed' })
   }
 
   return {
-    status,
-    fatalError,
-    roomState,
-    secondsRemaining,
-    question,
-    reveal,
-    answeredCount,
-    totalPlayers,
-    round,
-    roundContent,
-    roundReveal,
-    leaderboard,
-    roadmap,
-    finalScores,
+    ...state,
     handleStartGame,
     closeConnection,
   }

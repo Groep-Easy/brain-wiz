@@ -63,7 +63,7 @@ function selectMinigame(selectedMinigame: PreviewMinigame): JSX.Element {
       return <VaultRushMock />
 
     case 'wordle':
-      return <WordleMock answer="APPLE" onSubmit={noop} />
+      return <WordleMock onSubmit={noop} />
     default: {
       const _exhaustive: never = selectedMinigame
       throw new Error(`Unhandled minigame: ${_exhaustive}`)
