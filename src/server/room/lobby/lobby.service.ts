@@ -24,8 +24,8 @@ import { isValidRoomCode } from '@brain-wiz/shared/utils/room-code'
 import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
-import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { PlayerAvatar, RoomState } from '@brain-wiz/shared/types/index'
+import type { ClientSocket, CreateRoomResult, JoinClientRequest } from './lobby.types'
+import type { RoomState } from '@brain-wiz/shared/types/index'
 import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
@@ -76,19 +76,11 @@ export class LobbyService {
   }
 
   /** Handle a PLAYER_JOIN: fresh join or reconnect (when playerId is supplied). */
-  public async joinClient(
-    socket: ClientSocket,
-    connectionId: string,
-    roomCode: string,
-    playerName: string,
-    playerId?: string,
-    playerToken?: string,
-    playerAvatar?: PlayerAvatar
-  ): Promise<void> {
-    const displayName = this.resolveDisplayName(socket, roomCode, playerName)
+  public async joinClient(socket: ClientSocket, request: JoinClientRequest): Promise<void> {
+    const displayName = this.resolveDisplayName(socket, request)
     if (displayName === null) return
 
-    const room = await this.rooms.findByJoinCode(roomCode)
+    const room = await this.rooms.findByJoinCode(request.roomCode)
     if (!room) {
       this.reject(socket, 'Room not found')
       return
@@ -98,14 +90,19 @@ export class LobbyService {
       return
     }
 
-    if (await this.attemptReconnect(socket, room, connectionId, playerId, playerToken)) {
+    if (await this.attemptReconnect(socket, room, request)) {
       return
     }
 
     const roster = await this.clients.findByRoom(room.id)
     if (!this.ensureRosterAllows(socket, roster, displayName)) return
 
-    const client = await this.clients.addClient(room.id, displayName, connectionId, playerAvatar)
+    const client = await this.clients.addClient(
+      room.id,
+      displayName,
+      request.connectionId,
+      request.playerAvatar
+    )
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
@@ -119,16 +116,12 @@ export class LobbyService {
   }
 
   /** Validate the room code and player name; rejects and returns null when invalid. */
-  private resolveDisplayName(
-    socket: ClientSocket,
-    roomCode: string,
-    playerName: string
-  ): string | null {
-    if (!isValidRoomCode(roomCode)) {
+  private resolveDisplayName(socket: ClientSocket, request: JoinClientRequest): string | null {
+    if (!isValidRoomCode(request.roomCode)) {
       this.reject(socket, 'Invalid room code')
       return null
     }
-    const displayName = playerName.trim()
+    const displayName = request.playerName.trim()
     const nameResult = validateDisplayName(displayName)
     if (!nameResult.ok) {
       this.reject(socket, nameResult.reason)
@@ -140,10 +133,9 @@ export class LobbyService {
   private async attemptReconnect(
     socket: ClientSocket,
     room: Room,
-    connectionId: string,
-    playerId?: string,
-    playerToken?: string
+    request: JoinClientRequest
   ): Promise<boolean> {
+    const { playerId, playerToken, connectionId } = request
     if (!playerId) return false
     const existing = await this.clients.findById(playerId)
     if (!existing || existing.roomId !== room.id) return false

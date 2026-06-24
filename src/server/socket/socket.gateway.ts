@@ -47,7 +47,12 @@ import { RateLimiter } from './rate-limiter'
 import { WsExceptionsFilter } from './ws-exception.filter'
 import { HostAuthThrottle } from './host-auth-throttle'
 import { HeartbeatMonitor } from './heartbeat-monitor'
-import type { CloseableSocket, IdentifiedSocket, UpgradeRequest } from './socket.types'
+import type {
+  CloseableSocket,
+  HostConnectAttempt,
+  IdentifiedSocket,
+  UpgradeRequest,
+} from './socket.types'
 import {
   parseConnectParams,
   clientIp,
@@ -122,18 +127,19 @@ export class SocketGateway
         ;(client as CloseableSocket).close?.(INVALID_TOKEN_CLOSE_CODE, INVALID_TOKEN_CLOSE_REASON)
         return
       }
-      this.connectHost(params.code, headerToken, connectionId, client, clientIp(request))
+      this.connectHost({
+        code: params.code,
+        hostToken: headerToken,
+        connectionId,
+        client,
+        ip: clientIp(request),
+      })
     }
   }
 
   /** Authenticate a host connection, throttling brute-force attempts per IP. */
-  private connectHost(
-    code: string,
-    hostToken: string,
-    connectionId: string,
-    client: IdentifiedSocket,
-    ip: string
-  ): void {
+  private connectHost(attempt: HostConnectAttempt): void {
+    const { code, hostToken, connectionId, client, ip } = attempt
     if (this.hostAuth.isLockedOut(ip)) {
       this.logger.warn(`Host auth locked out for ${ip || 'unknown IP'}`)
       client.close?.()
@@ -188,15 +194,14 @@ export class SocketGateway
   ): void {
     if (!this.rateLimiter.allow(client.connectionId)) return
     if (!payload?.roomCode || !payload?.playerName) return
-    void this.lobby.joinClient(
-      client,
-      client.connectionId ?? '',
-      payload.roomCode,
-      payload.playerName,
-      payload.playerId,
-      payload.playerToken,
-      payload.playerAvatar
-    )
+    void this.lobby.joinClient(client, {
+      connectionId: client.connectionId ?? '',
+      roomCode: payload.roomCode,
+      playerName: payload.playerName,
+      playerId: payload.playerId,
+      playerToken: payload.playerToken,
+      playerAvatar: payload.playerAvatar,
+    })
   }
 
   @SubscribeMessage(EVENTS.PLAYER_LEAVE)

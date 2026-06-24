@@ -7,6 +7,9 @@
 
 import type { Round } from '../../entities/round.entity'
 import type { Client } from '../../entities/client.entity'
+import type { ClientAnswer } from '../../entities/client-answer.entity'
+import type { ClientSocket } from '../lobby/lobby.types'
+import type { RoundOption, RoundScoringMode } from './game-events'
 import type { RoundType } from '@brain-wiz/shared/types/index'
 
 export type LeaderboardPlayer = Client
@@ -56,4 +59,51 @@ export interface PhaseTimerLike {
 export interface RunningGame {
   aborted: boolean
   timer: PhaseTimerLike
+}
+
+/** Per-round scoring context, cached by the ScoringService while a round is open. */
+export interface ScoringContext {
+  roundId: string
+  roundType: RoundType
+  scoringMode: RoundScoringMode
+  options: Map<string, RoundOption>
+  timeLimitMs: number
+  basePoints: number
+  privateState?: Record<string, unknown>
+  scoringConfig?: Record<string, unknown>
+}
+
+/** Everything a single round-scoring pass needs, gathered once by `scoreRound`. */
+export interface RoundScoringJob {
+  roomId: string
+  roundId: string
+  ctx: ScoringContext
+  rows: ClientAnswer[]
+  roster: Client[]
+}
+
+/** A single client's in-progress (not yet submitted) minigame snapshot. */
+export interface RoundProgressSnapshot {
+  answerValue: string
+  timeToAnswerMs: number
+}
+
+/** The in-memory open answer window the AnswerService keeps per room. */
+export interface OpenWindow {
+  roundId: string
+  roundType: RoundType
+  scoringMode: RoundScoringMode
+  shownAt: number
+  options: Map<string, RoundOption>
+  submitted: Set<string>
+  progress: Map<string, RoundProgressSnapshot>
+}
+
+/** A validated answer ready to be written to the database. */
+export interface PersistSubmissionInput {
+  socket: ClientSocket
+  roomId: string
+  clientId: string
+  window: OpenWindow
+  answerValue: string
 }
