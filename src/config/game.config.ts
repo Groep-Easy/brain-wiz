@@ -84,7 +84,6 @@ export const ROUNDS = Object.freeze({
     'balance-scale',
     'sliding-puzzle',
     'vault-rush',
-    'light-switch',
     'quiz',
     'balance-scale',
   ] as readonly RoundType[],
