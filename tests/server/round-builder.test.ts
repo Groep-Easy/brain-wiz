@@ -17,7 +17,7 @@ import {
   BlockKindEnum,
   QuestionThemeEnum,
 } from '../../src/server/entities/enums'
-import { TIMER } from '../../src/shared/constants/game-config'
+import { TIMER } from '@brain-wiz/config/game.config'
 
 function fakeQuestionRepo(count: number): Repository<Question> {
   const questions = Array.from({ length: count }, (_, i) =>
@@ -80,19 +80,27 @@ function fakeRoomRepo(): Repository<Room> {
 
 function fakeMinigameRegistry(): unknown {
   return {
-    get: (type: string): unknown =>
-      type === 'sliding-puzzle' || type === 'balance-scale'
-        ? {
-            type,
-            createRound: (input: { seed: string }): unknown => ({
-              type,
-              seed: input.seed,
-              publicState: { setup: type },
-              privateState: { solution: type },
-              scoringConfig: { points: 100 },
-            }),
-          }
-        : undefined,
+    get: (type: string): unknown => {
+      if (
+        type !== 'sliding-puzzle' &&
+        type !== 'balance-scale' &&
+        type !== 'vault-rush' &&
+        type !== 'light-switch'
+      ) {
+        return undefined
+      }
+
+      return {
+        type,
+        createRound: (input: { seed: string; timeLimitSeconds: number }): unknown => ({
+          type,
+          seed: input.seed,
+          publicState: { setup: type },
+          privateState: { solution: type },
+          scoringConfig: { points: 100, timeLimitSeconds: input.timeLimitSeconds },
+        }),
+      }
+    },
   }
 }
 
@@ -124,7 +132,7 @@ describe('RoundBuilder', () => {
     assert.ok(rounds.every((r: Round) => r.status === RoundStatusEnum.PENDING))
     assert.deepEqual(
       rounds.map((r: Round) => r.gameType),
-      ['quiz', 'balance-scale', 'sliding-puzzle', 'quiz', 'balance-scale']
+      ['quiz', 'balance-scale', 'sliding-puzzle', 'vault-rush', 'quiz']
     )
     assert.deepEqual(
       rounds.map((r: Round) => r.contentType),
@@ -132,11 +140,24 @@ describe('RoundBuilder', () => {
         ContentTypeEnum.QUESTION,
         ContentTypeEnum.PUZZLE,
         ContentTypeEnum.PUZZLE,
-        ContentTypeEnum.QUESTION,
         ContentTypeEnum.PUZZLE,
+        ContentTypeEnum.QUESTION,
       ]
     )
-    assert.ok(rounds.every((r: Round) => r.timeLimitSeconds === TIMER.QUESTION_SECONDS))
+    assert.deepEqual(
+      rounds.map((r: Round) => r.timeLimitSeconds),
+      [
+        TIMER.QUESTION_SECONDS,
+        TIMER.QUESTION_SECONDS,
+        TIMER.SLIDING_PUZZLE_SECONDS,
+        TIMER.QUESTION_SECONDS,
+        TIMER.QUESTION_SECONDS,
+      ]
+    )
+    assert.deepEqual(rounds[2]?.scoringConfig, {
+      points: 100,
+      timeLimitSeconds: TIMER.SLIDING_PUZZLE_SECONDS,
+    })
     const quizRounds = rounds.filter((r: Round) => r.gameType === 'quiz')
     assert.ok(quizRounds.every((r: Round) => typeof r.question?.id === 'string'))
     const ids = new Set(quizRounds.map((r: Round) => r.question?.id))
@@ -161,7 +182,7 @@ describe('RoundBuilder', () => {
       totalRounds: 4,
       gameFlow: [
         { blockId: 'theme-science', questions: 3 },
-        { blockId: 'mini-balance-scale' },
+        { blockId: 'mini-balance-scale', timeLimitSeconds: 50 },
         { blockId: 'theme-history', questions: 2 },
       ],
     })
@@ -182,6 +203,8 @@ describe('RoundBuilder', () => {
     assert.equal(rounds.filter((r) => r.question?.theme === QuestionThemeEnum.HISTORY).length, 2)
     const minigame = rounds[3]
     assert.equal(minigame?.contentType, ContentTypeEnum.PUZZLE)
+    assert.equal(minigame?.timeLimitSeconds, 50)
+    assert.deepEqual(minigame?.scoringConfig, { points: 100, timeLimitSeconds: 50 })
     assert.ok(minigame?.seed)
     assert.ok(minigame?.publicState)
   })

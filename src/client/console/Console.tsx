@@ -18,7 +18,7 @@ import {
   PLAYER_LEAVE,
   QUESTION_REVEAL,
   QUESTION_SHOW,
-} from '../../shared/events/socket-events'
+} from '@brain-wiz/shared/constants/socket-events.constants'
 import type {
   AnswerAckPayload,
   LeaderboardEntry,
@@ -27,7 +27,7 @@ import type {
   QuestionRevealPayload,
   QuestionShowPayload,
   QuestionState,
-} from '../../shared/types'
+} from '@brain-wiz/shared/types/index'
 import {
   parseFrame,
   parsePayload,
@@ -36,7 +36,7 @@ import {
   type LogEntry,
   type Status,
 } from './console-utils'
-import './console.css'
+import '../../shared/styles/console.css'
 
 const DEFAULT_URL = 'ws://localhost:3000'
 

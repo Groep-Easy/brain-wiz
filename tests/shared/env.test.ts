@@ -1,43 +1,38 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  isLocalhost,
+  isDevelopment,
   getBackendWsUrl,
   getBackendHttpUrl,
   getClientBaseUrl,
-} from '../../src/shared/utils/env'
+} from '@brain-wiz/shared/utils/env'
+
+const globalWithWindow: { window?: unknown } = globalThis
 
 describe('Env Utils', () => {
   let originalWindow: unknown
+  let originalProcessEnv: NodeJS.ProcessEnv
 
   beforeEach(() => {
-    originalWindow = (global as any).window
-    delete (global as any).window
+    originalWindow = globalWithWindow.window
+    delete globalWithWindow.window
+    originalProcessEnv = { ...process.env }
   })
 
   afterEach(() => {
-    ;(global as any).window = originalWindow
+    globalWithWindow.window = originalWindow
+    process.env = originalProcessEnv
   })
 
-  describe('isLocalhost', () => {
-    it('returns false when window is undefined', () => {
-      assert.equal(isLocalhost(), false)
+  describe('isDevelopment', () => {
+    it('returns false when not in development', () => {
+      process.env['NODE_ENV'] = 'production'
+      assert.equal(isDevelopment(), false)
     })
 
-    it('returns true for localhost hostname', () => {
-      ;(global as any).window = { location: { hostname: 'localhost' } }
-      assert.equal(isLocalhost(), true)
-    })
-
-    it('returns true for 127.0.0.1 hostname', () => {
-      ;(global as any).window = { location: { hostname: '127.0.0.1' } }
-      assert.equal(isLocalhost(), true)
-    })
-
-    it('returns false for production hostname', () => {
-      ;(global as any).window = { location: { hostname: 'brainwiz.com' } }
-      assert.equal(isLocalhost(), false)
+    it('returns true when NODE_ENV is development', () => {
+      process.env['NODE_ENV'] = 'development'
+      assert.equal(isDevelopment(), true)
     })
   })
 
@@ -46,23 +41,36 @@ describe('Env Utils', () => {
       assert.equal(getBackendWsUrl('wss://custom.url'), 'wss://custom.url')
     })
 
-    it('returns ws://localhost:3000 if localhost', () => {
-      ;(global as any).window = {
-        location: { hostname: 'localhost', protocol: 'http:', host: 'localhost:5173' },
+    it('returns ws://hostname:3000 if development', () => {
+      process.env['NODE_ENV'] = 'development'
+      globalWithWindow.window = {
+        location: { hostname: 'localhost', port: '5173' },
       }
       assert.equal(getBackendWsUrl(), 'ws://localhost:3000')
     })
 
-    it('returns ws://host if not localhost and protocol is http:', () => {
-      ;(global as any).window = {
-        location: { hostname: 'brainwiz.local', protocol: 'http:', host: 'brainwiz.local:8080' },
+    it('returns ws://host if not development and protocol is http:', () => {
+      process.env['NODE_ENV'] = 'production'
+      globalWithWindow.window = {
+        location: {
+          hostname: 'brainwiz.local',
+          protocol: 'http:',
+          host: 'brainwiz.local:8080',
+          port: '8080',
+        },
       }
       assert.equal(getBackendWsUrl(), 'ws://brainwiz.local:8080')
     })
 
-    it('returns wss://host if not localhost and protocol is https:', () => {
-      ;(global as any).window = {
-        location: { hostname: 'brainwiz.com', protocol: 'https:', host: 'brainwiz.com' },
+    it('returns wss://host if not development and protocol is https:', () => {
+      process.env['NODE_ENV'] = 'production'
+      globalWithWindow.window = {
+        location: {
+          hostname: 'brainwiz.com',
+          protocol: 'https:',
+          host: 'brainwiz.com',
+          port: '443',
+        },
       }
       assert.equal(getBackendWsUrl(), 'wss://brainwiz.com')
     })
@@ -83,14 +91,16 @@ describe('Env Utils', () => {
   })
 
   describe('getClientBaseUrl', () => {
-    it('returns http://localhost:5173 if localhost', () => {
-      ;(global as any).window = { location: { hostname: 'localhost' } }
+    it('returns http://hostname:5173 if development', () => {
+      process.env['NODE_ENV'] = 'development'
+      globalWithWindow.window = { location: { hostname: 'localhost', port: '5173' } }
       assert.equal(getClientBaseUrl(), 'http://localhost:5173')
     })
 
-    it('returns window origin if window is defined and not localhost', () => {
-      ;(global as any).window = {
-        location: { hostname: 'brainwiz.com', origin: 'https://brainwiz.com' },
+    it('returns window origin if window is defined and not development', () => {
+      process.env['NODE_ENV'] = 'production'
+      globalWithWindow.window = {
+        location: { hostname: 'brainwiz.com', port: '443', origin: 'https://brainwiz.com' },
       }
       assert.equal(getClientBaseUrl(), 'https://brainwiz.com')
     })

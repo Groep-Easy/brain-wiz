@@ -15,7 +15,7 @@ import {
   BeforeUpdate,
 } from 'typeorm'
 import { RoundStatusEnum, ContentTypeEnum } from './enums'
-import type { RoundType } from '../../shared/types/index'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 import type { Room } from './room.entity'
 import type { Question } from './question.entity'
 import type { CodingChallenge } from './coding-challenge.entity'
@@ -186,12 +186,16 @@ export class Round {
   @BeforeInsert()
   @BeforeUpdate()
   public validateRound(): void {
-    const contentCount = [this.questionId, this.codingChallengeId, this.puzzleId].filter(
-      (id) => id !== null && id !== undefined
-    ).length
-
     const isProceduralMinigame = this.gameType !== 'quiz'
 
+    this.validateContentPresence(isProceduralMinigame)
+    this.validateContentTypeMatch(isProceduralMinigame)
+    this.validateConstraints()
+    this.validateStatusTransitions()
+  }
+
+  /** Ensure the round carries the content a procedural/quiz round requires. */
+  private validateContentPresence(isProceduralMinigame: boolean): void {
     if (isProceduralMinigame) {
       if (this.contentType !== ContentTypeEnum.PUZZLE) {
         throw new BadRequestException('procedural minigame rounds must use contentType PUZZLE')
@@ -199,7 +203,14 @@ export class Round {
       if (!this.seed || !this.publicState || !this.privateState || !this.scoringConfig) {
         throw new BadRequestException('procedural minigame rounds require seed and generated state')
       }
-    } else if (contentCount !== 1) {
+      return
+    }
+
+    const contentCount = [this.questionId, this.codingChallengeId, this.puzzleId].filter(
+      (id) => id !== null && id !== undefined
+    ).length
+
+    if (contentCount !== 1) {
       throw new BadRequestException(
         `Round must have exactly one content item. ` +
           `Found: question=${this.questionId ? '✓' : '✗'}, ` +
@@ -207,8 +218,10 @@ export class Round {
           `puzzle=${this.puzzleId ? '✓' : '✗'}`
       )
     }
+  }
 
-    // Validate contentType matches the set FK
+  /** Ensure contentType agrees with whichever content FK is set. */
+  private validateContentTypeMatch(isProceduralMinigame: boolean): void {
     if (this.contentType === ContentTypeEnum.QUESTION && !this.questionId) {
       throw new BadRequestException('contentType is QUESTION but questionId is null')
     }
@@ -218,7 +231,10 @@ export class Round {
     if (!isProceduralMinigame && this.contentType === ContentTypeEnum.PUZZLE && !this.puzzleId) {
       throw new BadRequestException('contentType is PUZZLE but puzzleId is null')
     }
+  }
 
+  /** Ensure numeric round fields hold sane values. */
+  private validateConstraints(): void {
     if (this.timeLimitSeconds <= 0) {
       throw new BadRequestException('timeLimitSeconds must be greater than 0')
     }
@@ -226,8 +242,10 @@ export class Round {
     if (this.roundIndex < 0) {
       throw new BadRequestException('roundIndex cannot be negative')
     }
+  }
 
-    // Validate status transitions
+  /** Ensure status-dependent timestamps are present. */
+  private validateStatusTransitions(): void {
     if (this.status === RoundStatusEnum.ACTIVE && !this.startedAt) {
       throw new BadRequestException('startedAt must be set when status is ACTIVE')
     }

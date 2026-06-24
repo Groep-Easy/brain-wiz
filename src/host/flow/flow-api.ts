@@ -6,28 +6,41 @@
  * via PUT/randomize). All calls degrade gracefully so the editor keeps working
  * if the backend is briefly unreachable.
  */
-import { PALETTE, nextUid } from './palette'
+import { PALETTE, blockById, defaultMinigameTimeSeconds, nextUid } from './palette'
 import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 
+import { getBackendWsUrl, getBackendHttpUrl } from '@brain-wiz/shared/utils/env'
+
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
-const BACKEND_HTTP_URL = (import.meta.env.VITE_WS_URL || 'ws://localhost:3000').replace(
-  /^ws/i,
-  'http'
-)
+const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
 export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
-  return items.map((it) => ({
-    uid: nextUid(),
-    blockId: it.blockId,
-    questions: it.questions,
-    difficulty: it.difficulty,
-  }))
+  return items.map((it) => {
+    const block = blockById(it.blockId)
+    const timeLimitSeconds =
+      it.timeLimitSeconds ??
+      (block?.kind === 'minigame' ? defaultMinigameTimeSeconds(it.blockId) : undefined)
+    const item: FlowItem = {
+      uid: nextUid(),
+      blockId: it.blockId,
+    }
+    if (it.questions !== undefined) item.questions = it.questions
+    if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    if (it.difficulty !== undefined) item.difficulty = it.difficulty
+    return item
+  })
 }
 
 /** Strip client-only uids before sending a flow to the server. */
 export function toStoredFlow(flow: FlowItem[]): StoredFlowItem[] {
-  return flow.map(({ blockId, questions, difficulty }) => ({ blockId, questions, difficulty }))
+  return flow.map(({ blockId, questions, timeLimitSeconds, difficulty }) => {
+    const item: StoredFlowItem = { blockId }
+    if (questions !== undefined) item.questions = questions
+    if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    if (difficulty !== undefined) item.difficulty = difficulty
+    return item
+  })
 }
 
 /**

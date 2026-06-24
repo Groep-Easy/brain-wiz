@@ -1,6 +1,6 @@
+import '../../shared/styles/game_over.css'
 import { useEffect, useState } from 'react'
-import type { Player, ScoreMap } from '../../shared/types/index'
-import '../styles/game_over.css'
+import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
 
 interface GameOverProps {
   players: Player[]

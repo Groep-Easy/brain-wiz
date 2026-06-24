@@ -1,0 +1,46 @@
+.light-switch-game {
+  height: 100vh;
+  width: 100vw;
+}
+
+.light {
+  border-radius: 50%;
+  background: #444;
+  border: 3px solid #666;
+  position: absolute;
+
+  width: clamp(20px, 4vw, 60px);
+  height: clamp(20px, 4vw, 60px);
+  transform: translate(-50%, -50%);
+}
+
+@media (orientation: portrait) {
+  .light {
+    width: clamp(20px, 4vh, 60px);
+    height: clamp(20px, 4vh, 60px);
+  }
+}
+
+.light--on {
+  background: gold;
+  box-shadow: 0 0 20px gold;
+}
+
+.switch {
+  position: absolute;
+  width: 70px;
+  height: 40px;
+
+  transform: translate(-50%, -50%);
+}
+
+.connections {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.connections line {
+  stroke: #888;
+  stroke-width: 3;
+}

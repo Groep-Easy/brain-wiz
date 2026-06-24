@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type JSX } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type JSX } from 'react'
 import {
   createScrambledBoard,
   getTileBackgroundPosition,
@@ -47,27 +47,32 @@ export function SlidingPuzzle({
 }: SlidingPuzzleProps): JSX.Element {
   const boardWrapRef = useRef<HTMLDivElement | null>(null)
   const solveTimerRef = useRef<number | undefined>(undefined)
+  const onBoardChangeRef = useRef(onBoardChange)
+  onBoardChangeRef.current = onBoardChange
   const [board, setBoard] = useState<SlidingPuzzleBoard>(() => puzzle.initialBoard)
   const [boardSize, setBoardSize] = useState(FALLBACK_BOARD_SIZE)
   const [moveCount, setMoveCount] = useState(0)
   const [status, setStatus] = useState<PuzzleStatus>(SCRAMBLED_PUZZLE_STATUS)
   const [isSolving, setIsSolving] = useState(false)
 
-  function clearSolveTimer(): void {
+  const clearSolveTimer = useCallback((): void => {
     if (solveTimerRef.current !== undefined) {
       window.clearInterval(solveTimerRef.current)
       solveTimerRef.current = undefined
     }
-  }
+  }, [])
 
-  function resetBoard(nextBoard: SlidingPuzzleBoard): void {
-    clearSolveTimer()
-    setBoard(nextBoard)
-    onBoardChange?.(nextBoard)
-    setMoveCount(0)
-    setStatus(SCRAMBLED_PUZZLE_STATUS)
-    setIsSolving(false)
-  }
+  const resetBoard = useCallback(
+    (nextBoard: SlidingPuzzleBoard): void => {
+      clearSolveTimer()
+      setBoard(nextBoard)
+      onBoardChangeRef.current?.(nextBoard)
+      setMoveCount(0)
+      setStatus(SCRAMBLED_PUZZLE_STATUS)
+      setIsSolving(false)
+    },
+    [clearSolveTimer]
+  )
 
   function handleTileClick(tileIndex: number): void {
     if (readOnly || isSolving || !isAdjacent(tileIndex, board.indexOf(0))) {
@@ -128,7 +133,7 @@ export function SlidingPuzzle({
     return () => {
       clearSolveTimer()
     }
-  }, [])
+  }, [clearSolveTimer])
 
   useEffect(() => {
     const observedBoardWrap = boardWrapRef.current
@@ -157,7 +162,7 @@ export function SlidingPuzzle({
 
   useEffect(() => {
     resetBoard(puzzle.initialBoard)
-  }, [puzzle.id, puzzle.initialBoard])
+  }, [puzzle.id, puzzle.initialBoard, resetBoard])
 
   const zeroIndex = board.indexOf(0)
 

@@ -24,6 +24,8 @@ export interface GameBlockDto {
 export interface GameFlowItem {
   blockId: string
   questions?: number
+  /** Per-placed-minigame time limit in seconds. Ignored for theme blocks. */
+  timeLimitSeconds?: number
   /** Per-block difficulty for minigames that support it (Bonk Air: 1-3). */
   difficulty?: number
 }

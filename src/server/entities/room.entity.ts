@@ -16,7 +16,7 @@ import {
 import { GameModeEnum, RoomStatusEnum, QuestionThemeEnum, CodingLanguageEnum } from './enums'
 import type { Client } from './client.entity'
 import type { Round } from './round.entity'
-import type { GameFlowItem } from '../../shared/types/flow'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 
 /**
  * Room entity - represents a multiplayer game session
@@ -172,6 +172,13 @@ export class Room {
   @BeforeInsert()
   @BeforeUpdate()
   public validateRoom(): void {
+    this.validateRoundConfig()
+    this.validateGameModes()
+    this.validateStatusTransitions()
+  }
+
+  /** Round counts, time limit, and current index must hold sane values. */
+  private validateRoundConfig(): void {
     if (this.totalRounds <= 0) {
       throw new Error('totalRounds must be greater than 0')
     }
@@ -180,15 +187,20 @@ export class Room {
       throw new Error('defaultTimeLimitSeconds must be greater than 0')
     }
 
-    if (!this.selectedGameModes || this.selectedGameModes.length === 0) {
-      throw new Error('At least one game mode must be selected')
-    }
-
     if (this.currentRoundIndex < 0 || this.currentRoundIndex > this.totalRounds) {
       throw new Error('currentRoundIndex must be between 0 and totalRounds')
     }
+  }
 
-    // Validate status transitions
+  /** At least one game mode must be selected. */
+  private validateGameModes(): void {
+    if (!this.selectedGameModes || this.selectedGameModes.length === 0) {
+      throw new Error('At least one game mode must be selected')
+    }
+  }
+
+  /** Ensure status-dependent timestamps are present. */
+  private validateStatusTransitions(): void {
     if (this.status === RoomStatusEnum.ACTIVE && !this.startedAt) {
       throw new Error('startedAt must be set when status is ACTIVE')
     }

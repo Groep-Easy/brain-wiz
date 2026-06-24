@@ -1,0 +1,469 @@
+/* ── game_over.css — Unified Host & Client finishing page ── */
+
+/* ── Base Page Wrapper (Host Default) ── */
+.go-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 48px 24px 64px;
+  background: linear-gradient(160deg, var(--teal, #0f766e) 0%, var(--navy, #1e3a8a) 100%);
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+  color: #fff;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+.go-page--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Client Modifier (Mobile layout overrides) ── */
+.go-page--client {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ── Header (Host Only) ── */
+.go-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.go-title {
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 900;
+  margin: 0 0 8px;
+  letter-spacing: -1px;
+}
+
+.go-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* ── Hero Card (Client Only) ── */
+.go-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-2xl);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.go-hero--top3 {
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(255, 255, 255, 0.1));
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.go-hero-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.9;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.go-hero-rank {
+  font-size: 4.5rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.go-hero-score {
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.85;
+  margin: 12px 0 0 0;
+}
+
+/* ── Podium section ── */
+.go-podium-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+/* Specific podium spacing for client */
+.go-page--client .go-podium-wrap {
+  max-width: 400px;
+  margin-bottom: 32px;
+  gap: 2px;
+}
+
+.go-podium-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 180px;
+}
+
+.go-page--client .go-podium-slot {
+  max-width: 120px;
+}
+
+.go-podium-name-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.go-page--client .go-podium-name-wrap {
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.go-podium-medal {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.go-page--client .go-podium-medal {
+  font-size: 1.5rem;
+}
+
+.go-podium-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  max-width: 130px;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.go-page--client .go-podium-name {
+  font-size: 0.9rem;
+  padding: 0 4px;
+}
+
+.go-podium-score {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.go-page--client .go-podium-score {
+  font-size: 0.75rem;
+}
+
+/* The coloured block */
+.go-podium-block {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-bottom: none;
+  transition: transform 0.3s ease;
+  animation: podiumRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.go-page--client .go-podium-block {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.go-podium-block--first {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.go-podium-rank {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.go-page--client .go-podium-rank {
+  font-size: 1.25rem;
+}
+
+/* Highlight current player (Client) */
+.go-podium-slot.is-me .go-podium-block {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.7);
+}
+
+.go-podium-slot.is-me .go-podium-name {
+  color: #ffd700;
+}
+
+.go-podium-slot.is-me .go-podium-rank {
+  color: rgba(255, 215, 0, 0.9);
+}
+
+/* Staggered rise per rank */
+.go-podium-slot--1 .go-podium-block {
+  animation-delay: 0.1s;
+}
+
+.go-podium-slot--2 .go-podium-block {
+  animation-delay: 0.25s;
+}
+
+.go-podium-slot--3 .go-podium-block {
+  animation-delay: 0.4s;
+}
+
+@keyframes podiumRise {
+  from {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    opacity: 0;
+  }
+
+  to {
+    transform: scaleY(1);
+    transform-origin: bottom;
+    opacity: 1;
+  }
+}
+
+/* ── Rest of players list ── */
+.go-rest-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 40px;
+}
+
+.go-page--client .go-rest-wrap {
+  max-width: 400px;
+}
+
+.go-rest-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.7;
+  width: 100%;
+  text-align: left;
+}
+
+.go-rest-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.go-rest-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  color: #fff;
+  font-weight: 600;
+  animation: fadeInUp 0.4s ease both;
+}
+
+/* Client Specific Rest Row Tweaks */
+.go-page--client .go-rest-row {
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.go-rest-row:nth-child(1) {
+  animation-delay: 0.55s;
+}
+
+.go-rest-row:nth-child(2) {
+  animation-delay: 0.65s;
+}
+
+.go-rest-row:nth-child(3) {
+  animation-delay: 0.75s;
+}
+
+.go-rest-row:nth-child(4) {
+  animation-delay: 0.85s;
+}
+
+.go-rest-row:nth-child(n + 5) {
+  animation-delay: 0.95s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.go-rest-rank {
+  font-size: 1rem;
+  font-weight: 800;
+  opacity: 0.6;
+  min-width: 32px;
+}
+
+.go-page--client .go-rest-rank {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.go-rest-name {
+  flex: 1;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.go-page--client .go-rest-name {
+  font-size: 1.1rem;
+}
+
+.go-rest-score {
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.go-page--client .go-rest-score {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* ── Back Buttons ── */
+.go-back-btn {
+  margin-top: 8px;
+}
+
+.go-back-btn--client {
+  margin-top: 40px;
+  padding: 14px 28px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white, #ffffff);
+  background: var(--teal, #0f766e);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.go-back-btn--client:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+  color: var(--teal, #0f766e);
+}
+
+.go-back-btn--client:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Clean Responsivity for Phones ── */
+@media (max-width: 600px) {
+  .go-page {
+    padding: 32px 16px 48px;
+  }
+
+  .go-header {
+    margin-bottom: 32px;
+  }
+
+  .go-podium-medal {
+    font-size: 1.4rem;
+  }
+
+  .go-podium-name {
+    font-size: 0.85rem;
+  }
+
+  .go-podium-rank {
+    font-size: 1.2rem;
+  }
+
+  .go-rest-row {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .go-rest-name {
+    font-size: 0.9rem;
+  }
+
+  .go-rest-score {
+    font-size: 0.9rem;
+  }
+
+  .go-hero {
+    padding: 24px 16px;
+  }
+
+  .go-hero-rank {
+    font-size: 3.5rem;
+  }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type JSX } from 'react'
+import '../styles/bonk-air.css'
 
 interface BonkAirScorecardProps {
   /** Final points awarded this round; the display animates up to this value. */

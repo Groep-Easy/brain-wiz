@@ -1,6 +1,12 @@
-import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
+import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 
-export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale' | 'bonk-air'
+export type ProceduralRoundType =
+  | 'sliding-puzzle'
+  | 'balance-scale'
+  | 'vault-rush'
+  | 'wordle'
+  | 'light-switch'
+  | 'bonk-air'
 
 export interface CreateMinigameRoundInput {
   roundId: string
@@ -48,4 +54,28 @@ export interface BalanceScaleScoringConfig {
   basePoints: number
   solveSpeedBonus: number
   timeLimitMs: number
+}
+
+export interface VaultRushPrivateState {
+  code: string
+}
+
+export interface VaultRushScoringConfig {
+  basePoints: number
+  solveSpeedBonus: number
+  timeLimitMs: number
+}
+export interface LightSwitchScoreConfig {
+  baseScore: number
+  maxMoveBonus: number
+  timeLimitMs: number
+}
+
+export interface LightSwitchScoreBreakdown {
+  lightsOff: number
+  totalLights: number
+  solved: boolean
+  positionPoints: number
+  speedBonus: number
+  pointsAwarded: number
 }

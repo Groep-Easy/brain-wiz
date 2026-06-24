@@ -8,7 +8,7 @@ The application relies on Nginx to securely manage traffic before it ever touche
 
 ### 1. SSL/HTTPS & Zero-Touch Certificates
 
-Nginx automatically handles SSL termination. The `deploy.sh` script generates a secure 2048-bit RSA self-signed wildcard certificate on boot. This ensures that both standard HTTP traffic and the game's WebSocket connections (`wss://`) are fully encrypted.
+Nginx automatically handles SSL termination. Run `make cert` once on a fresh host to generate a 2048-bit RSA self-signed certificate into `nginx/ssl/` (nginx will not start without it). This ensures that both standard HTTP traffic and the game's WebSocket connections (`wss://`) are fully encrypted.
 
 ### 2. Port Management & Isolation
 
@@ -18,7 +18,7 @@ Nginx binds to port `3000` on the host machine and safely proxies traffic to the
 
 Nginx acts as a security buffer:
 
-- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks.
+- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks. This is the edge layer; the app adds HTTP and WebSocket limits on top — see [Rate Limiting](../security/rate-limiting.md).
 - **Error Pages**: Strips identifying server headers and serves custom HTML error pages located in `./nginx/errors/`.
 
 ### 4. Structured JSON Logging
@@ -49,53 +49,52 @@ Correlate across both nginx and app logs in Loki:
 
 ## Deployment
 
-The `deploy.sh` script handles cloning/updating the repo, cert generation, port management, and Docker orchestration. All services — app, database, and observability — live in a **single `docker-compose.yml`**.
+All services — app, nginx, database, and (optionally) observability — live in a **single `docker-compose.yml`**. Core services start by default; extras are opt-in via Compose profiles.
 
-### Deploy modes
-
-```bash
-./deploy.sh prod              # master → ~/brain-wiz          (ports 3000, 5432, 5050, 3100, 3200)
-./deploy.sh dev               # develop → ~/brain-wiz-dev     (ports 3001, 5433, 5051, 3201)
-./deploy.sh branch <name>     # <name>  → ~/brain-wiz-branch  (ports 3001, 5433, 5051, 3201)
-```
-
-#### Deploying your current branch to the server (testing)
-
-Push your branch, then SSH in and run:
+### One-time setup (fresh host)
 
 ```bash
 ssh <user>@<server-ip>
-cd ~
-curl -O https://raw.githubusercontent.com/Groep-Easy/brain-wiz/master/deploy.sh
-chmod +x deploy.sh
-./deploy.sh branch your-feature-branch
+git clone https://github.com/Groep-Easy/brain-wiz.git ~/brain-wiz && cd ~/brain-wiz
+cp .env.example .env        # set NODE_ENV=production, secrets, and
+                            # CORS_ORIGINS=https://<server-ip-or-domain>
+make cert                   # generate the self-signed TLS cert (once)
 ```
 
-The branch deploy uses alternate ports so it never conflicts with a running prod instance.
+### Deploy / redeploy
+
+```bash
+make deploy                 # pull + build + start core (app, nginx, db) on 80/443
+make deploy-obs             # same, plus observability (Grafana on 3200)
+make down                   # stop the stack
+```
+
+`make deploy` runs `docker compose -f docker-compose.yml up --build -d` — the
+explicit `-f` skips the local-dev `docker-compose.override.yml`, so the
+database is **never** published to the host on the server. The DB and Loki are
+internal-only (no host ports); nginx is the sole public entry point on 80/443.
 
 ### Accessing from home over VPN
 
 The UvA server is only reachable while connected to the **UvA VPN** (Cisco AnyConnect / eduVPN). Once connected:
 
-| Service          | URL                        |
-| ---------------- | -------------------------- |
-| App (branch)     | `https://<server-ip>:3001` |
-| Grafana (branch) | `http://<server-ip>:3201`  |
-| pgAdmin (branch) | `http://<server-ip>:5051`  |
-| App (prod)       | `https://<server-ip>:3000` |
-| Grafana (prod)   | `http://<server-ip>:3200`  |
+| Service                           | URL                       |
+| --------------------------------- | ------------------------- |
+| App                               | `https://<server-ip>`     |
+| Grafana (`observability` profile) | `http://<server-ip>:3200` |
+| pgAdmin (`tools` profile)         | `http://<server-ip>:5050` |
 
 > [!NOTE]
 > Browsers will show a privacy warning for `https://` because the certificate is self-signed. Click **Advanced → Proceed** to continue. Replace with a Let's Encrypt cert for a fully public deployment.
 
 > [!IMPORTANT]
-> Make sure the server's firewall allows the ports listed above from the VPN subnet. On the UvA server run `sudo ufw allow <port>` for any port not yet open.
+> Make sure the server's firewall allows the ports above from the VPN subnet. On the UvA server run `sudo ufw allow <port>` for any port not yet open.
 
 ---
 
 ## Observability: Loki + Promtail + Grafana
 
-All three observability services are included in `docker-compose.yml` alongside the app — no separate file needed.
+All three observability services are included in `docker-compose.yml` alongside the app, gated behind the `observability` profile. Start them with `make deploy-obs` (or `docker compose --profile observability up -d`).
 
 ### How logs flow
 
@@ -118,9 +117,10 @@ nginx (writes JSON)
 
 ### Files
 
-| File                                                                                                                                                | Purpose                                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [`docker-compose.yml`](file:///Users/anton/Documents/Projects/brain-wiz/docker-compose.yml)                                                         | All services: app, nginx, db, pgadmin, Loki, Promtail, Grafana |
-| [`loki/promtail-config.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/promtail-config.yml)                                             | Promtail scrape config (tails nginx access + error logs)       |
-| [`loki/grafana-provisioning/datasources/loki.yml`](file:///Users/anton/Documents/Projects/brain-wiz/loki/grafana-provisioning/datasources/loki.yml) | Auto-provisions Loki as Grafana default datasource             |
-| [`deploy.sh`](file:///Users/anton/Documents/Projects/brain-wiz/deploy.sh)                                                                           | Deployment script (`prod` / `dev` / `branch <name>`)           |
+| File                                             | Purpose                                                                                         |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `docker-compose.yml`                             | All services: app, nginx, db (core), pgadmin (`tools`), Loki/Promtail/Grafana (`observability`) |
+| `docker-compose.override.yml`                    | Local-dev only: publishes the DB port (never used by `make deploy`)                             |
+| `Makefile`                                       | `make cert` / `make deploy` / `make deploy-obs` / `make down`                                   |
+| `loki/promtail-config.yml`                       | Promtail scrape config (tails nginx access + error logs)                                        |
+| `loki/grafana-provisioning/datasources/loki.yml` | Auto-provisions Loki as Grafana default datasource                                              |

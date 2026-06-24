@@ -11,16 +11,17 @@
  */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { App } from './App'
-import { MuteButton } from './components/MuteButton'
+import { WelcomeScreen } from './screens/WelcomeScreen'
 import { Console } from './console/Console'
-import { FlowEditor } from './screens/FlowEditor'
 import { LeaderBoard } from './components/LeaderBoard'
-import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechanicsMock'
-import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
-import { BonkAirMock } from '../minigames/bonk-air/mock/BonkAirMock'
-import './styles/index.css'
+import { ScaleMechanicsMock } from '@brain-wiz/minigames/balance-scale/mock/ScaleMechanicsMock'
+import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { BonkAirMock } from '@brain-wiz/minigames/bonk-air/mock/BonkAirMock'
+import { GlassFilter } from '@brain-wiz/shared/components/GlassFilter'
+import { BackgroundGradient } from '@brain-wiz/shared/components/BackgroundGradient'
+import '@brain-wiz/shared/styles/global.css'
 
 const container = document.getElementById('root')
 if (!container) {
@@ -59,21 +60,20 @@ const mockLeaderboard = [
 
 createRoot(container).render(
   <StrictMode>
-    {/* basename must match the Vite base / Express mount so React Router
-        resolves paths correctly: /host/console matches route path="/console" */}
-    <BrowserRouter basename="/host">
+    <BackgroundGradient />
+    <GlassFilter />
+    {/* The host app is now served from the root, so no basename is needed */}
+    <BrowserRouter>
       <Routes>
+        <Route path="/" element={<WelcomeScreen />} />
+        <Route path="/welcome" element={<Navigate to="/" replace />} />
         <Route
-          path="/"
+          path="/host/:roomCode"
           element={
-            <>
-              <App />
-              <MuteButton />
-            </>
+            <App />
           }
         />
         <Route path="/console" element={<Console />} />
-        <Route path="/flow-editor" element={<FlowEditor />} />
         <Route
           path="/screens/leaderboard"
           element={<LeaderBoard leaderboard={mockLeaderboard} />}
@@ -81,6 +81,8 @@ createRoot(container).render(
         <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
         <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
         <Route path="/bonk-air-mock" element={<BonkAirMock />} />
+        {/* Fallback for /host or any unrecognized path */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

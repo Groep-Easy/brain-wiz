@@ -3,19 +3,35 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: 2rem;
   background: var(--navy);
   color: #fff;
 }
 .round-intro-card {
   text-align: center;
+  max-width: 1100px;
 }
+
 .round-intro-eyebrow {
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.8;
-  margin: 0 0 0.5rem;
+  opacity: 0.7;
+  margin: 0 0 1rem;
 }
 .round-intro-title {
   font-size: clamp(2rem, 6vw, 4.5rem);
+}
+
+.round-intro-question {
+  font-size: clamp(1.75rem, 4.5vw, 3.5rem);
+  line-height: 1.2;
+  margin: 0;
+  font-weight: 800;
+}
+.round-intro-getready {
+  margin: 1.5rem 0 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
 }

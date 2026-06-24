@@ -9,7 +9,6 @@
  * changes via the `storage` event. A flow must keep at least MIN_FLOW_BLOCKS.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   PALETTE,
   MIN_FLOW_BLOCKS,
@@ -19,26 +18,30 @@ import {
   DEFAULT_QUESTIONS_PER_BLOCK,
   MIN_QUESTIONS_PER_BLOCK,
   MAX_QUESTIONS_PER_BLOCK,
+  MINIGAME_TIME_STEP_SECONDS,
   blockById,
+  clampMinigameTimeSeconds,
+  createFlowItem,
   randomFlowFrom,
-  nextUid,
 } from '../flow/palette'
-import { fetchCatalog, fetchRoomFlow, storeRoomFlow, randomizeRoomFlow } from '../flow/flow-api'
+import { fetchCatalog } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
 import { buildSerpentine } from '../flow/serpentine'
-import brandLogo from '../assets/BrainWiz logo.png'
+import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
-export function FlowEditor(): React.JSX.Element {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const code = searchParams.get('code') ?? ''
-  const token = searchParams.get('token') ?? ''
-  const serverBacked = code !== '' && token !== ''
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+
+export interface FlowEditorProps {
+  initialFlow: FlowItem[]
+  onSave: (flow: FlowItem[]) => void
+  onCancel: () => void
+}
+
+export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
-  const [flow, setFlow] = useState<FlowItem[]>([])
-  const [ready, setReady] = useState(false)
-  const skipNextSave = useRef(true)
+  const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
   const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)
   // The slot index a dragged block would be inserted at, or null when not dragging.
   const [dropIndex, setDropIndex] = useState<number | null>(null)
@@ -54,6 +57,11 @@ export function FlowEditor(): React.JSX.Element {
       Math.max(MIN_QUESTIONS_PER_BLOCK, Math.round(value) || MIN_QUESTIONS_PER_BLOCK)
     )
     setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, questions: clamped } : f)))
+  }
+
+  const setMinigameTime = (uid: string, blockId: string, value: number) => {
+    const clamped = clampMinigameTimeSeconds(value, blockId)
+    setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, timeLimitSeconds: clamped } : f)))
   }
 
   // The snake grid: cells in visual order + per-slot logical insert mapping. A
@@ -76,43 +84,27 @@ export function FlowEditor(): React.JSX.Element {
     setFlow((prev) => {
       if (prev.length >= MAX_FLOW_BLOCKS) return prev
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
-      return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
+      return pick ? [...prev, createFlowItem(pick)] : prev
     })
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   useEffect(() => {
     let active = true
     void (async () => {
-      const [blocks, serverFlow] = await Promise.all([
-        fetchCatalog(),
-        serverBacked ? fetchRoomFlow(code) : Promise.resolve<FlowItem[]>([]),
-      ])
+      const blocks = await fetchCatalog()
       if (!active) return
       setCatalog(blocks)
-      const initial =
-        serverFlow.length >= MIN_FLOW_BLOCKS
-          ? serverFlow
-          : randomFlowFrom(blocks, DEFAULT_FLOW_SIZE)
-      skipNextSave.current = true
-      setFlow(initial)
-      setReady(true)
+
+      // If initialFlow is empty, generate a random one locally for the draft
+      if (initialFlow.length < MIN_FLOW_BLOCKS) {
+        setFlow(randomFlowFrom(blocks, DEFAULT_FLOW_SIZE))
+      }
     })()
     return () => {
       active = false
     }
-  }, [code, serverBacked])
-
-  useEffect(() => {
-    if (!ready || !serverBacked) return
-    if (skipNextSave.current) {
-      skipNextSave.current = false
-      return
-    }
-    const timer = setTimeout(() => {
-      void storeRoomFlow(code, token, flow)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [flow, ready, serverBacked, code, token])
+  }, [initialFlow])
 
   // Close the question-count popover when clicking outside it.
   useEffect(() => {
@@ -132,12 +124,14 @@ export function FlowEditor(): React.JSX.Element {
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -181,10 +175,11 @@ export function FlowEditor(): React.JSX.Element {
 
     if (source === 'palette') {
       const blockId = e.dataTransfer.getData('application/x-block')
-      if (!resolveBlock(blockId)) return
+      const block = resolveBlock(blockId)
+      if (!block) return
       setFlow((prev) => {
         const next = [...prev]
-        next.splice(index, 0, { uid: nextUid(), blockId })
+        next.splice(index, 0, createFlowItem(block))
         return next
       })
     } else if (source === 'flow') {
@@ -200,36 +195,23 @@ export function FlowEditor(): React.JSX.Element {
         return next
       })
     }
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   const removeAt = (index: number) => {
     setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
   }
 
-  const openSizePicker = () => setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  const openSizePicker = () => {
+    setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
+  }
 
   const confirmShuffle = () => {
     if (sizePicker === null) return
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
-    if (serverBacked) {
-      void randomizeRoomFlow(code, token, count)
-        .then((next) => {
-          skipNextSave.current = true
-          setFlow(next)
-        })
-        .catch(() => setFlow(randomFlowFrom(catalog, count)))
-    } else {
-      setFlow(randomFlowFrom(catalog, count))
-    }
-  }
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1)
-    } else {
-      window.close()
-    }
+    setFlow(randomFlowFrom(catalog, count))
+    if (!isMuted()) playSound(sounds.die, false)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
@@ -237,14 +219,23 @@ export function FlowEditor(): React.JSX.Element {
   return (
     <div className="flow-editor">
       <header className="flow-editor-header">
-        <img className="brand-logo" src={brandLogo} alt="BrainWiz" />
-        <button className="back-btn" onClick={handleBack} aria-label="Back to lobby">
-          ← Back
-        </button>
-        <h1>Edit game flow</h1>
-        <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
-          🎲 Randomize
-        </button>
+        <WizardLogo size={40} className="brand-logo" />
+        <h2>Edit Game Flow</h2>
+        <div className="flow-editor-actions">
+          <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
+            🎲 Randomize
+          </button>
+          <button className="cancel-btn" onClick={onCancel} title="Return without saving">
+            Cancel
+          </button>
+          <button
+            className="primary-btn save-btn"
+            onClick={() => onSave(flow)}
+            title="Save changes"
+          >
+            Save
+          </button>
+        </div>
       </header>
 
       <p className="flow-editor-hint">
@@ -255,14 +246,14 @@ export function FlowEditor(): React.JSX.Element {
       <div className="flow-editor-body">
         {/* Palette */}
         <aside className="palette">
-          <h2>Themes</h2>
+          <h2>Mini-games</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'theme')
+              .filter((b) => b.kind === 'minigame')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block theme"
+                  className="palette-block minigame"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
@@ -272,14 +263,14 @@ export function FlowEditor(): React.JSX.Element {
               ))}
           </div>
 
-          <h2>Mini-games</h2>
+          <h2>Themes</h2>
           <div className="palette-group">
             {catalog
-              .filter((b) => b.kind === 'minigame')
+              .filter((b) => b.kind === 'theme')
               .map((block) => (
                 <div
                   key={block.id}
-                  className="palette-block minigame"
+                  className="palette-block theme"
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
@@ -303,6 +294,7 @@ export function FlowEditor(): React.JSX.Element {
               if (!item) return null
               const block = resolveBlock(item.blockId)
               if (!block) return null
+              const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
               const lastCell = cell.visualPos === count - 1
               return (
                 <div
@@ -313,7 +305,9 @@ export function FlowEditor(): React.JSX.Element {
                   {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
                   {lastCell && dropIndex === count && <div className="drop-indicator after" />}
                   <div
-                    className={`canvas-block ${block.kind}`}
+                    className={`canvas-block ${block.kind} ${
+                      block.kind === 'minigame' ? 'has-time-control' : ''
+                    }`}
                     draggable
                     onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
                   >
@@ -343,6 +337,50 @@ export function FlowEditor(): React.JSX.Element {
                     )}
                     <span className="block-icon">{block.icon}</span>
                     <span className="block-label">{block.label}</span>
+                    {block.kind === 'minigame' && (
+                      <div
+                        className="minigame-time-control"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds - MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Reduce ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`-${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &lt;
+                        </button>
+                        <span className="time-value" aria-label={`${timeLimitSeconds} seconds`}>
+                          {timeLimitSeconds}s
+                        </span>
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds + MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Increase ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`+${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {cell.arrow !== 'none' && (
                     <span className={`canvas-arrow arrow-${cell.arrow}`} aria-hidden="true">

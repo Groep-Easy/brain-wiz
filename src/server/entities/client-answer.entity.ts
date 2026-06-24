@@ -111,16 +111,28 @@ export class ClientAnswer {
   @BeforeInsert()
   @BeforeUpdate()
   public validateAnswer(): void {
+    this.validateAnswerValue()
+    this.validateTimeoutConsistency()
+    this.validateNonNegativeMetrics()
+    this.warnOnPartialScoring()
+  }
+
+  /** A submitted answer must carry a non-empty value. */
+  private validateAnswerValue(): void {
     if (!this.answerValue || this.answerValue.trim().length === 0) {
       throw new Error('answerValue cannot be empty')
     }
+  }
 
+  /** A timeout means no answer was submitted, so it cannot carry a value/timestamp. */
+  private validateTimeoutConsistency(): void {
     if (this.isTimeout && (this.answerValue.length > 0 || this.answeredAt)) {
-      // isTimeout should indicate NO answer was submitted
-      // If you have an answer value, it's not a timeout
       throw new Error('isTimeout cannot be true if answerValue is provided')
     }
+  }
 
+  /** Scoring metrics, when present, must be non-negative. */
+  private validateNonNegativeMetrics(): void {
     if (this.pointsAwarded !== null && this.pointsAwarded < 0) {
       throw new Error('pointsAwarded cannot be negative')
     }
@@ -128,14 +140,14 @@ export class ClientAnswer {
     if (this.timeToAnswerMs !== null && this.timeToAnswerMs < 0) {
       throw new Error('timeToAnswerMs cannot be negative')
     }
+  }
 
-    // If scoring is complete, both isCorrect and pointsAwarded should be set
+  /** When scoring is complete, isCorrect and pointsAwarded should both be set. */
+  private warnOnPartialScoring(): void {
     if (
       (this.isCorrect !== null && this.pointsAwarded === null) ||
       (this.isCorrect === null && this.pointsAwarded !== null)
     ) {
-      // Optionally allow partial state, but log warning
-      // eslint-disable-next-line no-console
       console.warn(
         `ClientAnswer ${this.id}: partial scoring state - ` +
           `isCorrect=${this.isCorrect}, pointsAwarded=${this.pointsAwarded}`

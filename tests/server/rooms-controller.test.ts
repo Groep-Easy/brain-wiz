@@ -12,7 +12,7 @@ import {
   InvalidHostTokenError,
   NotEnoughPlayersError,
 } from '../../src/server/room/lobby/lobby.errors'
-import type { RoomState } from '../../src/shared/types/index'
+import type { RoomState } from '@brain-wiz/shared/types/index'
 
 const lobbyState: RoomState = { code: 'ABCD', players: [], phase: 'lobby', round: 0, gameFlow: [] }
 

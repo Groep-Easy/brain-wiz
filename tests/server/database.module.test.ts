@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import * as assert from 'node:assert/strict'
-import { getDatabaseConfig } from '../../src/config/database'
+import { getDatabaseConfig } from '@brain-wiz/config/database.config'
 
 describe('DatabaseModule', () => {
   it('validates that getDatabaseConfig returns all required fields', () => {

@@ -3,7 +3,7 @@
  * @description Internal, in-process domain events for the game's decoupled bus.
  * These NEVER cross the WebSocket — they only coordinate server-side services.
  */
-import type { RoundType } from '../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 /** An answer option as the presenter assigned it (the id↔correctness source of truth). */
 export interface RoundOption {
@@ -42,6 +42,19 @@ export interface RoundWindowClosed {
   reason: 'expired' | 'all-answered'
 }
 
+export interface RoundWindowFinalizeRequested {
+  type: 'ROUND_WINDOW_FINALIZE_REQUESTED'
+  roomId: string
+  roundId: string
+  reason: 'expired' | 'all-answered'
+}
+
+export interface RoundWindowFinalized {
+  type: 'ROUND_WINDOW_FINALIZED'
+  roomId: string
+  roundId: string
+}
+
 export interface RoundScored {
   type: 'ROUND_SCORED'
   roomId: string
@@ -60,6 +73,8 @@ export interface RoundWindowAborted {
 export type GameDomainEvent =
   | RoundWindowOpened
   | AllPlayersAnswered
+  | RoundWindowFinalizeRequested
+  | RoundWindowFinalized
   | RoundWindowClosed
   | RoundScored
   | RoundWindowAborted

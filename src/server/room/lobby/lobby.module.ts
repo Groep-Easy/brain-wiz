@@ -7,10 +7,11 @@ import { LobbyService } from './lobby.service.js'
 import { RoomsController } from './room.controller.js'
 import { QuestionModule } from '../../question/question.module.js'
 import { FlowModule } from '../../flow/flow.module.js'
+import { LobbyController } from './lobby.controller.js'
 
 @Module({
   imports: [RoomModule, ClientModule, RealtimeModule, GameModule, QuestionModule, FlowModule],
-  controllers: [RoomsController],
+  controllers: [RoomsController, LobbyController],
   providers: [LobbyService],
   exports: [LobbyService],
 })

@@ -16,15 +16,15 @@ import {
   PING,
   QUESTION_REVEAL,
   QUESTION_SHOW,
-} from '../../shared/events/socket-events'
-import { WS_SUBPROTOCOL } from '../../shared/constants/ws'
+} from '@brain-wiz/shared/constants/socket-events.constants'
+import { WS_SUBPROTOCOL } from '@brain-wiz/shared/constants/ws.constants'
 import type {
   LeaderboardEntry,
   LeaderboardShowPayload,
   QuestionRevealPayload,
   QuestionShowPayload,
   QuestionState,
-} from '../../shared/types'
+} from '@brain-wiz/shared/types/index'
 import {
   buildWsUrl,
   parseFrame,
@@ -35,8 +35,8 @@ import {
   type LogEntry,
   type Status,
 } from './console-utils'
-import { getBackendWsUrl } from '../../shared/utils/env'
-import './console.css'
+import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+import '../../shared/styles/console.css'
 
 const DEFAULT_URL = getBackendWsUrl()
 

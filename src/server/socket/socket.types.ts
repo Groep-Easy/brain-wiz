@@ -25,12 +25,22 @@ export interface IdentifiedSocket extends ClientSocket, HeartbeatSocket {
   idleTimer?: NodeJS.Timeout
 }
 
+/** A host's WebSocket connection attempt, gathered from the upgrade request. */
+export interface HostConnectAttempt {
+  code: string
+  hostToken: string
+  connectionId: string
+  client: IdentifiedSocket
+  ip: string
+}
+
 /** The subset of the WS upgrade request the gateway inspects. */
 export interface UpgradeRequest {
   url?: string
   headers?: {
     origin?: string
     'sec-websocket-protocol'?: string
+    'x-forwarded-for'?: string | string[]
   }
   socket?: { remoteAddress?: string }
 }

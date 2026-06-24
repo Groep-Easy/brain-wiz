@@ -18,16 +18,18 @@ import { toRoomState } from '../room.helpers'
 import { Room } from '../../entities/room.entity'
 import { Client } from '../../entities/client.entity'
 import { RoomStatusEnum } from '../../entities/enums'
-import * as EVENTS from '../../../shared/events/socket-events'
-import { ROOM, PLAYER } from '../../../shared/constants/game-config'
-import { isValidRoomCode } from '../../../shared/utils/room-code'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import { ROOM } from '@brain-wiz/config/game.config'
+import { isValidRoomCode } from '@brain-wiz/shared/utils/room-code'
+import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
-import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { RoomState } from '../../../shared/types/index'
-import type { GameFlowItem } from '../../../shared/types/flow'
+import type { ClientSocket, CreateRoomResult, JoinClientRequest } from './lobby.types'
+import type { RoomState } from '@brain-wiz/shared/types/index'
+import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
+import { BasicResponseDto } from '@brain-wiz/shared/dto/rest-api.dto'
 
 @Injectable()
 export class LobbyService {
@@ -74,31 +76,11 @@ export class LobbyService {
   }
 
   /** Handle a PLAYER_JOIN: fresh join or reconnect (when playerId is supplied). */
-  public async joinClient(
-    socket: ClientSocket,
-    connectionId: string,
-    roomCode: string,
-    playerName: string,
-    playerId?: string,
-    playerToken?: string
-  ): Promise<void> {
-    if (!isValidRoomCode(roomCode)) {
-      this.reject(socket, 'Invalid room code')
-      return
-    }
-    const displayName = playerName.trim()
-    if (
-      displayName.length < PLAYER.NAME_MIN_LENGTH ||
-      displayName.length > PLAYER.NAME_MAX_LENGTH
-    ) {
-      this.reject(
-        socket,
-        `Display name must be ${PLAYER.NAME_MIN_LENGTH}–${PLAYER.NAME_MAX_LENGTH} characters`
-      )
-      return
-    }
+  public async joinClient(socket: ClientSocket, request: JoinClientRequest): Promise<void> {
+    const displayName = this.resolveDisplayName(socket, request)
+    if (displayName === null) return
 
-    const room = await this.rooms.findByJoinCode(roomCode)
+    const room = await this.rooms.findByJoinCode(request.roomCode)
     if (!room) {
       this.reject(socket, 'Room not found')
       return
@@ -108,29 +90,19 @@ export class LobbyService {
       return
     }
 
-    if (playerId) {
-      const existing = await this.clients.findById(playerId)
-      if (existing && existing.roomId === room.id) {
-        if (!this.registry.verifyReconnectToken(playerId, playerToken)) {
-          this.reject(socket, 'Invalid reconnect token')
-          return
-        }
-        await this.reconnect(room, existing, connectionId, socket)
-        return
-      }
+    if (await this.attemptReconnect(socket, room, request)) {
+      return
     }
 
     const roster = await this.clients.findByRoom(room.id)
-    if (roster.length >= ROOM.MAX_PLAYERS) {
-      this.reject(socket, 'Room is full')
-      return
-    }
-    if (roster.some((c) => c.displayName === displayName)) {
-      this.reject(socket, 'Display name is taken')
-      return
-    }
+    if (!this.ensureRosterAllows(socket, roster, displayName)) return
 
-    const client = await this.clients.addClient(room.id, displayName, connectionId)
+    const client = await this.clients.addClient(
+      room.id,
+      displayName,
+      request.connectionId,
+      request.playerAvatar
+    )
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
@@ -138,8 +110,55 @@ export class LobbyService {
       playerId: client.id,
       roomCode: room.joinCode,
       reconnectToken,
+      playerAvatar: client.playerAvatar,
     })
     await this.broadcastState(room)
+  }
+
+  /** Validate the room code and player name; rejects and returns null when invalid. */
+  private resolveDisplayName(socket: ClientSocket, request: JoinClientRequest): string | null {
+    if (!isValidRoomCode(request.roomCode)) {
+      this.reject(socket, 'Invalid room code')
+      return null
+    }
+    const displayName = request.playerName.trim()
+    const nameResult = validateDisplayName(displayName)
+    if (!nameResult.ok) {
+      this.reject(socket, nameResult.reason)
+      return null
+    }
+    return displayName
+  }
+
+  private async attemptReconnect(
+    socket: ClientSocket,
+    room: Room,
+    request: JoinClientRequest
+  ): Promise<boolean> {
+    const { playerId, playerToken, connectionId } = request
+    if (!playerId) return false
+    const existing = await this.clients.findById(playerId)
+    if (!existing || existing.roomId !== room.id) return false
+
+    if (!this.registry.verifyReconnectToken(playerId, playerToken)) {
+      this.reject(socket, 'Invalid reconnect token')
+      return true
+    }
+    await this.reconnect(room, existing, connectionId, socket)
+    return true
+  }
+
+  /** Enforce capacity and unique display name; rejects and returns false if not allowed. */
+  private ensureRosterAllows(socket: ClientSocket, roster: Client[], displayName: string): boolean {
+    if (roster.length >= ROOM.MAX_PLAYERS) {
+      this.reject(socket, 'Room is full')
+      return false
+    }
+    if (roster.some((c) => c.displayName === displayName)) {
+      this.reject(socket, 'Display name is taken')
+      return false
+    }
+    return true
   }
 
   /** Explicit PLAYER_LEAVE: remove the client and refresh the room. */
@@ -372,5 +391,56 @@ export class LobbyService {
     if (roster.filter((c) => c.isConnected).length === 0) {
       this.gameEngine.abort(roomId)
     }
+  }
+  public async kickPlayerByRoom({
+    roomCode,
+    playerId,
+    hostToken,
+  }: {
+    roomCode: string
+    playerId: string
+    hostToken: string
+  }): Promise<BasicResponseDto> {
+    const room = await this.rooms.findByJoinCode(roomCode)
+
+    if (!room) {
+      return { success: false, reason: 'ROOM_NOT_FOUND' }
+    }
+
+    if (room.status != RoomStatusEnum.LOBBY)
+      return { success: false, reason: 'ROOM_STATUS_NOT_IN_LOBBY' }
+
+    if (!this.registry.verifyHostToken(room.id, hostToken)) {
+      return { success: false, reason: `NOT_AUTHORIZED: ${hostToken}` }
+    }
+
+    const client = await this.clients.findById(playerId)
+
+    if (!client || client.roomId !== room.id) {
+      return { success: false, reason: 'PLAYER_NOT_FOUND' }
+    }
+
+    const socket = this.registry.getSocketByClientId(playerId)
+
+    if (socket) {
+      this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_KICKED)
+
+      socket.close?.()
+
+      this.registry.unregister(socket)
+    }
+
+    this.registry.clearReconnectToken(playerId)
+
+    const timer = this.registry.clearGraceTimer(playerId)
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    await this.clients.remove(client)
+
+    await this.broadcastState(room)
+
+    return { success: true }
   }
 }
