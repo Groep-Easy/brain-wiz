@@ -12,7 +12,7 @@ const DEFAULT_BASE_POINTS = 1000
 export class QuestionService {
   public constructor(
     @InjectRepository(Question) private readonly questions: Repository<Question>
-  ) { }
+  ) {}
 
   private validateUsedIds(usedIds: string[]): void {
     if (!Array.isArray(usedIds)) {

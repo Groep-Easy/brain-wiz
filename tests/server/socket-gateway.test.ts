@@ -295,7 +295,17 @@ describe('SocketGateway player messages', () => {
     )
     const call = calls.find((c) => c.method === 'joinClient')
     assert.ok(call)
-    assert.deepEqual(call.args, [s, s.connectionId, 'ABCD', 'Alice', 'p1', 'tok', undefined])
+    assert.deepEqual(call.args, [
+      s,
+      {
+        connectionId: s.connectionId,
+        roomCode: 'ABCD',
+        playerName: 'Alice',
+        playerId: 'p1',
+        playerToken: 'tok',
+        playerAvatar: undefined,
+      },
+    ])
   })
 
   it('ignores a PLAYER_JOIN missing required fields', () => {

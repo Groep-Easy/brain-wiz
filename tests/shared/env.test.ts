@@ -7,7 +7,7 @@ import {
   getClientBaseUrl,
 } from '@brain-wiz/shared/utils/env'
 
-const globalWithWindow = globalThis as typeof globalThis & { window?: unknown }
+const globalWithWindow: { window?: unknown } = globalThis
 
 describe('Env Utils', () => {
   let originalWindow: unknown
