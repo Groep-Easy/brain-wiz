@@ -17,12 +17,17 @@ const BACKEND_HTTP_URL = (import.meta.env.VITE_WS_URL || 'ws://localhost:3000').
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */
 export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
-  return items.map((it) => ({ uid: nextUid(), blockId: it.blockId, questions: it.questions }))
+  return items.map((it) => ({
+    uid: nextUid(),
+    blockId: it.blockId,
+    questions: it.questions,
+    difficulty: it.difficulty,
+  }))
 }
 
 /** Strip client-only uids before sending a flow to the server. */
 export function toStoredFlow(flow: FlowItem[]): StoredFlowItem[] {
-  return flow.map(({ blockId, questions }) => ({ blockId, questions }))
+  return flow.map(({ blockId, questions, difficulty }) => ({ blockId, questions, difficulty }))
 }
 
 /**

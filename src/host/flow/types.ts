@@ -21,10 +21,13 @@ export interface FlowItem {
   blockId: string
   /** How many questions a quiz (theme) block contributes. Undefined = default. */
   questions?: number
+  /** Difficulty for minigame blocks that support it (Bonk Air: 1-3). Undefined = default. */
+  difficulty?: number
 }
 
 /** A flow item as stored on the server (no client-only `uid`). */
 export interface StoredFlowItem {
   blockId: string
   questions?: number
+  difficulty?: number
 }

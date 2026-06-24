@@ -20,6 +20,7 @@ export type RoundType =
   | 'head-to-head'
   | 'sliding-puzzle'
   | 'balance-scale'
+  | 'bonk-air'
 
 export interface Player {
   id: string

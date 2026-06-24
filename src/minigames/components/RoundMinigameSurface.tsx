@@ -11,6 +11,8 @@ import {
 } from '../balance-scale/shared/scaleGame.js'
 import { SlidingPuzzle } from '../sliding-puzzle/components/SlidingPuzzle.js'
 import type { SlidingPuzzleBoard, SlidingPuzzlePuzzle } from '../sliding-puzzle/shared/slidingPuzzleGame.js'
+import { BonkAir } from '../bonk-air/components/BonkAir.js'
+import type { BonkAirPuzzle } from '../bonk-air/shared/bonkAirGame.js'
 
 export type RoundMinigameSurfaceMode = 'play' | 'display'
 export type RoundMinigameSurfacePhase = 'playing' | 'reveal'
@@ -54,6 +56,22 @@ export function RoundMinigameSurface({
         <BalanceScale
           phase={phase === 'reveal' ? REVEAL_SCALE_PHASE : ANSWERING_SCALE_PHASE}
           puzzle={puzzle}
+        />
+      </section>
+    )
+  }
+
+  if (content.type === 'bonk-air') {
+    const puzzle = content.publicState as BonkAirPuzzle
+    const readOnly = mode === 'display'
+
+    return (
+      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+        <BonkAir
+          phase={phase === 'reveal' ? 'reveal' : 'playing'}
+          puzzle={puzzle}
+          readOnly={readOnly}
+          onSubmissionChange={readOnly ? undefined : (submission) => onSubmissionChange?.(submission)}
         />
       </section>
     )

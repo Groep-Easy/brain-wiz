@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import type { RoundType } from '../../../../shared/types/index.js'
 import { BalanceScaleServerAdapter } from './balance-scale.server.js'
+import { BonkAirServerAdapter } from './bonk-air.server.js'
 import type { MinigameAdapter, ProceduralRoundType } from './minigame.types.js'
 import { SlidingPuzzleServerAdapter } from './sliding-puzzle.server.js'
 
@@ -10,11 +11,13 @@ export class MinigameRegistry {
 
   public constructor(
     slidingPuzzle: SlidingPuzzleServerAdapter,
-    balanceScale: BalanceScaleServerAdapter
+    balanceScale: BalanceScaleServerAdapter,
+    bonkAir: BonkAirServerAdapter
   ) {
     const adapters = new Map<ProceduralRoundType, MinigameAdapter>()
     adapters.set(slidingPuzzle.type, slidingPuzzle)
     adapters.set(balanceScale.type, balanceScale)
+    adapters.set(bonkAir.type, bonkAir)
     this.adapters = adapters
   }
 

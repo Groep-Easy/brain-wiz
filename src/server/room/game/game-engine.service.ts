@@ -163,7 +163,10 @@ export class GameEngineService {
 
     await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
 
-    if (await this.runPhase(room, game, GamePhase.REVEAL, TIMER.REVEAL_SECONDS)) {
+    // Bonk Air plays an animated replay during reveal, so it gets a longer window.
+    const revealSeconds =
+      round.gameType === 'bonk-air' ? TIMER.BONK_AIR_REVEAL_SECONDS : TIMER.REVEAL_SECONDS
+    if (await this.runPhase(room, game, GamePhase.REVEAL, revealSeconds)) {
       return
     }
 

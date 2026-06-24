@@ -24,4 +24,6 @@ export interface GameBlockDto {
 export interface GameFlowItem {
   blockId: string
   questions?: number
+  /** Per-block difficulty for minigames that support it (Bonk Air: 1-3). */
+  difficulty?: number
 }

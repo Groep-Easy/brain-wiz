@@ -13,7 +13,8 @@ import type { RoundType } from '../types/index'
 export const ROOM = Object.freeze({
   CODE_LENGTH: 4,
   MAX_PLAYERS: 12,
-  MIN_PLAYERS_TO_START: 2,
+  // Temporarily 1 so a single player can start a game while testing.
+  MIN_PLAYERS_TO_START: 1,
   JOIN_TIMEOUT_MS: 30_000,
   RECONNECT_GRACE_MS: 30_000,
 })
@@ -42,6 +43,9 @@ export const HOST_AUTH = Object.freeze({
 export const TIMER = Object.freeze({
   QUESTION_SECONDS: 30,
   REVEAL_SECONDS: 5,
+  // Bonk Air plays an animated "watch the planes fly" replay during reveal, so it
+  // needs a longer reveal window than a quiz before the round advances.
+  BONK_AIR_REVEAL_SECONDS: 14,
   ROUND_INTRO_SECONDS: 3,
   LEADERBOARD_SECONDS: 10,
   // Max time the engine waits for ScoringService to signal ROUND_SCORED before

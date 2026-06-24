@@ -1,0 +1,215 @@
+/* Bonk Air ("Sector Control") flight-deck styling, scoped to the component root
+   so it can't leak into the rest of Brain Wiz. Ported from the standalone game. */
+.bonk-air-root {
+  --sea: #33758a;
+  --sand: #e4d2a1;
+  --grass: #7fb06b;
+  --ink: #15202b;
+  --deck: #1b2734;
+  --deck-2: #223141;
+  --deck-edge: #35495e;
+  --cream: #f4ebd8;
+  --dim: #9fb1c2;
+  --amber: #ffb948;
+  --alert: #ff5c5c;
+  --good: #69c97e;
+  --ba-font:
+    ui-rounded, 'Hiragino Maru Gothic ProN', 'Quicksand', 'Trebuchet MS', system-ui, sans-serif;
+  --ba-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #101820;
+  color: var(--cream);
+  font-family: var(--ba-font);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.bonk-air-root * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+.bonk-air-root [hidden] {
+  display: none !important;
+}
+.bonk-air-root .ba-stage {
+  position: relative;
+  overflow: hidden;
+}
+.bonk-air-root canvas {
+  display: block;
+  touch-action: none;
+}
+
+/* buttons & chips */
+.bonk-air-root .btn {
+  font-family: var(--ba-font);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  color: var(--cream);
+  background: var(--deck-2);
+  border: 1.5px solid var(--deck-edge);
+  border-radius: 12px;
+  padding: 10px 18px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  transition: transform 0.05s;
+}
+.bonk-air-root .btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.bonk-air-root .btn.primary {
+  background: var(--amber);
+  border-color: #d99a2e;
+  color: var(--ink);
+}
+.bonk-air-root .chip {
+  font-family: var(--ba-mono);
+  font-weight: 700;
+  background: var(--deck);
+  color: var(--cream);
+  border: 1.5px solid var(--deck-edge);
+  border-radius: 9px;
+  padding: 6px 12px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.25);
+}
+.bonk-air-root .ba-timer {
+  font-size: 21px;
+  min-width: 72px;
+  text-align: center;
+  color: var(--amber);
+}
+.bonk-air-root .ba-timer.low {
+  color: var(--alert);
+  border-color: var(--alert);
+  animation: ba-pulse 0.5s infinite alternate;
+}
+@keyframes ba-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+/* HUD */
+.bonk-air-root .ba-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 10px;
+  pointer-events: none;
+}
+.bonk-air-root .ba-rightchips {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+.bonk-air-root .ba-botbar {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+.bonk-air-root .ba-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 16px;
+  z-index: 18;
+  pointer-events: none;
+  font-weight: 700;
+  color: var(--dim);
+  font-size: 14px;
+  max-width: 46%;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.bonk-air-root .ba-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  font-family: var(--ba-mono);
+  font-weight: 800;
+  font-size: 14px;
+  background: var(--deck);
+  color: var(--amber);
+  border: 1.5px solid var(--deck-edge);
+  padding: 9px 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  white-space: nowrap;
+}
+.bonk-air-root .ba-toast {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: var(--deck);
+  border: 1.5px solid var(--deck-edge);
+  color: var(--cream);
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.bonk-air-root .ba-toast.show {
+  opacity: 0.97;
+}
+.bonk-air-root .ba-rotate {
+  position: absolute;
+  inset: 0;
+  z-index: 99;
+  background: #0f1922;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--cream);
+}
+.bonk-air-root .ba-rotate span {
+  font-size: 46px;
+  animation: ba-spin 2s ease-in-out infinite;
+}
+@keyframes ba-spin {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bonk-air-root * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

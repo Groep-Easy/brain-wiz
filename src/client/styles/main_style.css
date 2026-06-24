@@ -156,6 +156,46 @@ body {
   height: 100%;
 }
 
+.client-minigame--bonk-air {
+  display: flex;
+  height: 100svh;
+  background: #101820;
+  position: relative;
+}
+
+.bonk-air-scorecard-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(16, 24, 32, 0.82);
+}
+
+.bonk-air-scorecard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 40px;
+  border-radius: 24px;
+  background: #1b2734;
+  border: 2px solid #35495e;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.bonk-air-scorecard__points {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-weight: 800;
+  font-size: clamp(3.5rem, 18vw, 6rem);
+  line-height: 1;
+  color: #69c97e;
+  text-shadow: 0 0 24px rgba(105, 201, 126, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
 .client-minigame__actions {
   padding: 0 18px 18px;
   background: #ffffff;

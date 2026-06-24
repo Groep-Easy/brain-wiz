@@ -35,6 +35,7 @@ interface QuizRoundSpec {
 interface ProceduralRoundSpec {
   kind: 'procedural'
   type: RoundType
+  difficulty?: number
 }
 type RoundSpec = QuizRoundSpec | ProceduralRoundSpec
 
@@ -69,7 +70,7 @@ export class RoundBuilder {
       if (spec.kind === 'quiz') {
         built.push(await this.saveQuizRound(room, index, spec.question))
       } else {
-        built.push(await this.saveProceduralRound(room, index, spec.type))
+        built.push(await this.saveProceduralRound(room, index, spec.type, spec.difficulty))
       }
     }
 
@@ -113,7 +114,11 @@ export class RoundBuilder {
           plan.push({ kind: 'quiz', question: next })
         }
       } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
-        plan.push({ kind: 'procedural', type: block.minigameKey as RoundType })
+        plan.push({
+          kind: 'procedural',
+          type: block.minigameKey as RoundType,
+          ...(item.difficulty !== undefined ? { difficulty: item.difficulty } : {}),
+        })
       } else {
         unknownMinigames++
       }
@@ -183,7 +188,12 @@ export class RoundBuilder {
     return this.rounds.save(round)
   }
 
-  private async saveProceduralRound(room: Room, index: number, type: RoundType): Promise<Round> {
+  private async saveProceduralRound(
+    room: Room,
+    index: number,
+    type: RoundType,
+    difficulty?: number
+  ): Promise<Round> {
     const adapter = this.minigames.get(type)
     if (!adapter) {
       throw new BadRequestException(`No minigame adapter registered for round type "${type}"`)
@@ -199,6 +209,7 @@ export class RoundBuilder {
       seed,
       roundIndex: index,
       timeLimitSeconds: TIMER.QUESTION_SECONDS,
+      ...(difficulty !== undefined ? { difficulty } : {}),
     })
     const round: Round = this.rounds.create({
       id: roundId,

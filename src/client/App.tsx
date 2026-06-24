@@ -21,6 +21,9 @@ import type {
   SlidingPuzzleBoard,
   SlidingPuzzlePuzzle,
 } from '../minigames/sliding-puzzle/shared/slidingPuzzleGame'
+import { BonkAir } from '../minigames/bonk-air/components/BonkAir'
+import type { BonkAirPuzzle } from '../minigames/bonk-air/shared/bonkAirGame'
+import { BonkAirScorecard } from './components/BonkAirScorecard'
 import { JoinScreen } from './components/JoinScreen'
 import { Waiting } from './screens/Waiting'
 import { RoundIntro } from './screens/RoundIntro'
@@ -86,6 +89,9 @@ export function App(): React.JSX.Element {
   const [roundSubmitted, setRoundSubmitted] = useState(false)
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
   const [slidingBoard, setSlidingBoard] = useState<SlidingPuzzleBoard | null>(null)
+  // True once the Bonk Air reveal replay (flight animation) has finished, so the
+  // phone can swap from the synced animation to the final score card.
+  const [bonkReplayDone, setBonkReplayDone] = useState(false)
 
   const socketRef = useRef<WebSocket | null>(null)
   const playerIdRef = useRef<string | null>(null)
@@ -94,6 +100,10 @@ export function App(): React.JSX.Element {
   const intentionalCloseRef = useRef(false)
   const reconnectAttemptsRef = useRef(0)
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Latest Bonk Air plan emitted by the minigame. Kept in a ref (not submitted
+  // on every change) so we can flush it to the server one tick before the
+  // answer window closes — see the auto-submit effect below.
+  const bonkPlanRef = useRef<unknown>(null)
 
   const [urlCode] = useState(readCodeFromUrl)
 
@@ -179,6 +189,8 @@ export function App(): React.JSX.Element {
         setRoundReveal(null)
         setRoundSubmitted(false)
         setSelectedOptionId(null)
+        bonkPlanRef.current = null
+        setBonkReplayDone(false)
         if (content.type === 'sliding-puzzle') {
           setSlidingBoard((content.publicState as SlidingPuzzlePuzzle).initialBoard)
         }
@@ -326,6 +338,26 @@ export function App(): React.JSX.Element {
     )
   }
 
+  // Flush the drawn Bonk Air plan one tick before the server closes the answer
+  // window. The minigame runs its own local 30s countdown that only starts once
+  // ROUND_CONTENT_SHOW arrives (network + render latency), so its own end-of-time
+  // commit reliably lands *after* the server window has closed — scoring the
+  // player as a no-show ("No plan submitted"). Driving the final submit off the
+  // server clock keeps a ~1s safety margin so the plan is always recorded.
+  useEffect(() => {
+    if (
+      roundContent?.type === 'bonk-air' &&
+      roomState?.phase === 'playing' &&
+      !roundSubmitted &&
+      secondsRemaining > 0 &&
+      secondsRemaining <= 1
+    ) {
+      handleRoundSubmit(bonkPlanRef.current ?? { solution: {} })
+    }
+    // handleRoundSubmit is stable for this purpose; deps cover the trigger inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsRemaining, roundSubmitted, roundContent, roomState?.phase])
+
   function handleRoundSubmit(submission: unknown): void {
     const socket = socketRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN || !roundContent) return
@@ -401,6 +433,32 @@ export function App(): React.JSX.Element {
       )
     }
 
+    if (roundContent.type === 'bonk-air') {
+      const puzzle = roundContent.publicState as BonkAirPuzzle
+      const myResult = roundReveal?.playerResults?.[playerIdRef.current ?? '']
+      const points = myResult?.pointsAwarded ?? 0
+      return (
+        <section className="client-minigame client-minigame--bonk-air">
+          <BonkAir
+            phase={phase}
+            puzzle={puzzle}
+            onSubmissionChange={(submission) => {
+              bonkPlanRef.current = submission
+            }}
+            onCommit={(submission) => {
+              if (!roundSubmitted) handleRoundSubmit(submission)
+            }}
+            onReplayComplete={() => setBonkReplayDone(true)}
+          />
+          {phase === 'reveal' && bonkReplayDone ? (
+            <div className="bonk-air-scorecard-overlay">
+              <BonkAirScorecard points={points} />
+            </div>
+          ) : null}
+        </section>
+      )
+    }
+
     return null
   }
 
@@ -460,7 +518,13 @@ export function App(): React.JSX.Element {
     const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
     if (minigame) {
       return (
-        <main className={roundContent?.type === 'sliding-puzzle' ? 'app app--minigame' : 'app'}>
+        <main
+          className={
+            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'bonk-air'
+              ? 'app app--minigame'
+              : 'app'
+          }
+        >
           {banner}
           {minigame}
         </main>

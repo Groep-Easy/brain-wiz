@@ -114,3 +114,25 @@ top-left {
 .host-minigame--sliding .sliding-puzzle-app {
   min-height: 100svh;
 }
+
+.host-minigame--bonk-air {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  min-height: 100svh;
+}
+
+.host-minigame__rotate-hint {
+  margin: 0;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: #1b2734;
+  border: 2px solid #35495e;
+  color: #ffb948;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+}

@@ -19,6 +19,7 @@ import * as EVENTS from '../shared/events/socket-events'
 import { WS_SUBPROTOCOL } from '../shared/constants/ws'
 import { getBackendWsUrl, getBackendHttpUrl, getClientBaseUrl } from '../shared/utils/env'
 import { RoundMinigameSurface } from '../minigames/components/RoundMinigameSurface'
+import { BonkAirRules } from '../minigames/bonk-air/components/BonkAirRules'
 
 import jazzMusic from '../shared/SFX/jazz.mp3'
 import leaderboardMusic from '../shared/SFX/leaderboard.mp3'
@@ -355,6 +356,17 @@ function renderMinigame(
         phase={phase}
         reveal={reveal}
       />
+    )
+  }
+
+  if (content.type === 'bonk-air') {
+    return (
+      <div className="host-minigame host-minigame--bonk-air">
+        <BonkAirRules />
+        <p className="host-minigame__rotate-hint">
+          📱➡️ Turn your phone sideways to play
+        </p>
+      </div>
     )
   }
 

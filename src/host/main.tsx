@@ -19,6 +19,7 @@ import { FlowEditor } from './screens/FlowEditor'
 import { LeaderBoard } from './components/LeaderBoard'
 import { ScaleMechanicsMock } from '../minigames/balance-scale/mock/ScaleMechanicsMock'
 import { SlidingPuzzleMock } from '../minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { BonkAirMock } from '../minigames/bonk-air/mock/BonkAirMock'
 import './styles/index.css'
 
 const container = document.getElementById('root')
@@ -79,6 +80,7 @@ createRoot(container).render(
         />
         <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
         <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
+        <Route path="/bonk-air-mock" element={<BonkAirMock />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

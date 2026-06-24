@@ -30,6 +30,7 @@ export const PALETTE: BlockDef[] = [
   { id: 'theme-other', label: 'Other', kind: 'theme', icon: '❓' },
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
+  { id: 'mini-bonk-air', label: 'Bonk Air', kind: 'minigame', icon: '✈️' },
 ]
 
 /** A flow must always contain at least this many blocks. */

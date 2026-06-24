@@ -1,12 +1,14 @@
 import type { RoundAnswerChoice, RoundType } from '../../../../shared/types/index.js'
 
-export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale'
+export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale' | 'bonk-air'
 
 export interface CreateMinigameRoundInput {
   roundId: string
   seed: string
   roundIndex: number
   timeLimitSeconds: number
+  /** Optional per-block difficulty (e.g. Bonk Air: 1=Trainee, 2=Certified, 3=Rush hour). */
+  difficulty?: number
 }
 
 export interface GeneratedMinigameRound<TPublic = unknown, TPrivate = unknown, TConfig = unknown> {
