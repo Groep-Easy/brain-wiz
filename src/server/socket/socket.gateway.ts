@@ -207,7 +207,6 @@ export class SocketGateway
     const membership = this.lobby.getMembership(client)
 
     if (!membership || membership.role !== 'host') {
-      console.log('HOST CHECK FAILED')
       return
     }
     this.lobby.publishHostSkip(membership.roomId)

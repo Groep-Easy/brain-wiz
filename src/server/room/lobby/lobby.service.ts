@@ -426,7 +426,9 @@ export class LobbyService {
     return { success: true }
   }
 
-  public getMembership(socket: ClientSocket) {
+  public getMembership(
+    socket: ClientSocket
+  ): ReturnType<ConnectionRegistry['lookup']> {
     return this.registry.lookup(socket)
   }
 

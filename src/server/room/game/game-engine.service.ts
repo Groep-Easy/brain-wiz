@@ -183,6 +183,7 @@ export class GameEngineService {
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
 
+    let didEndEarly = false
     const skipSub = this.bus
       .on('HOST_SKIP_TIMER')
       .pipe(filter((e) => e.roomId === room.id))
@@ -191,7 +192,6 @@ export class GameEngineService {
         game.timer.endEarly()
       })
 
-    let didEndEarly = false
     const earlySub = this.bus
       .on('ALL_PLAYERS_ANSWERED')
       .pipe(filter((e) => e.roomId === room.id && e.roundId === round.id))

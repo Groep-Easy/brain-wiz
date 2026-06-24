@@ -56,6 +56,14 @@ export function SetupLobby({
     setActiveTab('flow')
   }
 
+  const startGame = () => {
+    jazzRef.current?.pause()
+    if (!isMuted()) playStartGameSound()
+    setTimeout(() => {
+      onStartGame(timePerQuestion)
+    }, 1000)
+  }
+
   const handleSaveFlow = async (newFlow: FlowItem[]) => {
     await storeRoomFlow(roomCode, hostToken, newFlow)
     startGame()
@@ -76,13 +84,6 @@ export function SetupLobby({
     }
   }, [roomCode])
 
-  const startGame = () => {
-    jazzRef.current?.pause()
-    if (!isMuted()) playStartGameSound()
-    setTimeout(() => {
-      onStartGame(timePerQuestion)
-    }, 1000)
-  }
 
   const handleStart = () => {
     startGame()

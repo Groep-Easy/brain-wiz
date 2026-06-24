@@ -43,7 +43,7 @@ export interface FlowEditorProps {
   onCancel: () => void
 }
 
-export function FlowEditor({ initialFlow, roomCode, hostToken, onSave, onCancel }: FlowEditorProps): React.JSX.Element {
+export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
   const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
   const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)

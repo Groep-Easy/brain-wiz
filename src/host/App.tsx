@@ -225,7 +225,6 @@ export function App(): React.JSX.Element {
   }
 
   const handleSkipTimer = () => {
-    console.log('HOST_SKIP_TIMER')
     socketRef.current?.send(
       JSON.stringify({
         event: EVENTS.HOST_SKIP_TIMER,
@@ -382,10 +381,10 @@ function renderMinigame(
     return (
       <RoundMinigameSurface
         className={`host-minigame ${content.type === 'balance-scale'
-            ? 'host-minigame--scale'
-            : content.type === 'vault-rush'
-              ? 'host-minigame--vault'
-              : 'host-minigame--sliding'
+          ? 'host-minigame--scale'
+          : content.type === 'vault-rush'
+            ? 'host-minigame--vault'
+            : 'host-minigame--sliding'
           }`}
         content={content}
         mode="display"
