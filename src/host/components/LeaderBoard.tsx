@@ -8,6 +8,7 @@ import { useRef, useLayoutEffect, useMemo } from 'react'
 import type { LeaderboardEntry, Player } from '@brain-wiz/shared/types/index'
 import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { PALETTE } from '../flow/palette'
 import '../styles/leaderboard.css'
 
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
@@ -31,19 +32,10 @@ type TimelineItem =
       type: 'dot'
     }
 
-const themeAssets: Record<string, { icon: string }> = {
-  random: { icon: '🎲' },
-  movies: { icon: '🎬' },
-  music: { icon: '🎵' },
-  coding: { icon: '💻' },
-  sports: { icon: '⚽' },
-  history: { icon: '📜' },
-  math: { icon: '➗' },
-  science: { icon: '🔬' },
-  geography: { icon: '🌍' },
-  'vault-rush': { icon: '🔐' },
-  'sliding-puzzle': { icon: '🧩' },
-  'balance-scale': { icon: '⚖️' },
+const paletteLookup = new Map(PALETTE.map((item) => [normalizeId(item.id), item]))
+
+function normalizeId(id: string) {
+  return id.replace(/^(theme-|mini-)/, '')
 }
 
 function Roadmap({ roadmap }: RoadmapProps) {
@@ -165,6 +157,9 @@ function Roadmap({ roadmap }: RoadmapProps) {
             return <circle key={`dot-${index}`} cx={x} cy={y} r={4} className="miniDot" />
           }
 
+          const rawTheme = themeMap.get(item.questionNumber)
+          const paletteItem = rawTheme ? paletteLookup.get(rawTheme) : undefined
+
           const isThemeNode = themeStartSet.has(item.questionNumber)
 
           return (
@@ -179,17 +174,11 @@ function Roadmap({ roadmap }: RoadmapProps) {
               {isThemeNode && (
                 <g>
                   <text x={x} y={y + 5} textAnchor="middle" fontSize={18}>
-                    {themeAssets[themeMap.get(item.questionNumber) ?? '']?.icon}
+                    {paletteItem?.icon}
                   </text>
 
                   <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
-                    {themeMap.get(item.questionNumber) === 'vault-rush'
-                      ? 'Vault Rush'
-                      : themeMap.get(item.questionNumber) === 'sliding-puzzle'
-                        ? 'Sliding Puzzle'
-                        : themeMap.get(item.questionNumber) === 'balance-scale'
-                          ? 'Balance Scale'
-                          : themeMap.get(item.questionNumber)}
+                    {paletteItem?.label ?? rawTheme}
                   </text>
                 </g>
               )}
