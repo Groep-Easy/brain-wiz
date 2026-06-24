@@ -27,7 +27,7 @@ import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
-import { GameEventBus } from '../../src/server/room/game/game-event-bus';
+import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
