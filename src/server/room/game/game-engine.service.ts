@@ -20,7 +20,6 @@ import { toRoomState } from '../room.helpers'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import type {
-  GamePhase as WireGamePhase,
   LeaderboardEntry,
   RoundSummary,
   RoadmapTheme,
@@ -32,25 +31,15 @@ import {
   TimerOutcome,
   type PhaseTimerLike,
   type RunningGame,
+  type LeaderboardPlayer,
 } from './game.types'
+import { PHASE_TO_WIRE, FIRST_RANK, NO_RANK_CHANGE, NEW_PLAYER_POSITION } from './game.constants'
 import { PhaseTimer } from './phase-timer'
 import { RoundBuilder } from './round-builder'
 import { ROUND_PRESENTER } from './round-presenter'
 import { GameEventBus } from './game-event-bus'
 import { firstValueFrom } from 'rxjs'
 import { filter, first, timeout } from 'rxjs/operators'
-
-const PHASE_TO_WIRE: Record<GamePhase, WireGamePhase> = {
-  [GamePhase.INTRO]: 'round-intro',
-  [GamePhase.QUESTION]: 'playing',
-  [GamePhase.REVEAL]: 'reveal',
-  [GamePhase.LEADERBOARD]: 'leaderboard',
-  [GamePhase.GAME_OVER]: 'game-over',
-}
-
-const FIRST_RANK = 1
-const NO_RANK_CHANGE = 0
-const NEW_PLAYER_POSITION = Number.MAX_SAFE_INTEGER
 
 @Injectable()
 export class GameEngineService {
@@ -135,17 +124,25 @@ export class GameEngineService {
   ): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
-      .innerJoinAndSelect('round.question', 'question')
+      .leftJoinAndSelect('round.question', 'question')
       .where('round.roomId = :roomId', { roomId })
       .orderBy('round.roundIndex', 'ASC')
       .getMany()
 
     const countByTheme = new Map<string, number>()
+
     for (const round of rounds) {
-      if (round.question && round.roundIndex >= currentRoundIndex) {
-        const theme = round.question.theme
-        countByTheme.set(theme, (countByTheme.get(theme) ?? 0) + 1)
+      if (round.roundIndex < currentRoundIndex) {
+        continue
       }
+
+      const theme = round.question?.theme ?? round.gameType
+
+      if (!theme) {
+        continue
+      }
+
+      countByTheme.set(theme, (countByTheme.get(theme) ?? 0) + 1)
     }
 
     return Array.from(countByTheme.entries()).map(([theme, questionsInTheme]) => ({
@@ -192,7 +189,7 @@ export class GameEngineService {
         game.timer.endEarly()
       })
 
-    const didAbort = await this.timePhase(room.id, game, TIMER.QUESTION_SECONDS)
+    const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds, true)
     earlySub.unsubscribe()
     if (didAbort) {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
@@ -235,12 +232,27 @@ export class GameEngineService {
     return this.timePhase(room.id, game, seconds)
   }
 
-  /** Run the active timer for one phase. Returns true if aborted. */
-  private async timePhase(roomId: string, game: RunningGame, seconds: number): Promise<boolean> {
+  /**
+   * Run the active timer for one phase.
+   * Timer ticks are only broadcast during active gameplay.
+   * Other phases still use the timer internally, but avoid unnecessary socket traffic.
+   */
+  private async timePhase(
+    roomId: string,
+    game: RunningGame,
+    seconds: number,
+    emitTicks = false
+  ): Promise<boolean> {
     const outcome = await game.timer.start(seconds, {
-      onTick: (secondsRemaining) =>
-        this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining }),
+      onTick: (secondsRemaining) => {
+        if (!emitTicks) {
+          return
+        }
+
+        this.broadcaster.emitToRoom(roomId, EVENTS.TIMER_TICK, { secondsRemaining })
+      },
     })
+
     return outcome === TimerOutcome.ABORTED
   }
 
@@ -252,6 +264,13 @@ export class GameEngineService {
     roundId: string,
     reason: 'expired' | 'all-answered'
   ): Promise<void> {
+    const finalized = firstValueFrom(
+      this.bus.on('ROUND_WINDOW_FINALIZED').pipe(
+        filter((e) => e.roomId === roomId && e.roundId === roundId),
+        first(),
+        timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
+      )
+    )
     const scored = firstValueFrom(
       this.bus.on('ROUND_SCORED').pipe(
         filter((e) => e.roomId === roomId && e.roundId === roundId),
@@ -259,6 +278,12 @@ export class GameEngineService {
         timeout(TIMER.SCORED_AWAIT_TIMEOUT_MS)
       )
     )
+    this.bus.publish({ type: 'ROUND_WINDOW_FINALIZE_REQUESTED', roomId, roundId, reason })
+    try {
+      await finalized
+    } catch {
+      this.logger.warn(`ROUND_WINDOW_FINALIZED not received for round ${roundId}; proceeding`)
+    }
     this.bus.publish({ type: 'ROUND_WINDOW_CLOSED', roomId, roundId, reason })
     try {
       await scored
@@ -328,49 +353,62 @@ export class GameEngineService {
       previousLeaderboardOrder.map((playerId, position) => [playerId, position])
     )
 
-    const leaderboard = [...players].sort((firstPlayer, secondPlayer) => {
-      const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
-
-      if (scoreOrder !== NO_RANK_CHANGE) {
-        return scoreOrder
-      }
-
-      const firstPlayerPreviousPosition =
-        previousPositionByPlayerId.get(firstPlayer.id) ?? NEW_PLAYER_POSITION
-
-      const secondPlayerPreviousPosition =
-        previousPositionByPlayerId.get(secondPlayer.id) ?? NEW_PLAYER_POSITION
-
-      const previousPositionOrder = firstPlayerPreviousPosition - secondPlayerPreviousPosition
-
-      if (previousPositionOrder !== NO_RANK_CHANGE) {
-        return previousPositionOrder
-      }
-
-      return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
-    })
+    const leaderboard = [...players].sort((firstPlayer, secondPlayer) =>
+      this.compareLeaderboardPlayers(firstPlayer, secondPlayer, previousPositionByPlayerId)
+    )
 
     this.leaderboardOrderByRoom.set(
       roomId,
       leaderboard.map((player) => player.id)
     )
 
-    return leaderboard.map((player, index) => {
-      const rank = index + FIRST_RANK
-      const previousPosition = previousPositionByPlayerId.get(player.id)
-      const previousRank = previousPosition === undefined ? null : previousPosition + FIRST_RANK
-      const rankChange = previousRank === null ? NO_RANK_CHANGE : previousRank - rank
+    return leaderboard.map((player, index) =>
+      this.toLeaderboardEntry(player, index, previousPositionByPlayerId)
+    )
+  }
 
-      return {
-        playerId: player.id,
-        name: player.displayName,
-        score: player.totalScore,
-        rank,
-        previousRank,
-        rankChange,
-        connected: player.isConnected,
-      }
-    })
+  private compareLeaderboardPlayers(
+    firstPlayer: LeaderboardPlayer,
+    secondPlayer: LeaderboardPlayer,
+    previousPositionByPlayerId: Map<string, number>
+  ): number {
+    const scoreOrder = secondPlayer.totalScore - firstPlayer.totalScore
+    if (scoreOrder !== NO_RANK_CHANGE) {
+      return scoreOrder
+    }
+
+    const firstPlayerPreviousPosition =
+      previousPositionByPlayerId.get(firstPlayer.id) ?? NEW_PLAYER_POSITION
+    const secondPlayerPreviousPosition =
+      previousPositionByPlayerId.get(secondPlayer.id) ?? NEW_PLAYER_POSITION
+    const previousPositionOrder = firstPlayerPreviousPosition - secondPlayerPreviousPosition
+    if (previousPositionOrder !== NO_RANK_CHANGE) {
+      return previousPositionOrder
+    }
+
+    return firstPlayer.joinedAt.getTime() - secondPlayer.joinedAt.getTime()
+  }
+
+  /** Project a sorted player into its leaderboard entry, including rank movement. */
+  private toLeaderboardEntry(
+    player: LeaderboardPlayer,
+    index: number,
+    previousPositionByPlayerId: Map<string, number>
+  ): LeaderboardEntry {
+    const rank = index + FIRST_RANK
+    const previousPosition = previousPositionByPlayerId.get(player.id)
+    const previousRank = previousPosition === undefined ? null : previousPosition + FIRST_RANK
+    const rankChange = previousRank === null ? NO_RANK_CHANGE : previousRank - rank
+
+    return {
+      playerId: player.id,
+      name: player.displayName,
+      score: player.totalScore,
+      rank,
+      previousRank,
+      rankChange,
+      connected: player.isConnected,
+    }
   }
 
   private async abandonQuietly(roomId: string): Promise<void> {

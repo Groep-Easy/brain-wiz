@@ -8,9 +8,10 @@ import { useRef, useLayoutEffect, useMemo } from 'react'
 import type { LeaderboardEntry, Player } from '@brain-wiz/shared/types/index'
 import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
+import { PALETTE } from '../flow/palette'
 import '../styles/leaderboard.css'
 
-import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
+import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
@@ -31,16 +32,162 @@ type TimelineItem =
       type: 'dot'
     }
 
-const themeAssets: Record<string, { icon: string }> = {
-  random: { icon: '🎲' },
-  movies: { icon: '🎬' },
-  music: { icon: '🎵' },
-  coding: { icon: '💻' },
-  sports: { icon: '⚽' },
-  history: { icon: '📜' },
-  math: { icon: '➗' },
-  science: { icon: '🔬' },
-  geography: { icon: '🌍' },
+const paletteLookup = new Map(PALETTE.map((item) => [normalizeId(item.id), item]))
+
+function normalizeId(id: string) {
+  return id.replace(/^(theme-|mini-)/, '')
+}
+
+function Roadmap({ roadmap }: RoadmapProps) {
+  const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
+    const themeStarts: { index: number; theme: string }[] = []
+    const themeMap = new Map<number, string>()
+
+    if (!roadmap) {
+      return { playerPos: 0, total: 0, themeStarts, themeMap, timeline: [] as TimelineItem[] }
+    }
+
+    const { playerPos, totalQuestions, themes } = roadmap
+
+    let cursor = 1
+
+    for (const themeEntry of themes) {
+      themeStarts.push({
+        index: cursor,
+        theme: themeEntry.theme,
+      })
+
+      themeMap.set(cursor, themeEntry.theme)
+
+      cursor += themeEntry.questionsInTheme
+    }
+
+    const timeline: TimelineItem[] = []
+
+    for (let q = 1; q <= totalQuestions; q++) {
+      timeline.push({
+        type: 'node',
+        questionNumber: q,
+      })
+
+      if (q < totalQuestions) {
+        timeline.push({ type: 'dot' })
+        timeline.push({ type: 'dot' })
+      }
+    }
+
+    return {
+      playerPos,
+      total: totalQuestions,
+      themeStarts,
+      themeMap,
+      timeline,
+    }
+  }, [roadmap])
+
+  const themeStartSet = useMemo(() => new Set(themeStarts.map((t) => t.index)), [themeStarts])
+
+  const STEP = 70
+  const PADDING = 100
+
+  const WIDTH = PADDING * 2 + (timeline.length - 1) * STEP
+
+  const HEIGHT = 180
+  const AMPLITUDE = 35
+  const MID_Y = HEIGHT / 2
+
+  const WAVELENGTH = 630
+
+  const getY = (x: number) => MID_Y + AMPLITUDE * Math.sin((x / WAVELENGTH) * Math.PI * 2)
+
+  const getNodeClass = (questionNumber: number) => {
+    if (questionNumber < playerPos) {
+      return 'oldNode'
+    }
+
+    if (questionNumber === playerPos) {
+      return 'playerNode'
+    }
+
+    if (questionNumber === total) {
+      return 'lastNode'
+    }
+    return 'questionNode'
+  }
+
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const viewportWidth = container.clientWidth
+    const scrollable = WIDTH > viewportWidth
+
+    if (scrollable) {
+      const playerTimelineIndex = (playerPos - 1) * 3
+      const playerX = PADDING + playerTimelineIndex * STEP
+
+      container.scrollLeft = Math.max(0, playerX - viewportWidth / 3)
+    } else {
+      container.scrollLeft = 0
+    }
+  }, [WIDTH, playerPos])
+
+  // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).
+  if (!roadmap) {
+    return null
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: '100%',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+      }}
+    >
+      <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+        {timeline.map((item, index) => {
+          const x = PADDING + index * STEP
+          const y = getY(x)
+
+          if (item.type === 'dot') {
+            return <circle key={`dot-${index}`} cx={x} cy={y} r={4} className="miniDot" />
+          }
+
+          const rawTheme = themeMap.get(item.questionNumber)
+          const paletteItem = rawTheme ? paletteLookup.get(rawTheme) : undefined
+
+          const isThemeNode = themeStartSet.has(item.questionNumber)
+
+          return (
+            <g key={item.questionNumber}>
+              <circle
+                cx={x}
+                cy={y}
+                r={isThemeNode ? 18 : 12}
+                className={getNodeClass(item.questionNumber)}
+              />
+
+              {isThemeNode && (
+                <g>
+                  <text x={x} y={y + 5} textAnchor="middle" fontSize={18}>
+                    {paletteItem?.icon}
+                  </text>
+
+                  <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
+                    {paletteItem?.label ?? rawTheme}
+                  </text>
+                </g>
+              )}
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
 }
 
 export function LeaderBoard({
@@ -85,149 +232,6 @@ export function LeaderBoard({
 
     previousPositions.current = currentPositions
   }, [leaderboard])
-
-  function Roadmap({ roadmap }: RoadmapProps) {
-    const { playerPos, total, themeStarts, themeMap, timeline } = useMemo(() => {
-      const themeStarts: { index: number; theme: string }[] = []
-      const themeMap = new Map<number, string>()
-
-      if (!roadmap) {
-        return { playerPos: 0, total: 0, themeStarts, themeMap, timeline: [] as TimelineItem[] }
-      }
-
-      const { playerPos, totalQuestions, themes } = roadmap
-
-      let cursor = 1
-
-      for (const themeEntry of themes) {
-        themeStarts.push({
-          index: cursor,
-          theme: themeEntry.theme,
-        })
-
-        themeMap.set(cursor, themeEntry.theme)
-
-        cursor += themeEntry.questionsInTheme
-      }
-
-      const timeline: TimelineItem[] = []
-
-      for (let q = 1; q <= totalQuestions; q++) {
-        timeline.push({
-          type: 'node',
-          questionNumber: q,
-        })
-
-        if (q < totalQuestions) {
-          timeline.push({ type: 'dot' })
-          timeline.push({ type: 'dot' })
-        }
-      }
-
-      return {
-        playerPos,
-        total: totalQuestions,
-        themeStarts,
-        themeMap,
-        timeline,
-      }
-    }, [roadmap])
-
-    const themeStartSet = useMemo(() => new Set(themeStarts.map((t) => t.index)), [themeStarts])
-
-    const STEP = 70
-    const PADDING = 100
-
-    const WIDTH = Math.max(1920, PADDING * 2 + (timeline.length - 1) * STEP)
-
-    const HEIGHT = 180
-    const AMPLITUDE = 35
-    const MID_Y = HEIGHT / 2
-
-    const WAVELENGTH = 630
-
-    const getY = (x: number) => MID_Y + AMPLITUDE * Math.sin((x / WAVELENGTH) * Math.PI * 2)
-
-    const getNodeClass = (questionNumber: number) => {
-      if (questionNumber < playerPos) {
-        return 'oldNode'
-      }
-
-      if (questionNumber === playerPos) {
-        return 'playerNode'
-      }
-
-      if (questionNumber === total) {
-        return 'lastNode'
-      }
-      return 'questionNode'
-    }
-
-    const containerRef = useRef<HTMLDivElement>(null)
-
-    useLayoutEffect(() => {
-      const container = containerRef.current
-      if (!container) return
-
-      const viewportWidth = container.clientWidth
-      const playerTimelineIndex = (playerPos - 1) * 3
-      const playerX = PADDING + playerTimelineIndex * STEP
-
-      container.scrollLeft = playerX - viewportWidth / 3
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- initial scroll positioning; runs once on mount
-    }, [])
-
-    // Guard placed AFTER all hooks so they run unconditionally on every render (rules-of-hooks).
-    if (!roadmap) {
-      return null
-    }
-
-    return (
-      <div
-        style={{
-          overflowX: 'auto',
-          width: '100%',
-        }}
-        ref={containerRef}
-      >
-        <svg width={WIDTH} height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
-          {timeline.map((item, index) => {
-            const x = PADDING + index * STEP
-            const y = getY(x)
-
-            if (item.type === 'dot') {
-              return <circle key={`dot-${index}`} cx={x} cy={y} r={4} className="miniDot" />
-            }
-
-            const isThemeNode = themeStartSet.has(item.questionNumber)
-
-            return (
-              <g key={item.questionNumber}>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={isThemeNode ? 18 : 12}
-                  className={getNodeClass(item.questionNumber)}
-                />
-
-                {isThemeNode && (
-                  <g>
-                    <text x={x} y={y + 5} textAnchor="middle" fontSize={18}>
-                      {themeAssets[themeMap.get(item.questionNumber) ?? '']?.icon}
-                    </text>
-
-                    <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
-                      {themeMap.get(item.questionNumber)}
-                    </text>
-                  </g>
-                )}
-              </g>
-            )
-          })}
-        </svg>
-      </div>
-    )
-  }
 
   return (
     <>

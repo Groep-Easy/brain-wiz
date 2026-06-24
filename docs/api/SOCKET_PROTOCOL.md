@@ -147,7 +147,8 @@ game) go through REST.
 ### Payload shapes
 
 ```ts
-RoomState    = { code: string; players: Player[]; phase: GamePhase; round: number }
+RoomState    = { code: string; players: Player[]; phase: GamePhase; round: number; gameFlow: GameFlowItem[] }
+GameFlowItem = { blockId: string; questions?: number; timeLimitSeconds?: number }
 Player       = { id: string; name: string; connected: boolean; score: number }
 GamePhase    = 'lobby' | 'round-intro' | 'playing' | 'reveal' | 'leaderboard' | 'game-over'
 RoundSummary = { index: number; total: number; type: RoundType; timeLimitSeconds: number }
@@ -258,11 +259,13 @@ These are enforced by the gateway — build the UIs to cooperate with them.
 
 The host uses HTTP for room creation and starting the game.
 
-| Method & path             | Body            | Returns / errors                                                                                             |
-| ------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
-| `POST /rooms`             | _none_          | `{ code, hostToken }` — create a lobby. **Keep `hostToken` secret; never send it to players.**               |
-| `GET /rooms/:code`        | _none_          | `RoomState`, or `404` if unknown.                                                                            |
-| `POST /rooms/:code/start` | `{ hostToken }` | `RoomState` on success. `404` unknown room · `403` bad host token · `409` too few players / already started. |
+| Method & path                      | Body                   | Returns / errors                                                                                             |
+| ---------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `POST /rooms`                      | _none_                 | `{ code, hostToken }` — create a lobby. **Keep `hostToken` secret; never send it to players.**               |
+| `GET /rooms/:code`                 | _none_                 | `RoomState`, or `404` if unknown.                                                                            |
+| `PUT /rooms/:code/flow`            | `{ hostToken, flow }`  | Stores a normalized game flow. Mini-game `timeLimitSeconds` is rounded to 10s and clamped to 10-180s.        |
+| `POST /rooms/:code/flow/randomize` | `{ hostToken, size? }` | Generates and stores a normalized flow.                                                                      |
+| `POST /rooms/:code/start`          | `{ hostToken }`        | `RoomState` on success. `404` unknown room · `403` bad host token · `409` too few players / already started. |
 
 Typical host flow:
 
@@ -325,6 +328,9 @@ Notes for the UI:
   an explicit `TIMER_EXPIRED`.
 - Phase durations come from `TIMER` in `game-config.ts`
   (`ROUND_INTRO_SECONDS`, `QUESTION_SECONDS`, `REVEAL_SECONDS`, `LEADERBOARD_SECONDS`).
+  Mini-game answer windows may override their default through the stored flow
+  item's `timeLimitSeconds`; the resulting `RoundSummary.timeLimitSeconds` is
+  the authoritative value the UI should display.
 - **Scores are real time-decay points.** `ANSWER_SUBMIT` is handled; each
   correct answer earns `basePoints × (timeRemaining / timeLimit)`, rounded to
   the nearest integer. Wrong answers and timeouts score `0`. `ScoreMap` values

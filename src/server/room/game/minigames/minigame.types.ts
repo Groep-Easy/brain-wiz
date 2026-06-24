@@ -1,6 +1,11 @@
 import type { RoundAnswerChoice, RoundType } from '@brain-wiz/shared/types/index'
 
-export type ProceduralRoundType = 'sliding-puzzle' | 'balance-scale' | 'vault-rush'
+export type ProceduralRoundType =
+  | 'sliding-puzzle'
+  | 'balance-scale'
+  | 'vault-rush'
+  | 'wordle'
+  | 'light-switch'
 
 export interface CreateMinigameRoundInput {
   roundId: string
@@ -30,6 +35,7 @@ export interface MinigameAdapter {
   accepts(type: RoundType): type is ProceduralRoundType
   getAnswerChoices?(publicState: Record<string, unknown>): RoundAnswerChoice[]
   validateSubmission(submission: unknown): boolean
+  getProgressFeedback?(submission: unknown, privateState: Record<string, unknown>): unknown
   scoreSubmission(
     submission: unknown,
     privateState: Record<string, unknown>,
@@ -48,6 +54,17 @@ export interface BalanceScaleScoringConfig {
   timeLimitMs: number
 }
 
+export interface WordlePrivateState {
+  answer: string
+}
+
+export interface WordleScoringConfig {
+  basePoints: number
+  pointsPerExtraGuess: number
+  solveSpeedBonus: number
+  timeLimitMs: number
+}
+
 export interface VaultRushPrivateState {
   code: string
 }
@@ -56,4 +73,18 @@ export interface VaultRushScoringConfig {
   basePoints: number
   solveSpeedBonus: number
   timeLimitMs: number
+}
+export interface LightSwitchScoreConfig {
+  baseScore: number
+  maxMoveBonus: number
+  timeLimitMs: number
+}
+
+export interface LightSwitchScoreBreakdown {
+  lightsOff: number
+  totalLights: number
+  solved: boolean
+  positionPoints: number
+  speedBonus: number
+  pointsAwarded: number
 }

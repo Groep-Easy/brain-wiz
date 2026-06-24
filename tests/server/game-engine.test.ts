@@ -8,7 +8,7 @@ import { GameEngineService } from '../../src/server/room/game/game-engine.servic
 import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { TimerOutcome, type PhaseTimerLike } from '../../src/server/room/game/game.types'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { ROUNDS } from '@brain-wiz/config/game.config'
+import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import { RoomStatusEnum, RoundStatusEnum } from '../../src/server/entities/enums'
 import type { LeaderboardEntry } from '@brain-wiz/shared/types/index'
 
@@ -69,6 +69,7 @@ interface FakeRound {
   roundIndex: number
   status: RoundStatusEnum
   contentType: string
+  gameType: string
   timeLimitSeconds: number
   questionId: string
 }
@@ -82,6 +83,7 @@ interface FakeClient {
 }
 
 interface FakeQueryBuilder {
+  leftJoinAndSelect: () => FakeQueryBuilder
   innerJoinAndSelect: () => FakeQueryBuilder
   where: () => FakeQueryBuilder
   orderBy: () => FakeQueryBuilder
@@ -90,6 +92,7 @@ interface FakeQueryBuilder {
 
 function fakeQueryBuilder(): FakeQueryBuilder {
   return {
+    leftJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
     innerJoinAndSelect: (): FakeQueryBuilder => fakeQueryBuilder(),
     where: (): FakeQueryBuilder => fakeQueryBuilder(),
     orderBy: (): FakeQueryBuilder => fakeQueryBuilder(),
@@ -97,14 +100,19 @@ function fakeQueryBuilder(): FakeQueryBuilder {
   }
 }
 
-function fakeRound(index: number): FakeRound {
+function fakeRound(
+  index: number,
+  timeLimitSeconds: number = TIMER.QUESTION_SECONDS,
+  gameType = 'quiz'
+): FakeRound {
   return {
     id: `round-${index}`,
     roomId: 'room-1',
     roundIndex: index,
     status: RoundStatusEnum.PENDING,
     contentType: 'question',
-    timeLimitSeconds: 30,
+    gameType,
+    timeLimitSeconds,
     questionId: `q${index}`,
   }
 }
@@ -129,6 +137,21 @@ function autoExpireTimer(): PhaseTimerLike {
     start: async (): Promise<TimerOutcome> => TimerOutcome.EXPIRED,
     endEarly: (): void => undefined,
     cancel: (): void => undefined,
+  }
+}
+
+function recordingTimer(): { starts: number[]; timer: PhaseTimerLike } {
+  const starts: number[] = []
+  return {
+    starts,
+    timer: {
+      start: async (seconds: number): Promise<TimerOutcome> => {
+        starts.push(seconds)
+        return TimerOutcome.EXPIRED
+      },
+      endEarly: (): void => undefined,
+      cancel: (): void => undefined,
+    },
   }
 }
 
@@ -167,7 +190,8 @@ interface MakeEngineResult {
 function makeEngine(
   timer: PhaseTimerLike,
   players: FakeClient[] = [fakeClient('p1', 'Player 1', 0, new Date('2026-01-01T00:00:00.000Z'))],
-  onEmit?: (event: string, payload?: unknown) => void
+  onEmit?: (event: string, payload?: unknown) => void,
+  rounds: FakeRound[] = Array.from({ length: ROUNDS.COUNT }, (_, i) => fakeRound(i))
 ): MakeEngineResult {
   const broadcaster = recordingBroadcaster(onEmit)
   const room = fakeRoom()
@@ -189,8 +213,7 @@ function makeEngine(
     findByRoom: async (): Promise<unknown[]> => players,
   }
   const roundBuilder = {
-    buildRounds: async (): Promise<unknown[]> =>
-      Array.from({ length: ROUNDS.COUNT }, (_, i) => fakeRound(i)),
+    buildRounds: async (): Promise<unknown[]> => rounds,
   }
 
   const roundRepo = {
@@ -203,6 +226,9 @@ function makeEngine(
   }
 
   const bus = new GameEventBus()
+  bus.on('ROUND_WINDOW_FINALIZE_REQUESTED').subscribe((e) => {
+    bus.publish({ type: 'ROUND_WINDOW_FINALIZED', roomId: e.roomId, roundId: e.roundId })
+  })
   bus.on('ROUND_WINDOW_CLOSED').subscribe((e) => {
     bus.publish({ type: 'ROUND_SCORED', roomId: e.roomId, roundId: e.roundId })
   })
@@ -239,6 +265,22 @@ describe('GameEngineService', () => {
     assert.deepEqual(presentCalls, [0, 1, 2, 3, 4])
     assert.deepEqual(finishCalls, [RoomStatusEnum.FINISHED])
     assert.equal(broadcaster.events[broadcaster.events.length - 1], EVENTS.GAME_OVER)
+  })
+
+  it('uses the round-specific time limit for the playable phase', async () => {
+    const { starts, timer } = recordingTimer()
+    const rounds = [fakeRound(0, TIMER.SLIDING_PUZZLE_SECONDS, 'sliding-puzzle')]
+    const players = [fakeClient('p1', 'Player 1', 0, new Date('2026-01-01T00:00:00.000Z'))]
+    const { engine } = makeEngine(timer, players, undefined, rounds)
+
+    await engine.run('room-1')
+
+    assert.deepEqual(starts, [
+      TIMER.ROUND_INTRO_SECONDS,
+      TIMER.SLIDING_PUZZLE_SECONDS,
+      TIMER.REVEAL_SECONDS,
+      TIMER.LEADERBOARD_SECONDS,
+    ])
   })
 
   it('emits LEADERBOARD_SHOW after each round end with leaderboard payload', async () => {

@@ -1,6 +1,7 @@
 import type { QuestionState, PlayerAnswerResult } from '@brain-wiz/shared/types/index'
-import correct from '@brain-wiz/shared/SFX/correct.mp3'
+import { useEffect } from 'react'
 import '../styles/answer.css'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 
 const SHAPES = ['▲', '◆', '●', '■']
 const TILE_CLASSES = ['tile-teal', 'tile-blue', 'tile-tan', 'tile-red']
@@ -60,7 +61,10 @@ export function Answer({
                 revealed && isCorrect ? 'is-correct' : ''
               } ${isSelected ? 'is-selected' : ''}`}
               disabled={locked}
-              onClick={() => onAnswer(answer.id)}
+              onClick={() => {
+                onAnswer(answer.id)
+                playSound(sounds.pop, false)
+              }}
               aria-label={`Answer ${shape}`}
             >
               <span className="answer-shape">{shape}</span>
@@ -75,16 +79,17 @@ export function Answer({
 }
 
 function RevealBanner({ result }: { result: PlayerAnswerResult | null }): React.JSX.Element {
+  useEffect(() => {
+    if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong, false)
+    if (result?.isCorrect) playSound(sounds.correct, false)
+    else playSound(sounds.wrong, false)
+  }, [result])
+
   if (!result || result.isTimeout || result.answerId === null) {
     return <div className="reveal-banner is-wrong">Time&apos;s up — no answer ⏰</div>
   }
   if (result.isCorrect) {
-    return (
-      <>
-        <audio id="leaderboard-music" autoPlay src={correct} preload="auto"></audio>
-        <div className="reveal-banner is-correct">Correct! +{result.pointsAwarded} pts ✓</div>
-      </>
-    )
+    return <div className="reveal-banner is-correct">Correct! +{result.pointsAwarded} pts ✓</div>
   }
   return <div className="reveal-banner is-wrong">Not quite ✗</div>
 }

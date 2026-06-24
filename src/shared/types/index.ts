@@ -21,6 +21,8 @@ export type RoundType =
   | 'sliding-puzzle'
   | 'balance-scale'
   | 'vault-rush'
+  | 'wordle'
+  | 'light-switch'
 
 export interface Player {
   id: string
@@ -194,7 +196,22 @@ export interface RoundSubmitPayload {
   timestamp?: number
 }
 
+/** Client -> server: latest procedural/minigame progress snapshot. */
+export interface RoundProgressPayload {
+  roundId: string
+  type: RoundType
+  submission: unknown
+  timestamp?: number
+}
+
 /** Server → client: answer outcome (ANSWER_ACK). */
+/** Server -> client: feedback for an in-progress procedural/minigame attempt. */
+export interface RoundFeedbackPayload {
+  roundId: string
+  type: RoundType
+  feedback: unknown
+}
+
 export interface AnswerAckPayload {
   received: true
   accepted: boolean

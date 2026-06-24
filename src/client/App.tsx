@@ -1,27 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import type {
-  RoomState,
-  RoundSummary,
-  QuestionState,
-  QuestionRevealPayload,
-  LeaderboardEntry,
-  ScoreMap,
-  GamePhase,
-  PlayerJoinAckPayload,
-  PlayerJoinRejectedPayload,
-  AnswerAckPayload,
-  RoundContentPayload,
-  RoundRevealPayload,
-  PlayerAvatar,
-  GamePhaseChangePayload,
-  RoundStartPayload,
-  TimerTickPayload,
-  QuestionShowPayload,
-  LeaderboardShowPayload,
-  GameOverPayload,
-} from '@brain-wiz/shared/types/index'
-import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
-import { getBackendWsUrl } from '@brain-wiz/shared/utils/env'
+import { useEffect, useState } from 'react'
+import type { GamePhase } from '@brain-wiz/shared/types/index'
 import { MinigameDynamicGrid } from '@brain-wiz/minigames/components/MinigameDynamicGrid'
 import { MinigameChoiceGrid } from '@brain-wiz/minigames/components/MinigameChoiceGrid'
 import { JoinScreen } from './components/JoinScreen'
@@ -35,45 +13,13 @@ import { ReconnectToast } from './components/ReconnectToast'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { VaultRush } from '../minigames/vault-rush/components/VaultRush'
 import type { VaultRushPuzzle } from '../minigames/vault-rush/shared/vaultRushGame'
-
-const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
-const STORAGE_KEY = 'brainwiz-player'
-const MAX_RECONNECT_ATTEMPTS = 5
-const RECONNECT_DELAY_MS = 1500
-
-interface SavedPlayer {
-  roomCode: string
-  playerName: string
-  playerId: string
-  reconnectToken: string
-  playerAvatar: PlayerAvatar
-}
-
-function loadSavedPlayer(): SavedPlayer | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<SavedPlayer>
-    if (
-      parsed.roomCode &&
-      parsed.playerName &&
-      parsed.playerId &&
-      parsed.playerAvatar &&
-      parsed.reconnectToken
-    ) {
-      return {
-        roomCode: parsed.roomCode,
-        playerName: parsed.playerName,
-        playerId: parsed.playerId,
-        playerAvatar: parsed.playerAvatar,
-        reconnectToken: parsed.reconnectToken,
-      }
-    }
-    return null
-  } catch {
-    return null
-  }
-}
+import type {
+  WordleFeedback,
+  WordlePublicState,
+} from '../minigames/wordleGame/shared/wordleGame.types'
+import { useClientSocket } from './hooks/useClientSocket'
+import { LightSwitchPuzzlePuzzle } from '../minigames/light-switch/LightSwitch'
+import type { LightSwitchPuzzle } from '../minigames/light-switch/LightSwitch.types'
 
 function readCodeFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -81,345 +27,28 @@ function readCodeFromUrl(): string {
 }
 
 export function App(): React.JSX.Element {
-  const [status, setStatus] = useState<'connecting' | 'open' | 'closed'>('connecting')
-  const [joined, setJoined] = useState(false)
-  const [joining, setJoining] = useState<boolean>(() => loadSavedPlayer() !== null)
-  const [roomState, setRoomState] = useState<RoomState | null>(null)
-  const [round, setRound] = useState<RoundSummary | null>(null)
-  const [question, setQuestion] = useState<QuestionState | null>(null)
-  const [secondsRemaining, setSecondsRemaining] = useState(0)
-  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null)
-  const [reveal, setReveal] = useState<QuestionRevealPayload | null>(null)
-  const [roundContent, setRoundContent] = useState<RoundContentPayload | null>(null)
-  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [finalScores, setFinalScores] = useState<ScoreMap | null>(null)
-  const [joinError, setJoinError] = useState<string | null>(null)
-  const [fatalError, setFatalError] = useState<string | null>(null)
-  const [reconnectExhausted, setReconnectExhausted] = useState(false)
-  const [roundSubmitted, setRoundSubmitted] = useState(false)
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
-  const [kicked, setKicked] = useState(false)
-
-  const socketRef = useRef<WebSocket | null>(null)
-  const playerIdRef = useRef<string | null>(null)
-  const credsRef = useRef<SavedPlayer | null>(loadSavedPlayer())
-  const pendingJoinRef = useRef<{ name: string; code: string; playerAvatar: PlayerAvatar } | null>(
-    null
-  )
-  const intentionalCloseRef = useRef(false)
-  const reconnectAttemptsRef = useRef(0)
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
+  const s = useClientSocket()
   const [urlCode] = useState(readCodeFromUrl)
 
-  function sendJoin(
-    name: string,
-    code: string,
-    playerAvatar: PlayerAvatar,
-    creds: SavedPlayer | null
-  ): void {
-    const socket = socketRef.current
-    if (!socket || socket.readyState !== WebSocket.OPEN) return
-    socket.send(
-      JSON.stringify({
-        event: EVENTS.PLAYER_JOIN,
-        data: {
-          roomCode: code,
-          playerName: name,
-          playerAvatar,
-          ...(creds ? { playerId: creds.playerId, playerToken: creds.reconnectToken } : {}),
-        },
-      })
-    )
-  }
-
-  function handleEvent(ev: string, data: unknown): void {
-    switch (ev) {
-      case EVENTS.PLAYER_JOIN_ACK: {
-        const ack = data as PlayerJoinAckPayload
-        playerIdRef.current = ack.playerId
-        const creds: SavedPlayer = {
-          roomCode: ack.roomCode,
-          playerName: credsRef.current?.playerName ?? pendingJoinRef.current?.name ?? '',
-          playerId: ack.playerId,
-          playerAvatar: ack.playerAvatar,
-          reconnectToken: ack.reconnectToken,
-        }
-        credsRef.current = creds
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(creds))
-        } catch {
-          /* ignore storage errors (private mode, quota) */
-        }
-        pendingJoinRef.current = null
-        setJoinError(null)
-        setJoining(false)
-        setJoined(true)
-        break
-      }
-      case EVENTS.PLAYER_JOIN_REJECTED: {
-        const rejected = data as PlayerJoinRejectedPayload
-        credsRef.current = null
-        try {
-          localStorage.removeItem(STORAGE_KEY)
-        } catch {
-          /* ignore */
-        }
-        setJoining(false)
-        setJoined(false)
-        if (rejected.reason === 'Room not found') {
-          setFatalError('Room not found or game already started')
-        } else {
-          setJoinError(rejected.reason || 'Could not join the room.')
-        }
-        break
-      }
-      case EVENTS.PLAYER_KICKED: {
-        setKicked(true)
-
-        credsRef.current = null
-        playerIdRef.current = null
-
-        try {
-          localStorage.removeItem(STORAGE_KEY)
-        } catch {
-          // Ignore storage errors (e.g. private mode / disabled storage) — clearing creds is best-effort.
-        }
-
-        setJoined(false)
-        setJoining(false)
-        setRoomState(null)
-        setFinalScores(null)
-
-        socketRef.current?.close()
-        setReconnectExhausted(false)
-
-        setJoinError('You were kicked from the lobby')
-
-        break
-      }
-      case EVENTS.ROOM_STATE_UPDATE:
-        setRoomState((data as { room: RoomState }).room)
-        break
-      case EVENTS.GAME_PHASE_CHANGE: {
-        const { phase } = data as GamePhaseChangePayload
-        setRoomState((prev) => (prev ? { ...prev, phase } : prev))
-        break
-      }
-      case EVENTS.ROUND_START: {
-        const { round } = data as RoundStartPayload
-        if (round) setRound(round)
-        setRoundContent(null)
-        setRoundReveal(null)
-        setRoundSubmitted(false)
-        setSelectedOptionId(null)
-        break
-      }
-      case EVENTS.TIMER_TICK:
-        setSecondsRemaining((data as TimerTickPayload).secondsRemaining)
-        break
-      case EVENTS.QUESTION_SHOW: {
-        const { question } = data as QuestionShowPayload
-        if (question) {
-          setRoundContent(null)
-          setRoundReveal(null)
-          setQuestion(question)
-          setReveal(null)
-          setSelectedAnswerId(null)
-        }
-        break
-      }
-      case EVENTS.ROUND_CONTENT_SHOW: {
-        const content = data as RoundContentPayload
-        setRoundContent(content)
-        setRoundReveal(null)
-        setRoundSubmitted(false)
-        setSelectedOptionId(null)
-
-        break
-      }
-      case EVENTS.QUESTION_REVEAL:
-        setReveal(data as QuestionRevealPayload)
-        break
-      case EVENTS.ROUND_REVEAL:
-        setRoundReveal(data as RoundRevealPayload)
-        break
-      case EVENTS.LEADERBOARD_SHOW: {
-        const { leaderboard } = data as LeaderboardShowPayload
-        if (leaderboard) setLeaderboard(leaderboard)
-        break
-      }
-      case EVENTS.GAME_OVER: {
-        const { finalScores } = data as GameOverPayload
-        if (finalScores) setFinalScores(finalScores)
-        break
-      }
-      case EVENTS.ANSWER_ACK: {
-        const ack = data as AnswerAckPayload
-        if (!ack.accepted && (ack.reason === 'server-error' || ack.reason === 'invalid-answer')) {
-          setSelectedAnswerId(null)
-          setRoundSubmitted(false)
-        }
-        break
-      }
-      default:
-        break
-    }
-  }
-
-  function handleLeaveRoom(): void {
-    // 1. Tell the app this is an intentional disconnect so it doesn't try to reconnect
-    intentionalCloseRef.current = true
-
-    // 2. Clear saved credentials from local storage
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch {
-      /* ignore */
-    }
-
-    // 3. Clear all references
-    credsRef.current = null
-    playerIdRef.current = null
-    pendingJoinRef.current = null
-
-    // 4. Close the socket connection
-    if (socketRef.current) {
-      socketRef.current.close()
-      socketRef.current = null
-    }
-
-    // 5. Reset all React state to initial values
-    setJoined(false)
-    setJoining(false)
-    setRoomState(null)
-    setRound(null)
-    setQuestion(null)
-    setReveal(null)
-    setLeaderboard([])
-    setFinalScores(null)
-    setJoinError(null)
-    setStatus('closed')
-  }
-
-  function connect(): void {
-    intentionalCloseRef.current = false
-    setStatus('connecting')
-    const socket = new WebSocket(BACKEND_WS_URL)
-    socketRef.current = socket
-
-    socket.onopen = () => {
-      if (socketRef.current !== socket) return
-      setStatus('open')
-      setReconnectExhausted(false)
-      reconnectAttemptsRef.current = 0
-      const creds = credsRef.current
-      if (creds) {
-        sendJoin(creds.playerName, creds.roomCode, creds.playerAvatar, creds)
-      } else if (pendingJoinRef.current) {
-        sendJoin(
-          pendingJoinRef.current.name,
-          pendingJoinRef.current.code,
-          pendingJoinRef.current.playerAvatar,
-          null
-        )
-      }
-    }
-
-    socket.onmessage = (event) => {
-      if (socketRef.current !== socket) return
-      try {
-        const { event: ev, data } = JSON.parse(event.data) as { event: string; data: unknown }
-        handleEvent(ev, data)
-      } catch (err) {
-        console.error('Failed to parse WebSocket message:', err)
-      }
-    }
-
-    socket.onclose = () => {
-      if (socketRef.current !== socket) return
-      setStatus('closed')
-      if (intentionalCloseRef.current) return
-      if (credsRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-        reconnectAttemptsRef.current += 1
-        reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY_MS)
-      } else if (credsRef.current) {
-        setReconnectExhausted(true)
-      }
-    }
-
-    socket.onerror = () => {
-      console.error('WebSocket connection error')
-    }
-  }
-
   useEffect(() => {
-    const connectTimer = setTimeout(() => {
-      connect()
-    }, 50)
-
-    return () => {
-      clearTimeout(connectTimer)
-      intentionalCloseRef.current = true
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
-      if (socketRef.current && socketRef.current.readyState === WebSocket.CONNECTING) {
-        socketRef.current.onerror = null
-      }
-      socketRef.current?.close()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only WebSocket setup; runs once for the component lifetime
-  }, [])
-
-  useEffect(() => {
-    const phase = roomState?.phase
-    const inGame = joined && phase != null && phase !== 'lobby'
+    const phase = s.roomState?.phase
+    const inGame = s.joined && phase != null && phase !== 'lobby'
     document.body.classList.toggle('client-in-game', inGame)
     return () => document.body.classList.remove('client-in-game')
-  }, [joined, roomState?.phase])
+  }, [s.joined, s.roomState?.phase])
 
-  function handleJoin(name: string, code: string, playerAvatar: PlayerAvatar): void {
-    setJoinError(null)
-    setJoining(true)
-    const socket = socketRef.current
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      sendJoin(name, code, playerAvatar, null)
-    } else {
-      pendingJoinRef.current = { name, code, playerAvatar }
-      if (!socket || socket.readyState === WebSocket.CLOSED) connect()
-    }
-  }
-
-  function handleAnswer(answerId: string): void {
-    const socket = socketRef.current
-    if (!socket || socket.readyState !== WebSocket.OPEN) return
-    setSelectedAnswerId(answerId)
-    socket.send(
-      JSON.stringify({
-        event: EVENTS.ANSWER_SUBMIT,
-        data: { answerId, timestamp: Date.now() },
-      })
-    )
-  }
-
-  function handleRoundSubmit(submission: unknown): void {
-    const socket = socketRef.current
-    if (!socket || socket.readyState !== WebSocket.OPEN || !roundContent) return
-    setRoundSubmitted(true)
-    socket.send(
-      JSON.stringify({
-        event: EVENTS.ROUND_SUBMIT,
-        data: {
-          roundId: roundContent.roundId,
-          type: roundContent.type,
-          submission,
-          timestamp: Date.now(),
-        },
-      })
-    )
-  }
+  const disconnected = s.status === 'closed'
+  const banner = (
+    <>
+      <ReconnectToast visible={disconnected && !s.kicked && !s.reconnectExhausted} />
+      {disconnected && !s.kicked && s.reconnectExhausted ? (
+        <div className="banner">Connection lost — reload the page to rejoin</div>
+      ) : null}
+    </>
+  )
 
   function renderMinigame(phase: 'playing' | 'reveal'): React.JSX.Element | null {
+    const { roundContent, roundReveal } = s
     if (!roundContent) return null
 
     if (roundContent.type === 'balance-scale') {
@@ -429,13 +58,10 @@ export function App(): React.JSX.Element {
         <MinigameChoiceGrid
           choices={roundContent.answerChoices ?? []}
           correctChoiceId={solution?.correctOptionId}
-          onSelect={(choice) => {
-            setSelectedOptionId(choice.id)
-            handleRoundSubmit(choice.submission)
-          }}
+          onSelect={(choice) => s.selectOption(choice.id, choice.submission)}
           phase={phase}
-          selectedChoiceId={selectedOptionId}
-          submitted={roundSubmitted}
+          selectedChoiceId={s.selectedOptionId}
+          submitted={s.roundSubmitted}
         />
       )
     }
@@ -445,57 +71,75 @@ export function App(): React.JSX.Element {
         <MinigameDynamicGrid
           type={'sliding-puzzle'}
           puzzle={roundContent.publicState}
-          onSubmit={handleRoundSubmit}
-          submitted={roundSubmitted}
+          onProgress={s.handleRoundProgress}
+          onSubmit={s.handleRoundSubmit}
+          submitted={s.roundSubmitted}
           phase={phase}
         />
       )
     }
 
     if (roundContent.type === 'vault-rush') {
-      const puzzle = roundContent.publicState as VaultRushPuzzle
       const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const puzzle = roundContent.publicState as VaultRushPuzzle
       const isReveal = phase === 'reveal'
 
       return (
         <section className="client-minigame client-minigame--vault-rush">
           <VaultRush
-            onSubmitCode={(code) => {
-              handleRoundSubmit({ code })
-            }}
+            onSubmitCode={(code) => s.handleRoundSubmit({ code })}
             puzzle={puzzle}
             readOnly={isReveal}
             solutionCode={isReveal ? solution?.code : undefined}
-            submitted={roundSubmitted}
+            submitted={s.roundSubmitted}
           />
         </section>
+      )
+    }
+
+    if (roundContent.type === 'wordle') {
+      const publicState = roundContent.publicState as WordlePublicState
+      const feedback =
+        s.roundFeedback?.roundId === roundContent.roundId
+          ? (s.roundFeedback.feedback as WordleFeedback)
+          : null
+      return (
+        <MinigameDynamicGrid
+          type="wordle"
+          feedback={feedback}
+          onGuess={s.handleRoundProgress}
+          onSubmit={s.handleRoundSubmit}
+          publicState={publicState}
+          roundId={roundContent.roundId}
+          submitted={s.roundSubmitted}
+          phase={phase === 'reveal' ? 'reveal' : 'playing'}
+        />
+      )
+    }
+
+    if (roundContent.type === 'light-switch') {
+      return (
+        <LightSwitchPuzzlePuzzle
+          puzzle={roundContent.publicState as LightSwitchPuzzle}
+          onProgress={s.handleRoundProgress}
+          onSubmit={s.handleRoundSubmit}
+        />
       )
     }
 
     return null
   }
 
-  const disconnected = status === 'closed'
-  const banner = (
-    <>
-      <ReconnectToast visible={disconnected && !kicked && !reconnectExhausted} />
-      {disconnected && !kicked && reconnectExhausted ? (
-        <div className="banner">Connection lost — reload the page to rejoin</div>
-      ) : null}
-    </>
-  )
-
-  if (fatalError) {
+  function renderFatal(): React.JSX.Element {
     return (
       <main className="app">
         <div className="game-card client-card">
           <CountdownCircle
             seconds={5}
-            message={fatalError}
+            message={s.fatalError ?? ''}
             onComplete={() => {
               window.history.replaceState({}, '', '/client')
-              setFatalError(null)
-              setJoinError(null)
+              s.clearFatalError()
             }}
           />
         </div>
@@ -503,8 +147,8 @@ export function App(): React.JSX.Element {
     )
   }
 
-  if (!joined) {
-    if (joining) {
+  function renderJoinFlow(): React.JSX.Element {
+    if (s.joining) {
       return (
         <main className="app">
           {banner}
@@ -516,56 +160,48 @@ export function App(): React.JSX.Element {
       <main className="app">
         {banner}
         <JoinScreen
-          initialCode={credsRef.current?.roomCode || urlCode}
-          error={joinError}
-          onJoin={handleJoin}
+          initialCode={s.creds?.roomCode || urlCode}
+          error={s.joinError}
+          onJoin={s.handleJoin}
         />
       </main>
     )
   }
 
-  const phase: GamePhase = roomState?.phase ?? 'lobby'
-  const myPlayerId = playerIdRef.current
-
-  if (phase === 'lobby') {
+  function renderLobby(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
-        <Waiting
-          playerName={credsRef.current?.playerName ?? ''}
-          roomCode={credsRef.current?.roomCode ?? ''}
-        />
+        <Waiting playerName={s.creds?.playerName ?? ''} roomCode={s.creds?.roomCode ?? ''} />
       </main>
     )
   }
 
-  if (phase === 'round-intro') {
+  function renderRoundIntro(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
-        <RoundIntro index={round?.index ?? roomState?.round ?? 1} total={round?.total ?? 0} />
+        <RoundIntro index={s.round?.index ?? s.roomState?.round ?? 1} total={s.round?.total ?? 0} />
       </main>
     )
   }
 
-  if (phase === 'playing' || phase === 'reveal') {
-    const minigame = renderMinigame(phase === 'reveal' ? 'reveal' : 'playing')
+  function renderGameplay(phase: 'playing' | 'reveal'): React.JSX.Element {
+    const minigame = renderMinigame(phase)
     if (minigame) {
+      const isFullBleed =
+        s.roundContent?.type === 'sliding-puzzle' ||
+        s.roundContent?.type === 'vault-rush' ||
+        s.roundContent?.type === 'wordle'
       return (
-        <main
-          className={
-            roundContent?.type === 'sliding-puzzle' || roundContent?.type === 'vault-rush'
-              ? 'app app--minigame'
-              : 'app'
-          }
-        >
+        <main className={isFullBleed ? 'app app--minigame' : 'app'}>
           {banner}
           {minigame}
         </main>
       )
     }
 
-    if (!question) {
+    if (!s.question) {
       return (
         <main className="app">
           {banner}
@@ -575,49 +211,63 @@ export function App(): React.JSX.Element {
         </main>
       )
     }
-    const myResult = reveal && myPlayerId ? (reveal.playerAnswers[myPlayerId] ?? null) : null
+
+    const myResult = s.reveal && s.playerId ? (s.reveal.playerAnswers[s.playerId] ?? null) : null
     return (
       <main className="app">
         {banner}
         <Answer
-          question={question}
-          selectedAnswerId={selectedAnswerId}
-          phase={phase === 'reveal' ? 'reveal' : 'playing'}
+          question={s.question}
+          selectedAnswerId={s.selectedAnswerId}
+          phase={phase}
           result={myResult}
-          correctAnswerIds={reveal?.correctAnswerIds ?? []}
-          secondsRemaining={secondsRemaining}
-          onAnswer={handleAnswer}
+          correctAnswerIds={s.reveal?.correctAnswerIds ?? []}
+          secondsRemaining={s.secondsRemaining}
+          onAnswer={s.handleAnswer}
         />
       </main>
     )
   }
 
-  if (phase === 'game-over' || finalScores !== null) {
+  function renderGameOver(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
         <GameOver
-          players={roomState?.players ?? []}
-          finalScores={finalScores ?? {}}
-          myPlayerId={myPlayerId}
-          onBackToMenu={handleLeaveRoom}
+          players={s.roomState?.players ?? []}
+          finalScores={s.finalScores ?? {}}
+          myPlayerId={s.playerId}
+          onBackToMenu={s.handleLeaveRoom}
         />
       </main>
     )
   }
 
-  if (phase === 'leaderboard') {
+  function renderLeaderboard(): React.JSX.Element {
     return (
       <main className="app">
         {banner}
         <Leaderboard
-          leaderboard={leaderboard}
-          myPlayerId={myPlayerId}
-          players={roomState?.players ?? []}
+          leaderboard={s.leaderboard}
+          myPlayerId={s.playerId}
+          players={s.roomState?.players ?? []}
         />
       </main>
     )
   }
+
+  if (s.fatalError) return renderFatal()
+  if (!s.joined) return renderJoinFlow()
+
+  const phase: GamePhase = s.roomState?.phase ?? 'lobby'
+
+  if (phase === 'lobby') return renderLobby()
+  if (phase === 'round-intro') return renderRoundIntro()
+  if (phase === 'playing' || phase === 'reveal') {
+    return renderGameplay(phase === 'reveal' ? 'reveal' : 'playing')
+  }
+  if (phase === 'game-over' || s.finalScores !== null) return renderGameOver()
+  if (phase === 'leaderboard') return renderLeaderboard()
 
   return (
     <main className="app">

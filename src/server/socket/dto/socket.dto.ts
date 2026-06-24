@@ -1,6 +1,22 @@
-import { IsString, IsNumber, IsOptional, IsDefined, ValidateNested } from 'class-validator'
+import {
+  IsString,
+  IsNumber,
+  IsInt,
+  IsOptional,
+  IsDefined,
+  ValidateNested,
+  Matches,
+  Min,
+  Max,
+  Length,
+} from 'class-validator'
 import { Type } from 'class-transformer'
 import type { RoundType } from '@brain-wiz/shared/types/index'
+import {
+  ROOM_CODE_LENGTH,
+  AVATAR_FACE_COUNT,
+  BODY_COLOR_PATTERN,
+} from '@brain-wiz/shared/constants/game-limits'
 
 export class PingDto {
   @IsNumber()
@@ -10,13 +26,17 @@ export class PingDto {
 
 export class PlayerAvatarDto {
   @IsString()
+  @Matches(BODY_COLOR_PATTERN, { message: 'bodyColor must be a 6-digit hex colour, e.g. #ff2d2d' })
   public bodyColor!: string
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
+  @Max(AVATAR_FACE_COUNT - 1)
   public faceId!: number
 }
 export class PlayerJoinDto {
   @IsString()
+  @Length(ROOM_CODE_LENGTH, ROOM_CODE_LENGTH)
   public roomCode!: string
 
   @IsString()
@@ -58,3 +78,5 @@ export class RoundSubmitDto {
   @IsOptional()
   public timestamp?: number
 }
+
+export class RoundProgressDto extends RoundSubmitDto {}
