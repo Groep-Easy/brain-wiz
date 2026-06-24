@@ -7,7 +7,6 @@ import { buildSerpentine } from '../flow/serpentine'
 import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
@@ -16,6 +15,7 @@ import { ROOM } from '@brain-wiz/config/game.config'
 
 import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 

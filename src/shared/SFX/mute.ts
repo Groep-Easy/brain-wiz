@@ -1,3 +1,5 @@
+import { getTSAudio } from '../SFX/SFX'
+
 const STORAGE_KEY = 'host-muted'
 const VOLUME_KEY = 'host-volume'
 const DEFAULT_UNMUTE_VOLUME = 0.5
@@ -33,6 +35,11 @@ let volumeState = readStoredVolume()
 function applyToMedia(): void {
   document.querySelectorAll('audio, video').forEach((el) => {
     const media = el as HTMLMediaElement
+    media.muted = isMutedState
+    media.volume = volumeState
+  })
+
+  getTSAudio().forEach((media) => {
     media.muted = isMutedState
     media.volume = volumeState
   })

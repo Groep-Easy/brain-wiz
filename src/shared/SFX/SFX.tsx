@@ -56,3 +56,7 @@ export function stopSound(soundSource: string) {
     _currentAudio.delete(soundSource)
   }
 }
+
+export function getTSAudio(): HTMLAudioElement[] {
+  return [..._currentAudio.values()]
+}
