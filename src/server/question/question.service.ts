@@ -12,7 +12,7 @@ const DEFAULT_BASE_POINTS = 1000
 export class QuestionService {
   public constructor(
     @InjectRepository(Question) private readonly questions: Repository<Question>
-  ) {}
+  ) { }
 
   private validateUsedIds(usedIds: string[]): void {
     if (!Array.isArray(usedIds)) {
@@ -76,10 +76,7 @@ export class QuestionService {
       queryBuilder.where('question.id NOT IN (:...usedIds)', { usedIds })
     }
 
-    const unusedQuestions = await queryBuilder.getMany()
-    if (unusedQuestions.length === 0) return null
-
-    const randomIndex = Math.floor(Math.random() * unusedQuestions.length)
-    return unusedQuestions[randomIndex] ?? null
+    const question = await queryBuilder.orderBy('RANDOM()').limit(1).getOne()
+    return question ?? null
   }
 }
