@@ -35,7 +35,7 @@ export function BonkAir({ puzzle, readOnly = false, phase = 'playing', onSubmiss
       onReplayComplete: () => onReplayCompleteRef.current?.(),
     })
     runtimeRef.current = runtime
-    return () => {
+    return (): void => {
       runtime.destroy()
       runtimeRef.current = null
     }

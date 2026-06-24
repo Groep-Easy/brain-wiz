@@ -45,6 +45,17 @@ const FNV_OFFSET = 2166136261
 const FNV_PRIME = 16777619
 const MS_PER_SECOND = 1000
 
+/**
+ * Assert an indexed / optional access is present. Every index in this engine is
+ * guaranteed valid by construction (bounds-checked generation, fixed-size
+ * arrays); this keeps that invariant explicit without non-null assertions and
+ * throws only if an impossible out-of-bounds access ever occurs.
+ */
+function req<T>(value: T | undefined): T {
+  if (value === undefined) throw new RangeError('Bonk Air: unexpected out-of-bounds access')
+  return value
+}
+
 /* ---------------- RNG ---------------- */
 export function mulberry32(a: number): () => number {
   return function (): number {
@@ -68,7 +79,7 @@ export class Rng {
     return Math.floor(this.range(a, b + 1))
   }
   public pick<T>(arr: T[]): T {
-    return arr[Math.floor(this.f() * arr.length)]!
+    return req(arr[Math.floor(this.f() * arr.length)])
   }
   public chance(p: number): boolean {
     return this.f() < p
@@ -77,7 +88,7 @@ export class Rng {
     const a = arr.slice()
     for (let i = a.length - 1; i > 0; i--) {
       const j = Math.floor(this.f() * (i + 1))
-      ;[a[i], a[j]] = [a[j]!, a[i]!]
+      ;[a[i], a[j]] = [req(a[j]), req(a[i])]
     }
     return a
   }
@@ -100,7 +111,7 @@ export function segInt(p: Vec, p2: Vec, p3: Vec, p4: Vec): boolean {
 
 export function cumLens(pts: Vec[]): number[] {
   const c = [0]
-  for (let i = 1; i < pts.length; i++) c.push(c[i - 1]! + dist(pts[i - 1]!, pts[i]!))
+  for (let i = 1; i < pts.length; i++) c.push(req(c[i - 1]) + dist(req(pts[i - 1]), req(pts[i])))
   return c
 }
 
@@ -111,29 +122,29 @@ interface PointAlong {
 }
 
 export function pointAlong(pts: Vec[], cums: number[], s: number): PointAlong {
-  const total = cums[cums.length - 1]!
+  const total = req(cums[cums.length - 1])
   if (s <= 0)
     return {
-      x: pts[0]!.x,
-      y: pts[0]!.y,
-      ang: Math.atan2(pts[1]!.y - pts[0]!.y, pts[1]!.x - pts[0]!.x),
+      x: req(pts[0]).x,
+      y: req(pts[0]).y,
+      ang: Math.atan2(req(pts[1]).y - req(pts[0]).y, req(pts[1]).x - req(pts[0]).x),
     }
   if (s >= total) {
-    const a = pts[pts.length - 2]!,
-      b = pts[pts.length - 1]!
+    const a = req(pts[pts.length - 2]),
+      b = req(pts[pts.length - 1])
     return { x: b.x, y: b.y, ang: Math.atan2(b.y - a.y, b.x - a.x) }
   }
   let lo = 0,
     hi = cums.length - 1
   while (lo < hi) {
     const m = (lo + hi) >> 1
-    if (cums[m]! < s) lo = m + 1
+    if (req(cums[m]) < s) lo = m + 1
     else hi = m
   }
   const i = lo,
-    a = pts[i - 1]!,
-    b = pts[i]!,
-    t = (s - cums[i - 1]!) / Math.max(1e-6, cums[i]! - cums[i - 1]!)
+    a = req(pts[i - 1]),
+    b = req(pts[i]),
+    t = (s - req(cums[i - 1])) / Math.max(1e-6, req(cums[i]) - req(cums[i - 1]))
   return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), ang: Math.atan2(b.y - a.y, b.x - a.x) }
 }
 
@@ -221,8 +232,8 @@ export function dijkstra(world: World, from: Cell, to: Cell): DijkstraResult | n
     let u = -1,
       best = 1e9
     for (let i = 0; i < N; i++)
-      if (!V[i] && D[i]! < best) {
-        best = D[i]!
+      if (!V[i] && req(D[i]) < best) {
+        best = req(D[i])
         u = i
       }
     if (u < 0 || u === I(to)) break
@@ -236,21 +247,21 @@ export function dijkstra(world: World, from: Cell, to: Cell): DijkstraResult | n
       const v = ny * COLS + nx
       if (blk(v)) continue
       if (dx && dy && (blk(uy * COLS + nx) || blk(ny * COLS + ux))) continue
-      if (D[u]! + c < D[v]!) {
-        D[v] = D[u]! + c
+      if (req(D[u]) + c < req(D[v])) {
+        D[v] = req(D[u]) + c
         P[v] = u
       }
     }
   }
-  if (D[I(to)]! >= 1e9) return null
+  if (req(D[I(to)]) >= 1e9) return null
   const cells: Cell[] = []
   let cur = I(to)
   while (cur !== -1) {
     cells.push({ x: cur % COLS, y: (cur / COLS) | 0 })
-    cur = P[cur]!
+    cur = req(P[cur])
   }
   cells.reverse()
-  return { cells, cost: D[I(to)]! }
+  return { cells, cost: req(D[I(to)]) }
 }
 
 /* ---------------- world generation ---------------- */
@@ -293,22 +304,22 @@ export function generate(seed: number, diff: number): World {
     if (world.hasAirport) {
       const mk = (len: number): Runway | null => {
         for (let k = 0; k < 60; k++) {
-          const horiz = rng.chance(0.55)
-          const dir = horiz
+          const isHoriz = rng.chance(0.55)
+          const dir = isHoriz
             ? { x: rng.chance(0.5) ? 1 : -1, y: 0 }
             : { x: 0, y: rng.chance(0.5) ? 1 : -1 }
-          const sx = rng.int(2, C.COLS - 3 - (horiz ? len : 0)),
-            sy = rng.int(1, C.ROWS - 2 - (horiz ? 0 : len))
+          const sx = rng.int(2, C.COLS - 3 - (isHoriz ? len : 0)),
+            sy = rng.int(1, C.ROWS - 2 - (isHoriz ? 0 : len))
           const cells: Cell[] = []
           let c = {
-            x: horiz && dir.x < 0 ? sx + len - 1 : sx,
-            y: !horiz && dir.y < 0 ? sy + len - 1 : sy,
+            x: isHoriz && dir.x < 0 ? sx + len - 1 : sx,
+            y: !isHoriz && dir.y < 0 ? sy + len - 1 : sy,
           }
           for (let i = 0; i < len; i++) {
             cells.push({ x: c.x, y: c.y })
             c = { x: c.x + dir.x, y: c.y + dir.y }
           }
-          const appr = { x: cells[0]!.x - dir.x, y: cells[0]!.y - dir.y }
+          const appr = { x: req(cells[0]).x - dir.x, y: req(cells[0]).y - dir.y }
           if (!inGrid(appr)) continue
           if (
             rwCellsAll.some((o) =>
@@ -320,8 +331,8 @@ export function generate(seed: number, diff: number): World {
           return {
             cells,
             dir,
-            thr: cells[0]!,
-            end: cells[len - 1]!,
+            thr: req(cells[0]),
+            end: req(cells[len - 1]),
             appr,
             long: len >= 5,
             label: rwyLabel(dir),
@@ -346,12 +357,12 @@ export function generate(seed: number, diff: number): World {
       keys = []
       for (let k = 0; k < 20; k++) {
         keys = rng.shuffle(typePool).slice(0, n)
-        const sp = new Set(keys.map((k2) => PLANE_TYPES[k2]!.speed))
+        const sp = new Set(keys.map((k2) => req(PLANE_TYPES[k2]).speed))
         if (sp.size >= 2) break
       }
     } else {
       // Single plane type: fill the roster with copies (no speed variety needed).
-      keys = Array.from({ length: n }, () => typePool[0]!)
+      keys = Array.from({ length: n }, () => req(typePool[0]))
     }
     const missions: Plane['mission'][] = []
     if (world.hasAirport) {
@@ -360,7 +371,10 @@ export function generate(seed: number, diff: number): World {
         missions.push(diff >= 2 && longIdx >= 0 && rng.chance(0.65) ? 'depart' : 'transit')
       if (n >= 3) missions.push(rng.chance(0.5) ? 'land' : 'transit')
     } else for (let i = 0; i < n; i++) missions.push('transit')
-    const spec: PlanSpec[] = keys.map((k, i) => ({ type: PLANE_TYPES[k]!, mission: missions[i]! }))
+    const spec: PlanSpec[] = keys.map((k, i) => ({
+      type: req(PLANE_TYPES[k]),
+      mission: req(missions[i]),
+    }))
     for (const ps of spec) {
       // big jets need the long runway
       if (
@@ -388,11 +402,11 @@ export function generate(seed: number, diff: number): World {
         spawns: SpawnCell[] = [],
         segs: [Vec, Vec][] = [],
         plans: PlanPair[] = []
-      let ok = true
+      let isOk = true
       for (const ps of spec) {
         let spawn: SpawnCell | undefined, target: Target | undefined, segA: Vec
         if (ps.mission === 'depart') {
-          const r = world.runways[longIdx]!
+          const r = req(world.runways[longIdx])
           spawn = { x: r.thr.x, y: r.thr.y, edge: -1 }
           segA = cellC(r.end)
         } else {
@@ -407,7 +421,7 @@ export function generate(seed: number, diff: number): World {
             }
           }
           if (!isPlaced || !spawn) {
-            ok = false
+            isOk = false
             break
           }
           segA = cellC(spawn)
@@ -422,7 +436,7 @@ export function generate(seed: number, diff: number): World {
             ri = world.runways.findIndex((r) => !r.long)
           if (ri < 0) ri = 0
           target = { kind: 'runway', idx: ri }
-          segs.push([segA, cellC(world.runways[ri]!.thr)])
+          segs.push([segA, cellC(req(world.runways[ri]).thr)])
         } else {
           let isPlaced = false
           for (let k = 0; k < 50 && !isPlaced; k++) {
@@ -437,19 +451,19 @@ export function generate(seed: number, diff: number): World {
             }
           }
           if (!isPlaced || !target) {
-            ok = false
+            isOk = false
             break
           }
-          segs.push([segA, cellC(gates[gates.length - 1]!)])
+          segs.push([segA, cellC(req(gates[gates.length - 1]))])
         }
         plans.push({ spawn, target })
         spawns.push(spawn)
       }
-      if (!ok) continue
+      if (!isOk) continue
       let cross = 0
       for (let i = 0; i < segs.length; i++)
         for (let j = i + 1; j < segs.length; j++)
-          if (segInt(segs[i]![0], segs[i]![1], segs[j]![0], segs[j]![1])) cross++
+          if (segInt(req(segs[i])[0], req(segs[i])[1], req(segs[j])[0], req(segs[j])[1])) cross++
       if (!best || cross > best.cross) best = { gates, plans, cross }
       if (cross >= spec.length - 1) break
     }
@@ -461,7 +475,7 @@ export function generate(seed: number, diff: number): World {
       label: 'GATE ' + 'ABC'[i],
     }))
     spec.forEach((ps, i) => {
-      const plan = resolvedBest.plans[i]!
+      const plan = req(resolvedBest.plans[i])
       world.planes.push({
         id: i,
         type: ps.type,
@@ -472,8 +486,8 @@ export function generate(seed: number, diff: number): World {
         target: plan.target,
         rwIdx:
           ps.mission === 'depart' ? longIdx : plan.target.kind === 'runway' ? plan.target.idx : -1,
-        color: MISSION_COLORS[i]!,
-        sym: MISSION_SYMS[i]!,
+        color: req(MISSION_COLORS[i]),
+        sym: req(MISSION_SYMS[i]),
         bfs: [],
       })
     })
@@ -494,8 +508,8 @@ export function generate(seed: number, diff: number): World {
     for (let nn = 0; nn < nClouds; nn++)
       for (let k = 0; k < 80; k++) {
         const cc = { x: rng.int(3, C.COLS - 4), y: rng.int(2, C.ROWS - 3) }
-        const big = rng.chance(0.35)
-        const baseR = big ? rng.range(2.0, 3.0) : rng.range(1.0, 1.8)
+        const isBig = rng.chance(0.35)
+        const baseR = isBig ? rng.range(2.0, 3.0) : rng.range(1.0, 1.8)
         const rx = baseR * rng.range(0.8, 1.35),
           ry = baseR * rng.range(0.8, 1.35),
           wob = rng.range(0, TAU)
@@ -544,12 +558,12 @@ export function generate(seed: number, diff: number): World {
       let from = pl.spawn,
         to: Cell
       if (pl.mission === 'land') {
-        to = world.runways[pl.target.idx]!.thr
+        to = req(world.runways[pl.target.idx]).thr
       } else if (pl.mission === 'depart') {
-        const r = world.runways[pl.rwIdx]!
+        const r = req(world.runways[pl.rwIdx])
         from = r.end
-        to = world.gates[pl.target.idx]!.c
-      } else to = world.gates[pl.target.idx]!.c
+        to = req(world.gates[pl.target.idx]).c
+      } else to = req(world.gates[pl.target.idx]).c
       const res = dijkstra(world, from, to)
       if (!res) {
         isRoutable = false
@@ -639,7 +653,7 @@ export function generate(seed: number, diff: number): World {
 function buildRunPts(world: World, pl: Plane, sol: PlanePath): Vec[] {
   let cells = sol.cells
   if (pl.mission === 'land') {
-    const r = world.runways[pl.target.idx]!
+    const r = req(world.runways[pl.target.idx])
     cells = cells.concat([
       { x: r.thr.x + r.dir.x, y: r.thr.y + r.dir.y },
       { x: r.thr.x + r.dir.x * 2, y: r.thr.y + r.dir.y * 2 },
@@ -692,11 +706,11 @@ export class Sim {
       }
       const pts = buildRunPts(world, pl, sol),
         cums = cumLens(pts)
-      const drawn = cums[sol.cells.length - 1]! // px the player actually drew (fuel basis)
+      const drawn = req(cums[sol.cells.length - 1]) // px the player actually drew (fuel basis)
       let liftS = 0
       if (pl.mission === 'depart') {
-        const r = world.runways[pl.rwIdx]!
-        liftS = cums[r.cells.length - 1]!
+        const r = req(world.runways[pl.rwIdx])
+        liftS = req(cums[r.cells.length - 1])
       }
       return {
         ref: pl,
@@ -706,14 +720,14 @@ export class Sim {
         sym: pl.sym,
         pts,
         cums,
-        total: cums[cums.length - 1]!,
+        total: req(cums[cums.length - 1]),
         drawn,
         landS: pl.mission === 'land' ? drawn : 1e9,
         liftS,
-        complete: !!sol.complete,
+        complete: Boolean(sol.complete),
         s: 0,
-        x: pts[0]!.x,
-        y: pts[0]!.y,
+        x: req(pts[0]).x,
+        y: req(pts[0]).y,
         ang: 0,
         state: 'flying',
         stars: 0,
@@ -769,7 +783,16 @@ export class Sim {
       if (this.world.blocked[idx]) {
         // No-fly zone → the plane is intercepted (blue banner).
         p.state = 'crashed'
-        ev.push({ type: 'bonk', a: p, b: null, x: p.x, y: p.y, t: this.t, zone: true, intercept: true })
+        ev.push({
+          type: 'bonk',
+          a: p,
+          b: null,
+          x: p.x,
+          y: p.y,
+          t: this.t,
+          zone: true,
+          intercept: true,
+        })
       } else if (this.weather.has(idx)) {
         // Storm → the plane bonks (red banner).
         p.state = 'crashed'
@@ -802,7 +825,12 @@ export class Sim {
     }
     for (let i = 0; i < airborne.length; i++)
       for (let j = i + 1; j < airborne.length; j++)
-        sepCheck(airborne[i]!, airborne[j]!, airborne[i]!.id + '-' + airborne[j]!.id, false)
+        sepCheck(
+          req(airborne[i]),
+          req(airborne[j]),
+          req(airborne[i]).id + '-' + req(airborne[j]).id,
+          false
+        )
     // stars
     for (const p of airborne)
       if (p.state === 'flying')
@@ -869,15 +897,15 @@ export function scoreBonkAirSolution(
 ): BonkAirScoreResult {
   const world = generate(hashSeed(puzzle.seed), puzzle.diff)
   const results = runHeadless(world, solution)
-  const allComplete =
+  const isAllComplete =
     world.planes.length > 0 &&
     world.planes.every((p) => {
       const path = solution[p.id]
-      return !!path && path.complete
+      return path?.complete === true
     })
   const secondsLeft = Math.floor((config.timeLimitMs - timeToAnswerMs) / MS_PER_SECOND)
-  const earlyBonus = allComplete
+  const earlyBonus = isAllComplete
     ? Math.min(config.earlyMax, Math.max(0, secondsLeft) * CONFIG.EARLY_PER_SECOND)
     : 0
-  return { score: results.score + earlyBonus, earlyBonus, results, allComplete }
+  return { score: results.score + earlyBonus, earlyBonus, results, allComplete: isAllComplete }
 }

@@ -48,7 +48,7 @@ export interface BonkAirRuntime {
   destroy: () => void
 }
 
-type DrawOpts = {
+interface DrawOpts {
   scale?: number
   noShadow?: boolean
   ghost?: boolean

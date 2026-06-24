@@ -22,8 +22,7 @@ import {
 export const ROOM = Object.freeze({
   CODE_LENGTH: ROOM_CODE_LENGTH,
   MAX_PLAYERS: 12,
-  // Temporarily 1 so a single player can start a game while testing.
-  MIN_PLAYERS_TO_START: 1,
+  MIN_PLAYERS_TO_START: 2,
   JOIN_TIMEOUT_MS: 30_000,
   RECONNECT_GRACE_MS: 30_000,
 })

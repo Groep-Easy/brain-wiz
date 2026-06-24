@@ -10,7 +10,7 @@ export function BonkAirMock(): JSX.Element {
   const [index, setIndex] = useState(0)
   const [diff, setDiff] = useState(2)
   const [phase, setPhase] = useState<'playing' | 'reveal'>('playing')
-  const [readOnly, setReadOnly] = useState(false)
+  const [isReadOnly, setIsReadOnly] = useState(false)
   const [lastSubmission, setLastSubmission] = useState<string>('—')
   const puzzle = useMemo(() => getSampleBonkAirPuzzle(index, diff), [index, diff])
 
@@ -18,10 +18,10 @@ export function BonkAirMock(): JSX.Element {
     <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#101820' }}>
       <div style={{ flex: 1, minHeight: 0 }}>
         <BonkAir
-          key={`${puzzle.seed}-${puzzle.diff}-${readOnly}`}
+          key={`${puzzle.seed}-${puzzle.diff}-${isReadOnly}`}
           phase={phase}
           puzzle={puzzle}
-          readOnly={readOnly}
+          readOnly={isReadOnly}
           onSubmissionChange={(s) => {
             const routed = Object.values(s.solution).filter((p) => p.complete).length
             setLastSubmission(`${routed} routed / ${Object.keys(s.solution).length} drawn`)
@@ -38,8 +38,8 @@ export function BonkAirMock(): JSX.Element {
         <button type="button" onClick={() => setPhase((p) => (p === 'playing' ? 'reveal' : 'playing'))}>
           Phase: {phase}
         </button>
-        <button type="button" onClick={() => setReadOnly((r) => !r)}>
-          {readOnly ? 'Host display' : 'Player'}
+        <button type="button" onClick={() => setIsReadOnly((r) => !r)}>
+          {isReadOnly ? 'Host display' : 'Player'}
         </button>
         <span>Last submission: {lastSubmission}</span>
       </div>

@@ -117,7 +117,7 @@ export class AnswerService {
       return
     }
     const adapter = this.minigames?.get(payload.type)
-    const isValid = !!adapter && adapter.validateSubmission(payload.submission)
+    const isValid = adapter !== undefined && adapter.validateSubmission(payload.submission)
     if (payload.type === 'bonk-air') {
       this.logger.log(
         `[bonk-air] submitRound client=${clientId} valid=${isValid} alreadySubmitted=${window.submitted.has(clientId)}`

@@ -77,7 +77,13 @@ export class RoundBuilder {
         built.push(await this.saveQuizRound(room, index, spec.question))
       } else {
         built.push(
-          await this.saveProceduralRound(room, index, spec.type, spec.difficulty, spec.timeLimitSeconds)
+          await this.saveProceduralRound(
+            room,
+            index,
+            spec.type,
+            spec.difficulty,
+            spec.timeLimitSeconds
+          )
         )
       }
     }
