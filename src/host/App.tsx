@@ -8,6 +8,7 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRules'
 
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
@@ -241,12 +242,23 @@ function renderMinigame(
     )
   }
 
+   if (content.type === 'bonk-air') {
+    return (
+      <div className="host-minigame host-minigame--bonk-air">
+        <BonkAirRules />
+        <p className="host-minigame__rotate-hint">
+          📱➡️ Turn your phone sideways to play
+        </p>
+      </div>
+    )
+  }
+
   if (content.type === 'wordle') {
-  return (
-    <div className="wordle-host-waiting">
-      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
-    </div>
-   )
+    return (
+      <div className="wordle-host-waiting">
+        <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+      </div>
+    )
   }
 
   return (

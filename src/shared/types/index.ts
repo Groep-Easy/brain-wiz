@@ -23,6 +23,7 @@ export type RoundType =
   | 'vault-rush'
   | 'wordle'
   | 'light-switch'
+  | 'bonk-air'
 
 export interface Player {
   id: string

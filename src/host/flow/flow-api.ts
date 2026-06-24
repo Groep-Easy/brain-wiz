@@ -27,16 +27,18 @@ export function toFlowItems(items: StoredFlowItem[]): FlowItem[] {
     }
     if (it.questions !== undefined) item.questions = it.questions
     if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    if (it.difficulty !== undefined) item.difficulty = it.difficulty
     return item
   })
 }
 
 /** Strip client-only uids before sending a flow to the server. */
 export function toStoredFlow(flow: FlowItem[]): StoredFlowItem[] {
-  return flow.map(({ blockId, questions, timeLimitSeconds }) => {
+  return flow.map(({ blockId, questions, timeLimitSeconds, difficulty }) => {
     const item: StoredFlowItem = { blockId }
     if (questions !== undefined) item.questions = questions
     if (timeLimitSeconds !== undefined) item.timeLimitSeconds = timeLimitSeconds
+    if (difficulty !== undefined) item.difficulty = difficulty
     return item
   })
 }
