@@ -14,9 +14,11 @@ import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
+
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
+
 import { useHostSocket } from './hooks/useHostSocket'
 import type { ActiveRoom } from './App.interfaces'
 
@@ -205,7 +207,8 @@ function renderMinigame(
   if (
     content.type === 'balance-scale' ||
     content.type === 'sliding-puzzle' ||
-    content.type === 'vault-rush'
+    content.type === 'vault-rush' ||
+    content.type === 'light-switch'
   ) {
     return (
       <RoundMinigameSurface
@@ -214,7 +217,9 @@ function renderMinigame(
             ? 'host-minigame--scale'
             : content.type === 'vault-rush'
               ? 'host-minigame--vault'
-              : 'host-minigame--sliding'
+              : content.type === 'light-switch'
+                ? 'host-minigame--light'
+                : 'host-minigame--sliding'
         }`}
         content={content}
         mode="display"
