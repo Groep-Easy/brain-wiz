@@ -49,8 +49,6 @@ export function GameOver({ players, finalScores, onBackToMenu }: GameOverProps):
   const podiumHeights: Record<number, string> = { 1: '180px', 2: '130px', 3: '100px' }
   const podiumLabels: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
-  //if (!isMuted()) playSound(sounds.gameOver, true)
-
   return (
     <>
       <audio src={sounds.gameOver} loop autoPlay></audio>
