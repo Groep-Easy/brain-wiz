@@ -137,5 +137,15 @@ export function RoundMinigameSurface({
     )
   }
 
+  if (content.type === 'light-switch') {
+    return (
+      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
+        <div className="card">
+          <h1>Turn all lights on!</h1>
+        </div>
+      </section>
+    )
+  }
+
   return null
 }

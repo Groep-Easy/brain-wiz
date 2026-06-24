@@ -72,7 +72,13 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale', 'vault-rush'] as readonly RoundType[],
+  TYPES: [
+    'quiz',
+    'sliding-puzzle',
+    'balance-scale',
+    'vault-rush',
+    'light-switch',
+  ] as readonly RoundType[],
   DEFAULT_SEQUENCE: [
     'quiz',
     'balance-scale',
