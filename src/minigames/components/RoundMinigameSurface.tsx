@@ -14,6 +14,8 @@ import { VaultRush } from '../vault-rush/components/VaultRush.js'
 import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
 import { WordleMock } from '../wordleGame/mock/WordleGameMock.js'
 import type { WordlePublicState, WordleSubmission } from '../wordleGame/shared/wordleGame.types.js'
+import { BonkAir } from '../bonk-air/components/BonkAir.js'
+import type { BonkAirPuzzle } from '../bonk-air/shared/bonkAirGame.js'
 import { DEFAULT_MAX_TRIES, DEFAULT_WORD_LENGTH } from './RoundMinigameSurface.constants.js'
 import type { RoundMinigameSurfaceProps, SurfaceContext } from './RoundMinigameSurface.types.js'
 
@@ -126,12 +128,29 @@ function renderLightSwitch(ctx: SurfaceContext): React.JSX.Element {
   )
 }
 
+function renderBonkAir(ctx: SurfaceContext): React.JSX.Element {
+  const puzzle = ctx.content.publicState as BonkAirPuzzle
+  const readOnly = ctx.mode === 'display'
+  return surfaceSection(
+    ctx,
+    <BonkAir
+      phase={ctx.phase === 'reveal' ? 'reveal' : 'playing'}
+      puzzle={puzzle}
+      readOnly={readOnly}
+      {...(!readOnly
+        ? { onSubmissionChange: (submission: unknown) => ctx.onSubmissionChange?.(submission) }
+        : {})}
+    />
+  )
+}
+
 const SURFACE_RENDERERS: Record<string, (ctx: SurfaceContext) => React.JSX.Element> = {
   'balance-scale': renderBalanceScale,
   'sliding-puzzle': renderSlidingPuzzle,
   'vault-rush': renderVaultRush,
   wordle: renderWordle,
   'light-switch': renderLightSwitch,
+  'bonk-air': renderBonkAir,
 }
 
 /**

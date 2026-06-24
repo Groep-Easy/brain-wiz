@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GamePhase } from '@brain-wiz/shared/types/index'
 import { MinigameDynamicGrid } from '@brain-wiz/minigames/components/MinigameDynamicGrid'
 import { MinigameChoiceGrid } from '@brain-wiz/minigames/components/MinigameChoiceGrid'
@@ -20,6 +20,9 @@ import type {
 import { useClientSocket } from './hooks/useClientSocket'
 import { LightSwitchPuzzlePuzzle } from '../minigames/light-switch/LightSwitch'
 import type { LightSwitchPuzzle } from '../minigames/light-switch/LightSwitch.types'
+import { BonkAir } from '../minigames/bonk-air/components/BonkAir'
+import type { BonkAirPuzzle } from '../minigames/bonk-air/shared/bonkAirGame'
+import { BonkAirScorecard } from './components/BonkAirScorecard'
 import { FATAL_COUNTDOWN_SECONDS, FULL_BLEED_MINIGAMES } from './App.constants'
 import type { ClientApi, MinigamePhase, RoundContent } from './App.types'
 
@@ -120,6 +123,61 @@ function renderLightSwitchMinigame(s: ClientApi, roundContent: RoundContent): Re
   )
 }
 
+/**
+ * Bonk Air keeps its drawn plan + replay-finished flag locally, and flushes the
+ * plan one tick before the server closes the answer window (its own local
+ * countdown can otherwise commit late). That local state is why it's its own
+ * component rather than a stateless renderer.
+ */
+function BonkAirMinigame({
+  s,
+  roundContent,
+  phase,
+}: {
+  s: ClientApi
+  roundContent: RoundContent
+  phase: MinigamePhase
+}): React.JSX.Element {
+  const bonkPlanRef = useRef<unknown>(null)
+  const [bonkReplayDone, setBonkReplayDone] = useState(false)
+
+  useEffect(() => {
+    if (
+      s.roomState?.phase === 'playing' &&
+      !s.roundSubmitted &&
+      s.secondsRemaining > 0 &&
+      s.secondsRemaining <= 1
+    ) {
+      s.handleRoundSubmit(bonkPlanRef.current ?? { solution: {} })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.secondsRemaining, s.roundSubmitted, s.roomState?.phase])
+
+  const puzzle = roundContent.publicState as BonkAirPuzzle
+  const points = s.roundReveal?.playerResults?.[s.playerId ?? '']?.pointsAwarded ?? 0
+
+  return (
+    <section className="client-minigame client-minigame--bonk-air">
+      <BonkAir
+        phase={phase}
+        puzzle={puzzle}
+        onSubmissionChange={(submission) => {
+          bonkPlanRef.current = submission
+        }}
+        onCommit={(submission) => {
+          if (!s.roundSubmitted) s.handleRoundSubmit(submission)
+        }}
+        onReplayComplete={() => setBonkReplayDone(true)}
+      />
+      {phase === 'reveal' && bonkReplayDone ? (
+        <div className="bonk-air-scorecard-overlay">
+          <BonkAirScorecard points={points} />
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
 const CLIENT_MINIGAME_RENDERERS: Record<
   string,
   (s: ClientApi, roundContent: RoundContent, phase: MinigamePhase) => React.JSX.Element | null
@@ -129,6 +187,9 @@ const CLIENT_MINIGAME_RENDERERS: Record<
   'vault-rush': renderVaultRushMinigame,
   wordle: renderWordleMinigame,
   'light-switch': renderLightSwitchMinigame,
+  'bonk-air': (s, roundContent, phase) => (
+    <BonkAirMinigame s={s} roundContent={roundContent} phase={phase} />
+  ),
 }
 
 function renderMinigame(s: ClientApi, phase: MinigamePhase): React.JSX.Element | null {

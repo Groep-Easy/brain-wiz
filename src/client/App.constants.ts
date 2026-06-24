@@ -2,4 +2,4 @@
 export const FATAL_COUNTDOWN_SECONDS = 5
 
 /** Minigames whose surface fills the screen (no padded card frame). */
-export const FULL_BLEED_MINIGAMES = new Set(['sliding-puzzle', 'vault-rush', 'wordle'])
+export const FULL_BLEED_MINIGAMES = new Set(['sliding-puzzle', 'vault-rush', 'wordle', 'bonk-air'])

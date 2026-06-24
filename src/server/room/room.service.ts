@@ -8,10 +8,10 @@
 import 'reflect-metadata'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In, type Repository } from 'typeorm'
+import { type Repository } from 'typeorm'
 import { Room } from '../entities/room.entity'
 import { GameModeEnum, RoomStatusEnum } from '../entities/enums'
-import { generateRoomCode } from '@brain-wiz/shared/utils/room-code'
+import { generateRoomCode, isValidRoomCode } from '@brain-wiz/shared/utils/room-code'
 import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
 import { RoomNotInLobbyError } from './room.errors'
 import { QrcodeService } from '../qrcode/qrcode.service'
@@ -20,6 +20,8 @@ import { ENV } from '@brain-wiz/config/env.config'
 
 /** Bounded retry so a pathological run of collisions cannot loop forever. */
 const MAX_CODE_ATTEMPTS = 10
+const ACTIVE_ROOM_STATUSES = [RoomStatusEnum.LOBBY, RoomStatusEnum.ACTIVE] as const
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 @Injectable()
 export class RoomService {
@@ -51,13 +53,25 @@ export class RoomService {
 
   /** The live (lobby or active) room for a join code, or null. */
   public async findByJoinCode(code: string): Promise<Room | null> {
-    return this.rooms.findOne({
-      where: { joinCode: code, status: In([RoomStatusEnum.LOBBY, RoomStatusEnum.ACTIVE]) },
-    })
+    const normalizedCode = code.toUpperCase()
+
+    if (!isValidRoomCode(normalizedCode)) {
+      return null
+    }
+
+    return this.rooms
+      .createQueryBuilder('room')
+      .where('room.joinCode = :joinCode', { joinCode: normalizedCode })
+      .andWhere('room.status IN (:...statuses)', { statuses: ACTIVE_ROOM_STATUSES })
+      .getOne()
   }
 
   public async findById(id: string): Promise<Room | null> {
-    return this.rooms.findOne({ where: { id } })
+    if (!UUID_PATTERN.test(id)) {
+      return null
+    }
+
+    return this.rooms.createQueryBuilder('room').where('room.id = :id', { id }).getOne()
   }
 
   public async updateHostSocket(room: Room, socketId: string | null): Promise<Room> {
@@ -115,9 +129,7 @@ export class RoomService {
   private async generateUniqueJoinCode(): Promise<string> {
     for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
       const code = generateRoomCode()
-      const existing = await this.rooms.findOne({
-        where: { joinCode: code, status: In([RoomStatusEnum.LOBBY, RoomStatusEnum.ACTIVE]) },
-      })
+      const existing = await this.findByJoinCode(code)
       if (!existing) {
         return code
       }

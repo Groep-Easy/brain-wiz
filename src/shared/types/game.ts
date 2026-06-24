@@ -14,6 +14,7 @@ export type RoundType =
   | 'vault-rush'
   | 'wordle'
   | 'light-switch'
+  | 'bonk-air'
 
 /** playerId → cumulative score (running total at the time the map is sent) */
 export type ScoreMap = Record<string, number>

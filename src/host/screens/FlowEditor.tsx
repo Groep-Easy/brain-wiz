@@ -123,17 +123,17 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
   // --- Drag sources -------------------------------------------------------
   const onPaletteDragStart = (e: React.DragEvent, blockId: string) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   // --- Whole-canvas drop target ------------------------------------------

@@ -75,7 +75,11 @@ export class QuestionSeederService implements OnApplicationBootstrap {
       if (seenTexts.has(q.text)) continue
       seenTexts.add(q.text)
 
-      const existing = await this.questions.findOne({ where: { text: q.text } })
+      const existing = await this.questions
+        .createQueryBuilder('question')
+        .where('question.text = :text', { text: q.text })
+        .getOne()
+
       if (existing) continue
 
       if (await this.insertOne(q)) {
