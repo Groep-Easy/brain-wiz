@@ -213,7 +213,7 @@ export class GameEngineService {
     }
 
     const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
-    const isLastRound = round.roundIndex === totalRounds -1
+    const isLastRound = round.roundIndex === totalRounds - 1
     if (isLastRound) {
       await this.enterPhase(room, GamePhase.GAME_OVER)
       return

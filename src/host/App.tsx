@@ -34,6 +34,10 @@ export function App(): React.JSX.Element {
     setConfirmCloseOpen(true)
   }
 
+  const handleSkipTimer = (): void => {
+    console.warn('handleSkipTimer: not yet implemented in useHostSocket')
+  }
+
   const performCloseLobby = (): void => {
     setConfirmCloseOpen(false)
     h.closeConnection()
@@ -78,123 +82,97 @@ export function App(): React.JSX.Element {
     )
   }
 
-  const handleSkipTimer = () => {
-    socketRef.current?.send(
-      JSON.stringify({
-        event: EVENTS.HOST_SKIP_TIMER,
-        data: {},
-      })
+  function renderRoundIntro(active: ActiveRoom): React.JSX.Element {
+    return (
+      <RoundIntro
+        index={h.round?.index ?? active.room.round}
+        total={h.round?.total ?? 0}
+        questionText={h.round?.questionText}
+      />
     )
   }
 
-  const performCloseLobby = () => {
-    setConfirmCloseOpen(false)
-    socketRef.current?.close()
-    socketRef.current = null
-    setRoomState(null)
-    setStatus('closed')
-    void navigate('/')
-    function renderRoundIntro(active: ActiveRoom): React.JSX.Element {
-      return (
-        <RoundIntro
-          index={h.round?.index ?? active.room.round}
-          total={h.round?.total ?? 0}
-          questionText={h.round?.questionText}
-        />
-      )
-    }
-
-    function renderGameplay(active: ActiveRoom, phase: 'playing' | 'reveal'): React.JSX.Element {
-      if (h.roundContent) {
-        const isVaultRushPlaying = h.roundContent.type === 'vault-rush' && phase === 'playing'
-
-        return (
-          <main className="app app--minigame">
-            {isVaultRushPlaying ? (
-              <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
-            ) : null}
-
-            {renderMinigame(
-              h.roundContent,
-              h.roundReveal,
-              phase,
-              phase === 'playing' ? h.secondsRemaining : undefined
-            )}
-          </main>
-        )
-      }
-
-      if (!h.question) {
-        return (
-          <main className="app">
-            <div className="welcome-screen">
-              <div className="welcome-card">
-                <p>Preparing next question…</p>
-              </div>
-            </div>
-          </main>
-        )
-      }
+  function renderGameplay(active: ActiveRoom, phase: 'playing' | 'reveal'): React.JSX.Element {
+    if (h.roundContent) {
+      const isVaultRushPlaying = h.roundContent.type === 'vault-rush' && phase === 'playing'
 
       return (
-        <Question
-          gameCode={active.code}
-          question={h.question}
-          secondsRemaining={h.secondsRemaining}
-          answeredCount={h.answeredCount}
-          totalPlayers={h.totalPlayers}
-          reveal={phase === 'reveal' ? h.reveal : null}
-        />
-      )
-    }
+        <main className="app app--minigame">
+          {isVaultRushPlaying ? (
+            <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
+          ) : null}
 
-    function renderGameOver(active: ActiveRoom): React.JSX.Element {
-      return (
-        <GameOver
-          players={active.room.players}
-          finalScores={h.finalScores || {}}
-          onBackToMenu={handleCloseLobby}
-        />
-      )
-    }
-
-    function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
-      return (
-        <main className="app app--solid">
-          <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
-          <LeaderBoard
-            leaderboard={h.leaderboard}
-            roadmap={h.roadmap}
-            players={active.room.players}
-          />
+          {renderMinigame(
+            h.roundContent,
+            h.roundReveal,
+            phase,
+            phase === 'playing' ? h.secondsRemaining : undefined
+          )}
         </main>
       )
     }
 
-    function renderPhase(): React.JSX.Element {
-      if (h.fatalError) return renderFatal()
-
-      if (!question) {
-        return (
-          <main className="app">
-            <div className="welcome-screen">
-              <div className="welcome-card">
-                <p>Preparing next question…</p>
-              </div>
-            </div>
-          </main>
-        )
-      }
+    if (!h.question) {
       return (
-        <Question
-          gameCode={roomCode}
-          question={question}
-          secondsRemaining={secondsRemaining}
-          answeredCount={answeredCount}
-          totalPlayers={totalPlayers}
-          reveal={phase === 'reveal' ? reveal : null}
-          onSkip={handleSkipTimer}
+        <main className="app">
+          <div className="welcome-screen">
+            <div className="welcome-card">
+              <p>Preparing next question…</p>
+            </div>
+          </div>
+        </main>
+      )
+    }
+
+    return (
+      <Question
+        gameCode={active.code}
+        question={h.question}
+        secondsRemaining={h.secondsRemaining}
+        answeredCount={h.answeredCount}
+        totalPlayers={h.totalPlayers}
+        reveal={phase === 'reveal' ? h.reveal : null}
+        onSkip={handleSkipTimer}
+      />
+    )
+  }
+
+  function renderGameOver(active: ActiveRoom): React.JSX.Element {
+    return (
+      <GameOver
+        players={active.room.players}
+        finalScores={h.finalScores || {}}
+        onBackToMenu={handleCloseLobby}
+      />
+    )
+  }
+
+  function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
+    return (
+      <main className="app app--solid">
+        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
+        <LeaderBoard
+          leaderboard={h.leaderboard}
+          roadmap={h.roadmap}
+          players={active.room.players}
         />
+      </main>
+    )
+  }
+
+  function renderPhase(): React.JSX.Element {
+    if (h.fatalError) return renderFatal()
+
+    const active = activeRoom()
+    if (!active) {
+      return (
+        <main className="app">
+          <div className="welcome-screen">
+            <div className="welcome-card">
+              <p>Connecting…</p>
+            </div>
+          </div>
+        </main>
       )
     }
 
@@ -250,12 +228,12 @@ function renderMinigame(
     return (
       <RoundMinigameSurface
         className={`host-minigame ${content.type === 'balance-scale'
-            ? 'host-minigame--scale'
-            : content.type === 'vault-rush'
-              ? 'host-minigame--vault'
-              : content.type === 'light-switch'
-                ? 'host-minigame--light'
-                : 'host-minigame--sliding'
+          ? 'host-minigame--scale'
+          : content.type === 'vault-rush'
+            ? 'host-minigame--vault'
+            : content.type === 'light-switch'
+              ? 'host-minigame--light'
+              : 'host-minigame--sliding'
           }`}
         content={content}
         mode="display"

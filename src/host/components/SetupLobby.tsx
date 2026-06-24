@@ -53,11 +53,15 @@ export function SetupLobby({
   }
 
   const startGame = () => {
-    jazzRef.current?.pause()
+    stopSound(sounds.jazz)
     if (!isMuted()) playStartGameSound()
     setTimeout(() => {
       onStartGame(timePerQuestion)
     }, 1000)
+  }
+
+  const handleStart = () => {
+    startGame()
   }
 
   const handleSaveFlow = async (newFlow: FlowItem[]) => {
@@ -79,13 +83,10 @@ export function SetupLobby({
         .catch((err) => {
           console.error('Failed to generate QR code:', err)
         })
+
     }
   }, [roomCode])
 
-
-  const handleStart = () => {
-    startGame()
-  }
 
   const handleKick = async (playerId: string) => {
     try {
@@ -272,7 +273,7 @@ export function SetupLobby({
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
-                                  <span className="flow-block-icon">{block.icon}</span>
+                                  <BlockIcon icon={block.icon} label={block.label} />
                                   <span className="flow-block-label">{block.label}</span>
                                   {block.kind === 'minigame' && (
                                     <span className="flow-block-time">
@@ -285,31 +286,11 @@ export function SetupLobby({
                                 {arrow}
                               </div>
                             )
-                          }
-                          const item = gameFlow[cell.logicalIndex]
-                          if (!item) return null
-                          const block = blockById(item.blockId)
-                          if (!block) return null
-                          return (
-                          <div className="flow-cell" key={cell.logicalIndex} style={style}>
-                            <div className={`flow-block ${block.kind}`}>
-                              <BlockIcon icon={block.icon} label={block.label} />
-                              <span className="flow-block-label">{block.label}</span>
-                              {block.kind === 'minigame' && (
-                                <span className="flow-block-time">
-                                  {item.timeLimitSeconds ??
-                                    defaultMinigameTimeSeconds(item.blockId)}
-                                  s
-                                </span>
-                              )}
-                            </div>
-                            {arrow}
-                          </div>
-                          )
-                        })}
+                          })}
                         </div>
                       </div>
                     </div>
+                  </div>
                 </section>
 
                 <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>

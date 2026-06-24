@@ -146,7 +146,6 @@
     opacity: 0;
     transform: translateY(60px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -298,11 +297,9 @@
 .lobby-main-cards::-webkit-scrollbar {
   width: 6px;
 }
-
 .lobby-main-cards::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .lobby-main-cards::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
@@ -380,7 +377,6 @@
     opacity: 0;
     transform: scale(0.9);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -488,14 +484,12 @@
   bottom: 0;
   width: var(--flow-col-gap);
 }
-
 .flow-arrow.arrow-left {
   right: 100%;
   top: 0;
   bottom: 0;
   width: var(--flow-col-gap);
 }
-
 .flow-arrow.arrow-down {
   top: 100%;
   left: 0;

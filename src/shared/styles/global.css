@@ -38,6 +38,15 @@ h1 {
   text-align: initial;
 }
 
+/* body.game-page .client-minigame--wordle,
+body.game-page .client-minigame--wordle * {
+  background: transparent;
+} */
+
+body.wordle-game-page {
+  --bg: transparent;
+}
+
 /* Base Input styling */
 input,
 textarea {
@@ -223,7 +232,6 @@ textarea:disabled {
   background: rgba(5, 108, 92, 0.08);
   border-radius: var(--radius-round, 999px);
 }
-
 /* Leave room button — subtle ghost style so it doesn't compete with the room code */
 .leave-btn {
   width: 100%;
@@ -235,7 +243,9 @@ textarea:disabled {
   background: transparent;
   color: var(--navy);
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .leave-btn:hover {
