@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -b && cp -r ./styles ./dist/styles",
+    "build": "tsc -b && node -e \"require('node:fs').cpSync('./styles', './dist/styles', { recursive: true, force: true })\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

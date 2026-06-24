@@ -223,6 +223,113 @@
   font-weight: 750;
 }
 
+.vault-rush-timer {
+  position: relative;
+  justify-self: center;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 10px 14px;
+  color: var(--vault-rush-green);
+  background: linear-gradient(180deg, rgba(66, 245, 155, 0.1), rgba(66, 245, 155, 0.025)), #060d0b;
+  border: 1px solid rgba(66, 245, 155, 0.38);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 18px rgba(0, 0, 0, 0.58),
+    0 0 24px rgba(66, 245, 155, 0.08);
+  overflow: hidden;
+}
+
+.vault-rush-timer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 8px,
+    rgba(66, 245, 155, 0.08) 8px 10px
+  );
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.vault-rush-timer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.vault-rush-timer-label,
+.vault-rush-timer-unit {
+  position: relative;
+  z-index: 1;
+  color: var(--vault-rush-muted);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.vault-rush-timer-display {
+  position: relative;
+  z-index: 1;
+  min-width: 46px;
+  color: var(--vault-rush-green);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 1.55rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow:
+    0 0 10px rgba(66, 245, 155, 0.58),
+    0 0 22px rgba(66, 245, 155, 0.2);
+}
+
+.vault-rush-timer--danger {
+  color: var(--vault-rush-red);
+  background: linear-gradient(180deg, rgba(255, 77, 94, 0.16), rgba(255, 77, 94, 0.035)), #12070a;
+  border-color: rgba(255, 77, 94, 0.58);
+  box-shadow:
+    inset 0 0 22px rgba(0, 0, 0, 0.64),
+    0 0 28px rgba(255, 77, 94, 0.22);
+  animation: vault-rush-timer-pulse 0.7s ease-in-out infinite;
+}
+
+.vault-rush-timer--danger .vault-rush-timer-display {
+  color: var(--vault-rush-red);
+  text-shadow:
+    0 0 12px rgba(255, 77, 94, 0.7),
+    0 0 28px rgba(255, 77, 94, 0.3);
+}
+
+.vault-rush-timer--danger .vault-rush-timer-label,
+.vault-rush-timer--danger .vault-rush-timer-unit {
+  color: #ffd6dc;
+}
+
+@keyframes vault-rush-timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+    filter: brightness(1.25);
+  }
+}
+
 .vault-rush-code {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

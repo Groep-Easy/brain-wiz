@@ -74,8 +74,8 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'vault-rush') {
-      const puzzle = roundContent.publicState as VaultRushPuzzle
       const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const puzzle = roundContent.publicState as VaultRushPuzzle
       const isReveal = phase === 'reveal'
 
       return (
