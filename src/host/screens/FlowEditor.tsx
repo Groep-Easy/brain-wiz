@@ -30,10 +30,7 @@ import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
-import useSound from 'use-sound'
-import dieSound from '@brain-wiz/shared/SFX/die.mp3'
-import dragSound from '@brain-wiz/shared/SFX/water-drop.mp3'
-import dropSound from '@brain-wiz/shared/SFX/card-drop.mp3'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 export interface FlowEditorProps {
@@ -52,10 +49,6 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
   const [sizePicker, setSizePicker] = useState<number | null>(null)
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
-
-  const [playDieSound] = useSound(dieSound)
-  const [playDragSound] = useSound(dragSound)
-  const [playDropSound] = useSound(dropSound)
 
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
@@ -93,7 +86,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, createFlowItem(pick)] : prev
     })
-    if (!isMuted()) playDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   useEffect(() => {
@@ -131,14 +124,14 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) playDragSound()
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) playDragSound()
+    if (!isMuted()) playSound(sounds.waterDrop, false)
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -202,7 +195,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
         return next
       })
     }
-    if (!isMuted()) playDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   const removeAt = (index: number) => {
@@ -218,7 +211,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
-    if (!isMuted()) playDieSound()
+    if (!isMuted()) playSound(sounds.die, false)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
