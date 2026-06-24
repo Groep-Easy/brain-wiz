@@ -20,6 +20,7 @@ import {
   InvalidHostTokenError,
 } from '../../src/server/room/lobby/lobby.errors'
 import { Room } from '../../src/server/entities/room.entity'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
 import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROOM, PLAYER } from '@brain-wiz/config/game.config'
@@ -28,28 +29,80 @@ import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
 
+interface FakeRoomQueryBuilder {
+  where(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  andWhere(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  getOne(): Promise<Room | null>
+}
+
+const makeRoomId = (value: number): string =>
+  `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`
+
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
   const store: Room[] = []
   let seq = 0
+
   return {
     create: (p: Partial<Room>): Room => Object.assign(new Room(), p),
+
     save: async (r: Room): Promise<Room> => {
       if (!r.id) {
-        r.id = `room-${++seq}`
+        r.id = makeRoomId(++seq)
       }
+
       if (!store.includes(r)) {
         store.push(r)
       }
+
       return r
     },
-    findOne: async (o: { where?: { id?: string; joinCode?: string } }): Promise<Room | null> => {
-      const w = o.where ?? {}
-      return (
-        store.find(
-          (r) => (w.id ? r.id === w.id : true) && (w.joinCode ? r.joinCode === w.joinCode : true)
-        ) ?? null
-      )
+
+    createQueryBuilder: (): FakeRoomQueryBuilder => {
+      let joinCodeFilter: string | undefined
+      let idFilter: string | undefined
+      let statusesFilter: RoomStatusEnum[] | undefined
+
+      const queryBuilder: FakeRoomQueryBuilder = {
+        where: (condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          if (condition.includes('room.joinCode')) {
+            joinCodeFilter = params['joinCode'] as string
+          }
+
+          if (condition.includes('room.id')) {
+            idFilter = params['id'] as string
+          }
+
+          return queryBuilder
+        },
+
+        andWhere: (_condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          statusesFilter = params['statuses'] as RoomStatusEnum[]
+          return queryBuilder
+        },
+
+        getOne: async (): Promise<Room | null> => {
+          return (
+            store.find((room) => {
+              if (joinCodeFilter !== undefined && room.joinCode !== joinCodeFilter) {
+                return false
+              }
+
+              if (idFilter !== undefined && room.id !== idFilter) {
+                return false
+              }
+
+              if (statusesFilter !== undefined && !statusesFilter.includes(room.status)) {
+                return false
+              }
+
+              return true
+            }) ?? null
+          )
+        },
+      }
+
+      return queryBuilder
     },
   } as unknown as Repository<Room>
 }
