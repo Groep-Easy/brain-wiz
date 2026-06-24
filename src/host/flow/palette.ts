@@ -44,7 +44,7 @@ export const PALETTE: BlockDef[] = [
   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: '⚖️' },
   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: '🧩' },
   { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: '🔐' },
-  { id: 'mini-wordle', label: 'Wordle', kind: 'minigame', icon: '📝' },
+  { id: 'mini-wordle', label: 'Guess the Word', kind: 'minigame', icon: '📝' },
   { id: 'mini-light-switch', label: 'Light Switch Puzzle', kind: 'minigame', icon: '💡' },
   { id: 'mini-bonk-air', label: 'Bonk Air', kind: 'minigame', icon: '✈️' },
 ]

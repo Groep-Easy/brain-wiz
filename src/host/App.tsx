@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
@@ -11,7 +11,6 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRules'
 
 import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
@@ -30,6 +29,19 @@ export function App(): React.JSX.Element {
 
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
+
+  // makes sure the playing guess the word text shows up at host screen only when
+  // Guess the word is playing
+  useEffect(() => {
+    if (h.roundContent?.type === 'wordle') {
+      document.body.classList.add('wordle-game-page')
+    } else {
+      document.body.classList.remove('wordle-game-page')
+    }
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [h.roundContent?.type])
 
   const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
@@ -146,7 +158,6 @@ export function App(): React.JSX.Element {
   function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--solid">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
         <LeaderBoard
           leaderboard={h.leaderboard}
           roadmap={h.roadmap}
@@ -231,13 +242,21 @@ function renderMinigame(
     )
   }
 
-  if (content.type === 'bonk-air') {
+   if (content.type === 'bonk-air') {
     return (
       <div className="host-minigame host-minigame--bonk-air">
         <BonkAirRules />
         <p className="host-minigame__rotate-hint">
           📱➡️ Turn your phone sideways to play
         </p>
+      </div>
+    )
+  }
+
+  if (content.type === 'wordle') {
+    return (
+      <div className="wordle-host-waiting">
+        <p className="wordle-host-waiting__text">Playing Guess the Word</p>
       </div>
     )
   }

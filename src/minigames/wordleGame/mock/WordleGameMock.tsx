@@ -25,6 +25,16 @@ export function WordleMock({
   onSubmit,
   submitted = false,
 }: WordleMockProps): JSX.Element {
+
+
+  useEffect(() => {
+    document.body.classList.add('wordle-game-page')
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [])
+
+
   const [guesses, setGuesses] = useState<Guess[]>([])
   const [guessWords, setGuessWords] = useState<string[]>([])
   const [currentInput, setCurrentInput] = useState<string>('')
