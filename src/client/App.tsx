@@ -18,6 +18,8 @@ import type {
   WordlePublicState,
 } from '../minigames/wordleGame/shared/wordleGame.types'
 import { useClientSocket } from './hooks/useClientSocket'
+import { LightSwitchPuzzlePuzzle } from '../minigames/light-switch/LightSwitch'
+import type { LightSwitchPuzzle } from '../minigames/light-switch/LightSwitch.types'
 
 function readCodeFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -78,8 +80,8 @@ export function App(): React.JSX.Element {
     }
 
     if (roundContent.type === 'vault-rush') {
-      const puzzle = roundContent.publicState as VaultRushPuzzle
       const solution = roundReveal?.publicSolution as { code?: string } | undefined
+      const puzzle = roundContent.publicState as VaultRushPuzzle
       const isReveal = phase === 'reveal'
 
       return (
@@ -111,6 +113,16 @@ export function App(): React.JSX.Element {
           roundId={roundContent.roundId}
           submitted={s.roundSubmitted}
           phase={phase === 'reveal' ? 'reveal' : 'playing'}
+        />
+      )
+    }
+
+    if (roundContent.type === 'light-switch') {
+      return (
+        <LightSwitchPuzzlePuzzle
+          puzzle={roundContent.publicState as LightSwitchPuzzle}
+          onProgress={s.handleRoundProgress}
+          onSubmit={s.handleRoundSubmit}
         />
       )
     }

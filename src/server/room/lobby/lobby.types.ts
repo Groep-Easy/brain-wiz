@@ -3,11 +3,21 @@
  * @description Shared types for the lobby: the minimal socket contract, the
  * in-memory membership union, and the create-room result.
  */
+import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 
 /** The subset of a `ws` socket the server needs to push messages. */
 export interface ClientSocket {
   send(data: string): void
   close?(): void
+}
+
+export interface JoinClientRequest {
+  connectionId: string
+  roomCode: string
+  playerName: string
+  playerId?: string | undefined
+  playerToken?: string | undefined
+  playerAvatar?: PlayerAvatar | undefined
 }
 
 export type ConnectionRole = 'host' | 'client'

@@ -59,6 +59,7 @@ export const TIMER = Object.freeze({
   START_GAME_MS: 1000,
   QUESTION_SECONDS: 30,
   SLIDING_PUZZLE_SECONDS: 40,
+  VAULT_RUSH_SECONDS: 30,
   REVEAL_SECONDS: 5,
   ROUND_INTRO_SECONDS: 3,
   LEADERBOARD_SECONDS: 6,
@@ -71,7 +72,13 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale', 'vault-rush'] as readonly RoundType[],
+  TYPES: [
+    'quiz',
+    'sliding-puzzle',
+    'balance-scale',
+    'vault-rush',
+    'light-switch',
+  ] as readonly RoundType[],
   DEFAULT_SEQUENCE: [
     'quiz',
     'balance-scale',

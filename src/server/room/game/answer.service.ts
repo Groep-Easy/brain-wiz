@@ -12,38 +12,20 @@ import { ClientAnswer } from '../../entities/client-answer.entity'
 import { ConnectionRegistry } from '../lobby/connection-registry'
 import { RoomBroadcaster } from '../lobby/room-broadcaster'
 import { GameEventBus } from './game-event-bus'
-import type { RoundOption, RoundScoringMode } from './game-events'
 import type { ClientSocket } from '../lobby/lobby.types'
 import type {
   AnswerAckPayload,
   AnswerSubmitPayload,
   RoundProgressPayload,
   RoundSubmitPayload,
-  RoundType,
 } from '@brain-wiz/shared/types/index'
+import type { OpenWindow, PersistSubmissionInput, RoundProgressSnapshot } from './game.types'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { MinigameRegistry } from './minigames/minigame-registry'
 
 /** Postgres unique_violation SQLSTATE — raised when the (clientId, roundId)
  *  unique index rejects a duplicate answer row. */
 const PG_UNIQUE_VIOLATION = '23505'
-
-interface OpenWindow {
-  roundId: string
-  roundType: RoundType
-  scoringMode: RoundScoringMode
-  shownAt: number
-  options: Map<string, RoundOption>
-  privateState?: Record<string, unknown>
-  scoringConfig?: Record<string, unknown>
-  submitted: Set<string>
-  progress: Map<string, RoundProgressSnapshot>
-}
-
-interface RoundProgressSnapshot {
-  answerValue: string
-  timeToAnswerMs: number
-}
 
 @Injectable()
 export class AnswerService {
@@ -107,7 +89,13 @@ export class AnswerService {
       return
     }
 
-    await this.persistSubmission(socket, roomId, clientId, window, payload.answerId)
+    await this.persistSubmission({
+      socket,
+      roomId,
+      clientId,
+      window,
+      answerValue: payload.answerId,
+    })
   }
 
   public async submitRound(socket: ClientSocket, payload: RoundSubmitPayload): Promise<void> {
@@ -140,13 +128,13 @@ export class AnswerService {
       return
     }
 
-    await this.persistSubmission(
+    await this.persistSubmission({
       socket,
       roomId,
       clientId,
       window,
-      JSON.stringify(payload.submission)
-    )
+      answerValue: JSON.stringify(payload.submission),
+    })
   }
 
   public updateRoundProgress(socket: ClientSocket, payload: RoundProgressPayload): void {
@@ -189,13 +177,8 @@ export class AnswerService {
     }
   }
 
-  private async persistSubmission(
-    socket: ClientSocket,
-    roomId: string,
-    clientId: string,
-    window: OpenWindow,
-    answerValue: string
-  ): Promise<void> {
+  private async persistSubmission(input: PersistSubmissionInput): Promise<void> {
+    const { socket, roomId, clientId, window, answerValue } = input
     window.submitted.add(clientId)
     const row = this.answers.create({
       clientId,

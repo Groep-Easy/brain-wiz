@@ -1,4 +1,4 @@
-import '../styles/leaderboard.css'
+import '../../shared/styles/game_over.css'
 import { useEffect, useState } from 'react'
 import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
 

@@ -158,3 +158,8 @@
 .hero-footer p {
   margin: 4px 0;
 }
+
+.host-minigame--light {
+  margin: auto;
+  width: fit-content;
+}
