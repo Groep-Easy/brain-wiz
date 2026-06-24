@@ -16,12 +16,9 @@ import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
-import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
-const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
-const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
 import { useHostSocket } from './hooks/useHostSocket'
 import type { ActiveRoom } from './App.interfaces'
 
