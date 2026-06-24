@@ -107,6 +107,12 @@ function fakeFlowService(): FlowService {
   } as unknown as FlowService
 }
 
+function fakeGameEventBus(): GameEventBus {
+  return {
+    publish: (): void => undefined,
+  } as unknown as GameEventBus
+}
+
 function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
@@ -123,7 +129,8 @@ function makeLobby(questions: Question[] = []): LobbyService {
     broadcaster,
     noopEngine,
     fakeQuestionService(questions),
-    fakeFlowService()
+    fakeFlowService(),
+    fakeGameEventBus()
   )
 }
 
@@ -561,9 +568,10 @@ describe('LobbyService abort-on-empty', () => {
       clients,
       registry,
       broadcaster,
-      gameEngine,
-      fakeQuestionService(),
-      fakeFlowService()
+      noopEngine,
+      fakeQuestionService(questions),
+      fakeFlowService(),
+      fakeGameEventBus()
     )
     return { lobby, rooms, clients, registry, aborted }
   }
