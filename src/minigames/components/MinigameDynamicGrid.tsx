@@ -7,8 +7,12 @@ import {
   handleSlidingPuzzleBoardUpdate,
   type SlidingPuzzleRoundPhase,
 } from './slidingPuzzleAutoSubmit'
-import {WordleMock} from '../wordleGame/mock/WordleGameMock'
-import type { Guess } from '../wordleGame/shared/wordleGame.types'
+import { WordleMock } from '../wordleGame/mock/WordleGameMock'
+import type {
+  WordleFeedback,
+  WordlePublicState,
+  WordleSubmission,
+} from '../wordleGame/shared/wordleGame.types'
 
 export type MinigameDynamicGridProps =
   | {
@@ -21,13 +25,16 @@ export type MinigameDynamicGridProps =
     }
   | {
       type: 'wordle'
-  answer: string
-  onSubmit: (submission: { guesses: Guess[] }) => void
-  submitted: boolean
-  phase: 'playing' | 'reveal'
-}
- | {
-  type: 'example'
+      roundId: string
+      publicState: WordlePublicState
+      feedback?: WordleFeedback | null
+      onGuess: (submission: WordleSubmission) => void
+      onSubmit: (submission: WordleSubmission) => void
+      submitted: boolean
+      phase: 'playing' | 'reveal'
+    }
+  | {
+      type: 'example'
     }
 
 // Element needs to be called in client App.tsx under renderMinigame on a game by game basis
@@ -81,10 +88,13 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
       return (
         <section className="client-minigame client-minigame--wordle">
           <WordleMock
-            answer={data.answer}
+            feedback={data.feedback}
+            maxTries={data.publicState.maxTries}
+            onGuess={data.onGuess}
             onSubmit={data.onSubmit}
-            submitted={data.submitted}
-
+            roundId={data.roundId}
+            submitted={data.submitted || data.phase === 'reveal'}
+            wordLength={data.publicState.wordLength}
           />
         </section>
       )

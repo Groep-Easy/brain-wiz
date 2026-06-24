@@ -34,6 +34,8 @@ interface OpenWindow {
   scoringMode: RoundScoringMode
   shownAt: number
   options: Map<string, RoundOption>
+  privateState?: Record<string, unknown>
+  scoringConfig?: Record<string, unknown>
   submitted: Set<string>
   progress: Map<string, RoundProgressSnapshot>
 }
@@ -62,6 +64,8 @@ export class AnswerService {
         scoringMode: e.scoringMode,
         shownAt: e.shownAt,
         options: new Map((e.options ?? []).map((o) => [o.id, o])),
+        ...(e.privateState !== undefined ? { privateState: e.privateState } : {}),
+        ...(e.scoringConfig !== undefined ? { scoringConfig: e.scoringConfig } : {}),
         submitted: new Set<string>(),
         progress: new Map<string, RoundProgressSnapshot>(),
       })
@@ -172,6 +176,17 @@ export class AnswerService {
       answerValue: JSON.stringify(payload.submission),
       timeToAnswerMs: Date.now() - window.shownAt,
     })
+
+    if (adapter.getProgressFeedback && window.privateState) {
+      const feedback = adapter.getProgressFeedback(payload.submission, window.privateState)
+      if (feedback !== undefined) {
+        this.broadcaster.emitToSocket(socket, EVENTS.ROUND_FEEDBACK, {
+          roundId: window.roundId,
+          type: window.roundType,
+          feedback,
+        })
+      }
+    }
   }
 
   private async persistSubmission(
