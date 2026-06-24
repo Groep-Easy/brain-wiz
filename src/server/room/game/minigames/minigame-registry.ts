@@ -15,7 +15,7 @@ export class MinigameRegistry {
     slidingPuzzle: SlidingPuzzleServerAdapter,
     balanceScale: BalanceScaleServerAdapter,
     vaultRush: VaultRushServerAdapter,
-    wordle: WordleServerAdapter
+    wordle: WordleServerAdapter,
     lightSwitch: LightSwitchServerAdapter
   ) {
     const adapters = new Map<ProceduralRoundType, MinigameAdapter>()

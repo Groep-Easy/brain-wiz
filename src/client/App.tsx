@@ -110,8 +110,8 @@ export function App(): React.JSX.Element {
       return (
         <LightSwitchPuzzlePuzzle
           puzzle={roundContent.publicState as LightSwitchPuzzle}
-          onProgress={handleRoundProgress}
-          onSubmit={handleRoundSubmit}
+          onProgress={s.handleRoundProgress}
+          onSubmit={s.handleRoundSubmit}
         />
       )
     }
