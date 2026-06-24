@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
@@ -29,6 +29,19 @@ export function App(): React.JSX.Element {
 
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
+
+  // makes sure the playing guess the word text shows up at host screen only when
+  // Guess the word is playing
+  useEffect(() => {
+    if (h.roundContent?.type === 'wordle') {
+      document.body.classList.add('wordle-game-page')
+    } else {
+      document.body.classList.remove('wordle-game-page')
+    }
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [h.roundContent?.type])
 
   const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
@@ -228,6 +241,14 @@ function renderMinigame(
         {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
       />
     )
+  }
+
+  if (content.type === 'wordle') {
+  return (
+    <div className="wordle-host-waiting">
+      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+    </div>
+   )
   }
 
   return (
