@@ -16,20 +16,18 @@ import { Question } from '../entities/question.entity'
 import { BlockKindEnum } from '../entities/enums'
 import { TIMER } from '@brain-wiz/config/game.config'
 import {
+  DEFAULT_FLOW_SIZE,
+  DEFAULT_QUESTIONS_PER_BLOCK,
+  MAX_FLOW_BLOCKS,
   MAX_MINIGAME_TIME_SECONDS,
-  MINIGAME_TIME_STEP_SECONDS,
+  MAX_QUESTIONS_PER_BLOCK,
+  MIN_FLOW_BLOCKS,
   MIN_MINIGAME_TIME_SECONDS,
+  MIN_QUESTIONS_PER_BLOCK,
+  MINIGAME_TIME_STEP_SECONDS,
 } from '@brain-wiz/shared/constants/flow.constants'
 import type { GameBlockDto, GameFlowItem } from '@brain-wiz/shared/types/flow'
-
-/** Defaults mirror the host editor's per-block question range. */
-const DEFAULT_QUESTIONS_PER_BLOCK = 5
-const MIN_QUESTIONS_PER_BLOCK = 1
-const MAX_QUESTIONS_PER_BLOCK = 20
-
-const MIN_FLOW_BLOCKS = 2
-const MAX_FLOW_BLOCKS = 15
-const DEFAULT_FLOW_SIZE = 4
+import type { FlowItemInput } from './flow.types'
 
 @Injectable()
 export class FlowService {
@@ -83,7 +81,15 @@ export class FlowService {
     for (let i = 0; i < count; i++) {
       const pick = shuffled[i % shuffled.length]
       if (!pick) continue
-      flow.push(this.toFlowItem(pick.id, pick.kind, pick.available, undefined, undefined))
+      flow.push(
+        this.toFlowItem({
+          blockId: pick.id,
+          kind: pick.kind,
+          available: pick.available,
+          requestedQuestions: undefined,
+          requestedTimeLimitSeconds: undefined,
+        })
+      )
     }
     return flow
   }
@@ -109,26 +115,21 @@ export class FlowService {
       const block = byId.get(item.blockId)
       return block
         ? [
-            this.toFlowItem(
-              block.id,
-              block.kind,
-              block.available,
-              item.questions,
-              item.timeLimitSeconds
-            ),
+            this.toFlowItem({
+              blockId: block.id,
+              kind: block.kind,
+              available: block.available,
+              requestedQuestions: item.questions,
+              requestedTimeLimitSeconds: item.timeLimitSeconds,
+            }),
           ]
         : []
     })
   }
 
   /** Map a catalog entry + requested per-item settings into a stored flow item. */
-  private toFlowItem(
-    blockId: string,
-    kind: GameBlockDto['kind'],
-    available: number | undefined,
-    requestedQuestions: number | undefined,
-    requestedTimeLimitSeconds: number | undefined
-  ): GameFlowItem {
+  private toFlowItem(input: FlowItemInput): GameFlowItem {
+    const { blockId, kind, available, requestedQuestions, requestedTimeLimitSeconds } = input
     if (kind !== 'theme') {
       return {
         blockId,
