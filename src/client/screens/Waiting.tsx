@@ -1,5 +1,3 @@
-import partyHorn from '../../shared/SFX/party-horn.mp3'
-
 interface WaitingProps {
   playerName: string
   roomCode: string
@@ -9,7 +7,6 @@ interface WaitingProps {
 export function Waiting({ playerName, roomCode, onLeave }: WaitingProps): React.JSX.Element {
   return (
     <>
-      <audio id="party-horn" autoPlay src={partyHorn} preload="auto"></audio>
       <div className="game-card client-card">
         <h1>You&apos;re in! 🎉</h1>
         <p className="subtitle">

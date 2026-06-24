@@ -10,7 +10,7 @@ import type { RoadmapUpdate } from '@brain-wiz/shared/types/index'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import '../styles/leaderboard.css'
 
-import leaderboardMusic from '../../shared/SFX/leaderboard.mp3'
+import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 
 interface LeaderBoardProps {
   leaderboard: LeaderboardEntry[]
@@ -41,6 +41,9 @@ const themeAssets: Record<string, { icon: string }> = {
   math: { icon: '➗' },
   science: { icon: '🔬' },
   geography: { icon: '🌍' },
+  'vault-rush': { icon: '🔐' },
+  'sliding-puzzle': { icon: '🧩' },
+  'balance-scale': { icon: '⚖️' },
 }
 
 function Roadmap({ roadmap }: RoadmapProps) {
@@ -180,7 +183,13 @@ function Roadmap({ roadmap }: RoadmapProps) {
                   </text>
 
                   <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
-                    {themeMap.get(item.questionNumber)}
+                    {themeMap.get(item.questionNumber) === 'vault-rush'
+                      ? 'Vault Rush'
+                      : themeMap.get(item.questionNumber) === 'sliding-puzzle'
+                        ? 'Sliding Puzzle'
+                        : themeMap.get(item.questionNumber) === 'balance-scale'
+                          ? 'Balance Scale'
+                          : themeMap.get(item.questionNumber)}
                   </text>
                 </g>
               )}

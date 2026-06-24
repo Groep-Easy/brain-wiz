@@ -297,8 +297,72 @@
   background: rgba(0, 128, 128, 0.02);
 }
 
+.canvas-block.has-time-control {
+  gap: 5px;
+  padding: 8px 8px 9px;
+}
+
 .canvas-block .block-icon {
   font-size: 2rem;
+}
+
+.canvas-block.has-time-control .block-icon {
+  font-size: 1.75rem;
+}
+
+.minigame-time-control {
+  display: grid;
+  grid-template-columns: 24px minmax(42px, 1fr) 24px;
+  align-items: center;
+  width: min(100%, 108px);
+  min-height: 26px;
+  border: 1px solid rgba(5, 108, 92, 0.2);
+  border-radius: 999px;
+  background: rgba(5, 108, 92, 0.08);
+  overflow: hidden;
+  cursor: default;
+}
+
+.minigame-time-control .time-step,
+.minigame-time-control .time-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--teal, #056c5c);
+  box-shadow: none;
+  text-shadow: none;
+  translate: none;
+}
+
+.minigame-time-control .time-step {
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.minigame-time-control .time-step:hover:not(:disabled) {
+  background: rgba(5, 108, 92, 0.14);
+  translate: none;
+  box-shadow: none;
+}
+
+.minigame-time-control .time-step:active:not(:disabled) {
+  translate: none;
+  box-shadow: none;
+}
+
+.minigame-time-control .time-value {
+  border-left: 1px solid rgba(5, 108, 92, 0.14);
+  border-right: 1px solid rgba(5, 108, 92, 0.14);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .remove-block,

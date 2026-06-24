@@ -14,9 +14,12 @@ export function BackgroundGradient(): React.JSX.Element {
     const move = () => {
       curX += (tgX - curX) / 20
       curY += (tgY - curY) / 20
+
       if (interactiveRef.current) {
-        interactiveRef.current.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`
+        interactiveRef.current.style.transform =
+          `translate(${Math.round(curX)}px, ${Math.round(curY)}px)`
       }
+
       animationFrameId = requestAnimationFrame(move)
     }
 
@@ -50,13 +53,14 @@ export function BackgroundGradient(): React.JSX.Element {
           </filter>
         </defs>
       </svg>
+
       <div className="gradients-container">
-        <div className="g1"></div>
-        <div className="g2"></div>
-        <div className="g3"></div>
-        <div className="g4"></div>
-        <div className="g5"></div>
-        <div className="interactive-glow" ref={interactiveRef}></div>
+        <div className="g1" />
+        <div className="g2" />
+        <div className="g3" />
+        <div className="g4" />
+        <div className="g5" />
+        <div className="interactive-glow" ref={interactiveRef} />
       </div>
     </div>
   )

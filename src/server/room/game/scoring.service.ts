@@ -79,52 +79,70 @@ export class ScoringService {
       const roster = await this.clients.findByRoom(roomId)
       if (ctx.scoringMode === 'minigame') {
         await this.scoreMinigame(roomId, roundId, ctx, rows, roster)
-        return
+      } else {
+        await this.scoreQuiz(roomId, roundId, ctx, rows, roster)
       }
-      const playerAnswers: Record<string, PlayerAnswerResult> = {}
-      const answered = new Set<string>()
-
-      for (const row of rows) {
-        answered.add(row.clientId)
-        const option = ctx.options.get(row.answerValue)
-        const isCorrect = option?.isCorrect ?? false
-        const points = isCorrect ? this.points(ctx, row.timeToAnswerMs ?? 0) : 0
-        row.isCorrect = isCorrect
-        row.pointsAwarded = points
-        await this.answers.save(row)
-        if (points > 0) {
-          const client = roster.find((c) => c.id === row.clientId)
-          if (client) {
-            await this.clients.addScore(client, points)
-          }
-        }
-        playerAnswers[row.clientId] = {
-          answerId: row.answerValue,
-          isCorrect,
-          pointsAwarded: points,
-          isTimeout: false,
-        }
-      }
-
-      for (const client of roster) {
-        if (!answered.has(client.id)) {
-          playerAnswers[client.id] = {
-            answerId: null,
-            isCorrect: false,
-            pointsAwarded: 0,
-            isTimeout: true,
-          }
-        }
-      }
-
-      const correctAnswerIds = [...ctx.options.values()].filter((o) => o.isCorrect).map((o) => o.id)
-      const reveal: QuestionRevealPayload = { roundId, correctAnswerIds, playerAnswers }
-      this.broadcaster.emitToRoom(roomId, EVENTS.QUESTION_REVEAL, reveal)
     } catch (error) {
       this.logger.error(`Scoring failed for room ${roomId}: ${String(error)}`)
     } finally {
       this.contexts.delete(roomId)
       this.bus.publish({ type: 'ROUND_SCORED', roomId, roundId })
+    }
+  }
+
+  private async scoreQuiz(
+    roomId: string,
+    roundId: string,
+    ctx: ScoringContext,
+    rows: ClientAnswer[],
+    roster: Awaited<ReturnType<ClientService['findByRoom']>>
+  ): Promise<void> {
+    const playerAnswers: Record<string, PlayerAnswerResult> = {}
+    const answered = new Set<string>()
+
+    for (const row of rows) {
+      answered.add(row.clientId)
+      playerAnswers[row.clientId] = await this.scoreQuizRow(ctx, row, roster)
+    }
+
+    for (const client of roster) {
+      if (!answered.has(client.id)) {
+        playerAnswers[client.id] = {
+          answerId: null,
+          isCorrect: false,
+          pointsAwarded: 0,
+          isTimeout: true,
+        }
+      }
+    }
+
+    const correctAnswerIds = [...ctx.options.values()].filter((o) => o.isCorrect).map((o) => o.id)
+    const reveal: QuestionRevealPayload = { roundId, correctAnswerIds, playerAnswers }
+    this.broadcaster.emitToRoom(roomId, EVENTS.QUESTION_REVEAL, reveal)
+  }
+
+  private async scoreQuizRow(
+    ctx: ScoringContext,
+    row: ClientAnswer,
+    roster: Awaited<ReturnType<ClientService['findByRoom']>>
+  ): Promise<PlayerAnswerResult> {
+    const option = ctx.options.get(row.answerValue)
+    const isCorrect = option?.isCorrect ?? false
+    const points = isCorrect ? this.points(ctx, row.timeToAnswerMs ?? 0) : 0
+    row.isCorrect = isCorrect
+    row.pointsAwarded = points
+    await this.answers.save(row)
+    if (points > 0) {
+      const client = roster.find((c) => c.id === row.clientId)
+      if (client) {
+        await this.clients.addScore(client, points)
+      }
+    }
+    return {
+      answerId: row.answerValue,
+      isCorrect,
+      pointsAwarded: points,
+      isTimeout: false,
     }
   }
 
