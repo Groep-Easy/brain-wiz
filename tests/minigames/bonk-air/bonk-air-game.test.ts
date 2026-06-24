@@ -8,7 +8,7 @@ import {
   scoreBonkAirSolution,
   type BonkAirSolution,
   type World,
-} from '../../../src/minigames/bonk-air/shared/bonkAirGame.js'
+} from '@brain-wiz/minigames/bonk-air/shared/bonkAirGame'
 
 const SEED = 'room-1:round-1:bonk-air'
 

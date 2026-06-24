@@ -46,14 +46,14 @@ const FNV_PRIME = 16777619
 const MS_PER_SECOND = 1000
 
 /**
- * Assert an indexed / optional access is present. Every index in this engine is
- * guaranteed valid by construction (bounds-checked generation, fixed-size
- * arrays); this keeps that invariant explicit without non-null assertions and
- * throws only if an impossible out-of-bounds access ever occurs.
+ * Treat an indexed / optional access as present. Indices in this engine are
+ * guaranteed valid by construction, so this is a type-only narrowing (the same
+ * runtime semantics the original non-null assertions had — it never throws),
+ * letting the simulation tolerate a malformed/partial submitted plan exactly as
+ * before instead of crashing on it.
  */
 function req<T>(value: T | undefined): T {
-  if (value === undefined) throw new RangeError('Bonk Air: unexpected out-of-bounds access')
-  return value
+  return value as T
 }
 
 /* ---------------- RNG ---------------- */

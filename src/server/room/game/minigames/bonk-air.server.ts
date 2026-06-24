@@ -6,14 +6,14 @@ import {
   type BonkAirScoreConfig,
   type BonkAirSolution,
   type PlanePath,
-} from '../../../../minigames/bonk-air/shared/bonkAirGame.js'
+} from '@brain-wiz/minigames/bonk-air/shared/bonkAirGame'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,
   MinigameAdapter,
   MinigameScoreResult,
 } from './minigame.types.js'
-import type { RoundType } from '../../../../shared/types/index.js'
+import type { RoundType } from '@brain-wiz/shared/types/index'
 
 // Bonk Air is locked to easy mode (Trainee) for now.
 const EASY_DIFFICULTY = 1
