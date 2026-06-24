@@ -79,7 +79,6 @@ export function App(): React.JSX.Element {
   }
 
   const handleSkipTimer = () => {
-    console.log('HOST_SKIP_TIMER')
     socketRef.current?.send(
       JSON.stringify({
         event: EVENTS.HOST_SKIP_TIMER,
