@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
@@ -9,14 +9,13 @@ import { GameOver } from './screens/GameOver'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 
-import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
+import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 import { useHostSocket } from './hooks/useHostSocket'
@@ -30,11 +29,25 @@ export function App(): React.JSX.Element {
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
+  // makes sure the playing guess the word text shows up at host screen only when
+  // Guess the word is playing
+  useEffect(() => {
+    if (h.roundContent?.type === 'wordle') {
+      document.body.classList.add('wordle-game-page')
+    } else {
+      document.body.classList.remove('wordle-game-page')
+    }
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [h.roundContent?.type])
+
   const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
   }
 
   const performCloseLobby = (): void => {
+    stopSound(sounds.jazz)
     setConfirmCloseOpen(false)
     h.closeConnection()
     void navigate('/')
@@ -65,7 +78,6 @@ export function App(): React.JSX.Element {
   function renderLobby(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--lobby">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={active.code}
           hostToken={active.token}
@@ -145,7 +157,6 @@ export function App(): React.JSX.Element {
   function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--solid">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
         <LeaderBoard
           leaderboard={h.leaderboard}
           roadmap={h.roadmap}
@@ -228,6 +239,14 @@ function renderMinigame(
         {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
       />
     )
+  }
+
+  if (content.type === 'wordle') {
+  return (
+    <div className="wordle-host-waiting">
+      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+    </div>
+   )
   }
 
   return (
