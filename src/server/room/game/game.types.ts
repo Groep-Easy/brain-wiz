@@ -95,6 +95,8 @@ export interface OpenWindow {
   scoringMode: RoundScoringMode
   shownAt: number
   options: Map<string, RoundOption>
+  privateState?: Record<string, unknown>
+  scoringConfig?: Record<string, unknown>
   submitted: Set<string>
   progress: Map<string, RoundProgressSnapshot>
 }

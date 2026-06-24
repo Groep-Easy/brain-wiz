@@ -11,4 +11,18 @@ export interface Guess {
   word: Tile[]
 }
 
+export interface WordleSubmission {
+  guesses: string[]
+}
+
+export interface WordlePublicState {
+  wordLength: number
+  maxTries: number
+}
+
+export interface WordleFeedback {
+  guesses: Guess[]
+  phase: GamePhase
+}
+
 export type GamePhase = 'solved' | 'playing' | 'waiting' | 'failed'

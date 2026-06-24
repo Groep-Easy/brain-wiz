@@ -1,8 +1,9 @@
-import { Tile, Guess, GamePhase } from '../shared/wordleGame.types'
+import type { Tile, Guess, GamePhase } from '../shared/wordleGame.types'
 
 export interface WordleGameProps {
   guesses: Guess[]
-  answer: string
+  wordLength: number
+  maxTries: number
   gamephase: GamePhase
   currentInput: string
   onKey: (key: string) => void
