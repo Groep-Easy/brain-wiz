@@ -1,15 +1,24 @@
 import { Injectable } from '@nestjs/common'
 import {
+  evaluate_guess,
   get_random_word,
   get_game_state,
-  getAmountGuesses,
+  is_valid_word,
 } from '@brain-wiz/minigames/wordleGame/shared/wordleGame'
-import type { Guess } from '@brain-wiz/minigames/wordleGame/shared/wordleGame.types'
+import { MAX_TRIES, WORD_LENGTH } from '@brain-wiz/minigames/wordleGame/shared/wordleGame.constants'
+import type {
+  Guess,
+  WordleFeedback,
+  WordlePublicState,
+  WordleSubmission,
+} from '@brain-wiz/minigames/wordleGame/shared/wordleGame.types'
 import type {
   CreateMinigameRoundInput,
   GeneratedMinigameRound,
   MinigameAdapter,
   MinigameScoreResult,
+  WordlePrivateState,
+  WordleScoringConfig,
 } from './minigame.types.js'
 import type { RoundType } from '@brain-wiz/shared/types/index'
 
@@ -17,7 +26,6 @@ const BASE_POINTS = 1000
 const POINTS_PER_EXTRA_GUESS = 100
 const SOLVE_SPEED_BONUS = 300
 const MILLISECONDS_PER_SECOND = 1000
-const AMOUNT_SECONDS = 60
 
 @Injectable()
 export class WordleServerAdapter implements MinigameAdapter {
@@ -27,25 +35,47 @@ export class WordleServerAdapter implements MinigameAdapter {
     return type === this.type
   }
 
-  public createRound(input: CreateMinigameRoundInput): GeneratedMinigameRound {
+  public createRound(
+    input: CreateMinigameRoundInput
+  ): GeneratedMinigameRound<WordlePublicState, WordlePrivateState, WordleScoringConfig> {
     const answer = get_random_word()
+    const privateState: WordlePrivateState = { answer }
+    const scoringConfig: WordleScoringConfig = {
+      basePoints: BASE_POINTS,
+      pointsPerExtraGuess: POINTS_PER_EXTRA_GUESS,
+      solveSpeedBonus: SOLVE_SPEED_BONUS,
+      timeLimitMs: input.timeLimitSeconds * MILLISECONDS_PER_SECOND,
+    }
 
     return {
       type: this.type,
       seed: input.seed,
-      publicState: { answer },
-      privateState: { answer },
-      scoringConfig: {
-        basePoints: BASE_POINTS,
-        pointsPerExtraGuess: POINTS_PER_EXTRA_GUESS,
-        solveSpeedBonus: SOLVE_SPEED_BONUS,
-        timeLimitMs: input.timeLimitSeconds * MILLISECONDS_PER_SECOND,
-      },
+      publicState: { wordLength: WORD_LENGTH, maxTries: MAX_TRIES },
+      privateState,
+      scoringConfig,
     }
   }
 
   public validateSubmission(submission: unknown): boolean {
     return this.parseSubmission(submission) !== undefined
+  }
+
+  public getProgressFeedback(
+    submission: unknown,
+    privateState: Record<string, unknown>
+  ): WordleFeedback | undefined {
+    const parsed = this.parseSubmission(submission)
+    const parsedPrivate = this.parsePrivateState(privateState)
+
+    if (!parsed || !parsedPrivate) {
+      return undefined
+    }
+
+    const guesses = this.evaluateGuesses(parsed.guesses, parsedPrivate.answer)
+    return {
+      guesses,
+      phase: get_game_state(guesses, parsedPrivate.answer),
+    }
   }
 
   public scoreSubmission(
@@ -55,72 +85,107 @@ export class WordleServerAdapter implements MinigameAdapter {
     timeToAnswerMs: number
   ): MinigameScoreResult {
     const parsed = this.parseSubmission(submission)
-    const answer = privateState['answer']
+    const parsedPrivate = this.parsePrivateState(privateState)
+    const config = this.parseConfig(scoringConfig)
 
-    if (!parsed || typeof answer !== 'string') {
+    if (!parsed || !parsedPrivate || !config) {
       return { isCorrect: false, pointsAwarded: 0 }
     }
 
     const { guesses } = parsed
-    const phase = get_game_state(guesses, answer)
+    const evaluatedGuesses = this.evaluateGuesses(guesses, parsedPrivate.answer)
+    const phase = get_game_state(evaluatedGuesses, parsedPrivate.answer)
     const isCorrect = phase === 'solved'
 
     if (!isCorrect) {
-      return { isCorrect: false, pointsAwarded: 0, publicSolution: { answer } }
+      return {
+        isCorrect: false,
+        pointsAwarded: 0,
+        breakdown: { guessCount: guesses.length },
+        publicSolution: { answer: parsedPrivate.answer },
+      }
     }
 
-    const guessCount = getAmountGuesses(guesses)
-    const basePoints =
-      typeof scoringConfig['basePoints'] === 'number' ? scoringConfig['basePoints'] : BASE_POINTS
-    const pointsPerExtraGuess =
-      typeof scoringConfig['pointsPerExtraGuess'] === 'number'
-        ? scoringConfig['pointsPerExtraGuess']
-        : POINTS_PER_EXTRA_GUESS
-    const solveSpeedBonus =
-      typeof scoringConfig['solveSpeedBonus'] === 'number'
-        ? scoringConfig['solveSpeedBonus']
-        : SOLVE_SPEED_BONUS
-    const timeLimitMs =
-      typeof scoringConfig['timeLimitMs'] === 'number'
-        ? scoringConfig['timeLimitMs']
-        : AMOUNT_SECONDS * MILLISECONDS_PER_SECOND
-
-    // fewer guesses = more points
-    const guessDeduction = (guessCount - 1) * pointsPerExtraGuess
-    // faster = more bonus
-    const timeBonus = Math.floor((1 - timeToAnswerMs / timeLimitMs) * solveSpeedBonus)
-    const pointsAwarded = Math.max(0, basePoints - guessDeduction + timeBonus)
+    const guessCount = guesses.length
+    const guessDeduction = (guessCount - 1) * config.pointsPerExtraGuess
+    const timeBonus = this.speedBonus(config, timeToAnswerMs)
+    const pointsAwarded = Math.max(0, config.basePoints - guessDeduction + timeBonus)
 
     return {
       isCorrect: true,
       pointsAwarded,
       breakdown: { guessCount, guessDeduction, timeBonus },
-      publicSolution: { answer },
+      publicSolution: { answer: parsedPrivate.answer },
     }
   }
 
-  private parseSubmission(submission: unknown): { guesses: Guess[] } | undefined {
+  private parseSubmission(submission: unknown): WordleSubmission | undefined {
     if (!this.isRecord(submission)) return undefined
 
     const guesses = submission['guesses']
     if (!Array.isArray(guesses)) return undefined
+    if (guesses.length === 0 || guesses.length > MAX_TRIES) return undefined
 
-    // validate each guess has a word array of tiles
-    const isValid = guesses.every(
-      (g) =>
-        this.isRecord(g) &&
-        Array.isArray(g['word']) &&
-        g['word'].every(
-          (tile) =>
-            this.isRecord(tile) &&
-            typeof tile['letter'] === 'string' &&
-            typeof tile['state'] === 'string'
-        )
-    )
+    const normalizedGuesses = guesses.map((guess) => this.parseGuessWord(guess))
 
-    if (!isValid) return undefined
+    if (normalizedGuesses.some((guess) => guess === undefined)) return undefined
 
-    return { guesses: guesses as Guess[] }
+    return { guesses: normalizedGuesses as string[] }
+  }
+
+  private parseGuessWord(guess: unknown): string | undefined {
+    if (typeof guess !== 'string') {
+      return undefined
+    }
+
+    const normalized = guess.trim().toUpperCase()
+    if (normalized.length !== WORD_LENGTH || !is_valid_word(normalized)) {
+      return undefined
+    }
+
+    return normalized
+  }
+
+  private parsePrivateState(privateState: Record<string, unknown>): WordlePrivateState | undefined {
+    const answer = privateState['answer']
+    if (typeof answer !== 'string') {
+      return undefined
+    }
+
+    const normalized = answer.trim().toUpperCase()
+    if (normalized.length !== WORD_LENGTH || !is_valid_word(normalized)) {
+      return undefined
+    }
+
+    return { answer: normalized }
+  }
+
+  private parseConfig(config: Record<string, unknown>): WordleScoringConfig | undefined {
+    const basePoints = config['basePoints']
+    const pointsPerExtraGuess = config['pointsPerExtraGuess']
+    const solveSpeedBonus = config['solveSpeedBonus']
+    const timeLimitMs = config['timeLimitMs']
+
+    if (
+      typeof basePoints !== 'number' ||
+      typeof pointsPerExtraGuess !== 'number' ||
+      typeof solveSpeedBonus !== 'number' ||
+      typeof timeLimitMs !== 'number'
+    ) {
+      return undefined
+    }
+
+    return { basePoints, pointsPerExtraGuess, solveSpeedBonus, timeLimitMs }
+  }
+
+  private evaluateGuesses(guesses: string[], answer: string): Guess[] {
+    return guesses.map((guess) => evaluate_guess(guess, answer))
+  }
+
+  private speedBonus(config: WordleScoringConfig, timeToAnswerMs: number): number {
+    const remaining = config.timeLimitMs - timeToAnswerMs
+    const clamped = Math.max(0, Math.min(config.timeLimitMs, remaining))
+    return Math.round(config.solveSpeedBonus * (clamped / config.timeLimitMs))
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {
