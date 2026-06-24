@@ -10,7 +10,11 @@ import {
   type SlidingPuzzleRoundPhase,
 } from './slidingPuzzleAutoSubmit'
 import { WordleMock } from '../wordleGame/mock/WordleGameMock'
-import type { Guess } from '../wordleGame/shared/wordleGame.types'
+import type {
+  WordleFeedback,
+  WordlePublicState,
+  WordleSubmission,
+} from '../wordleGame/shared/wordleGame.types'
 
 export type MinigameDynamicGridProps =
   | {
@@ -32,8 +36,11 @@ export type MinigameDynamicGridProps =
     }
   | {
       type: 'wordle'
-      answer: string
-      onSubmit: (submission: { guesses: Guess[] }) => void
+      roundId: string
+      publicState: WordlePublicState
+      feedback?: WordleFeedback | null
+      onGuess: (submission: WordleSubmission) => void
+      onSubmit: (submission: WordleSubmission) => void
       submitted: boolean
       phase: 'playing' | 'reveal'
     }
@@ -131,7 +138,15 @@ export function MinigameDynamicGrid(data: MinigameDynamicGridProps): React.JSX.E
     case 'wordle': {
       return (
         <section className="client-minigame client-minigame--wordle">
-          <WordleMock answer={data.answer} onSubmit={data.onSubmit} submitted={data.submitted} />
+          <WordleMock
+            feedback={data.feedback}
+            maxTries={data.publicState.maxTries}
+            onGuess={data.onGuess}
+            onSubmit={data.onSubmit}
+            roundId={data.roundId}
+            submitted={data.submitted || data.phase === 'reveal'}
+            wordLength={data.publicState.wordLength}
+          />
         </section>
       )
     }
