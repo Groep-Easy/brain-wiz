@@ -13,7 +13,7 @@ import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
-import { WelcomeScreen } from './screens/WelcomeScreen'
+// import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
