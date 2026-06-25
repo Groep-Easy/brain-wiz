@@ -22,7 +22,7 @@ After each guess, every tile changes colour to give feedback:
 
 Green: Correct letter, correct position.
 Yellow: Correct letter, wrong position.
-Pink:  Letter not in the word.
+Pink: Letter not in the word.
 
 ### Double letter handling
 
@@ -123,8 +123,12 @@ The ENTER and ⌫ keys use the `key--wide` class to make them visually distinct.
 These functions return small notification elements shown conditionally when the player submits an invalid guess:
 
 ```tsx
-{showShortWord && handleShortWord()}
-{showUnrealWord && handleUnrealWord()}
+{
+  showShortWord && handleShortWord()
+}
+{
+  showUnrealWord && handleUnrealWord()
+}
 ```
 
 ---
@@ -140,6 +144,7 @@ This file defines the TypeScript types for the Guess the Word components.
 **`TileProps`** — props for a single tile.
 
 ---
+
 ### `WordleMock.tsx`
 
 WordleMock.tsx contains the client-side input, reveal, and waiting-for-feedback state. It does not evaluate guesses authoritatively in the real game flow; it sends raw guess strings to the server and waits for WordleFeedback.
@@ -319,7 +324,6 @@ This feedback is broadcast back to the client as a `ROUND_FEEDBACK` event. The c
 
 When the round ends, `WordleServerAdapter.scoreSubmission()` is called with the final submission, the private state (including the answer), the scoring config, and the time taken to answer. The score is calculated server-side using the private answer, so the result cannot be manipulated by the client.
 
-
 ## Word list and known limitation
 
 The Guess the Word minigame currently uses the `an-array-of-english-words` npm package as its word source. At startup, the full list of over 120,000 words is filtered down to only 5-letter words, resulting in approximately 12,000 valid words.
@@ -386,4 +390,4 @@ The implementation is split into clear parts:
 - `wordleGame.types.ts` defines shared types used across the minigame
 - `wordleGame.ts` contains all pure game logic including guess evaluation and game state
 
- Input is validated against a dictionary before submission. The word list is currently sourced from an npm package, which is a known limitation.
+Input is validated against a dictionary before submission. The word list is currently sourced from an npm package, which is a known limitation.
