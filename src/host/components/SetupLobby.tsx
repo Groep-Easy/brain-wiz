@@ -8,8 +8,7 @@ import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import { FlowEditor } from '../screens/FlowEditor'
-import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
-import type { FlowItem } from '../flow/types'
+import { toFlowItems } from '../flow/flow-api'
 import '../styles/setup_lobby.css'
 // import { BlockIcon } from './BlockIcon'
 import { ROOM } from '@brain-wiz/config/game.config'
@@ -56,7 +55,7 @@ export function SetupLobby({
 
   const startGame = () => {
     stopSound(sounds.jazz)
-    if (!isMuted()) playStartGameSound()
+    if (!isMuted()) playSound(sounds.startGame, false)
     setTimeout(() => {
       onStartGame(timePerQuestion)
     }, 1000)
@@ -66,10 +65,6 @@ export function SetupLobby({
     startGame()
   }
 
-  const handleSaveFlow = async (newFlow: FlowItem[]) => {
-    await storeRoomFlow(roomCode, hostToken, newFlow)
-    handleStart()
-  }
 
   const handleCancelFlow = () => {
     setActiveTab('lobby')
@@ -116,6 +111,8 @@ export function SetupLobby({
       console.error('Kick error', err)
     }
   }
+
+  const missingPlayers = ROOM.MIN_PLAYERS_TO_START - players.length
 
   return (
     <>
@@ -187,7 +184,6 @@ export function SetupLobby({
                 initialFlow={toFlowItems(gameFlow)}
                 roomCode={roomCode}
                 hostToken={hostToken}
-                onSave={handleSaveFlow}
                 onCancel={handleCancelFlow}
               />
             ) : (

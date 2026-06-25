@@ -243,7 +243,11 @@ function renderLobby(s: ClientApi, banner: React.ReactNode): React.JSX.Element {
   return (
     <main className="app">
       {banner}
-      <Waiting playerName={s.creds?.playerName ?? ''} roomCode={s.creds?.roomCode ?? ''} />
+      <Waiting
+        playerName={s.creds?.playerName ?? ''}
+        roomCode={s.creds?.roomCode ?? ''}
+        onLeave={s.handleLeaveRoom}
+      />
     </main>
   )
 }
