@@ -43,7 +43,7 @@ export class LobbyService {
     private readonly questionService: QuestionService,
     private readonly flow: FlowService,
     private readonly bus: GameEventBus
-  ) { }
+  ) {}
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
