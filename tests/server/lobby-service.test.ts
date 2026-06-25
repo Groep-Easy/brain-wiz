@@ -5,7 +5,7 @@
  * RoomService/ClientService backed by in-memory fake repositories, the real
  * ConnectionRegistry/RoomBroadcaster, and recording sockets.
  */
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
 import { LobbyService } from '../../src/server/room/lobby/lobby.service'
@@ -368,17 +368,33 @@ describe('LobbyService.joinClient input validation', () => {
 })
 
 describe('LobbyService room teardown clears the host token', () => {
-  it('drops the host token once the room has no live sockets', async () => {
-    const lobby = makeLobby()
-    const { code, hostToken } = await lobby.createRoom()
-    const client = recordingSocket()
-    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
+  it('retains the host token initially but drops it after the teardown grace period', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const client = recordingSocket()
+      await lobby.joinClient(client, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
 
-    // No host socket connected; the lone client leaving empties the room.
-    await lobby.leaveClient(client)
+      // No host socket connected; the lone client leaving empties the room.
+      await lobby.leaveClient(client)
 
-    // Token is gone, so a host can no longer authenticate against this room.
-    await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+      // Token is retained initially, so the host token is still recognized (throws NotEnoughPlayersError, not InvalidHostTokenError)
+      await assert.rejects(async () => lobby.startGame(code, hostToken), NotEnoughPlayersError)
+
+      // Advance time to expire the teardown timer
+      mock.timers.tick(ROOM.EMPTY_LOBBY_TEARDOWN_MS + 1000)
+      await Promise.resolve()
+
+      // Token is gone, so a host can no longer authenticate against this room.
+      await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+    } finally {
+      mock.timers.reset()
+    }
   })
 })
 

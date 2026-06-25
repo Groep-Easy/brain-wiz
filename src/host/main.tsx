@@ -21,6 +21,7 @@ import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/Slid
 import { BonkAirMock } from '@brain-wiz/minigames/bonk-air/mock/BonkAirMock'
 import { GlassFilter } from '@brain-wiz/shared/components/GlassFilter'
 import { BackgroundGradient } from '@brain-wiz/shared/components/BackgroundGradient'
+import { ErrorBoundary } from '@brain-wiz/shared/components/ErrorBoundary'
 import '@brain-wiz/shared/styles/global.css'
 
 const container = document.getElementById('root')
@@ -64,26 +65,28 @@ createRoot(container).render(
     <GlassFilter />
     {/* The host app is now served from the root, so no basename is needed */}
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<WelcomeScreen />} />
-        <Route path="/welcome" element={<Navigate to="/" replace />} />
-        <Route
-          path="/host/:roomCode"
-          element={
-            <App />
-          }
-        />
-        <Route path="/console" element={<Console />} />
-        <Route
-          path="/screens/leaderboard"
-          element={<LeaderBoard leaderboard={mockLeaderboard} />}
-        />
-        <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
-        <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
-        <Route path="/bonk-air-mock" element={<BonkAirMock />} />
-        {/* Fallback for /host or any unrecognized path */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<WelcomeScreen />} />
+          <Route path="/welcome" element={<Navigate to="/" replace />} />
+          <Route
+            path="/host/:roomCode"
+            element={
+              <App />
+            }
+          />
+          <Route path="/console" element={<Console />} />
+          <Route
+            path="/screens/leaderboard"
+            element={<LeaderBoard leaderboard={mockLeaderboard} />}
+          />
+          <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
+          <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
+          <Route path="/bonk-air-mock" element={<BonkAirMock />} />
+          {/* Fallback for /host or any unrecognized path */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   </StrictMode>
 )
