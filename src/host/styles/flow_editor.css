@@ -505,6 +505,34 @@ img.block-icon {
   margin-left: calc(var(--flow-col-gap) / 2 - 3px);
 }
 
+/* First position: the leftmost column has no gap to its left, so hug the
+   block's left edge (within the canvas padding) to stay visible. */
+.drop-indicator.start {
+  right: 100%;
+  margin-right: 4px;
+}
+
+/* Horizontal bars for snake turns: the block wraps to the row above/below. */
+.drop-indicator.below {
+  top: 100%;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 6px;
+  margin-top: calc(var(--flow-row-gap) / 2 - 3px);
+}
+
+.drop-indicator.above {
+  bottom: 100%;
+  top: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 6px;
+  margin-bottom: calc(var(--flow-row-gap) / 2 - 3px);
+}
+
 @keyframes indicatorPulse {
   0%,
   100% {
