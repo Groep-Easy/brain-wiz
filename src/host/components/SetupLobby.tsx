@@ -8,8 +8,7 @@ import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import { FlowEditor } from '../screens/FlowEditor'
-import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
-import type { FlowItem } from '../flow/types'
+import { toFlowItems } from '../flow/flow-api'
 import '../styles/setup_lobby.css'
 // import { BlockIcon } from './BlockIcon'
 import { ROOM } from '@brain-wiz/config/game.config'
@@ -50,13 +49,16 @@ export function SetupLobby({
     [gameFlow.length]
   )
 
+  /** How many more connected players are needed before the game can start. */
+  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
+
   const openEditor = () => {
     setActiveTab('flow')
   }
 
   const startGame = () => {
     stopSound(sounds.jazz)
-    if (!isMuted()) playStartGameSound()
+    if (!isMuted()) playSound(sounds.startGame, false)
     setTimeout(() => {
       onStartGame(timePerQuestion)
     }, 1000)
@@ -66,16 +68,13 @@ export function SetupLobby({
     startGame()
   }
 
-  const handleSaveFlow = async (newFlow: FlowItem[]) => {
-    await storeRoomFlow(roomCode, hostToken, newFlow)
-    handleStart()
-  }
-
   const handleCancelFlow = () => {
     setActiveTab('lobby')
   }
 
-  useEffect(() => { if (!isMuted()) playSound(sounds.jazz, true) }, [roomCode])
+  useEffect(() => {
+    if (!isMuted()) playSound(sounds.jazz, true)
+  }, [roomCode])
 
   useEffect(() => {
     if (roomCode) {
@@ -85,10 +84,8 @@ export function SetupLobby({
         .catch((err) => {
           console.error('Failed to generate QR code:', err)
         })
-
     }
   }, [roomCode])
-
 
   const handleKick = async (playerId: string) => {
     try {
@@ -111,8 +108,7 @@ export function SetupLobby({
       }
 
       if (!isMuted()) playSound(sounds.quack, false)
-    }
-    catch (err) {
+    } catch (err) {
       console.error('Kick error', err)
     }
   }
@@ -187,7 +183,6 @@ export function SetupLobby({
                 initialFlow={toFlowItems(gameFlow)}
                 roomCode={roomCode}
                 hostToken={hostToken}
-                onSave={handleSaveFlow}
                 onCancel={handleCancelFlow}
               />
             ) : (

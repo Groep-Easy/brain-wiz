@@ -43,7 +43,7 @@ export class LobbyService {
     private readonly questionService: QuestionService,
     private readonly flow: FlowService,
     private readonly bus: GameEventBus
-  ) {}
+  ) { }
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
@@ -64,6 +64,11 @@ export class LobbyService {
     const room = await this.rooms.findByJoinCode(code)
     if (!room || !this.registry.verifyHostToken(room.id, hostToken)) {
       return false
+    }
+
+    const pendingTeardown = this.registry.clearHostGraceTimer(room.id)
+    if (pendingTeardown) {
+      clearTimeout(pendingTeardown)
     }
     this.registry.registerHost(room.id, socket)
     await this.rooms.updateHostSocket(room, connectionId)
@@ -196,7 +201,7 @@ export class LobbyService {
       if (room) {
         await this.rooms.updateHostSocket(room, null)
       }
-      this.maybeTeardownRoom(membership.roomId)
+      this.armHostTeardown(membership.roomId)
       return
     }
 
@@ -251,6 +256,26 @@ export class LobbyService {
     if (this.registry.getRoomSockets(roomId).length === 0) {
       this.registry.clearHostToken(roomId)
     }
+  }
+
+  /**
+   * A host socket dropped (e.g. page reload or a transient network blip). Arm a
+   * reconnect grace window before tearing the room's host token down, so the
+   * host can reconnect to its own room. Without this, a single reload would
+   * clear the in-memory token and lock the host out (4004 on reconnect). The
+   * timer is cancelled in `connectHost` when the host returns.
+   */
+  private armHostTeardown(roomId: string): void {
+    const existing = this.registry.clearHostGraceTimer(roomId)
+    if (existing) {
+      clearTimeout(existing)
+    }
+    const timer = setTimeout(() => {
+      this.registry.clearHostGraceTimer(roomId)
+      this.maybeTeardownRoom(roomId)
+    }, ROOM.RECONNECT_GRACE_MS)
+    timer.unref()
+    this.registry.setHostGraceTimer(roomId, timer)
   }
 
   public async startGame(code: string, hostToken: string): Promise<RoomState> {

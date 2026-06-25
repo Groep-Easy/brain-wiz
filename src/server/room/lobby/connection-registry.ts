@@ -21,6 +21,7 @@ export class ConnectionRegistry {
   private readonly _hostTokens = new Map<string, string>()
   private readonly _reconnectTokens = new Map<string, string>()
   private readonly _graceTimers = new Map<string, NodeJS.Timeout>()
+  private readonly _hostGraceTimers = new Map<string, NodeJS.Timeout>()
 
   public registerHost(roomId: string, socket: ClientSocket): void {
     const existing = this._hosts.get(roomId)
@@ -130,6 +131,21 @@ export class ConnectionRegistry {
   public clearGraceTimer(clientId: string): NodeJS.Timeout | undefined {
     const timer = this._graceTimers.get(clientId)
     this._graceTimers.delete(clientId)
+    return timer
+  }
+
+  /**
+   * Per-room host reconnect grace timer. A disconnected host (e.g. page reload)
+   * keeps its host token for a grace window so it can reconnect, mirroring the
+   * per-client reconnect grace. Keyed by roomId since hosts have no clientId.
+   */
+  public setHostGraceTimer(roomId: string, timer: NodeJS.Timeout): void {
+    this._hostGraceTimers.set(roomId, timer)
+  }
+
+  public clearHostGraceTimer(roomId: string): NodeJS.Timeout | undefined {
+    const timer = this._hostGraceTimers.get(roomId)
+    this._hostGraceTimers.delete(roomId)
     return timer
   }
 }
