@@ -56,7 +56,7 @@ export class GameEngineService {
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
     @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
     private readonly bus: GameEventBus
-  ) { }
+  ) {}
 
   /** Overridable so tests can inject a controllable timer. */
   protected createTimer(): PhaseTimerLike {
@@ -118,9 +118,7 @@ export class GameEngineService {
     game.timer.cancel()
   }
 
-  private async buildRoadmapThemes(
-    roomId: string,
-  ): Promise<RoadmapTheme[]> {
+  private async buildRoadmapThemes(roomId: string): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
       .leftJoinAndSelect('round.question', 'question')
@@ -131,7 +129,6 @@ export class GameEngineService {
     const countByTheme = new Map<string, number>()
 
     for (const round of rounds) {
-
       const theme = round.question?.theme ?? round.gameType
 
       if (!theme) {
