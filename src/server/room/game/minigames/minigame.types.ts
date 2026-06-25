@@ -79,7 +79,6 @@ export interface VaultRushScoringConfig {
 }
 export interface LightSwitchScoreConfig {
   baseScore: number
-  maxMoveBonus: number
   timeLimitMs: number
 }
 
