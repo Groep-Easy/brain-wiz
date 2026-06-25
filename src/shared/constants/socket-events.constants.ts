@@ -26,6 +26,9 @@ export const PLAYER_LEAVE = 'PLAYER_LEAVE'
 export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
 /** Server → all:    player reconnected.   Payload: { playerId }              */
 export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
+/** Server → client: host stayed gone past the grace window; room is closed.
+ *  Payload: { reason: string }                                               */
+export const ROOM_CLOSED = 'ROOM_CLOSED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────
 /** Server → all:    game started.         Payload: none                      */

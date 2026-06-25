@@ -559,6 +559,75 @@ describe('LobbyService disconnect + reconnect grace', () => {
   })
 })
 
+describe('LobbyService host reconnect grace', () => {
+  async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 20; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  it('closes the room and evicts players when the host stays gone past the grace window', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const host = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn', host)
+      const player = recordingSocket()
+      await lobby.joinClient(player, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
+
+      await lobby.handleDisconnect(host)
+
+      assert.equal(eventsOf(player).includes(EVENTS.ROOM_CLOSED), false)
+
+      mock.timers.tick(ROOM.HOST_RECONNECT_GRACE_MS + 1000)
+      await flushMicrotasks()
+
+      assert.ok(eventsOf(player).includes(EVENTS.ROOM_CLOSED))
+      const late = recordingSocket()
+      await lobby.joinClient(late, { connectionId: 'sock-2', roomCode: code, playerName: 'Bob' })
+      assert.ok(eventsOf(late).includes(EVENTS.PLAYER_JOIN_REJECTED))
+    } finally {
+      mock.timers.reset()
+    }
+  })
+
+  it('keeps the room alive when the host reconnects within the grace window', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const host = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn', host)
+      const player = recordingSocket()
+      await lobby.joinClient(player, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
+
+      await lobby.handleDisconnect(host)
+
+      const host2 = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn-2', host2)
+
+      mock.timers.tick(ROOM.HOST_RECONNECT_GRACE_MS + 1000)
+      await flushMicrotasks()
+
+      assert.equal(eventsOf(player).includes(EVENTS.ROOM_CLOSED), false)
+      const late = recordingSocket()
+      await lobby.joinClient(late, { connectionId: 'sock-2', roomCode: code, playerName: 'Bob' })
+      assert.ok(eventsOf(late).includes(EVENTS.PLAYER_JOIN_ACK))
+    } finally {
+      mock.timers.reset()
+    }
+  })
+})
+
 describe('LobbyService.startGame', () => {
   it('starts when enough players are connected and broadcasts GAME_START', async () => {
     const lobby = makeLobby()

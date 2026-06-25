@@ -17,6 +17,7 @@ This document tracks third-party resources, design inspirations, code snippets, 
 ## 2. Core Frameworks & Toolstacks
 
 Brain-Wiz stands on the shoulders of modern web development frameworks:
+
 - **Node.js & TypeScript:** The underlying runtime and strictly-typed language bridging both client and server development.
 - **NestJS:** The progressive server-side framework managing our backend logic, WebSocket gateways, and API routes.
 - **React (v19):** The foundational UI library powering the player clients and the host display screens.
@@ -26,6 +27,7 @@ Brain-Wiz stands on the shoulders of modern web development frameworks:
 ## 3. Notable Node Modules
 
 Key functional pieces of the application rely on the following specialized packages:
+
 - **`ws` (WebSockets):** Enabling real-time, low-latency, bidirectional communication between the server and player phones.
 - **`qrcode`:** Used to dynamically generate joining QR codes for the host screen to ensure frictionless player onboarding.
 - **`use-sound`:** A React Hook wrapping Howler.js used for playing all SFX interactions, game timers, and reward sounds in the host and client applications.
@@ -35,6 +37,7 @@ Key functional pieces of the application rely on the following specialized packa
 ## 4. Infrastructure & DevOps
 
 Our robust production and local deployment strategy is powered by:
+
 - **Docker & Docker Compose:** Containerization, environment isolation, and deployment orchestration.
 - **Nginx (`nginxinc/nginx-unprivileged`):** Acting as a highly secure, unprivileged reverse proxy and static asset server.
 - **PostgreSQL:** The primary relational database backing the system.
@@ -43,5 +46,5 @@ Our robust production and local deployment strategy is powered by:
 
 ## 5. Game Assets (Audio & Visuals)
 
-- **Sound Effects (SFX):** Audio cues (including `start-game.wav`, `reveal.mp3`, `correct.mp3`, `wrong.mp3`, `vault-rush.mp3`, `synthwave.mp3`) found in `src/shared/SFX/` are sourced from royalty-free libraries or synthesized specifically for the Brain-Wiz experience. 
+- **Sound Effects (SFX):** Audio cues (including `start-game.wav`, `reveal.mp3`, `correct.mp3`, `wrong.mp3`, `vault-rush.mp3`, `synthwave.mp3`) found in `src/shared/SFX/` are sourced from royalty-free libraries or synthesized specifically for the Brain-Wiz experience.
 - **Icons & Images:** Category illustrations (e.g., `science.png`, `art.png`, `gaming.png`) and Minigame icons located in `assets/images/` provide the core visual vocabulary of our UI.

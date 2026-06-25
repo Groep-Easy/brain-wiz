@@ -89,6 +89,18 @@ describe('clientSocketReducer — join lifecycle', () => {
     assert.equal(next.roomState, null)
     assert.equal(next.joinError, 'You were kicked from the lobby')
   })
+
+  it('ROOM_CLOSED evicts the player back to the join screen with a host-left notice', () => {
+    const joined = server(base(), EVENTS.ROOM_STATE_UPDATE, { room: { phase: 'lobby' } })
+    const next = server(joined, EVENTS.ROOM_CLOSED, { reason: 'host-left' })
+    assert.equal(next.kicked, true)
+    assert.equal(next.joined, false)
+    assert.equal(next.creds, null)
+    assert.equal(next.playerId, null)
+    assert.equal(next.roomState, null)
+    assert.equal(next.joinError, 'The host left — the room was closed')
+    assert.equal(next.fatalError, null)
+  })
 })
 
 describe('clientSocketReducer — gameplay events', () => {
