@@ -174,12 +174,7 @@ export class GameEngineService {
     await this.markRound(round, RoundStatusEnum.ACTIVE)
     await this.rooms.setCurrentRound(room as Room, round.roundIndex)
 
-    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
-    this.broadcaster.broadcastRoadmap(room.id, {
-      playerPos: round.roundIndex + 1,
-      totalQuestions: room.totalRounds,
-      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
-    })
+    await this.startRoundBroadcast(room, round)
 
     if (await this.runPhase(room, game, GamePhase.INTRO, TIMER.ROUND_INTRO_SECONDS)) {
       return
@@ -188,6 +183,53 @@ export class GameEngineService {
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
 
+    const questionOutcome = await this.runQuestionPhase(room, round, game)
+    if (questionOutcome.didAbort) {
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
+      return
+    }
+    this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+
+    await this.closeAndAwaitScore(
+      room.id,
+      round.id,
+      questionOutcome.didEndEarly ? 'all-answered' : 'expired'
+    )
+
+    // Bonk Air plays an animated replay during reveal, so it gets a longer window.
+    const revealSeconds =
+      round.gameType === 'bonk-air' ? TIMER.BONK_AIR_REVEAL_SECONDS : TIMER.REVEAL_SECONDS
+    if (await this.runPhase(room, game, GamePhase.REVEAL, revealSeconds)) {
+      return
+    }
+
+    await this.advanceAfterReveal(room, round, game)
+  }
+
+  /** Broadcast ROUND_START and the roadmap snapshot for a freshly-active round. */
+  private async startRoundBroadcast(
+    room: {
+      id: string
+      totalRounds: number
+    },
+    round: Round
+  ): Promise<void> {
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
+    this.broadcaster.broadcastRoadmap(room.id, {
+      playerPos: round.roundIndex + 1,
+      totalQuestions: room.totalRounds,
+      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
+    })
+  }
+
+  /** Run the active question timer with early-end subscriptions wired up.
+   *  `didAbort` mirrors the timer abort; `didEndEarly` is true when ALL_PLAYERS_ANSWERED
+   *  ended the phase (vs. a host skip or natural expiry). */
+  private async runQuestionPhase(
+    room: { id: string },
+    round: Round,
+    game: RunningGame
+  ): Promise<{ didAbort: boolean; didEndEarly: boolean }> {
     let didEndEarly = false
     const skipSub = this.bus
       .on('HOST_SKIP_TIMER')
@@ -208,21 +250,15 @@ export class GameEngineService {
     const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds, true)
     earlySub.unsubscribe()
     skipSub.unsubscribe()
-    if (didAbort) {
-      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
-      return
-    }
-    this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+    return { didAbort, didEndEarly }
+  }
 
-    await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
-
-    // Bonk Air plays an animated replay during reveal, so it gets a longer window.
-    const revealSeconds =
-      round.gameType === 'bonk-air' ? TIMER.BONK_AIR_REVEAL_SECONDS : TIMER.REVEAL_SECONDS
-    if (await this.runPhase(room, game, GamePhase.REVEAL, revealSeconds)) {
-      return
-    }
-
+  /** After the reveal phase, transition to game-over, round-end, or leaderboard. */
+  private async advanceAfterReveal(
+    room: { id: string; joinCode: string; status: RoomStatusEnum; currentRoundIndex: number },
+    round: Round,
+    game: RunningGame
+  ): Promise<void> {
     const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
     const isLastRound = round.roundIndex === totalRounds - 1
     if (isLastRound) {

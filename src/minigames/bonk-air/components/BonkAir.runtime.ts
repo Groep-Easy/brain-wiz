@@ -337,12 +337,13 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       spanDefaultRatio = 2.8
     const bodyW = type.key === 'a380' ? r * bodyWideRatio : r * bodyNarrowRatio,
       L = r * lengthRatio
-    const span =
+    const spanOf = (): number =>
       type.key === 'a380'
         ? r * spanWideRatio
         : type.key === 'cessna'
           ? r * spanCessnaRatio
           : r * spanDefaultRatio
+    const span = spanOf()
     const outlineWidth = 2,
       wingRootXRatio = 0.45,
       wingTipXRatio = 1.0,
@@ -387,32 +388,42 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       nacHRatio = 0.36,
       nacRRatio = 0.16
     const nac = (wx: number, wy: number): void => {
-      roundRectPath(c, wx - r * nacXRatio, wy - r * nacYRatio, r * nacWRatio, r * nacHRatio, r * nacRRatio)
+      roundRectPath(
+        c,
+        wx - r * nacXRatio,
+        wy - r * nacYRatio,
+        r * nacWRatio,
+        r * nacHRatio,
+        r * nacRRatio
+      )
       c.fill()
       c.stroke()
     }
-    const b737NacXRatio = 0.38,
-      b737NacSpanRatio = 0.26,
-      a380NacOuterXRatio = 0.42,
-      a380NacOuterSpanRatio = 0.32,
-      a380NacInnerXRatio = 0.22,
-      a380NacInnerSpanRatio = 0.17,
-      jetNacXRatio = 0.9,
-      jetNacBodyRatio = 0.72
-    if (type.key === 'b737') {
-      nac(r * b737NacXRatio, -span * b737NacSpanRatio)
-      nac(r * b737NacXRatio, span * b737NacSpanRatio)
+    const drawNacelles = (): void => {
+      const b737NacXRatio = 0.38,
+        b737NacSpanRatio = 0.26,
+        a380NacOuterXRatio = 0.42,
+        a380NacOuterSpanRatio = 0.32,
+        a380NacInnerXRatio = 0.22,
+        a380NacInnerSpanRatio = 0.17,
+        jetNacXRatio = 0.9,
+        jetNacBodyRatio = 0.72
+      if (type.key === 'b737') {
+        nac(r * b737NacXRatio, -span * b737NacSpanRatio)
+        nac(r * b737NacXRatio, span * b737NacSpanRatio)
+      }
+      if (type.key === 'a380') {
+        nac(r * a380NacOuterXRatio, -span * a380NacOuterSpanRatio)
+        nac(r * a380NacInnerXRatio, -span * a380NacInnerSpanRatio)
+        nac(r * a380NacInnerXRatio, span * a380NacInnerSpanRatio)
+        nac(r * a380NacOuterXRatio, span * a380NacOuterSpanRatio)
+      }
+      if (type.key === 'jet') {
+        nac(-L / 2 + r * jetNacXRatio, -bodyW * jetNacBodyRatio)
+        nac(-L / 2 + r * jetNacXRatio, bodyW * jetNacBodyRatio)
+      }
     }
-    if (type.key === 'a380') {
-      nac(r * a380NacOuterXRatio, -span * a380NacOuterSpanRatio)
-      nac(r * a380NacInnerXRatio, -span * a380NacInnerSpanRatio)
-      nac(r * a380NacInnerXRatio, span * a380NacInnerSpanRatio)
-      nac(r * a380NacOuterXRatio, span * a380NacOuterSpanRatio)
-    }
-    if (type.key === 'jet') {
-      nac(-L / 2 + r * jetNacXRatio, -bodyW * jetNacBodyRatio)
-      nac(-L / 2 + r * jetNacXRatio, bodyW * jetNacBodyRatio)
-    }
+    drawNacelles()
     c.fillStyle = '#EDF2F6' // fuselage
     roundRectPath(c, -L / 2, -bodyW / 2, L, bodyW, bodyW / 2)
     c.fill()
@@ -440,18 +451,21 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       bodyW * windscreenRRatio
     )
     c.fill()
-    if (type.key === 'cessna') {
-      const propLineWidth = 2.2,
-        propSpinRate = 22,
-        propRadiusRatio = 0.85
-      c.strokeStyle = 'rgba(20,30,40,.65)'
-      c.lineWidth = propLineWidth
-      const a = (o.spin ?? 0) * propSpinRate
-      c.beginPath()
-      c.moveTo(L / 2 + Math.cos(a) * r * propRadiusRatio, Math.sin(a) * r * propRadiusRatio)
-      c.lineTo(L / 2 - Math.cos(a) * r * propRadiusRatio, -Math.sin(a) * r * propRadiusRatio)
-      c.stroke()
+    const drawProp = (): void => {
+      if (type.key === 'cessna') {
+        const propLineWidth = 2.2,
+          propSpinRate = 22,
+          propRadiusRatio = 0.85
+        c.strokeStyle = 'rgba(20,30,40,.65)'
+        c.lineWidth = propLineWidth
+        const a = (o.spin ?? 0) * propSpinRate
+        c.beginPath()
+        c.moveTo(L / 2 + Math.cos(a) * r * propRadiusRatio, Math.sin(a) * r * propRadiusRatio)
+        c.lineTo(L / 2 - Math.cos(a) * r * propRadiusRatio, -Math.sin(a) * r * propRadiusRatio)
+        c.stroke()
+      }
     }
+    drawProp()
     c.restore()
   }
   function drawStarShape(
@@ -521,219 +535,265 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       DETAIL_MAX_DIST_RATIO = 0.75,
       DETAIL_MIN_SIZE = 3,
       DETAIL_MAX_SIZE = 7
-    for (const isl of W.islands) {
-      const blob = (rad: number, fill: string): void => {
-        b.beginPath()
-        for (let a = 0; a <= TAU + BLOB_ANGLE_PAD; a += TAU / BLOB_ANGLE_STEPS) {
-          const w =
-            1 +
-            BLOB_WOBBLE1_AMP * Math.sin(a * BLOB_WOBBLE1_FREQ + isl.seed) +
-            BLOB_WOBBLE2_AMP * Math.sin(a * BLOB_WOBBLE2_FREQ + isl.seed * BLOB_SEED2_MULT)
-          const px = isl.x + Math.cos(a) * rad * w,
-            py = isl.y + Math.sin(a) * rad * w * BLOB_Y_SQUASH
-          if (a === 0) b.moveTo(px, py)
-          else b.lineTo(px, py)
+    const drawIslands = (): void => {
+      for (const isl of W.islands) {
+        const blob = (rad: number, fill: string): void => {
+          b.beginPath()
+          for (let a = 0; a <= TAU + BLOB_ANGLE_PAD; a += TAU / BLOB_ANGLE_STEPS) {
+            const w =
+              1 +
+              BLOB_WOBBLE1_AMP * Math.sin(a * BLOB_WOBBLE1_FREQ + isl.seed) +
+              BLOB_WOBBLE2_AMP * Math.sin(a * BLOB_WOBBLE2_FREQ + isl.seed * BLOB_SEED2_MULT)
+            const px = isl.x + Math.cos(a) * rad * w,
+              py = isl.y + Math.sin(a) * rad * w * BLOB_Y_SQUASH
+            if (a === 0) b.moveTo(px, py)
+            else b.lineTo(px, py)
+          }
+          b.closePath()
+          b.fillStyle = fill
+          b.fill()
         }
-        b.closePath()
-        b.fillStyle = fill
-        b.fill()
-      }
-      b.save()
-      b.beginPath()
-      b.rect(gx0, gy0, gw, gh)
-      b.clip()
-      blob(isl.r * ISLAND_SAND_RATIO, '#E4D2A1')
-      blob(isl.r, '#7FB06B')
-      b.fillStyle = '#6B9A59'
-      for (let t = 0; t < isl.r / DETAIL_PER_RADIUS; t++) {
-        const a = rr.range(0, TAU),
-          d = rr.range(DETAIL_MIN_DIST_RATIO, DETAIL_MAX_DIST_RATIO) * isl.r
+        b.save()
         b.beginPath()
-        b.arc(
-          isl.x + Math.cos(a) * d,
-          isl.y + Math.sin(a) * d * BLOB_Y_SQUASH,
-          rr.range(DETAIL_MIN_SIZE, DETAIL_MAX_SIZE),
-          0,
-          TAU
-        )
-        b.fill()
+        b.rect(gx0, gy0, gw, gh)
+        b.clip()
+        blob(isl.r * ISLAND_SAND_RATIO, '#E4D2A1')
+        blob(isl.r, '#7FB06B')
+        b.fillStyle = '#6B9A59'
+        for (let t = 0; t < isl.r / DETAIL_PER_RADIUS; t++) {
+          const a = rr.range(0, TAU),
+            d = rr.range(DETAIL_MIN_DIST_RATIO, DETAIL_MAX_DIST_RATIO) * isl.r
+          b.beginPath()
+          b.arc(
+            isl.x + Math.cos(a) * d,
+            isl.y + Math.sin(a) * d * BLOB_Y_SQUASH,
+            rr.range(DETAIL_MIN_SIZE, DETAIL_MAX_SIZE),
+            0,
+            TAU
+          )
+          b.fill()
+        }
+        b.restore()
       }
-      b.restore()
     }
+    drawIslands()
     // grid + coordinates
-    const GRID_MAJOR_EVERY = 4,
-      GRID_MAJOR_WIDTH = 1.6,
-      GRID_MINOR_WIDTH = 0.8,
-      LABEL_FONT_SIZE = 10,
-      ASCII_A = 65,
-      CELL_CENTER = 0.5,
-      COL_LABEL_OFFSET_Y = 5,
-      ROW_LABEL_OFFSET_X = 5,
-      ROW_LABEL_OFFSET_Y = 3
-    b.strokeStyle = 'rgba(235,248,252,0.10)'
-    for (let i = 0; i <= C.COLS; i++) {
-      b.lineWidth = i % GRID_MAJOR_EVERY === 0 ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH
-      b.beginPath()
-      b.moveTo(gx0 + i * C.CELL, gy0)
-      b.lineTo(gx0 + i * C.CELL, gy0 + gh)
-      b.stroke()
-    }
-    for (let j = 0; j <= C.ROWS; j++) {
-      b.lineWidth = j % GRID_MAJOR_EVERY === 0 ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH
-      b.beginPath()
-      b.moveTo(gx0, gy0 + j * C.CELL)
-      b.lineTo(gx0 + gw, gy0 + j * C.CELL)
-      b.stroke()
-    }
-    b.fillStyle = 'rgba(235,248,252,0.30)'
-    b.font = '700 ' + LABEL_FONT_SIZE + 'px ' + MONO
-    b.textAlign = 'center'
-    for (let i = 0; i < C.COLS; i++)
-      b.fillText(String.fromCharCode(ASCII_A + i), gx0 + (i + CELL_CENTER) * C.CELL, gy0 - COL_LABEL_OFFSET_Y)
-    b.textAlign = 'right'
-    for (let j = 0; j < C.ROWS; j++)
-      b.fillText(String(j + 1), gx0 - ROW_LABEL_OFFSET_X, gy0 + (j + CELL_CENTER) * C.CELL + ROW_LABEL_OFFSET_Y)
-    b.textAlign = 'left'
-    if (W.military) {
-      const MIL_OUTER_INSET = 4,
-        MIL_OUTER_TRIM = 8,
-        MIL_OUTER_RADIUS = 10,
-        MIL_HATCH_WIDTH = 7,
-        MIL_HATCH_STEP = 24,
-        MIL_INNER_INSET = 10,
-        MIL_INNER_TRIM = 20,
-        MIL_INNER_RADIUS = 8,
-        MIL_LABEL_FONT_SIZE = 13,
-        MIL_LABEL_OFFSET_Y = 4
-      const m = W.military
-      const x = gx0 + m.x0 * C.CELL,
-        y = gy0 + m.y0 * C.CELL,
-        w = m.w * C.CELL,
-        h = m.h * C.CELL
-      b.fillStyle = '#55606C'
-      roundRectPath(b, x + MIL_OUTER_INSET, y + MIL_OUTER_INSET, w - MIL_OUTER_TRIM, h - MIL_OUTER_TRIM, MIL_OUTER_RADIUS)
-      b.fill()
-      b.save()
-      b.beginPath()
-      roundRectPath(b, x + MIL_OUTER_INSET, y + MIL_OUTER_INSET, w - MIL_OUTER_TRIM, h - MIL_OUTER_TRIM, MIL_OUTER_RADIUS)
-      b.clip()
-      b.strokeStyle = 'rgba(255,92,92,.5)'
-      b.lineWidth = MIL_HATCH_WIDTH
-      for (let k = -h; k < w + h; k += MIL_HATCH_STEP) {
+    const drawGrid = (): void => {
+      const GRID_MAJOR_EVERY = 4,
+        GRID_MAJOR_WIDTH = 1.6,
+        GRID_MINOR_WIDTH = 0.8,
+        LABEL_FONT_SIZE = 10,
+        ASCII_A = 65,
+        CELL_CENTER = 0.5,
+        COL_LABEL_OFFSET_Y = 5,
+        ROW_LABEL_OFFSET_X = 5,
+        ROW_LABEL_OFFSET_Y = 3
+      b.strokeStyle = 'rgba(235,248,252,0.10)'
+      for (let i = 0; i <= C.COLS; i++) {
+        b.lineWidth = i % GRID_MAJOR_EVERY === 0 ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH
         b.beginPath()
-        b.moveTo(x + k, y)
-        b.lineTo(x + k + h, y + h)
+        b.moveTo(gx0 + i * C.CELL, gy0)
+        b.lineTo(gx0 + i * C.CELL, gy0 + gh)
         b.stroke()
       }
-      b.restore()
-      b.fillStyle = '#39424E'
-      roundRectPath(b, x + MIL_INNER_INSET, y + MIL_INNER_INSET, w - MIL_INNER_TRIM, h - MIL_INNER_TRIM, MIL_INNER_RADIUS)
-      b.fill()
-      b.fillStyle = '#FF8C8C'
-      b.font = '800 ' + MIL_LABEL_FONT_SIZE + 'px ' + MONO
+      for (let j = 0; j <= C.ROWS; j++) {
+        b.lineWidth = j % GRID_MAJOR_EVERY === 0 ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH
+        b.beginPath()
+        b.moveTo(gx0, gy0 + j * C.CELL)
+        b.lineTo(gx0 + gw, gy0 + j * C.CELL)
+        b.stroke()
+      }
+      b.fillStyle = 'rgba(235,248,252,0.30)'
+      b.font = '700 ' + LABEL_FONT_SIZE + 'px ' + MONO
       b.textAlign = 'center'
-      b.fillText('NO FLY ZONE', x + w / 2, y + h / 2 + MIL_LABEL_OFFSET_Y)
+      for (let i = 0; i < C.COLS; i++)
+        b.fillText(
+          String.fromCharCode(ASCII_A + i),
+          gx0 + (i + CELL_CENTER) * C.CELL,
+          gy0 - COL_LABEL_OFFSET_Y
+        )
+      b.textAlign = 'right'
+      for (let j = 0; j < C.ROWS; j++)
+        b.fillText(
+          String(j + 1),
+          gx0 - ROW_LABEL_OFFSET_X,
+          gy0 + (j + CELL_CENTER) * C.CELL + ROW_LABEL_OFFSET_Y
+        )
+      b.textAlign = 'left'
     }
-    const RUNWAY_LEN_PAD_RATIO = 0.9,
-      RUNWAY_WIDTH_RATIO = 0.78,
-      RUNWAY_RADIUS = 8,
-      RUNWAY_DASH_WIDTH = 3,
-      RUNWAY_CENTERLINE_INSET = 16,
-      RUNWAY_LABEL_INSET = 12,
-      RUNWAY_THRESHOLD_BARS = 4,
-      RUNWAY_BAR_X_OFFSET = 6,
-      RUNWAY_BAR_Y_INSET = 5,
-      RUNWAY_BAR_SPAN_TRIM = 10,
-      RUNWAY_BAR_SPACING_DIVISOR = 3.4,
-      RUNWAY_BAR_WIDTH = 11,
-      RUNWAY_BAR_HEIGHT = 4,
-      RUNWAY_LABEL_FONT_SIZE = 12,
-      RUNWAY_LABEL_OFFSET_Y = 8,
-      RUNWAY_DASH_ON = 14,
-      RUNWAY_DASH_OFF = 12
-    const RUNWAY_DASH: [number, number] = [RUNWAY_DASH_ON, RUNWAY_DASH_OFF]
-    for (const r of W.runways) {
-      const a = cellC(r.thr),
-        e = cellC(r.end),
-        isHoriz = r.dir.y === 0
-      const len = dist(a, e) + C.CELL * RUNWAY_LEN_PAD_RATIO,
-        wid = C.CELL * RUNWAY_WIDTH_RATIO
-      b.save()
-      b.translate((a.x + e.x) / 2, (a.y + e.y) / 2)
-      if (!isHoriz) b.rotate(Math.PI / 2)
-      const sgn = isHoriz ? r.dir.x : r.dir.y
-      b.fillStyle = '#39424E'
-      roundRectPath(b, -len / 2, -wid / 2, len, wid, RUNWAY_RADIUS)
-      b.fill()
-      b.strokeStyle = 'rgba(244,235,216,.8)'
-      b.lineWidth = RUNWAY_DASH_WIDTH
-      b.setLineDash(RUNWAY_DASH)
-      b.beginPath()
-      b.moveTo(-len / 2 + RUNWAY_CENTERLINE_INSET, 0)
-      b.lineTo(len / 2 - RUNWAY_CENTERLINE_INSET, 0)
+    drawGrid()
+    const drawMilitary = (): void => {
+      if (W.military) {
+        const MIL_OUTER_INSET = 4,
+          MIL_OUTER_TRIM = 8,
+          MIL_OUTER_RADIUS = 10,
+          MIL_HATCH_WIDTH = 7,
+          MIL_HATCH_STEP = 24,
+          MIL_INNER_INSET = 10,
+          MIL_INNER_TRIM = 20,
+          MIL_INNER_RADIUS = 8,
+          MIL_LABEL_FONT_SIZE = 13,
+          MIL_LABEL_OFFSET_Y = 4
+        const m = W.military
+        const x = gx0 + m.x0 * C.CELL,
+          y = gy0 + m.y0 * C.CELL,
+          w = m.w * C.CELL,
+          h = m.h * C.CELL
+        b.fillStyle = '#55606C'
+        roundRectPath(
+          b,
+          x + MIL_OUTER_INSET,
+          y + MIL_OUTER_INSET,
+          w - MIL_OUTER_TRIM,
+          h - MIL_OUTER_TRIM,
+          MIL_OUTER_RADIUS
+        )
+        b.fill()
+        b.save()
+        b.beginPath()
+        roundRectPath(
+          b,
+          x + MIL_OUTER_INSET,
+          y + MIL_OUTER_INSET,
+          w - MIL_OUTER_TRIM,
+          h - MIL_OUTER_TRIM,
+          MIL_OUTER_RADIUS
+        )
+        b.clip()
+        b.strokeStyle = 'rgba(255,92,92,.5)'
+        b.lineWidth = MIL_HATCH_WIDTH
+        for (let k = -h; k < w + h; k += MIL_HATCH_STEP) {
+          b.beginPath()
+          b.moveTo(x + k, y)
+          b.lineTo(x + k + h, y + h)
+          b.stroke()
+        }
+        b.restore()
+        b.fillStyle = '#39424E'
+        roundRectPath(
+          b,
+          x + MIL_INNER_INSET,
+          y + MIL_INNER_INSET,
+          w - MIL_INNER_TRIM,
+          h - MIL_INNER_TRIM,
+          MIL_INNER_RADIUS
+        )
+        b.fill()
+        b.fillStyle = '#FF8C8C'
+        b.font = '800 ' + MIL_LABEL_FONT_SIZE + 'px ' + MONO
+        b.textAlign = 'center'
+        b.fillText('NO FLY ZONE', x + w / 2, y + h / 2 + MIL_LABEL_OFFSET_Y)
+      }
+    }
+    drawMilitary()
+    const drawRunways = (): void => {
+      const RUNWAY_LEN_PAD_RATIO = 0.9,
+        RUNWAY_WIDTH_RATIO = 0.78,
+        RUNWAY_RADIUS = 8,
+        RUNWAY_DASH_WIDTH = 3,
+        RUNWAY_CENTERLINE_INSET = 16,
+        RUNWAY_LABEL_INSET = 12,
+        RUNWAY_THRESHOLD_BARS = 4,
+        RUNWAY_BAR_X_OFFSET = 6,
+        RUNWAY_BAR_Y_INSET = 5,
+        RUNWAY_BAR_SPAN_TRIM = 10,
+        RUNWAY_BAR_SPACING_DIVISOR = 3.4,
+        RUNWAY_BAR_WIDTH = 11,
+        RUNWAY_BAR_HEIGHT = 4,
+        RUNWAY_LABEL_FONT_SIZE = 12,
+        RUNWAY_LABEL_OFFSET_Y = 8,
+        RUNWAY_DASH_ON = 14,
+        RUNWAY_DASH_OFF = 12
+      const RUNWAY_DASH: [number, number] = [RUNWAY_DASH_ON, RUNWAY_DASH_OFF]
+      for (const r of W.runways) {
+        const a = cellC(r.thr),
+          e = cellC(r.end),
+          isHoriz = r.dir.y === 0
+        const len = dist(a, e) + C.CELL * RUNWAY_LEN_PAD_RATIO,
+          wid = C.CELL * RUNWAY_WIDTH_RATIO
+        b.save()
+        b.translate((a.x + e.x) / 2, (a.y + e.y) / 2)
+        if (!isHoriz) b.rotate(Math.PI / 2)
+        const sgn = isHoriz ? r.dir.x : r.dir.y
+        b.fillStyle = '#39424E'
+        roundRectPath(b, -len / 2, -wid / 2, len, wid, RUNWAY_RADIUS)
+        b.fill()
+        b.strokeStyle = 'rgba(244,235,216,.8)'
+        b.lineWidth = RUNWAY_DASH_WIDTH
+        b.setLineDash(RUNWAY_DASH)
+        b.beginPath()
+        b.moveTo(-len / 2 + RUNWAY_CENTERLINE_INSET, 0)
+        b.lineTo(len / 2 - RUNWAY_CENTERLINE_INSET, 0)
+        b.stroke()
+        b.setLineDash([])
+        b.fillStyle = 'rgba(244,235,216,.85)'
+        const tx = sgn > 0 ? -len / 2 : len / 2 - RUNWAY_LABEL_INSET
+        for (let i = 0; i < RUNWAY_THRESHOLD_BARS; i++)
+          b.fillRect(
+            tx + RUNWAY_BAR_X_OFFSET,
+            -wid / 2 +
+              RUNWAY_BAR_Y_INSET +
+              (i * (wid - RUNWAY_BAR_SPAN_TRIM)) / RUNWAY_BAR_SPACING_DIVISOR,
+            RUNWAY_BAR_WIDTH,
+            RUNWAY_BAR_HEIGHT
+          )
+        b.font = '800 ' + RUNWAY_LABEL_FONT_SIZE + 'px ' + MONO
+        b.textAlign = 'center'
+        b.save()
+        if (sgn < 0) b.rotate(Math.PI)
+        b.fillText(r.label, 0, wid / 2 - RUNWAY_LABEL_OFFSET_Y)
+        b.restore()
+        b.restore()
+      }
+    }
+    drawRunways()
+    const drawGatesAndBorder = (): void => {
+      const GATE_LINE_WIDTH = 2,
+        GATE_INSET = 3,
+        GATE_TRIM = 6,
+        GATE_DASH_ON = 4,
+        GATE_DASH_OFF = 5
+      const GATE_DASH: [number, number] = [GATE_DASH_ON, GATE_DASH_OFF]
+      for (const gt of W.gates) {
+        const p = cellC(gt.c)
+        b.strokeStyle = 'rgba(244,235,216,.5)'
+        b.lineWidth = GATE_LINE_WIDTH
+        b.setLineDash(GATE_DASH)
+        b.strokeRect(
+          p.x - C.CELL / 2 + GATE_INSET,
+          p.y - C.CELL / 2 + GATE_INSET,
+          C.CELL - GATE_TRIM,
+          C.CELL - GATE_TRIM
+        )
+        b.setLineDash([])
+      }
+      const GRID_BORDER_WIDTH = 2.5,
+        GRID_BORDER_INSET = 2,
+        GRID_BORDER_EXPAND = 4,
+        GRID_BORDER_RADIUS = 14,
+        GRID_BORDER_DASH_ON = 10,
+        GRID_BORDER_DASH_OFF = 8
+      const GRID_BORDER_DASH: [number, number] = [GRID_BORDER_DASH_ON, GRID_BORDER_DASH_OFF]
+      b.strokeStyle = 'rgba(244,235,216,.35)'
+      b.lineWidth = GRID_BORDER_WIDTH
+      b.setLineDash(GRID_BORDER_DASH)
+      roundRectPath(
+        b,
+        gx0 - GRID_BORDER_INSET,
+        gy0 - GRID_BORDER_INSET,
+        gw + GRID_BORDER_EXPAND,
+        gh + GRID_BORDER_EXPAND,
+        GRID_BORDER_RADIUS
+      )
       b.stroke()
       b.setLineDash([])
-      b.fillStyle = 'rgba(244,235,216,.85)'
-      const tx = sgn > 0 ? -len / 2 : len / 2 - RUNWAY_LABEL_INSET
-      for (let i = 0; i < RUNWAY_THRESHOLD_BARS; i++)
-        b.fillRect(
-          tx + RUNWAY_BAR_X_OFFSET,
-          -wid / 2 + RUNWAY_BAR_Y_INSET + (i * (wid - RUNWAY_BAR_SPAN_TRIM)) / RUNWAY_BAR_SPACING_DIVISOR,
-          RUNWAY_BAR_WIDTH,
-          RUNWAY_BAR_HEIGHT
-        )
-      b.font = '800 ' + RUNWAY_LABEL_FONT_SIZE + 'px ' + MONO
-      b.textAlign = 'center'
-      b.save()
-      if (sgn < 0) b.rotate(Math.PI)
-      b.fillText(r.label, 0, wid / 2 - RUNWAY_LABEL_OFFSET_Y)
-      b.restore()
-      b.restore()
     }
-    const GATE_LINE_WIDTH = 2,
-      GATE_INSET = 3,
-      GATE_TRIM = 6,
-      GATE_DASH_ON = 4,
-      GATE_DASH_OFF = 5
-    const GATE_DASH: [number, number] = [GATE_DASH_ON, GATE_DASH_OFF]
-    for (const gt of W.gates) {
-      const p = cellC(gt.c)
-      b.strokeStyle = 'rgba(244,235,216,.5)'
-      b.lineWidth = GATE_LINE_WIDTH
-      b.setLineDash(GATE_DASH)
-      b.strokeRect(p.x - C.CELL / 2 + GATE_INSET, p.y - C.CELL / 2 + GATE_INSET, C.CELL - GATE_TRIM, C.CELL - GATE_TRIM)
-      b.setLineDash([])
-    }
-    const GRID_BORDER_WIDTH = 2.5,
-      GRID_BORDER_INSET = 2,
-      GRID_BORDER_EXPAND = 4,
-      GRID_BORDER_RADIUS = 14,
-      GRID_BORDER_DASH_ON = 10,
-      GRID_BORDER_DASH_OFF = 8
-    const GRID_BORDER_DASH: [number, number] = [GRID_BORDER_DASH_ON, GRID_BORDER_DASH_OFF]
-    b.strokeStyle = 'rgba(244,235,216,.35)'
-    b.lineWidth = GRID_BORDER_WIDTH
-    b.setLineDash(GRID_BORDER_DASH)
-    roundRectPath(b, gx0 - GRID_BORDER_INSET, gy0 - GRID_BORDER_INSET, gw + GRID_BORDER_EXPAND, gh + GRID_BORDER_EXPAND, GRID_BORDER_RADIUS)
-    b.stroke()
-    b.setLineDash([])
+    drawGatesAndBorder()
     return off
   }
 
   /* ---------------- frame render ---------------- */
-  function render(dt: number): void {
-    const C = CONFIG,
-      W = G.world
-    if (!W || !bgCache) {
-      ctx.fillStyle = '#16242F'
-      ctx.fillRect(0, 0, C.W, C.H)
-      return
-    }
-    G.clock += dt
-    ctx.clearRect(0, 0, C.W, C.H)
-    ctx.drawImage(bgCache, 0, 0)
-    const sim = G.sim,
-      isPlanning = G.phase === 'plan'
+  function drawClouds(C: typeof CONFIG, W: World): void {
     const CLOUD_CELL_INSET = 1,
       CLOUD_CELL_TRIM = 2,
       CLOUD_ALPHA = 0.95
@@ -784,6 +844,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       })
       ctx.restore()
     }
+  }
+  function drawRadar(C: typeof CONFIG, W: World): void {
     if (W.military) {
       const RADAR_CELL_INSET = 0.5,
         RADAR_RING_WIDTH = 2.5,
@@ -808,6 +870,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       ctx.stroke()
       ctx.restore()
     }
+  }
+  function drawStars(sim: Sim | null, W: World): void {
     const STAR_HALO_ALPHA = 0.2,
       STAR_HALO_RADIUS = 20,
       STAR_SHAPE_RADIUS = 12
@@ -824,6 +888,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       // Static star: no bob, no rotation.
       drawStarShape(ctx, p.x, p.y, STAR_SHAPE_RADIUS, 0, '#FFD45E')
     })
+  }
+  function drawGates(C: typeof CONFIG, W: World, isPlanning: boolean): void {
     const GATE_PULSE_AMP = 0.1,
       GATE_PULSE_FREQ = 7,
       GATE_BORDER_INSET = 3,
@@ -885,6 +951,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
         )
       ctx.restore()
     })
+  }
+  function drawApproachMarkers(C: typeof CONFIG, W: World, isPlanning: boolean): void {
     // Group landing aircraft by their target runway. When two planes are routed
     // to the *same* runway their chevrons + chips would otherwise draw exactly on
     // top of each other (so only the last colour shows), hiding that the runway
@@ -955,6 +1023,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
         ctx.restore()
       })
     })
+  }
+  function drawDesireLines(W: World, isPlanning: boolean): void {
     const DESIRE_ALPHA_SELECTED = 0.5,
       DESIRE_ALPHA_IDLE = 0.16,
       DESIRE_LINE_WIDTH = 2,
@@ -978,6 +1048,8 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
         ctx.stroke()
         ctx.restore()
       }
+  }
+  function drawRoutes(W: World, isPlanning: boolean): void {
     const ROUTE_ALPHA_PLAN = 0.95,
       ROUTE_ALPHA_SIM = 0.2,
       ROUTE_OUTLINE_WIDTH = 8,
@@ -1028,6 +1100,15 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       }
       ctx.restore()
     }
+  }
+  function drawPlanes(C: typeof CONFIG, W: World, sim: Sim | null, isPlanning: boolean): void {
+    if (isPlanning || !sim) {
+      drawParkedPlanes(C, W, isPlanning)
+    } else {
+      drawSimPlanes(C, sim)
+    }
+  }
+  function drawParkedPlanes(C: typeof CONFIG, W: World, isPlanning: boolean): void {
     const PARKED_SEP_LINE_WIDTH = 2,
       PARKED_SEP_ALPHA = 0.4,
       PARKED_SELECTED_SCALE = 1.08,
@@ -1036,69 +1117,70 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       PARKED_SEP_DASH_ON = 5,
       PARKED_SEP_DASH_OFF = 7
     const PARKED_SEP_DASH: [number, number] = [PARKED_SEP_DASH_ON, PARKED_SEP_DASH_OFF]
-    if (isPlanning || !sim) {
-      for (const pl of W.planes) {
-        const home = planeHome(pl, W),
-          sol = G.paths[pl.id]
-        let ang: number
-        if (sol && sol.cells.length > 1) {
-          const a = cellC(req(sol.cells[0])),
-            b = cellC(req(sol.cells[1]))
-          ang = Math.atan2(b.y - a.y, b.x - a.x)
-        } else if (pl.mission === 'depart') {
-          const r = req(W.runways[pl.rwIdx])
-          ang = Math.atan2(r.dir.y, r.dir.x)
-        } else {
-          const t = cellC(targetCellOf(pl, W))
-          ang = Math.atan2(t.y - home.y, t.x - home.x)
-        }
-        const isSelected = G.selected === pl.id
-        if (isSelected && isPlanning) {
-          ctx.save()
-          ctx.setLineDash(PARKED_SEP_DASH)
-          ctx.strokeStyle = pl.color
-          ctx.globalAlpha = PARKED_SEP_ALPHA
-          ctx.lineWidth = PARKED_SEP_LINE_WIDTH
-          ctx.beginPath()
-          ctx.arc(home.x, home.y, CONFIG.SEP_BLOCKS * C.CELL, 0, TAU)
-          ctx.stroke()
-          ctx.restore()
-        }
-        // Static parked plane: no hover bob, no spinning prop.
-        drawPlane(ctx, pl.type, home.x, home.y, ang, pl.color, {
-          scale: isSelected ? PARKED_SELECTED_SCALE : 1,
-        })
-        symChip(
-          home.x,
-          home.y - pl.type.r * PARKED_CHIP_OFFSET_RATIO,
-          pl,
-          isSelected ? PARKED_CHIP_SELECTED_SCALE : 1
-        )
+    for (const pl of W.planes) {
+      const home = planeHome(pl, W),
+        sol = G.paths[pl.id]
+      let ang: number
+      if (sol && sol.cells.length > 1) {
+        const a = cellC(req(sol.cells[0])),
+          b = cellC(req(sol.cells[1]))
+        ang = Math.atan2(b.y - a.y, b.x - a.x)
+      } else if (pl.mission === 'depart') {
+        const r = req(W.runways[pl.rwIdx])
+        ang = Math.atan2(r.dir.y, r.dir.x)
+      } else {
+        const t = cellC(targetCellOf(pl, W))
+        ang = Math.atan2(t.y - home.y, t.x - home.x)
       }
-    } else {
-      const SIM_SEP_ALPHA = 0.13,
-        SIM_SEP_LINE_WIDTH = 2,
-        SIM_SEP_DASH_ON = 4,
-        SIM_SEP_DASH_OFF = 7
-      const SIM_SEP_DASH: [number, number] = [SIM_SEP_DASH_ON, SIM_SEP_DASH_OFF]
-      for (const p of sim.planes) {
-        if (p.state !== 'flying') continue
-        if (!sim.rolling(p)) {
-          ctx.save()
-          ctx.setLineDash(SIM_SEP_DASH)
-          ctx.strokeStyle = p.color
-          ctx.globalAlpha = SIM_SEP_ALPHA
-          ctx.lineWidth = SIM_SEP_LINE_WIDTH
-          ctx.beginPath()
-          ctx.arc(p.x, p.y, CONFIG.SEP_BLOCKS * C.CELL, 0, TAU)
-          ctx.stroke()
-          ctx.restore()
-        }
-        // Static sprite: no prop spin, no take-off/landing scale pulse, no trail —
-        // the plane just translates along its route.
-        drawPlane(ctx, p.type, p.x, p.y, p.ang, p.color, { scale: 1 })
+      const isSelected = G.selected === pl.id
+      if (isSelected && isPlanning) {
+        ctx.save()
+        ctx.setLineDash(PARKED_SEP_DASH)
+        ctx.strokeStyle = pl.color
+        ctx.globalAlpha = PARKED_SEP_ALPHA
+        ctx.lineWidth = PARKED_SEP_LINE_WIDTH
+        ctx.beginPath()
+        ctx.arc(home.x, home.y, CONFIG.SEP_BLOCKS * C.CELL, 0, TAU)
+        ctx.stroke()
+        ctx.restore()
       }
+      // Static parked plane: no hover bob, no spinning prop.
+      drawPlane(ctx, pl.type, home.x, home.y, ang, pl.color, {
+        scale: isSelected ? PARKED_SELECTED_SCALE : 1,
+      })
+      symChip(
+        home.x,
+        home.y - pl.type.r * PARKED_CHIP_OFFSET_RATIO,
+        pl,
+        isSelected ? PARKED_CHIP_SELECTED_SCALE : 1
+      )
     }
+  }
+  function drawSimPlanes(C: typeof CONFIG, sim: Sim): void {
+    const SIM_SEP_ALPHA = 0.13,
+      SIM_SEP_LINE_WIDTH = 2,
+      SIM_SEP_DASH_ON = 4,
+      SIM_SEP_DASH_OFF = 7
+    const SIM_SEP_DASH: [number, number] = [SIM_SEP_DASH_ON, SIM_SEP_DASH_OFF]
+    for (const p of sim.planes) {
+      if (p.state !== 'flying') continue
+      if (!sim.rolling(p)) {
+        ctx.save()
+        ctx.setLineDash(SIM_SEP_DASH)
+        ctx.strokeStyle = p.color
+        ctx.globalAlpha = SIM_SEP_ALPHA
+        ctx.lineWidth = SIM_SEP_LINE_WIDTH
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, CONFIG.SEP_BLOCKS * C.CELL, 0, TAU)
+        ctx.stroke()
+        ctx.restore()
+      }
+      // Static sprite: no prop spin, no take-off/landing scale pulse, no trail —
+      // the plane just translates along its route.
+      drawPlane(ctx, p.type, p.x, p.y, p.ang, p.color, { scale: 1 })
+    }
+  }
+  function drawGhost(dt: number, C: typeof CONFIG, isPlanning: boolean): void {
     const ghost = G.ghost
     if (isPlanning && G.ghostOn && ghost) {
       const GHOST_FADE_DURATION = 0.8,
@@ -1145,6 +1227,29 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       ctx.textAlign = 'center'
       ctx.fillText('👻 test flight ×5', C.W / 2, C.Y0 + GHOST_LABEL_OFFSET_Y)
     }
+  }
+  function render(dt: number): void {
+    const C = CONFIG,
+      W = G.world
+    if (!W || !bgCache) {
+      ctx.fillStyle = '#16242F'
+      ctx.fillRect(0, 0, C.W, C.H)
+      return
+    }
+    G.clock += dt
+    ctx.clearRect(0, 0, C.W, C.H)
+    ctx.drawImage(bgCache, 0, 0)
+    const sim = G.sim,
+      isPlanning = G.phase === 'plan'
+    drawClouds(C, W)
+    drawRadar(C, W)
+    drawStars(sim, W)
+    drawGates(C, W, isPlanning)
+    drawApproachMarkers(C, W, isPlanning)
+    drawDesireLines(W, isPlanning)
+    drawRoutes(W, isPlanning)
+    drawPlanes(C, W, sim, isPlanning)
+    drawGhost(dt, C, isPlanning)
     renderFx(dt)
   }
   function renderFx(dt: number): void {
@@ -1181,105 +1286,132 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       BLOCK_BASE_RADIUS = 11,
       BLOCK_GROWTH = 28,
       FX_LIFETIME = 1.5
+    const drawBanner = (
+      p: number,
+      fx: number,
+      fy: number,
+      fill: string,
+      txt: string,
+      fontSize: number,
+      textOffsetY: number
+    ): void => {
+      ctx.translate(fx, fy)
+      ctx.globalAlpha = clamp(BANNER_FADE_START - p * BANNER_FADE_RATE, 0, 1)
+      ctx.font = '900 ' + fontSize + 'px ' + FONT
+      ctx.textAlign = 'center'
+      const w = ctx.measureText(txt).width + LABEL_BANNER_PADDING
+      ctx.fillStyle = fill
+      roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
+      ctx.fill()
+      ctx.strokeStyle = '#F4EBD8'
+      ctx.lineWidth = BANNER_BORDER_WIDTH
+      roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
+      ctx.stroke()
+      ctx.fillStyle = '#F4EBD8'
+      ctx.fillText(txt, 0, textOffsetY)
+    }
+    const drawFloaty = (p: number, fx: number, fy: number, f: Fx): void => {
+      ctx.globalAlpha = clamp(FLOATY_FADE_START - p, 0, 1)
+      ctx.font = `800 ${f.size || FLOATY_DEFAULT_SIZE}px ${FONT}`
+      ctx.textAlign = 'center'
+      ctx.lineWidth = FLOATY_OUTLINE_WIDTH
+      ctx.strokeStyle = 'rgba(13,20,28,.8)'
+      ctx.strokeText(f.txt || '', fx, fy - p * FLOATY_RISE)
+      ctx.fillStyle = f.color || '#F4EBD8'
+      ctx.fillText(f.txt || '', fx, fy - p * FLOATY_RISE)
+    }
+    const drawSep = (p: number, fx: number, fy: number): void => {
+      ctx.globalAlpha = clamp(1 - p, 0, 1)
+      ctx.strokeStyle = '#FFB948'
+      ctx.lineWidth = SEP_OUTER_LINE_WIDTH
+      ctx.beginPath()
+      ctx.arc(fx, fy, SEP_BASE_RADIUS + p * SEP_OUTER_GROWTH, 0, TAU)
+      ctx.stroke()
+      ctx.lineWidth = SEP_INNER_LINE_WIDTH
+      ctx.beginPath()
+      ctx.arc(fx, fy, SEP_BASE_RADIUS + p * SEP_INNER_GROWTH, 0, TAU)
+      ctx.stroke()
+    }
+    const drawBonk = (p: number, fx: number, fy: number): void => {
+      // Just the "BONK!" text — no star burst, no spinning planes.
+      ctx.translate(fx, fy)
+      ctx.globalAlpha = clamp(BANNER_FADE_START - p * BANNER_FADE_RATE, 0, 1)
+      ctx.fillStyle = '#FF5C5C'
+      roundRectPath(ctx, -BANNER_HALF_WIDTH, BANNER_TOP, BANNER_WIDTH, BANNER_HEIGHT, BANNER_RADIUS)
+      ctx.fill()
+      ctx.strokeStyle = '#F4EBD8'
+      ctx.lineWidth = BANNER_BORDER_WIDTH
+      roundRectPath(ctx, -BANNER_HALF_WIDTH, BANNER_TOP, BANNER_WIDTH, BANNER_HEIGHT, BANNER_RADIUS)
+      ctx.stroke()
+      ctx.fillStyle = '#F4EBD8'
+      ctx.font = '900 ' + BONK_FONT_SIZE + 'px ' + FONT
+      ctx.textAlign = 'center'
+      ctx.fillText('BONK!', 0, BONK_TEXT_OFFSET_Y)
+    }
+    const drawPuff = (p: number, fx: number, fy: number): void => {
+      ctx.globalAlpha = clamp(PUFF_FADE_START - p, 0, 1)
+      ctx.fillStyle = '#DCE7EE'
+      for (let i = 0; i < PUFF_COUNT; i++) {
+        const a = (i * TAU) / PUFF_COUNT
+        ctx.beginPath()
+        ctx.arc(
+          fx + Math.cos(a) * p * PUFF_SPREAD,
+          fy + Math.sin(a) * p * PUFF_SPREAD,
+          PUFF_BASE_SIZE + p * PUFF_GROWTH,
+          0,
+          TAU
+        )
+        ctx.fill()
+      }
+    }
+    const drawBlock = (p: number, fx: number, fy: number): void => {
+      ctx.globalAlpha = clamp(BLOCK_FADE_START - p * BLOCK_FADE_RATE, 0, 1)
+      ctx.strokeStyle = '#FF5C5C'
+      ctx.lineWidth = BLOCK_LINE_WIDTH
+      ctx.beginPath()
+      ctx.arc(fx, fy, BLOCK_BASE_RADIUS + p * BLOCK_GROWTH, 0, TAU)
+      ctx.stroke()
+    }
+    const renderOneFx = (f: Fx, p: number, fx: number, fy: number): void => {
+      if (f.kind === 'floaty') {
+        drawFloaty(p, fx, fy, f)
+      } else if (f.kind === 'sep') {
+        drawSep(p, fx, fy)
+      } else if (f.kind === 'bonk') {
+        drawBonk(p, fx, fy)
+      } else if (f.kind === 'intercept') {
+        drawBanner(
+          p,
+          fx,
+          fy,
+          '#3478E0',
+          'INTERCEPTED',
+          LABEL_BANNER_FONT_SIZE,
+          LABEL_BANNER_TEXT_OFFSET_Y
+        )
+      } else if (f.kind === 'arrive') {
+        drawBanner(
+          p,
+          fx,
+          fy,
+          '#33B36B',
+          f.txt || 'LANDED',
+          LABEL_BANNER_FONT_SIZE,
+          LABEL_BANNER_TEXT_OFFSET_Y
+        )
+      } else if (f.kind === 'puff') {
+        drawPuff(p, fx, fy)
+      } else if (f.kind === 'block') {
+        drawBlock(p, fx, fy)
+      }
+    }
     for (const f of G.fx) {
       f.t += dt
       const p = f.t
       ctx.save()
       const fx = f.x ?? 0,
         fy = f.y ?? 0
-      if (f.kind === 'floaty') {
-        ctx.globalAlpha = clamp(FLOATY_FADE_START - p, 0, 1)
-        ctx.font = `800 ${f.size || FLOATY_DEFAULT_SIZE}px ${FONT}`
-        ctx.textAlign = 'center'
-        ctx.lineWidth = FLOATY_OUTLINE_WIDTH
-        ctx.strokeStyle = 'rgba(13,20,28,.8)'
-        ctx.strokeText(f.txt || '', fx, fy - p * FLOATY_RISE)
-        ctx.fillStyle = f.color || '#F4EBD8'
-        ctx.fillText(f.txt || '', fx, fy - p * FLOATY_RISE)
-      } else if (f.kind === 'sep') {
-        ctx.globalAlpha = clamp(1 - p, 0, 1)
-        ctx.strokeStyle = '#FFB948'
-        ctx.lineWidth = SEP_OUTER_LINE_WIDTH
-        ctx.beginPath()
-        ctx.arc(fx, fy, SEP_BASE_RADIUS + p * SEP_OUTER_GROWTH, 0, TAU)
-        ctx.stroke()
-        ctx.lineWidth = SEP_INNER_LINE_WIDTH
-        ctx.beginPath()
-        ctx.arc(fx, fy, SEP_BASE_RADIUS + p * SEP_INNER_GROWTH, 0, TAU)
-        ctx.stroke()
-      } else if (f.kind === 'bonk') {
-        // Just the "BONK!" text — no star burst, no spinning planes.
-        ctx.translate(fx, fy)
-        ctx.globalAlpha = clamp(BANNER_FADE_START - p * BANNER_FADE_RATE, 0, 1)
-        ctx.fillStyle = '#FF5C5C'
-        roundRectPath(ctx, -BANNER_HALF_WIDTH, BANNER_TOP, BANNER_WIDTH, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.fill()
-        ctx.strokeStyle = '#F4EBD8'
-        ctx.lineWidth = BANNER_BORDER_WIDTH
-        roundRectPath(ctx, -BANNER_HALF_WIDTH, BANNER_TOP, BANNER_WIDTH, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.stroke()
-        ctx.fillStyle = '#F4EBD8'
-        ctx.font = '900 ' + BONK_FONT_SIZE + 'px ' + FONT
-        ctx.textAlign = 'center'
-        ctx.fillText('BONK!', 0, BONK_TEXT_OFFSET_Y)
-      } else if (f.kind === 'intercept') {
-        // Same banner style as BONK, but blue with "INTERCEPTED".
-        ctx.translate(fx, fy)
-        ctx.globalAlpha = clamp(BANNER_FADE_START - p * BANNER_FADE_RATE, 0, 1)
-        ctx.font = '900 ' + LABEL_BANNER_FONT_SIZE + 'px ' + FONT
-        ctx.textAlign = 'center'
-        const txt = 'INTERCEPTED'
-        const w = ctx.measureText(txt).width + LABEL_BANNER_PADDING
-        ctx.fillStyle = '#3478E0'
-        roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.fill()
-        ctx.strokeStyle = '#F4EBD8'
-        ctx.lineWidth = BANNER_BORDER_WIDTH
-        roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.stroke()
-        ctx.fillStyle = '#F4EBD8'
-        ctx.fillText(txt, 0, LABEL_BANNER_TEXT_OFFSET_Y)
-      } else if (f.kind === 'arrive') {
-        // Same banner style as BONK/INTERCEPTED, but green — "LANDED" on a
-        // runway, "ROUTED" when handed off to a gate.
-        ctx.translate(fx, fy)
-        ctx.globalAlpha = clamp(BANNER_FADE_START - p * BANNER_FADE_RATE, 0, 1)
-        ctx.font = '900 ' + LABEL_BANNER_FONT_SIZE + 'px ' + FONT
-        ctx.textAlign = 'center'
-        const txt = f.txt || 'LANDED'
-        const w = ctx.measureText(txt).width + LABEL_BANNER_PADDING
-        ctx.fillStyle = '#33B36B'
-        roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.fill()
-        ctx.strokeStyle = '#F4EBD8'
-        ctx.lineWidth = BANNER_BORDER_WIDTH
-        roundRectPath(ctx, -w / 2, BANNER_TOP, w, BANNER_HEIGHT, BANNER_RADIUS)
-        ctx.stroke()
-        ctx.fillStyle = '#F4EBD8'
-        ctx.fillText(txt, 0, LABEL_BANNER_TEXT_OFFSET_Y)
-      } else if (f.kind === 'puff') {
-        ctx.globalAlpha = clamp(PUFF_FADE_START - p, 0, 1)
-        ctx.fillStyle = '#DCE7EE'
-        for (let i = 0; i < PUFF_COUNT; i++) {
-          const a = (i * TAU) / PUFF_COUNT
-          ctx.beginPath()
-          ctx.arc(
-            fx + Math.cos(a) * p * PUFF_SPREAD,
-            fy + Math.sin(a) * p * PUFF_SPREAD,
-            PUFF_BASE_SIZE + p * PUFF_GROWTH,
-            0,
-            TAU
-          )
-          ctx.fill()
-        }
-      } else if (f.kind === 'block') {
-        ctx.globalAlpha = clamp(BLOCK_FADE_START - p * BLOCK_FADE_RATE, 0, 1)
-        ctx.strokeStyle = '#FF5C5C'
-        ctx.lineWidth = BLOCK_LINE_WIDTH
-        ctx.beginPath()
-        ctx.arc(fx, fy, BLOCK_BASE_RADIUS + p * BLOCK_GROWTH, 0, TAU)
-        ctx.stroke()
-      }
+      renderOneFx(f, p, fx, fy)
       ctx.restore()
     }
     G.fx = G.fx.filter((f) => f.t < FX_LIFETIME)
@@ -1325,45 +1457,53 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       }
     const p = toWorld(e),
       W = G.world
-    const PLANE_TAP_PADDING = 22
-    const pl = W.planes.find((o) => dist(planeHome(o, W), p) < o.type.r + PLANE_TAP_PADDING)
-    if (pl) {
-      G.drawing = {
-        id: pl.id,
-        prev: clonePath(G.paths[pl.id]),
-        moved: false,
-        minLen: pl.mission === 'depart' ? req(W.runways[pl.rwIdx]).cells.length : 1,
-      }
-      const cells =
-        pl.mission === 'depart'
-          ? req(W.runways[pl.rwIdx]).cells.map((c) => ({ x: c.x, y: c.y }))
-          : [{ x: pl.spawn.x, y: pl.spawn.y }]
-      G.paths[pl.id] = { cells, complete: false }
-      G.selected = pl.id
-      Sfx.honk()
-      updateStatus()
-      return
-    }
-    const TAP_END_SNAP_RATIO = 0.9
-    for (const o of W.planes) {
-      const sol = G.paths[o.id]
-      if (
-        sol &&
-        !sol.complete &&
-        sol.cells.length > 1 &&
-        dist(cellC(req(sol.cells[sol.cells.length - 1])), p) < CONFIG.CELL * TAP_END_SNAP_RATIO
-      ) {
+    const tryStartFromPlane = (): boolean => {
+      const PLANE_TAP_PADDING = 22
+      const pl = W.planes.find((o) => dist(planeHome(o, W), p) < o.type.r + PLANE_TAP_PADDING)
+      if (pl) {
         G.drawing = {
-          id: o.id,
-          prev: clonePath(sol),
-          moved: true,
-          minLen: o.mission === 'depart' ? req(W.runways[o.rwIdx]).cells.length : 1,
+          id: pl.id,
+          prev: clonePath(G.paths[pl.id]),
+          moved: false,
+          minLen: pl.mission === 'depart' ? req(W.runways[pl.rwIdx]).cells.length : 1,
         }
-        G.selected = o.id
-        Sfx.plop()
-        return
+        const cells =
+          pl.mission === 'depart'
+            ? req(W.runways[pl.rwIdx]).cells.map((c) => ({ x: c.x, y: c.y }))
+            : [{ x: pl.spawn.x, y: pl.spawn.y }]
+        G.paths[pl.id] = { cells, complete: false }
+        G.selected = pl.id
+        Sfx.honk()
+        updateStatus()
+        return true
       }
+      return false
     }
+    const tryExtendRoute = (): boolean => {
+      const TAP_END_SNAP_RATIO = 0.9
+      for (const o of W.planes) {
+        const sol = G.paths[o.id]
+        if (
+          sol &&
+          !sol.complete &&
+          sol.cells.length > 1 &&
+          dist(cellC(req(sol.cells[sol.cells.length - 1])), p) < CONFIG.CELL * TAP_END_SNAP_RATIO
+        ) {
+          G.drawing = {
+            id: o.id,
+            prev: clonePath(sol),
+            moved: true,
+            minLen: o.mission === 'depart' ? req(W.runways[o.rwIdx]).cells.length : 1,
+          }
+          G.selected = o.id
+          Sfx.plop()
+          return true
+        }
+      }
+      return false
+    }
+    if (tryStartFromPlane()) return
+    if (tryExtendRoute()) return
     G.tapCell = { c: pxCell(p), x: p.x, y: p.y }
   }
   function onPointerMove(e: PointerEvent): void {
@@ -1382,20 +1522,7 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
     p.x = clamp(p.x, C.X0 + EDGE_INSET, C.X0 + C.COLS * C.CELL - EDGE_INSET)
     p.y = clamp(p.y, C.Y0 + EDGE_INSET, C.Y0 + C.ROWS * C.CELL - EDGE_INSET)
     const cur = pxCell(p)
-    let guard = 0
-    while (!sameCell(cur, req(cells[cells.length - 1])) && guard++ < DRAW_STEP_GUARD) {
-      const last = req(cells[cells.length - 1])
-      if (
-        cells.length > drawing.minLen &&
-        cells.length > 1 &&
-        sameCell(cur, req(cells[cells.length - 2]))
-      ) {
-        cells.pop()
-        drawing.moved = true
-        continue
-      }
-      const dx = Math.sign(cur.x - last.x),
-        dy = Math.sign(cur.y - last.y)
+    const resolveDiagonal = (last: Cell, dx: number, dy: number): Cell => {
       let next = { x: last.x + dx, y: last.y + dy }
       if (
         dx &&
@@ -1407,29 +1534,60 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
             ? { x: last.x + dx, y: last.y }
             : { x: last.x, y: last.y + dy }
       }
+      return next
+    }
+    const altAround = (last: Cell, dx: number, dy: number): Cell | null => {
+      let alt: Cell | null = null
+      if (dx && dy) {
+        const c1 = { x: last.x + dx, y: last.y },
+          c2 = { x: last.x, y: last.y + dy }
+        if (!blockedCell(c1)) alt = c1
+        else if (!blockedCell(c2)) alt = c2
+      }
+      return alt
+    }
+    const flashBlocked = (next: Cell): void => {
+      if (G.clock - G.blockFlashAt > BLOCK_FLASH_COOLDOWN) {
+        const bp = cellC(next)
+        addFx('block', { x: bp.x, y: bp.y })
+        Sfx.buzz()
+        vibrate(BLOCK_VIBRATE_MS)
+        G.blockFlashAt = G.clock
+      }
+    }
+    // One drawing step: returns 'break' to stop, 'continue' to retry, 'step' when
+    // it advanced the route by one cell (which is also when it must stop).
+    const stepDraw = (): 'break' | 'continue' | 'step' => {
+      const last = req(cells[cells.length - 1])
+      if (
+        cells.length > drawing.minLen &&
+        cells.length > 1 &&
+        sameCell(cur, req(cells[cells.length - 2]))
+      ) {
+        cells.pop()
+        drawing.moved = true
+        return 'continue'
+      }
+      const dx = Math.sign(cur.x - last.x),
+        dy = Math.sign(cur.y - last.y)
+      let next = resolveDiagonal(last, dx, dy)
       if (blockedCell(next)) {
-        let alt: Cell | null = null
-        if (dx && dy) {
-          const c1 = { x: last.x + dx, y: last.y },
-            c2 = { x: last.x, y: last.y + dy }
-          if (!blockedCell(c1)) alt = c1
-          else if (!blockedCell(c2)) alt = c2
-        }
+        const alt = altAround(last, dx, dy)
         if (!alt) {
-          if (G.clock - G.blockFlashAt > BLOCK_FLASH_COOLDOWN) {
-            const bp = cellC(next)
-            addFx('block', { x: bp.x, y: bp.y })
-            Sfx.buzz()
-            vibrate(BLOCK_VIBRATE_MS)
-            G.blockFlashAt = G.clock
-          }
-          break
+          flashBlocked(next)
+          return 'break'
         }
         next = alt
       }
-      if (cells.length >= MAX_PATH_CELLS) break
+      if (cells.length >= MAX_PATH_CELLS) return 'break'
       cells.push(next)
       drawing.moved = true
+      return 'step'
+    }
+    let guard = 0
+    while (!sameCell(cur, req(cells[cells.length - 1])) && guard++ < DRAW_STEP_GUARD) {
+      const r = stepDraw()
+      if (r === 'break') break
     }
   }
   function finishStroke(): void {
@@ -1509,14 +1667,17 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       const sol = G.paths[p.id]
       return sol && !sol.complete && sol.cells.length > 1
     })
-    if (c === 0 && !hasAnyInc)
-      h.textContent = 'Drag a route from an aircraft to its target, square by square'
-    else if (hasAnyInc)
-      h.textContent = 'Unfinished route (!) — keep dragging from its end, or redraw it'
-    else if (c < n)
-      h.textContent =
-        n - c + (n - c === 1 ? ' aircraft still needs a route' : ' aircraft still need routes')
-    else h.textContent = 'All routed — EXECUTE now: every spare second is +1 bonus'
+    const hintText = (): string => {
+      if (c === 0 && !hasAnyInc)
+        return 'Drag a route from an aircraft to its target, square by square'
+      else if (hasAnyInc) return 'Unfinished route (!) — keep dragging from its end, or redraw it'
+      else if (c < n)
+        return (
+          n - c + (n - c === 1 ? ' aircraft still needs a route' : ' aircraft still need routes')
+        )
+      else return 'All routed — EXECUTE now: every spare second is +1 bonus'
+    }
+    h.textContent = hintText()
   }
 
   /* ---------------- ghost test + lock-in ---------------- */
@@ -1637,59 +1798,70 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
     TIMER_PAD_LENGTH = 2,
     GHOST_REPLAY_GAP = 0.7,
     GHOST_PLAYBACK_SPEED = 5
+  function stepGhost(dt: number): void {
+    const ghost = G.ghost
+    if (G.ghostOn && ghost) {
+      if (ghost.finished()) {
+        G.ghostWait += dt
+        if (G.ghostWait > GHOST_REPLAY_GAP) rebuildGhost()
+      } else {
+        advanceGhostPlayback(dt, ghost)
+      }
+    }
+  }
+  function advanceGhostPlayback(dt: number, ghost: NonNullable<typeof G.ghost>): void {
+    G.ghostAcc += dt * GHOST_PLAYBACK_SPEED
+    while (G.ghostAcc >= CONFIG.SIM_DT) {
+      G.ghostAcc -= CONFIG.SIM_DT
+      for (const ev of ghost.step(CONFIG.SIM_DT)) {
+        if (ev.type === 'bonk') G.ghostFx.push({ x: ev.x ?? 0, y: ev.y ?? 0, t: 0 })
+        else if (ev.type === 'sep') G.ghostFx.push({ x: ev.x ?? 0, y: ev.y ?? 0, t: 0, sep: true })
+      }
+    }
+  }
+  function updatePlanPhase(dt: number): void {
+    if (!isReadOnly) {
+      G.planLeft = Math.max(0, G.planLeft - dt)
+      const s = Math.ceil(G.planLeft),
+        t = q('.ba-timer')
+      if (t) {
+        t.textContent =
+          Math.floor(s / SECONDS_PER_MINUTE) +
+          ':' +
+          String(s % SECONDS_PER_MINUTE).padStart(TIMER_PAD_LENGTH, '0')
+        if (G.planLeft <= LOW_TIME) t.classList.add('low')
+      }
+      if (s < G.lastWhole) {
+        G.lastWhole = s
+        if (s <= LOW_TIME && s > 0) Sfx.tick()
+      }
+      stepGhost(dt)
+      if (G.planLeft <= 0) commitPlan()
+    }
+  }
+  function updateSimPhase(dt: number): void {
+    G.acc += dt * G.simSpeed
+    const sim = G.sim
+    if (sim) {
+      while (G.acc >= CONFIG.SIM_DT && !sim.finished()) {
+        G.acc -= CONFIG.SIM_DT
+        for (const ev of sim.step(CONFIG.SIM_DT)) handleEvent(ev)
+      }
+      if (sim.finished() && !G.endHandled) {
+        G.endHandled = true
+        G.phase = 'done'
+        onReplayComplete?.()
+      }
+    }
+  }
   function loop(now: number): void {
     if (isDestroyed) return
     const dt = Math.min(MAX_FRAME_DT, (now - lastT) / MS_PER_SECOND)
     lastT = now
     if (G.phase === 'plan') {
-      if (!isReadOnly) {
-        G.planLeft = Math.max(0, G.planLeft - dt)
-        const s = Math.ceil(G.planLeft),
-          t = q('.ba-timer')
-        if (t) {
-          t.textContent =
-            Math.floor(s / SECONDS_PER_MINUTE) +
-            ':' +
-            String(s % SECONDS_PER_MINUTE).padStart(TIMER_PAD_LENGTH, '0')
-          if (G.planLeft <= LOW_TIME) t.classList.add('low')
-        }
-        if (s < G.lastWhole) {
-          G.lastWhole = s
-          if (s <= LOW_TIME && s > 0) Sfx.tick()
-        }
-        const ghost = G.ghost
-        if (G.ghostOn && ghost) {
-          if (ghost.finished()) {
-            G.ghostWait += dt
-            if (G.ghostWait > GHOST_REPLAY_GAP) rebuildGhost()
-          } else {
-            G.ghostAcc += dt * GHOST_PLAYBACK_SPEED
-            while (G.ghostAcc >= CONFIG.SIM_DT) {
-              G.ghostAcc -= CONFIG.SIM_DT
-              for (const ev of ghost.step(CONFIG.SIM_DT)) {
-                if (ev.type === 'bonk') G.ghostFx.push({ x: ev.x ?? 0, y: ev.y ?? 0, t: 0 })
-                else if (ev.type === 'sep')
-                  G.ghostFx.push({ x: ev.x ?? 0, y: ev.y ?? 0, t: 0, sep: true })
-              }
-            }
-          }
-        }
-        if (G.planLeft <= 0) commitPlan()
-      }
+      updatePlanPhase(dt)
     } else if (G.phase === 'sim') {
-      G.acc += dt * G.simSpeed
-      const sim = G.sim
-      if (sim) {
-        while (G.acc >= CONFIG.SIM_DT && !sim.finished()) {
-          G.acc -= CONFIG.SIM_DT
-          for (const ev of sim.step(CONFIG.SIM_DT)) handleEvent(ev)
-        }
-        if (sim.finished() && !G.endHandled) {
-          G.endHandled = true
-          G.phase = 'done'
-          onReplayComplete?.()
-        }
-      }
+      updateSimPhase(dt)
     }
     render(dt)
     rafId = requestAnimationFrame(loop)
@@ -1732,10 +1904,7 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
     const hint = q('.ba-hint')
     const timer = q('.ba-timer')
     if (timer) timer.textContent = '0:' + String(CONFIG.PLAN_SECONDS).padStart(2, '0')
-    if (isReadOnly) {
-      if (botbar) botbar.hidden = true
-      if (hint) hint.hidden = true
-    } else {
+    const setupInteractive = (): void => {
       if (botbar) botbar.hidden = false
       if (hint) hint.hidden = false
       updateStatus()
@@ -1782,6 +1951,12 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
       document.addEventListener('touchmove', preventTouch, { passive: false })
       toast(world.planes.length + ' aircraft on frequency — 30 seconds, go!')
     }
+    if (isReadOnly) {
+      if (botbar) botbar.hidden = true
+      if (hint) hint.hidden = true
+    } else {
+      setupInteractive()
+    }
     window.addEventListener('resize', onResize)
     lastT = performance.now()
     rafId = requestAnimationFrame(loop)
@@ -1807,4 +1982,3 @@ export function createBonkAirRuntime(opts: BonkAirRuntimeOptions): BonkAirRuntim
     },
   }
 }
- 

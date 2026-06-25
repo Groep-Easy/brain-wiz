@@ -26,6 +26,8 @@ import {
 } from '../flow/palette'
 import { fetchCatalog, storeRoomFlow } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
+import type { ArrowDir, SerpentineCell } from '../flow/serpentine'
+import type { CanvasCellHandlers, DropPayload } from './FlowEditor.types'
 import {
   insertBlock,
   moveBlock,
@@ -45,6 +47,245 @@ export interface FlowEditorProps {
   initialFlow: FlowItem[]
   roomCode: string
   hostToken: string
+}
+
+/** Play a sound effect only when audio is not muted. */
+function playIfUnmuted(sound: string): void {
+  if (!isMuted()) playSound(sound, false)
+}
+
+/**
+ * Work out which visual slot the cursor is over in reading order: pick the first
+ * block the cursor sits before, accounting for wrapped rows (Y then X).
+ */
+function computeDropIndexFromBlocks(
+  blocks: HTMLElement[],
+  clientX: number,
+  clientY: number
+): number {
+  let index = 0
+  for (const el of blocks) {
+    const rect = el.getBoundingClientRect()
+    const aboveRow = clientY < rect.top
+    const inRow = clientY >= rect.top && clientY <= rect.bottom
+    if (aboveRow) return index
+    if (inRow && clientX < rect.left + rect.width / 2) return index
+    index++
+  }
+  return blocks.length
+}
+
+/** Parse a drop event's DataTransfer into a typed payload descriptor. */
+function readDropPayload(dataTransfer: DataTransfer): DropPayload {
+  const source = dataTransfer.getData('application/x-source')
+  if (source === 'palette') {
+    return { source: 'palette', blockId: dataTransfer.getData('application/x-block') }
+  }
+  if (source === 'flow') {
+    return { source: 'flow', from: Number(dataTransfer.getData('application/x-index')) }
+  }
+  return { source: 'none' }
+}
+
+/** The glyph used to render a serpentine arrow direction. */
+function arrowGlyph(arrow: ArrowDir): string {
+  if (arrow === 'down') return '↓'
+  if (arrow === 'left') return '←'
+  return '→'
+}
+
+/** The +/- time stepper shown on placed mini-game blocks. */
+function MinigameTimeControl({
+  label,
+  timeLimitSeconds,
+  onChange,
+}: {
+  label: string
+  timeLimitSeconds: number
+  onChange: (value: number) => void
+}): React.JSX.Element {
+  return (
+    <div
+      className="minigame-time-control"
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="time-step"
+        onClick={(e) => {
+          e.stopPropagation()
+          onChange(timeLimitSeconds - MINIGAME_TIME_STEP_SECONDS)
+        }}
+        aria-label={`Reduce ${label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+        title={`-${MINIGAME_TIME_STEP_SECONDS}s`}
+      >
+        &lt;
+      </button>
+      <span className="time-value" aria-label={`${timeLimitSeconds} seconds`}>
+        {timeLimitSeconds}s
+      </span>
+      <button
+        type="button"
+        className="time-step"
+        onClick={(e) => {
+          e.stopPropagation()
+          onChange(timeLimitSeconds + MINIGAME_TIME_STEP_SECONDS)
+        }}
+        aria-label={`Increase ${label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+        title={`+${MINIGAME_TIME_STEP_SECONDS}s`}
+      >
+        &gt;
+      </button>
+    </div>
+  )
+}
+
+/** The question-count popover shown for quiz (theme) blocks when opened. */
+function BlockSettings({
+  uid,
+  questions,
+  onChange,
+  onClose,
+}: {
+  uid: string
+  questions: number
+  onChange: (value: number) => void
+  onClose: () => void
+}): React.JSX.Element {
+  return (
+    <div className="block-settings">
+      <label htmlFor={`questions-${uid}`}>Questions</label>
+      <input
+        id={`questions-${uid}`}
+        type="number"
+        min={MIN_QUESTIONS_PER_BLOCK}
+        max={MAX_QUESTIONS_PER_BLOCK}
+        value={questions}
+        autoFocus
+        onChange={(e) => onChange(Number(e.target.value))}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === 'Escape') onClose()
+        }}
+      />
+    </div>
+  )
+}
+
+/** The draggable card for a placed block: remove button, icon, and per-kind controls. */
+function CanvasBlock({
+  cell,
+  item,
+  block,
+  settingsOpen,
+  atMinimum,
+  handlers,
+}: {
+  cell: SerpentineCell
+  item: FlowItem
+  block: BlockDef
+  settingsOpen: boolean
+  atMinimum: boolean
+  handlers: CanvasCellHandlers
+}): React.JSX.Element {
+  const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
+  return (
+    <div
+      className={`canvas-block ${block.kind} ${
+        block.kind === 'minigame' ? 'has-time-control' : ''
+      }`}
+      draggable
+      onDragStart={(e) => handlers.onFlowDragStart(e, cell.logicalIndex)}
+    >
+      <button
+        className="remove-block"
+        onClick={() => handlers.removeAt(cell.logicalIndex)}
+        disabled={atMinimum}
+        aria-label={`Remove ${block.label}`}
+        title={atMinimum ? `Minimum ${MIN_FLOW_BLOCKS} blocks` : 'Remove from flow'}
+      >
+        ×
+      </button>
+      {/* Quiz (theme) blocks let the host set how many questions they contribute. */}
+      {block.kind === 'theme' && (
+        <button
+          className={`settings-btn ${settingsOpen ? 'open' : ''}`}
+          draggable={false}
+          onClick={(e) => {
+            e.stopPropagation()
+            handlers.toggleSettings(item.uid)
+          }}
+          aria-label={`Question count for ${block.label}`}
+          title="Number of questions"
+        >
+          ⚙
+        </button>
+      )}
+      <BlockIcon icon={block.icon} label={block.label} />
+      <span className="block-label">{block.label}</span>
+      {block.kind === 'minigame' && (
+        <MinigameTimeControl
+          label={block.label}
+          timeLimitSeconds={timeLimitSeconds}
+          onChange={(value) => handlers.setMinigameTime(item.uid, item.blockId, value)}
+        />
+      )}
+    </div>
+  )
+}
+
+/** A single placed block within the snake grid, with its drop indicators and controls. */
+function CanvasCell({
+  cell,
+  item,
+  block,
+  count,
+  dropIndex,
+  settingsOpen,
+  atMinimum,
+  handlers,
+}: {
+  cell: SerpentineCell
+  item: FlowItem
+  block: BlockDef
+  count: number
+  dropIndex: number | null
+  settingsOpen: boolean
+  atMinimum: boolean
+  handlers: CanvasCellHandlers
+}): React.JSX.Element {
+  const lastCell = cell.visualPos === count - 1
+  return (
+    <div
+      className="canvas-cell"
+      style={{ gridRow: cell.row + 1, gridColumn: cell.col }}
+    >
+      {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
+      {lastCell && dropIndex === count && <div className="drop-indicator after" />}
+      <CanvasBlock
+        cell={cell}
+        item={item}
+        block={block}
+        settingsOpen={settingsOpen}
+        atMinimum={atMinimum}
+        handlers={handlers}
+      />
+      {cell.arrow !== 'none' && (
+        <span className={`canvas-arrow arrow-${cell.arrow}`} aria-hidden="true">
+          {arrowGlyph(cell.arrow)}
+        </span>
+      )}
+      {block.kind === 'theme' && settingsOpen && (
+        <BlockSettings
+          uid={item.uid}
+          questions={item.questions ?? DEFAULT_QUESTIONS_PER_BLOCK}
+          onChange={(value) => handlers.setQuestions(item.uid, value)}
+          onClose={handlers.closeSettings}
+        />
+      )}
+    </div>
+  )
 }
 
 export function FlowEditor({
@@ -114,7 +355,7 @@ export function FlowEditor({
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
       return pick ? [...prev, createFlowItem(pick)] : prev
     })
-    if (!isMuted()) playSound(sounds.cardDrop, false)
+    playIfUnmuted(sounds.cardDrop)
   }
 
   useEffect(() => {
@@ -149,36 +390,25 @@ export function FlowEditor({
 
   // --- Drag sources -------------------------------------------------------
   const onPaletteDragStart = (e: React.DragEvent, blockId: string) => {
-    if (!isMuted()) playSound(sounds.waterDrop, false)
+    playIfUnmuted(sounds.waterDrop)
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
-    if (!isMuted()) playSound(sounds.waterDrop, false)
+    playIfUnmuted(sounds.waterDrop)
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
   }
 
   // --- Whole-canvas drop target ------------------------------------------
-  // Work out which slot the cursor is over in reading order: pick the first
-  // block the cursor sits before, accounting for wrapped rows (Y then X).
   const computeDropIndex = (clientX: number, clientY: number): number => {
     const track = trackRef.current
     if (!track) return flow.length
     const blocks = Array.from(track.querySelectorAll<HTMLElement>('.canvas-block'))
-    let index = 0
-    for (const el of blocks) {
-      const rect = el.getBoundingClientRect()
-      const aboveRow = clientY < rect.top
-      const inRow = clientY >= rect.top && clientY <= rect.bottom
-      if (aboveRow) return index
-      if (inRow && clientX < rect.left + rect.width / 2) return index
-      index++
-    }
-    return blocks.length
+    return computeDropIndexFromBlocks(blocks, clientX, clientY)
   }
 
   const onCanvasDragOver = (e: React.DragEvent) => {
@@ -193,30 +423,42 @@ export function FlowEditor({
     }
   }
 
+  const applyPaletteDrop = (blockId: string, index: number) => {
+    const block = resolveBlock(blockId)
+    if (!block) return
+    setFlow((prev) => insertBlock(prev, index, block))
+  }
+
+  const applyFlowDrop = (from: number, index: number) => {
+    if (Number.isNaN(from)) return
+    setFlow((prev) => moveBlock(prev, from, index))
+  }
+
   const onCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const slot = computeDropIndex(e.clientX, e.clientY)
     // The cursor lands in a *visual* slot; map it back to a flow-order index.
     const index = logicalInsertForSlot[slot] ?? flow.length
     setDropIndex(null)
-    const source = e.dataTransfer.getData('application/x-source')
+    const payload = readDropPayload(e.dataTransfer)
 
-    if (source === 'palette') {
-      const blockId = e.dataTransfer.getData('application/x-block')
-      const block = resolveBlock(blockId)
-      if (!block) return
-      setFlow((prev) => insertBlock(prev, index, block))
-    } else if (source === 'flow') {
-      const from = Number(e.dataTransfer.getData('application/x-index'))
-      if (Number.isNaN(from)) return
-      setFlow((prev) => moveBlock(prev, from, index))
+    if (payload.source === 'palette') {
+      applyPaletteDrop(payload.blockId, index)
+    } else if (payload.source === 'flow') {
+      applyFlowDrop(payload.from, index)
     }
-    if (!isMuted()) playSound(sounds.cardDrop, false)
+    playIfUnmuted(sounds.cardDrop)
   }
 
   const removeAt = (index: number) => {
     setFlow((prev) => removeBlockAt(prev, index))
   }
+
+  const toggleSettings = (uid: string) => {
+    setSettingsFor((cur) => (cur === uid ? null : uid))
+  }
+
+  const closeSettings = () => setSettingsFor(null)
 
   const openSizePicker = () => {
     setSizePicker(flow.length || DEFAULT_FLOW_SIZE)
@@ -227,10 +469,19 @@ export function FlowEditor({
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
-    if (!isMuted()) playSound(sounds.die, false)
+    playIfUnmuted(sounds.die)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
+
+  const cellHandlers: CanvasCellHandlers = {
+    onFlowDragStart,
+    removeAt,
+    toggleSettings,
+    setMinigameTime,
+    setQuestions,
+    closeSettings,
+  }
 
   return (
     <div className="flow-editor">
@@ -307,117 +558,18 @@ export function FlowEditor({
               if (!item) return null
               const block = resolveBlock(item.blockId)
               if (!block) return null
-              const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
-              const lastCell = cell.visualPos === count - 1
               return (
-                <div
-                  className="canvas-cell"
+                <CanvasCell
                   key={item.uid}
-                  style={{ gridRow: cell.row + 1, gridColumn: cell.col }}
-                >
-                  {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
-                  {lastCell && dropIndex === count && <div className="drop-indicator after" />}
-                  <div
-                    className={`canvas-block ${block.kind} ${
-                      block.kind === 'minigame' ? 'has-time-control' : ''
-                    }`}
-                    draggable
-                    onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
-                  >
-                    <button
-                      className="remove-block"
-                      onClick={() => removeAt(cell.logicalIndex)}
-                      disabled={atMinimum}
-                      aria-label={`Remove ${block.label}`}
-                      title={atMinimum ? `Minimum ${MIN_FLOW_BLOCKS} blocks` : 'Remove from flow'}
-                    >
-                      ×
-                    </button>
-                    {/* Quiz (theme) blocks let the host set how many questions they contribute. */}
-                    {block.kind === 'theme' && (
-                      <button
-                        className={`settings-btn ${settingsFor === item.uid ? 'open' : ''}`}
-                        draggable={false}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSettingsFor((cur) => (cur === item.uid ? null : item.uid))
-                        }}
-                        aria-label={`Question count for ${block.label}`}
-                        title="Number of questions"
-                      >
-                        ⚙
-                      </button>
-                    )}
-                    <BlockIcon icon={block.icon} label={block.label} />
-                    <span className="block-label">{block.label}</span>
-                    {block.kind === 'minigame' && (
-                      <div
-                        className="minigame-time-control"
-                        draggable={false}
-                        onDragStart={(e) => e.preventDefault()}
-                        onPointerDown={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          className="time-step"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setMinigameTime(
-                              item.uid,
-                              item.blockId,
-                              timeLimitSeconds - MINIGAME_TIME_STEP_SECONDS
-                            )
-                          }}
-                          aria-label={`Reduce ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
-                          title={`-${MINIGAME_TIME_STEP_SECONDS}s`}
-                        >
-                          &lt;
-                        </button>
-                        <span className="time-value" aria-label={`${timeLimitSeconds} seconds`}>
-                          {timeLimitSeconds}s
-                        </span>
-                        <button
-                          type="button"
-                          className="time-step"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setMinigameTime(
-                              item.uid,
-                              item.blockId,
-                              timeLimitSeconds + MINIGAME_TIME_STEP_SECONDS
-                            )
-                          }}
-                          aria-label={`Increase ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
-                          title={`+${MINIGAME_TIME_STEP_SECONDS}s`}
-                        >
-                          &gt;
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {cell.arrow !== 'none' && (
-                    <span className={`canvas-arrow arrow-${cell.arrow}`} aria-hidden="true">
-                      {cell.arrow === 'down' ? '↓' : cell.arrow === 'left' ? '←' : '→'}
-                    </span>
-                  )}
-                  {block.kind === 'theme' && settingsFor === item.uid && (
-                    <div className="block-settings">
-                      <label htmlFor={`questions-${item.uid}`}>Questions</label>
-                      <input
-                        id={`questions-${item.uid}`}
-                        type="number"
-                        min={MIN_QUESTIONS_PER_BLOCK}
-                        max={MAX_QUESTIONS_PER_BLOCK}
-                        value={item.questions ?? DEFAULT_QUESTIONS_PER_BLOCK}
-                        autoFocus
-                        onChange={(e) => setQuestions(item.uid, Number(e.target.value))}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === 'Escape') setSettingsFor(null)
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
+                  cell={cell}
+                  item={item}
+                  block={block}
+                  count={count}
+                  dropIndex={dropIndex}
+                  settingsOpen={settingsFor === item.uid}
+                  atMinimum={atMinimum}
+                  handlers={cellHandlers}
+                />
               )
             })}
             {count === 0 && (
