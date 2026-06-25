@@ -450,6 +450,13 @@
   line-height: 1;
 }
 
+/* The lobby flow preview renders block images; size them like the emoji it replaced. */
+img.flow-block-icon {
+  width: clamp(1.8rem, 3vw, 2.4rem);
+  height: clamp(1.8rem, 3vw, 2.4rem);
+  object-fit: contain;
+}
+
 .flow-block-label {
   font-size: clamp(0.75rem, 1vw, 0.9rem);
   line-height: 1.2;
