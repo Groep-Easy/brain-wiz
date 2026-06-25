@@ -173,6 +173,7 @@ function makeLobby(questions: Question[] = []): LobbyService {
   const noopEngine = {
     run: (): void => undefined,
     abort: (): void => undefined,
+    getLivePhase: (): undefined => undefined,
   } as unknown as GameEngineService
   return new LobbyService(
     rooms,
@@ -630,6 +631,7 @@ describe('LobbyService abort-on-empty', () => {
     const gameEngine = {
       run: (): void => undefined,
       abort: (id: string): void => void aborted.push(id),
+      getLivePhase: (): undefined => undefined,
     } as unknown as GameEngineService
     const lobby = new LobbyService(
       rooms,
@@ -663,6 +665,47 @@ describe('LobbyService abort-on-empty', () => {
     const room = await rooms.findById(roomId)
     assert.ok(room)
     void registry
+  })
+})
+
+describe('LobbyService disconnect preserves live game phase', () => {
+  it('broadcasts the engine live phase (not round-intro) when a player disconnects mid-game', async () => {
+    const rooms = new RoomService(fakeRoomRepo())
+    const clients = new ClientService(fakeClientRepo())
+    const registry = new ConnectionRegistry()
+    const broadcaster = new RoomBroadcaster(registry)
+    const gameEngine = {
+      run: (): void => undefined,
+      abort: (): void => undefined,
+      getLivePhase: (): string => 'playing',
+    } as unknown as GameEngineService
+    const lobby = new LobbyService(
+      rooms,
+      clients,
+      registry,
+      broadcaster,
+      gameEngine,
+      fakeQuestionService(),
+      fakeFlowService(),
+      fakeGameEventBus()
+    )
+
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+
+    const s1 = recordingSocket()
+    const s2 = recordingSocket()
+    await lobby.joinClient(s1, { connectionId: 'c1', roomCode: code, playerName: 'Alice' })
+    await lobby.joinClient(s2, { connectionId: 'c2', roomCode: code, playerName: 'Bob' })
+    await lobby.startGame(code, hostToken)
+
+    await lobby.handleDisconnect(s1)
+
+    const updates = host.sent.filter((m) => m.event === EVENTS.ROOM_STATE_UPDATE)
+    const lastUpdate = updates[updates.length - 1]
+    assert.ok(lastUpdate, 'host should receive a room-state update on disconnect')
+    assert.equal((lastUpdate.data as { room: { phase: string } }).room.phase, 'playing')
   })
 })
 

@@ -10,7 +10,7 @@ import type { Client } from '../../entities/client.entity'
 import type { ClientAnswer } from '../../entities/client-answer.entity'
 import type { ClientSocket } from '../lobby/lobby.types'
 import type { RoundOption, RoundScoringMode } from './game-events'
-import type { RoundType } from '@brain-wiz/shared/types/index'
+import type { RoundType, GamePhase as WireGamePhase } from '@brain-wiz/shared/types/index'
 
 export type LeaderboardPlayer = Client
 
@@ -59,6 +59,7 @@ export interface PhaseTimerLike {
 export interface RunningGame {
   aborted: boolean
   timer: PhaseTimerLike
+  phase?: WireGamePhase
 }
 
 /** Per-round scoring context, cached by the ScoringService while a round is open. */

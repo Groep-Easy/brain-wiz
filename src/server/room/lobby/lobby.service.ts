@@ -43,7 +43,7 @@ export class LobbyService {
     private readonly questionService: QuestionService,
     private readonly flow: FlowService,
     private readonly bus: GameEventBus
-  ) {}
+  ) { }
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
@@ -398,7 +398,8 @@ export class LobbyService {
 
   private async buildState(room: Room): Promise<RoomState> {
     const roster = await this.clients.findByRoom(room.id)
-    return toRoomState(room, roster)
+    const livePhase = this.gameEngine.getLivePhase(room.id)
+    return toRoomState(room, roster, livePhase)
   }
 
   private async broadcastState(room: Room): Promise<void> {
