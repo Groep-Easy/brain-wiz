@@ -19,7 +19,11 @@ import type {
   RoundStartPayload,
   TimerTickPayload,
 } from '@brain-wiz/shared/types/index'
-import type { HostSocketAction, HostSocketState } from './hostSocketReducer.interfaces'
+import type {
+  HostSocketAction,
+  HostSocketState,
+  ServerEventHandler,
+} from './hostSocketReducer.interfaces'
 import { HOST_UNAUTHORIZED_CLOSE_CODE } from './hostSocketReducer.constants'
 
 /** Build the starting (disconnected) state. */
@@ -66,65 +70,69 @@ function clearedGameState(): Pick<
   }
 }
 
-function reduceServerEvent(state: HostSocketState, event: string, data: unknown): HostSocketState {
-  switch (event) {
-    case EVENTS.ROOM_STATE_UPDATE:
-      return { ...state, roomState: (data as { room: RoomState }).room }
-    case EVENTS.GAME_PHASE_CHANGE: {
-      const { phase } = data as GamePhaseChangePayload
-      return {
-        ...state,
-        roomState: state.roomState ? { ...state.roomState, phase } : state.roomState,
-      }
+const SERVER_EVENT_HANDLERS: Record<string, ServerEventHandler> = {
+  [EVENTS.ROOM_STATE_UPDATE]: (state, data) => ({
+    ...state,
+    roomState: (data as { room: RoomState }).room,
+  }),
+  [EVENTS.GAME_PHASE_CHANGE]: (state, data) => {
+    const { phase } = data as GamePhaseChangePayload
+    return {
+      ...state,
+      roomState: state.roomState ? { ...state.roomState, phase } : state.roomState,
     }
-    case EVENTS.ROUND_START: {
-      const { round } = data as RoundStartPayload
-      return { ...state, round: round ?? state.round, roundContent: null, roundReveal: null }
-    }
-    case EVENTS.TIMER_TICK:
-      return { ...state, secondsRemaining: (data as TimerTickPayload).secondsRemaining }
-    case EVENTS.QUESTION_SHOW: {
-      const { question } = data as QuestionShowPayload
-      if (!question) {
-        return state
-      }
-      return {
-        ...state,
-        roundContent: null,
-        roundReveal: null,
-        question,
-        reveal: null,
-        answeredCount: 0,
-      }
-    }
-    case EVENTS.ROUND_CONTENT_SHOW:
-      return {
-        ...state,
-        roundContent: data as RoundContentPayload,
-        roundReveal: null,
-        answeredCount: 0,
-      }
-    case EVENTS.ANSWER_COUNT_UPDATE: {
-      const counts = data as { answered: number; total: number }
-      return { ...state, answeredCount: counts.answered, totalPlayers: counts.total }
-    }
-    case EVENTS.QUESTION_REVEAL:
-      return { ...state, reveal: data as QuestionRevealPayload }
-    case EVENTS.ROUND_REVEAL:
-      return { ...state, roundReveal: data as RoundRevealPayload }
-    case EVENTS.LEADERBOARD_SHOW: {
-      const { leaderboard } = data as LeaderboardShowPayload
-      return leaderboard ? { ...state, leaderboard } : state
-    }
-    case EVENTS.ROADMAP_UPDATE:
-      return { ...state, roadmap: data as RoadmapUpdate }
-    case EVENTS.GAME_OVER: {
-      const { finalScores } = data as GameOverPayload
-      return finalScores ? { ...state, finalScores } : state
-    }
-    default:
+  },
+  [EVENTS.ROUND_START]: (state, data) => {
+    const { round } = data as RoundStartPayload
+    return { ...state, round: round ?? state.round, roundContent: null, roundReveal: null }
+  },
+  [EVENTS.TIMER_TICK]: (state, data) => ({
+    ...state,
+    secondsRemaining: (data as TimerTickPayload).secondsRemaining,
+  }),
+  [EVENTS.QUESTION_SHOW]: (state, data) => {
+    const { question } = data as QuestionShowPayload
+    if (!question) {
       return state
-  }
+    }
+    return {
+      ...state,
+      roundContent: null,
+      roundReveal: null,
+      question,
+      reveal: null,
+      answeredCount: 0,
+    }
+  },
+  [EVENTS.ROUND_CONTENT_SHOW]: (state, data) => ({
+    ...state,
+    roundContent: data as RoundContentPayload,
+    roundReveal: null,
+    answeredCount: 0,
+  }),
+  [EVENTS.ANSWER_COUNT_UPDATE]: (state, data) => {
+    const counts = data as { answered: number; total: number }
+    return { ...state, answeredCount: counts.answered, totalPlayers: counts.total }
+  },
+  [EVENTS.QUESTION_REVEAL]: (state, data) => ({ ...state, reveal: data as QuestionRevealPayload }),
+  [EVENTS.ROUND_REVEAL]: (state, data) => ({
+    ...state,
+    roundReveal: data as RoundRevealPayload,
+  }),
+  [EVENTS.LEADERBOARD_SHOW]: (state, data) => {
+    const { leaderboard } = data as LeaderboardShowPayload
+    return leaderboard ? { ...state, leaderboard } : state
+  },
+  [EVENTS.ROADMAP_UPDATE]: (state, data) => ({ ...state, roadmap: data as RoadmapUpdate }),
+  [EVENTS.GAME_OVER]: (state, data) => {
+    const { finalScores } = data as GameOverPayload
+    return finalScores ? { ...state, finalScores } : state
+  },
+}
+
+function reduceServerEvent(state: HostSocketState, event: string, data: unknown): HostSocketState {
+  const handler = SERVER_EVENT_HANDLERS[event]
+  return handler ? handler(state, data) : state
 }
 
 export function hostSocketReducer(

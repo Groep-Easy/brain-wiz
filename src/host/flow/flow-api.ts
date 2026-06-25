@@ -12,8 +12,6 @@ import type { BlockDef, BlockKind, FlowItem, StoredFlowItem } from './types'
 import { getBackendWsUrl, getBackendHttpUrl } from '@brain-wiz/shared/utils/env'
 
 /** Base URL of the backend HTTP API, derived from the WS URL like App.tsx does. */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - Vite env variable
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 /** Add per-instance uids so a server flow can be edited/rendered locally. */

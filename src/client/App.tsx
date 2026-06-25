@@ -24,7 +24,7 @@ import { BonkAir } from '../minigames/bonk-air/components/BonkAir'
 import type { BonkAirPuzzle } from '../minigames/bonk-air/shared/bonkAirGame'
 import { BonkAirScorecard } from './components/BonkAirScorecard'
 import { FATAL_COUNTDOWN_SECONDS, FULL_BLEED_MINIGAMES } from './App.constants'
-import type { ClientApi, MinigamePhase, RoundContent } from './App.types'
+import type { AnswerResult, ClientApi, MinigamePhase, RoundContent } from './App.types'
 
 function readCodeFromUrl(): string {
   const params = new URLSearchParams(window.location.search)
@@ -129,6 +129,35 @@ function renderLightSwitchMinigame(s: ClientApi, roundContent: RoundContent): Re
  * countdown can otherwise commit late). That local state is why it's its own
  * component rather than a stateless renderer.
  */
+function isBonkFlushWindow(
+  phase: GamePhase | undefined,
+  roundSubmitted: boolean,
+  secondsRemaining: number
+): boolean {
+  return phase === 'playing' && !roundSubmitted && secondsRemaining > 0 && secondsRemaining <= 1
+}
+
+function getBonkPoints(s: ClientApi): number {
+  return s.roundReveal?.playerResults?.[s.playerId ?? '']?.pointsAwarded ?? 0
+}
+
+function BonkAirScorecardOverlay({
+  phase,
+  replayDone,
+  points,
+}: {
+  phase: MinigamePhase
+  replayDone: boolean
+  points: number
+}): React.JSX.Element | null {
+  if (phase !== 'reveal' || !replayDone) return null
+  return (
+    <div className="bonk-air-scorecard-overlay">
+      <BonkAirScorecard points={points} />
+    </div>
+  )
+}
+
 function BonkAirMinigame({
   s,
   roundContent,
@@ -141,20 +170,19 @@ function BonkAirMinigame({
   const bonkPlanRef = useRef<unknown>(null)
   const [bonkReplayDone, setBonkReplayDone] = useState(false)
 
+  const submitRef = useRef(s.handleRoundSubmit)
+  submitRef.current = s.handleRoundSubmit
+
+  const roomPhase = s.roomState?.phase
+  const { roundSubmitted, secondsRemaining } = s
   useEffect(() => {
-    if (
-      s.roomState?.phase === 'playing' &&
-      !s.roundSubmitted &&
-      s.secondsRemaining > 0 &&
-      s.secondsRemaining <= 1
-    ) {
-      s.handleRoundSubmit(bonkPlanRef.current ?? { solution: {} })
+    if (isBonkFlushWindow(roomPhase, roundSubmitted, secondsRemaining)) {
+      submitRef.current(bonkPlanRef.current ?? { solution: {} })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.secondsRemaining, s.roundSubmitted, s.roomState?.phase])
+  }, [secondsRemaining, roundSubmitted, roomPhase])
 
   const puzzle = roundContent.publicState as BonkAirPuzzle
-  const points = s.roundReveal?.playerResults?.[s.playerId ?? '']?.pointsAwarded ?? 0
+  const points = getBonkPoints(s)
 
   return (
     <section className="client-minigame client-minigame--bonk-air">
@@ -169,11 +197,7 @@ function BonkAirMinigame({
         }}
         onReplayComplete={() => setBonkReplayDone(true)}
       />
-      {phase === 'reveal' && bonkReplayDone ? (
-        <div className="bonk-air-scorecard-overlay">
-          <BonkAirScorecard points={points} />
-        </div>
-      ) : null}
+      <BonkAirScorecardOverlay phase={phase} replayDone={bonkReplayDone} points={points} />
     </section>
   )
 }
@@ -263,48 +287,67 @@ function renderRoundIntro(s: ClientApi, banner: React.ReactNode): React.JSX.Elem
   )
 }
 
-function renderGameplay(
+function renderMinigameShell(
   s: ClientApi,
   banner: React.ReactNode,
-  phase: MinigamePhase
+  minigame: React.JSX.Element
 ): React.JSX.Element {
-  const minigame = renderMinigame(s, phase)
-  if (minigame) {
-    const fullBleed = FULL_BLEED_MINIGAMES.has(s.roundContent?.type ?? '')
-    return (
-      <main className={fullBleed ? 'app app--minigame' : 'app'}>
-        {banner}
-        {minigame}
-      </main>
-    )
-  }
+  const fullBleed = FULL_BLEED_MINIGAMES.has(s.roundContent?.type ?? '')
+  return (
+    <main className={fullBleed ? 'app app--minigame' : 'app'}>
+      {banner}
+      {minigame}
+    </main>
+  )
+}
 
-  if (!s.question) {
-    return (
-      <main className="app">
-        {banner}
-        <div className="game-card client-card">
-          <h2>Preparing next question…</h2>
-        </div>
-      </main>
-    )
-  }
+function renderPreparingQuestion(banner: React.ReactNode): React.JSX.Element {
+  return (
+    <main className="app">
+      {banner}
+      <div className="game-card client-card">
+        <h2>Preparing next question…</h2>
+      </div>
+    </main>
+  )
+}
 
-  const myResult = s.reveal && s.playerId ? (s.reveal.playerAnswers[s.playerId] ?? null) : null
+function getMyAnswerResult(s: ClientApi): AnswerResult | null {
+  if (!s.reveal || !s.playerId) return null
+  return s.reveal.playerAnswers[s.playerId] ?? null
+}
+
+function renderAnswerScreen(
+  s: ClientApi,
+  banner: React.ReactNode,
+  phase: MinigamePhase,
+  question: NonNullable<ClientApi['question']>
+): React.JSX.Element {
   return (
     <main className="app">
       {banner}
       <Answer
-        question={s.question}
+        question={question}
         selectedAnswerId={s.selectedAnswerId}
         phase={phase}
-        result={myResult}
+        result={getMyAnswerResult(s)}
         correctAnswerIds={s.reveal?.correctAnswerIds ?? []}
         secondsRemaining={s.secondsRemaining}
         onAnswer={s.handleAnswer}
       />
     </main>
   )
+}
+
+function renderGameplay(
+  s: ClientApi,
+  banner: React.ReactNode,
+  phase: MinigamePhase
+): React.JSX.Element {
+  const minigame = renderMinigame(s, phase)
+  if (minigame) return renderMinigameShell(s, banner, minigame)
+  if (!s.question) return renderPreparingQuestion(banner)
+  return renderAnswerScreen(s, banner, phase, s.question)
 }
 
 function renderGameOver(s: ClientApi, banner: React.ReactNode): React.JSX.Element {
@@ -357,6 +400,28 @@ function ConnectionBanner({ s }: { s: ClientApi }): React.JSX.Element {
   )
 }
 
+function renderJoinedPhase(
+  s: ClientApi,
+  banner: React.ReactNode,
+  phase: GamePhase
+): React.JSX.Element {
+  if (phase === 'lobby') return renderLobby(s, banner)
+  if (phase === 'round-intro') return renderRoundIntro(s, banner)
+  if (phase === 'playing' || phase === 'reveal') {
+    return renderGameplay(s, banner, phase === 'reveal' ? 'reveal' : 'playing')
+  }
+  if (phase === 'game-over' || s.finalScores !== null) return renderGameOver(s, banner)
+  if (phase === 'leaderboard') return renderLeaderboard(s, banner)
+  return renderLoading(banner)
+}
+
+function renderApp(s: ClientApi, banner: React.ReactNode, urlCode: string): React.JSX.Element {
+  if (s.fatalError) return renderFatal(s)
+  if (!s.joined) return renderJoinFlow(s, banner, urlCode)
+  const phase: GamePhase = s.roomState?.phase ?? 'lobby'
+  return renderJoinedPhase(s, banner, phase)
+}
+
 export function App(): React.JSX.Element {
   const s = useClientSocket()
   const [urlCode] = useState(readCodeFromUrl)
@@ -369,19 +434,5 @@ export function App(): React.JSX.Element {
   }, [s.joined, s.roomState?.phase])
 
   const banner = <ConnectionBanner s={s} />
-
-  if (s.fatalError) return renderFatal(s)
-  if (!s.joined) return renderJoinFlow(s, banner, urlCode)
-
-  const phase: GamePhase = s.roomState?.phase ?? 'lobby'
-
-  if (phase === 'lobby') return renderLobby(s, banner)
-  if (phase === 'round-intro') return renderRoundIntro(s, banner)
-  if (phase === 'playing' || phase === 'reveal') {
-    return renderGameplay(s, banner, phase === 'reveal' ? 'reveal' : 'playing')
-  }
-  if (phase === 'game-over' || s.finalScores !== null) return renderGameOver(s, banner)
-  if (phase === 'leaderboard') return renderLeaderboard(s, banner)
-
-  return renderLoading(banner)
+  return renderApp(s, banner, urlCode)
 }

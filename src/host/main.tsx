@@ -2,8 +2,7 @@
  * @file main.tsx
  * @owner host-squad
  * @description Host display entry point. Mounts the React app into #root and
- * wires the routes: `/` is the host display (host team), `/console` is the
- * server team's WebSocket debug console.
+ * wires the routes: `/` is the host display (host team).
  *
  * NOTE: The leaderboard screen is driven by live game state from inside App —
  * it is NOT a standalone route because LeaderBoard requires a `leaderboard`
@@ -14,7 +13,6 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 import { App } from './App'
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { Console } from './console/Console'
 import { LeaderBoard } from './components/LeaderBoard'
 import { ScaleMechanicsMock } from '@brain-wiz/minigames/balance-scale/mock/ScaleMechanicsMock'
 import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
@@ -75,7 +73,6 @@ createRoot(container).render(
               <App />
             }
           />
-          <Route path="/console" element={<Console />} />
           <Route
             path="/screens/leaderboard"
             element={<LeaderBoard leaderboard={mockLeaderboard} />}
