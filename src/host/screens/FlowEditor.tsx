@@ -45,14 +45,12 @@ export interface FlowEditorProps {
   initialFlow: FlowItem[]
   roomCode: string
   hostToken: string
-  onCancel: () => void
 }
 
 export function FlowEditor({
   initialFlow,
   roomCode,
   hostToken,
-  onCancel,
 }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
   const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
@@ -242,9 +240,6 @@ export function FlowEditor({
         <div className="flow-editor-actions">
           <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
             🎲 Randomize
-          </button>
-          <button className="cancel-btn" onClick={onCancel} title="Return without saving">
-            Cancel
           </button>
           {saveStatus === 'saving' && <span className="flow-save-status">Saving…</span>}
           {saveStatus === 'saved' && (
@@ -464,7 +459,7 @@ export function FlowEditor({
               max={MAX_FLOW_BLOCKS}
               value={sizePicker}
               autoFocus
-              onChange={(e) => setSizePicker(Number(e.target.value))}
+              onChange={(e) => setSizePicker(Math.min(MAX_FLOW_BLOCKS, Number(e.target.value)))}
               onKeyDown={(e) => e.key === 'Enter' && confirmShuffle()}
             />
             <div className="size-modal-actions">
