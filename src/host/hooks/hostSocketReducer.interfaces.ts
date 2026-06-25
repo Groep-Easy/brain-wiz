@@ -40,3 +40,5 @@ export type HostSocketAction =
   | { type: 'opened' }
   | { type: 'closed'; code?: number }
   | { type: 'unauthorized' }
+
+export type ServerEventHandler = (state: HostSocketState, data: unknown) => HostSocketState
