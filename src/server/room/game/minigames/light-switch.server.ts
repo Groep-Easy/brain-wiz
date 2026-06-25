@@ -17,7 +17,6 @@ import type {
 import type { RoundType } from '@brain-wiz/shared/types/index'
 
 const BASE_SCORE = 1000
-const MAX_MOVE_BONUS = 500
 const MILLISECONDS_PER_SECOND = 1000
 
 @Injectable()
@@ -36,7 +35,6 @@ export class LightSwitchServerAdapter implements MinigameAdapter {
 
     const scoringConfig: LightSwitchScoreConfig = {
       baseScore: BASE_SCORE,
-      maxMoveBonus: MAX_MOVE_BONUS,
       timeLimitMs: input.timeLimitSeconds * MILLISECONDS_PER_SECOND,
     }
 
