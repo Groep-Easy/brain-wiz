@@ -81,7 +81,12 @@ function fakeRoomRepo(): Repository<Room> {
 function fakeMinigameRegistry(): unknown {
   return {
     get: (type: string): unknown => {
-      if (type !== 'sliding-puzzle' && type !== 'balance-scale' && type !== 'vault-rush') {
+      if (
+        type !== 'sliding-puzzle' &&
+        type !== 'balance-scale' &&
+        type !== 'vault-rush' &&
+        type !== 'light-switch'
+      ) {
         return undefined
       }
 
@@ -177,7 +182,7 @@ describe('RoundBuilder', () => {
       totalRounds: 4,
       gameFlow: [
         { blockId: 'theme-science', questions: 3 },
-        { blockId: 'mini-balance-scale' },
+        { blockId: 'mini-balance-scale', timeLimitSeconds: 50 },
         { blockId: 'theme-history', questions: 2 },
       ],
     })
@@ -198,6 +203,8 @@ describe('RoundBuilder', () => {
     assert.equal(rounds.filter((r) => r.question?.theme === QuestionThemeEnum.HISTORY).length, 2)
     const minigame = rounds[3]
     assert.equal(minigame?.contentType, ContentTypeEnum.PUZZLE)
+    assert.equal(minigame?.timeLimitSeconds, 50)
+    assert.deepEqual(minigame?.scoringConfig, { points: 100, timeLimitSeconds: 50 })
     assert.ok(minigame?.seed)
     assert.ok(minigame?.publicState)
   })

@@ -32,6 +32,13 @@ export const RATE_LIMIT = Object.freeze({
   MAX_MESSAGES: 20,
 })
 
+export const HTTP_THROTTLE = Object.freeze({
+  DEFAULT_TTL_MS: 60_000,
+  DEFAULT_LIMIT: 100,
+  STRICT_TTL_MS: 60_000,
+  STRICT_LIMIT: 10,
+})
+
 export const PLAYER = Object.freeze({
   NAME_MIN_LENGTH: PLAYER_NAME_MIN_LENGTH,
   NAME_MAX_LENGTH: PLAYER_NAME_MAX_LENGTH,
@@ -52,7 +59,11 @@ export const TIMER = Object.freeze({
   START_GAME_MS: 1000,
   QUESTION_SECONDS: 30,
   SLIDING_PUZZLE_SECONDS: 40,
+  VAULT_RUSH_SECONDS: 30,
   REVEAL_SECONDS: 5,
+  // Bonk Air plays an animated "watch the planes fly" replay during reveal, so it
+  // needs a longer reveal window than a quiz before the round advances.
+  BONK_AIR_REVEAL_SECONDS: 14,
   ROUND_INTRO_SECONDS: 3,
   LEADERBOARD_SECONDS: 6,
   SCORED_AWAIT_TIMEOUT_MS: 5_000,
@@ -64,7 +75,13 @@ export const SCORING = Object.freeze({
 })
 
 export const ROUNDS = Object.freeze({
-  TYPES: ['quiz', 'sliding-puzzle', 'balance-scale', 'vault-rush'] as readonly RoundType[],
+  TYPES: [
+    'quiz',
+    'sliding-puzzle',
+    'balance-scale',
+    'vault-rush',
+    'light-switch',
+  ] as readonly RoundType[],
   DEFAULT_SEQUENCE: [
     'quiz',
     'balance-scale',

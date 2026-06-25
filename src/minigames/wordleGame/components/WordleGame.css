@@ -1,0 +1,154 @@
+.wordle-game {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: clamp(3rem, 4vw, 4rem);
+  display: flex;
+  justify-content: center;
+  font-family:
+    inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-weight: 950;
+  color: #f7f3e8;
+  margin-bottom: clamp(4rem, 4vw, 8rem);
+}
+
+.tile-row {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  gap: clamp(6px, 2vw, 15px);
+  margin-bottom: clamp(1rem, 4vw, 1rem);
+}
+
+.tile {
+  width: clamp(40px, 10vw, 60px);
+  height: clamp(40px, 10vw, 60px);
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: #f7f3e8;
+  font-family:
+    inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-weight: 500;
+}
+
+.tile--empty {
+  background-color: transparent;
+}
+
+.tile--correct {
+  background-color: #538d4e;
+  border-color: #538d4e;
+}
+
+.tile--present {
+  background-color: #b59f3b;
+  border-color: #b59f3b;
+}
+
+.tile--wrong {
+  background-color: #dc41b5;
+  border-color: #dc41b5;
+}
+
+.keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.2rem, 1vw, 0.3rem);
+  padding: clamp(0.2rem, 1vw, 0.3rem);
+  max-width: min(30rem, 100%);
+  margin: 0 auto;
+}
+
+.keyboard--row1 {
+  max-width: min(30rem, 100%);
+  margin-top: clamp(1rem, 4vw, 1rem);
+}
+
+.keyboard--row2 {
+  max-width: min(27rem, 90%);
+}
+
+.keyboard--row3 {
+  max-width: min(30rem, 100%);
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(24px, 7vw, 36px);
+  height: clamp(40px, 8vw, 56px);
+  padding: 0 clamp(4px, 1vw, 8px);
+  border: none;
+  border-radius: 4px;
+  background-color: #818384;
+  color: #ffffff;
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.1s ease;
+}
+
+.key:hover {
+  background-color: #a0a1a2;
+}
+
+.key:active {
+  background-color: #5a5b5c;
+}
+
+.key--wide {
+  min-width: clamp(44px, 12vw, 64px);
+  font-size: clamp(0.6rem, 1.8vw, 0.75rem);
+}
+
+.unrealword {
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  display: flex;
+  justify-content: center;
+  color: red;
+}
+
+.shortword {
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  display: flex;
+  justify-content: center;
+  color: red;
+}
+
+.wordle-host-waiting {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.wordle-host-waiting__text {
+  font-family: inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 950;
+  color: #f7f3e8;
+  letter-spacing: -0.02em;
+}

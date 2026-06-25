@@ -12,6 +12,8 @@ import { LobbyService } from '../../src/server/room/lobby/lobby.service'
 import type { GameEngineService } from '../../src/server/room/game/game-engine.service'
 import { RoomService } from '../../src/server/room/room.service'
 import { ClientService } from '../../src/server/client/client.service'
+import { AnswerService } from '../../src/server/room/game/answer.service'
+import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
 import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
 import { RoomNotFoundError } from '../../src/server/room/room.errors'
@@ -20,6 +22,7 @@ import {
   InvalidHostTokenError,
 } from '../../src/server/room/lobby/lobby.errors'
 import { Room } from '../../src/server/entities/room.entity'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
 import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROOM, PLAYER } from '@brain-wiz/config/game.config'
@@ -28,28 +31,80 @@ import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
 
+interface FakeRoomQueryBuilder {
+  where(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  andWhere(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  getOne(): Promise<Room | null>
+}
+
+const makeRoomId = (value: number): string =>
+  `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`
+
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
   const store: Room[] = []
   let seq = 0
+
   return {
     create: (p: Partial<Room>): Room => Object.assign(new Room(), p),
+
     save: async (r: Room): Promise<Room> => {
       if (!r.id) {
-        r.id = `room-${++seq}`
+        r.id = makeRoomId(++seq)
       }
+
       if (!store.includes(r)) {
         store.push(r)
       }
+
       return r
     },
-    findOne: async (o: { where?: { id?: string; joinCode?: string } }): Promise<Room | null> => {
-      const w = o.where ?? {}
-      return (
-        store.find(
-          (r) => (w.id ? r.id === w.id : true) && (w.joinCode ? r.joinCode === w.joinCode : true)
-        ) ?? null
-      )
+
+    createQueryBuilder: (): FakeRoomQueryBuilder => {
+      let joinCodeFilter: string | undefined
+      let idFilter: string | undefined
+      let statusesFilter: RoomStatusEnum[] | undefined
+
+      const queryBuilder: FakeRoomQueryBuilder = {
+        where: (condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          if (condition.includes('room.joinCode')) {
+            joinCodeFilter = params['joinCode'] as string
+          }
+
+          if (condition.includes('room.id')) {
+            idFilter = params['id'] as string
+          }
+
+          return queryBuilder
+        },
+
+        andWhere: (_condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          statusesFilter = params['statuses'] as RoomStatusEnum[]
+          return queryBuilder
+        },
+
+        getOne: async (): Promise<Room | null> => {
+          return (
+            store.find((room) => {
+              if (joinCodeFilter !== undefined && room.joinCode !== joinCodeFilter) {
+                return false
+              }
+
+              if (idFilter !== undefined && room.id !== idFilter) {
+                return false
+              }
+
+              if (statusesFilter !== undefined && !statusesFilter.includes(room.status)) {
+                return false
+              }
+
+              return true
+            }) ?? null
+          )
+        },
+      }
+
+      return queryBuilder
     },
   } as unknown as Repository<Room>
 }
@@ -126,10 +181,10 @@ function makeLobby(questions: Question[] = []): LobbyService {
     fakeFlowService(),
     {
       getClientSubmission: () => undefined,
-    } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+    } as unknown as AnswerService,
     {
       publish: () => undefined,
-    } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
+    } as unknown as GameEventBus
   )
 }
 
@@ -177,7 +232,7 @@ describe('LobbyService.joinClient', () => {
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const client = recordingSocket()
 
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
 
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)
     assert.ok(ack)
@@ -191,27 +246,43 @@ describe('LobbyService.joinClient', () => {
   it('rejects an unknown room code', async () => {
     const lobby = makeLobby()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', 'ZZZZ', 'Alice')
+    await lobby.joinClient(client, {
+      connectionId: 'sock-1',
+      roomCode: 'ZZZZ',
+      playerName: 'Alice',
+    })
     assert.ok(eventsOf(client).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
   it('rejects a duplicate display name in the same room', async () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
-    await lobby.joinClient(recordingSocket(), 'sock-1', code, 'Alice')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 'sock-1',
+      roomCode: code,
+      playerName: 'Alice',
+    })
     const dup = recordingSocket()
-    await lobby.joinClient(dup, 'sock-2', code, 'Alice')
+    await lobby.joinClient(dup, { connectionId: 'sock-2', roomCode: code, playerName: 'Alice' })
     assert.ok(eventsOf(dup).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
   it('rejects joining a room that has already started', async () => {
     const lobby = makeLobby()
     const { code, hostToken } = await lobby.createRoom()
-    await lobby.joinClient(recordingSocket(), 's1', code, 'Alice')
-    await lobby.joinClient(recordingSocket(), 's2', code, 'Bob')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's1',
+      roomCode: code,
+      playerName: 'Alice',
+    })
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's2',
+      roomCode: code,
+      playerName: 'Bob',
+    })
     await lobby.startGame(code, hostToken)
     const late = recordingSocket()
-    await lobby.joinClient(late, 's3', code, 'Charlie')
+    await lobby.joinClient(late, { connectionId: 's3', roomCode: code, playerName: 'Charlie' })
     assert.ok(eventsOf(late).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
@@ -219,10 +290,14 @@ describe('LobbyService.joinClient', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     for (let i = 0; i < ROOM.MAX_PLAYERS; i++) {
-      await lobby.joinClient(recordingSocket(), `s${i}`, code, `P${i}`)
+      await lobby.joinClient(recordingSocket(), {
+        connectionId: `s${i}`,
+        roomCode: code,
+        playerName: `P${i}`,
+      })
     }
     const overflow = recordingSocket()
-    await lobby.joinClient(overflow, 'sx', code, 'Late')
+    await lobby.joinClient(overflow, { connectionId: 'sx', roomCode: code, playerName: 'Late' })
     assert.ok(eventsOf(overflow).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 })
@@ -231,7 +306,7 @@ describe('LobbyService.joinClient input validation', () => {
   it('rejects a malformed room code before any lookup', async () => {
     const lobby = makeLobby()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', 'AB', 'Alice') // too short
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: 'AB', playerName: 'Alice' }) // too short
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
     assert.equal((ack?.data as { reason: string }).reason, 'Invalid room code')
   })
@@ -240,7 +315,11 @@ describe('LobbyService.joinClient input validation', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'x'.repeat(50))
+    await lobby.joinClient(client, {
+      connectionId: 'sock-1',
+      roomCode: code,
+      playerName: 'x'.repeat(50),
+    })
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
     assert.equal(
       (ack?.data as { reason: string }).reason,
@@ -252,7 +331,7 @@ describe('LobbyService.joinClient input validation', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'kanker')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'kanker' })
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
     assert.equal((ack?.data as { reason: string }).reason, NAME_REJECTION.profane)
   })
@@ -261,7 +340,7 @@ describe('LobbyService.joinClient input validation', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'admin')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'admin' })
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_REJECTED)
     assert.equal((ack?.data as { reason: string }).reason, NAME_REJECTION.reserved)
   })
@@ -270,18 +349,22 @@ describe('LobbyService.joinClient input validation', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, '   ')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: '   ' })
     assert.ok(eventsOf(client).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
   it('trims the display name and dedupes against the trimmed value', async () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
-    await lobby.joinClient(recordingSocket(), 's1', code, '  Alice  ')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's1',
+      roomCode: code,
+      playerName: '  Alice  ',
+    })
     const state = await lobby.getRoomState(code)
     assert.equal(state?.players[0]?.name, 'Alice')
     const dup = recordingSocket()
-    await lobby.joinClient(dup, 's2', code, 'Alice')
+    await lobby.joinClient(dup, { connectionId: 's2', roomCode: code, playerName: 'Alice' })
     assert.ok(eventsOf(dup).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 })
@@ -291,7 +374,7 @@ describe('LobbyService room teardown clears the host token', () => {
     const lobby = makeLobby()
     const { code, hostToken } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
 
     mock.timers.enable({ apis: ['setTimeout'] })
     // No host socket connected; the lone client leaving empties the room.
@@ -312,7 +395,7 @@ describe('LobbyService.leaveClient', () => {
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
 
     await lobby.leaveClient(client)
 
@@ -328,7 +411,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
 
     await lobby.handleDisconnect(client)
 
@@ -344,7 +427,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const first = recordingSocket()
-    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    await lobby.joinClient(first, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
     const ack = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
       playerId: string
       reconnectToken: string
@@ -353,7 +436,13 @@ describe('LobbyService disconnect + reconnect grace', () => {
     await lobby.handleDisconnect(first)
 
     const second = recordingSocket()
-    await lobby.joinClient(second, 'sock-2', code, 'Alice', playerId, reconnectToken)
+    await lobby.joinClient(second, {
+      connectionId: 'sock-2',
+      roomCode: code,
+      playerName: 'Alice',
+      playerId: playerId,
+      playerToken: reconnectToken,
+    })
 
     assert.ok(eventsOf(host).includes(EVENTS.PLAYER_RECONNECTED))
     assert.equal(lobby.hasPendingRemoval(playerId), false)
@@ -366,7 +455,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
     const ack = client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
       reconnectToken?: string
     }
@@ -379,7 +468,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const first = recordingSocket()
-    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    await lobby.joinClient(first, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
     const playerId = (
       first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as { playerId: string }
     ).playerId
@@ -387,7 +476,13 @@ describe('LobbyService disconnect + reconnect grace', () => {
 
     // Attacker knows the (broadcast) playerId but not the secret token.
     const attacker = recordingSocket()
-    await lobby.joinClient(attacker, 'sock-evil', code, 'Mallory', playerId, 'wrong-token')
+    await lobby.joinClient(attacker, {
+      connectionId: 'sock-evil',
+      roomCode: code,
+      playerName: 'Mallory',
+      playerId: playerId,
+      playerToken: 'wrong-token',
+    })
 
     assert.ok(eventsOf(attacker).includes(EVENTS.PLAYER_JOIN_REJECTED))
     assert.equal(eventsOf(attacker).includes(EVENTS.PLAYER_RECONNECTED), false)
@@ -399,7 +494,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
     const first = recordingSocket()
-    await lobby.joinClient(first, 'sock-1', code, 'Alice')
+    await lobby.joinClient(first, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
     const ack1 = first.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
       playerId: string
       reconnectToken: string
@@ -407,7 +502,13 @@ describe('LobbyService disconnect + reconnect grace', () => {
     await lobby.handleDisconnect(first)
 
     const second = recordingSocket()
-    await lobby.joinClient(second, 'sock-2', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    await lobby.joinClient(second, {
+      connectionId: 'sock-2',
+      roomCode: code,
+      playerName: 'Alice',
+      playerId: ack1.playerId,
+      playerToken: ack1.reconnectToken,
+    })
     const ack2 = second.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
       reconnectToken: string
     }
@@ -416,7 +517,13 @@ describe('LobbyService disconnect + reconnect grace', () => {
     // The original token must no longer be accepted.
     await lobby.handleDisconnect(second)
     const replay = recordingSocket()
-    await lobby.joinClient(replay, 'sock-3', code, 'Alice', ack1.playerId, ack1.reconnectToken)
+    await lobby.joinClient(replay, {
+      connectionId: 'sock-3',
+      roomCode: code,
+      playerName: 'Alice',
+      playerId: ack1.playerId,
+      playerToken: ack1.reconnectToken,
+    })
     assert.ok(eventsOf(replay).includes(EVENTS.PLAYER_JOIN_REJECTED))
   })
 
@@ -426,7 +533,7 @@ describe('LobbyService disconnect + reconnect grace', () => {
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
     const client = recordingSocket()
-    await lobby.joinClient(client, 'sock-1', code, 'Alice')
+    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
     const playerId = (
       client.sent.find((m) => m.event === EVENTS.PLAYER_JOIN_ACK)?.data as {
         playerId: string
@@ -447,8 +554,16 @@ describe('LobbyService.startGame', () => {
     const { code, hostToken } = await lobby.createRoom()
     const host = recordingSocket()
     await lobby.connectHost(code, hostToken, 'host-conn', host)
-    await lobby.joinClient(recordingSocket(), 's1', code, 'Alice')
-    await lobby.joinClient(recordingSocket(), 's2', code, 'Bob')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's1',
+      roomCode: code,
+      playerName: 'Alice',
+    })
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's2',
+      roomCode: code,
+      playerName: 'Bob',
+    })
 
     const state = await lobby.startGame(code, hostToken)
 
@@ -459,7 +574,11 @@ describe('LobbyService.startGame', () => {
   it('rejects starting with too few connected players', async () => {
     const lobby = makeLobby()
     const { code, hostToken } = await lobby.createRoom()
-    await lobby.joinClient(recordingSocket(), 's1', code, 'Alice')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's1',
+      roomCode: code,
+      playerName: 'Alice',
+    })
     await assert.rejects(async () => lobby.startGame(code, hostToken), NotEnoughPlayersError)
   })
 
@@ -471,8 +590,16 @@ describe('LobbyService.startGame', () => {
   it('rejects an invalid host token', async () => {
     const lobby = makeLobby()
     const { code } = await lobby.createRoom()
-    await lobby.joinClient(recordingSocket(), 's1', code, 'Alice')
-    await lobby.joinClient(recordingSocket(), 's2', code, 'Bob')
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's1',
+      roomCode: code,
+      playerName: 'Alice',
+    })
+    await lobby.joinClient(recordingSocket(), {
+      connectionId: 's2',
+      roomCode: code,
+      playerName: 'Bob',
+    })
     await assert.rejects(async () => lobby.startGame(code, 'bad-token'), InvalidHostTokenError)
   })
 })
@@ -504,10 +631,10 @@ describe('LobbyService abort-on-empty', () => {
       fakeFlowService(),
       {
         getClientSubmission: () => undefined,
-      } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+      } as unknown as AnswerService,
       {
         publish: () => undefined,
-      } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
+      } as unknown as GameEventBus
     )
     return { lobby, rooms, clients, registry, aborted }
   }
@@ -518,8 +645,8 @@ describe('LobbyService abort-on-empty', () => {
 
     const s1 = recordingSocket()
     const s2 = recordingSocket()
-    await lobby.joinClient(s1, 'conn-1', code, 'Alice')
-    await lobby.joinClient(s2, 'conn-2', code, 'Bob')
+    await lobby.joinClient(s1, { connectionId: 'conn-1', roomCode: code, playerName: 'Alice' })
+    await lobby.joinClient(s2, { connectionId: 'conn-2', roomCode: code, playerName: 'Bob' })
     await lobby.startGame(code, hostToken)
 
     await lobby.handleDisconnect(s1)

@@ -18,20 +18,26 @@ import {
   DEFAULT_QUESTIONS_PER_BLOCK,
   MIN_QUESTIONS_PER_BLOCK,
   MAX_QUESTIONS_PER_BLOCK,
+  MINIGAME_TIME_STEP_SECONDS,
   blockById,
+  clampMinigameTimeSeconds,
+  createFlowItem,
   randomFlowFrom,
-  nextUid,
 } from '../flow/palette'
 import { fetchCatalog } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
+import {
+  insertBlock,
+  moveBlock,
+  removeBlockAt,
+  setBlockMinigameTime,
+  setBlockQuestions,
+} from '../flow/flowMutations'
 import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import '../styles/flow_editor.css'
 
-import useSound from 'use-sound'
-import dieSound from '@brain-wiz/shared/SFX/die.mp3'
-import dragSound from '@brain-wiz/shared/SFX/water-drop.mp3'
-import dropSound from '@brain-wiz/shared/SFX/card-drop.mp3'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 
 export interface FlowEditorProps {
@@ -51,17 +57,13 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
 
-  const [playDieSound] = useSound(dieSound)
-  const [playDragSound] = useSound(dragSound)
-  const [playDropSound] = useSound(dropSound)
-
   // Set how many questions a quiz block contributes, clamped to the allowed range.
   const setQuestions = (uid: string, value: number) => {
-    const clamped = Math.min(
-      MAX_QUESTIONS_PER_BLOCK,
-      Math.max(MIN_QUESTIONS_PER_BLOCK, Math.round(value) || MIN_QUESTIONS_PER_BLOCK)
-    )
-    setFlow((prev) => prev.map((f) => (f.uid === uid ? { ...f, questions: clamped } : f)))
+    setFlow((prev) => setBlockQuestions(prev, uid, value))
+  }
+
+  const setMinigameTime = (uid: string, blockId: string, value: number) => {
+    setFlow((prev) => setBlockMinigameTime(prev, uid, blockId, value))
   }
 
   // The snake grid: cells in visual order + per-slot logical insert mapping. A
@@ -84,9 +86,9 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     setFlow((prev) => {
       if (prev.length >= MAX_FLOW_BLOCKS) return prev
       const pick = catalog[Math.floor(Math.random() * catalog.length)]
-      return pick ? [...prev, { uid: nextUid(), blockId: pick.id }] : prev
+      return pick ? [...prev, createFlowItem(pick)] : prev
     })
-    if (!isMuted()) playDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   useEffect(() => {
@@ -121,17 +123,17 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
   // --- Drag sources -------------------------------------------------------
   const onPaletteDragStart = (e: React.DragEvent, blockId: string) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'palette')
     e.dataTransfer.setData('application/x-block', blockId)
     e.dataTransfer.effectAllowed = 'copy'
-    if (!isMuted()) playDragSound()
   }
 
   const onFlowDragStart = (e: React.DragEvent, index: number) => {
+    if (!isMuted()) playSound(sounds.waterDrop, false)
     e.dataTransfer.setData('application/x-source', 'flow')
     e.dataTransfer.setData('application/x-index', String(index))
     e.dataTransfer.effectAllowed = 'move'
-    if (!isMuted()) playDragSound()
   }
 
   // --- Whole-canvas drop target ------------------------------------------
@@ -175,30 +177,19 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
 
     if (source === 'palette') {
       const blockId = e.dataTransfer.getData('application/x-block')
-      if (!resolveBlock(blockId)) return
-      setFlow((prev) => {
-        const next = [...prev]
-        next.splice(index, 0, { uid: nextUid(), blockId })
-        return next
-      })
+      const block = resolveBlock(blockId)
+      if (!block) return
+      setFlow((prev) => insertBlock(prev, index, block))
     } else if (source === 'flow') {
       const from = Number(e.dataTransfer.getData('application/x-index'))
       if (Number.isNaN(from)) return
-      setFlow((prev) => {
-        const next = [...prev]
-        const [moved] = next.splice(from, 1)
-        if (!moved) return prev
-        // The removed item shifts later indices left by one.
-        const target = from < index ? index - 1 : index
-        next.splice(target, 0, moved)
-        return next
-      })
+      setFlow((prev) => moveBlock(prev, from, index))
     }
-    if (!isMuted()) playDropSound()
+    if (!isMuted()) playSound(sounds.cardDrop, false)
   }
 
   const removeAt = (index: number) => {
-    setFlow((prev) => (prev.length <= MIN_FLOW_BLOCKS ? prev : prev.filter((_, i) => i !== index)))
+    setFlow((prev) => removeBlockAt(prev, index))
   }
 
   const openSizePicker = () => {
@@ -210,7 +201,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
     const count = Math.min(MAX_FLOW_BLOCKS, Math.max(MIN_FLOW_BLOCKS, sizePicker))
     setSizePicker(null)
     setFlow(randomFlowFrom(catalog, count))
-    if (!isMuted()) playDieSound()
+    if (!isMuted()) playSound(sounds.die, false)
   }
 
   const atMinimum = flow.length <= MIN_FLOW_BLOCKS
@@ -293,6 +284,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
               if (!item) return null
               const block = resolveBlock(item.blockId)
               if (!block) return null
+              const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
               const lastCell = cell.visualPos === count - 1
               return (
                 <div
@@ -303,7 +295,9 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                   {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
                   {lastCell && dropIndex === count && <div className="drop-indicator after" />}
                   <div
-                    className={`canvas-block ${block.kind}`}
+                    className={`canvas-block ${block.kind} ${
+                      block.kind === 'minigame' ? 'has-time-control' : ''
+                    }`}
                     draggable
                     onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
                   >
@@ -333,6 +327,50 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                     )}
                     <span className="block-icon">{block.icon}</span>
                     <span className="block-label">{block.label}</span>
+                    {block.kind === 'minigame' && (
+                      <div
+                        className="minigame-time-control"
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds - MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Reduce ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`-${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &lt;
+                        </button>
+                        <span className="time-value" aria-label={`${timeLimitSeconds} seconds`}>
+                          {timeLimitSeconds}s
+                        </span>
+                        <button
+                          type="button"
+                          className="time-step"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMinigameTime(
+                              item.uid,
+                              item.blockId,
+                              timeLimitSeconds + MINIGAME_TIME_STEP_SECONDS
+                            )
+                          }}
+                          aria-label={`Increase ${block.label} time by ${MINIGAME_TIME_STEP_SECONDS} seconds`}
+                          title={`+${MINIGAME_TIME_STEP_SECONDS}s`}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {cell.arrow !== 'none' && (
                     <span className={`canvas-arrow arrow-${cell.arrow}`} aria-hidden="true">

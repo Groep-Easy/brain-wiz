@@ -21,6 +21,9 @@ import { MinigameRegistry } from './minigames/minigame-registry'
 import { SlidingPuzzleServerAdapter } from './minigames/sliding-puzzle.server'
 import { BalanceScaleServerAdapter } from './minigames/balance-scale.server'
 import { VaultRushServerAdapter } from './minigames/vault-rush.server'
+import { WordleServerAdapter } from './minigames/wordle.server'
+import { LightSwitchServerAdapter } from './minigames/light-switch.server'
+import { BonkAirServerAdapter } from './minigames/bonk-air.server'
 
 @Module({
   imports: [RealtimeModule, RoomModule, ClientModule, DatabaseModule],
@@ -31,6 +34,9 @@ import { VaultRushServerAdapter } from './minigames/vault-rush.server'
     SlidingPuzzleServerAdapter,
     BalanceScaleServerAdapter,
     VaultRushServerAdapter,
+    WordleServerAdapter,
+    LightSwitchServerAdapter,
+    BonkAirServerAdapter,
     MinigameRegistry,
     AnswerService,
     ScoringService,

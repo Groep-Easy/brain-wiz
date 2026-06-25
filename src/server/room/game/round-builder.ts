@@ -20,6 +20,11 @@ import { Room } from '../../entities/room.entity'
 import { GameBlock } from '../../entities/game-block.entity'
 import { RoundStatusEnum, ContentTypeEnum, BlockKindEnum } from '../../entities/enums'
 import { ROUNDS, TIMER } from '@brain-wiz/config/game.config'
+import {
+  MAX_MINIGAME_TIME_SECONDS,
+  MINIGAME_TIME_STEP_SECONDS,
+  MIN_MINIGAME_TIME_SECONDS,
+} from '@brain-wiz/shared/constants/flow.constants'
 import type { RoundType } from '@brain-wiz/shared/types/index'
 import { NotEnoughQuestionsError } from './game.errors'
 import type { ProceduralRoundSeedInput } from './game.types'
@@ -35,6 +40,8 @@ interface QuizRoundSpec {
 interface ProceduralRoundSpec {
   kind: 'procedural'
   type: RoundType
+  difficulty?: number
+  timeLimitSeconds?: number
 }
 type RoundSpec = QuizRoundSpec | ProceduralRoundSpec
 
@@ -69,7 +76,15 @@ export class RoundBuilder {
       if (spec.kind === 'quiz') {
         built.push(await this.saveQuizRound(room, index, spec.question))
       } else {
-        built.push(await this.saveProceduralRound(room, index, spec.type))
+        built.push(
+          await this.saveProceduralRound(
+            room,
+            index,
+            spec.type,
+            spec.difficulty,
+            spec.timeLimitSeconds
+          )
+        )
       }
     }
 
@@ -82,13 +97,34 @@ export class RoundBuilder {
    * Expand a host-built flow into an ordered round plan. Each theme block
    * contributes up to its requested count of distinct questions of that theme,
    * never repeating a question within the game. Each mini-game block becomes a
-   * procedural round driven by its registered adapter.
+   * procedural round driven by its registered adapter and per-item timer.
    */
   private async planFromFlow(room: Room): Promise<RoundSpec[]> {
     const catalog = await this.blocks.find()
     const blockById = new Map(catalog.map((b) => [b.id, b]))
     const pool = await this.questions.find()
-    // Group the question pool by theme so we can hand out distinct questions.
+    const byTheme = this.groupQuestionsByTheme(pool)
+
+    const plan: RoundSpec[] = []
+    let unknownMinigames = 0
+    for (const item of room.gameFlow) {
+      const block = blockById.get(item.blockId)
+      if (!block) continue
+      if (block.kind === BlockKindEnum.THEME && block.theme) {
+        plan.push(...this.planThemeBlock(block.theme, item.questions, byTheme))
+      } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
+        plan.push(this.planMinigameBlock(block.minigameKey, item.timeLimitSeconds, item.difficulty))
+      } else {
+        unknownMinigames++
+      }
+    }
+
+    this.warnUnknownBlocks(room, unknownMinigames)
+    return plan
+  }
+
+  /** Group the question pool by theme, each group pre-shuffled for distinct hand-out. */
+  private groupQuestionsByTheme(pool: Question[]): Map<string, Question[]> {
     const byTheme = new Map<string, Question[]>()
     for (const q of pool) {
       const list = byTheme.get(q.theme) ?? []
@@ -98,34 +134,50 @@ export class RoundBuilder {
     for (const [theme, list] of byTheme) {
       byTheme.set(theme, this.shuffled(list))
     }
+    return byTheme
+  }
 
-    const plan: RoundSpec[] = []
-    let unknownMinigames = 0
-    for (const item of room.gameFlow) {
-      const block = blockById.get(item.blockId)
-      if (!block) continue
-      if (block.kind === BlockKindEnum.THEME && block.theme) {
-        const available = byTheme.get(block.theme) ?? []
-        const want = item.questions ?? DEFAULT_QUESTIONS_PER_BLOCK
-        for (let n = 0; n < want; n++) {
-          const next = available.pop()
-          if (!next) break
-          plan.push({ kind: 'quiz', question: next })
-        }
-      } else if (block.kind === BlockKindEnum.MINIGAME && block.minigameKey) {
-        plan.push({ kind: 'procedural', type: block.minigameKey as RoundType })
-      } else {
-        unknownMinigames++
-      }
+  /** Take up to `want` distinct questions of `theme`, consuming them from the pool. */
+  private planThemeBlock(
+    theme: string,
+    want: number | undefined,
+    byTheme: Map<string, Question[]>
+  ): QuizRoundSpec[] {
+    const available = byTheme.get(theme) ?? []
+    const count = want ?? DEFAULT_QUESTIONS_PER_BLOCK
+    const specs: QuizRoundSpec[] = []
+    for (let n = 0; n < count; n++) {
+      const next = available.pop()
+      if (!next) break
+      specs.push({ kind: 'quiz', question: next })
     }
+    return specs
+  }
 
+  /** Build a procedural round spec for a mini-game block, honoring its per-item timer and difficulty. */
+  private planMinigameBlock(
+    minigameKey: string,
+    timeLimitSeconds?: number,
+    difficulty?: number
+  ): ProceduralRoundSpec {
+    const spec: ProceduralRoundSpec = { kind: 'procedural', type: minigameKey as RoundType }
+    if (timeLimitSeconds !== undefined) {
+      spec.timeLimitSeconds = timeLimitSeconds
+    }
+    if (difficulty !== undefined) {
+      spec.difficulty = difficulty
+    }
+    return spec
+  }
+
+  /** Log a single warning summarizing any blocks that could not be planned. */
+  private warnUnknownBlocks(room: Room, unknownMinigames: number): void {
     if (unknownMinigames > 0) {
       this.logger.warn(
         `Skipped ${unknownMinigames} unrecognized block(s) in room ${room.id}: ` +
           `blocks must be a theme with questions or a mini-game with a minigameKey.`
       )
     }
-    return plan
   }
 
   /**
@@ -183,13 +235,19 @@ export class RoundBuilder {
     return this.rounds.save(round)
   }
 
-  private async saveProceduralRound(room: Room, index: number, type: RoundType): Promise<Round> {
+  private async saveProceduralRound(
+    room: Room,
+    index: number,
+    type: RoundType,
+    difficulty?: number,
+    requestedTimeLimitSeconds?: number
+  ): Promise<Round> {
     const adapter = this.minigames.get(type)
     if (!adapter) {
       throw new BadRequestException(`No minigame adapter registered for round type "${type}"`)
     }
     const roundId = randomUUID()
-    const timeLimitSeconds = this.proceduralRoundSeconds(type)
+    const timeLimitSeconds = this.proceduralRoundSeconds(type, requestedTimeLimitSeconds)
     const seed = this.createProceduralRoundSeed({
       roomId: room.id,
       roundId,
@@ -200,6 +258,7 @@ export class RoundBuilder {
       seed,
       roundIndex: index,
       timeLimitSeconds,
+      ...(difficulty !== undefined ? { difficulty } : {}),
     })
     const round: Round = this.rounds.create({
       id: roundId,
@@ -218,10 +277,22 @@ export class RoundBuilder {
     return this.rounds.save(round)
   }
 
-  private proceduralRoundSeconds(type: RoundType): number {
+  private proceduralRoundSeconds(type: RoundType, requested?: number): number {
+    const fallback = this.defaultProceduralRoundSeconds(type)
+    const desired = Number.isFinite(requested) ? Number(requested) : fallback
+    const stepped = Math.round(desired / MINIGAME_TIME_STEP_SECONDS) * MINIGAME_TIME_STEP_SECONDS
+    return Math.max(MIN_MINIGAME_TIME_SECONDS, Math.min(MAX_MINIGAME_TIME_SECONDS, stepped))
+  }
+
+  private defaultProceduralRoundSeconds(type: RoundType): number {
     if (type === 'sliding-puzzle') {
       return TIMER.SLIDING_PUZZLE_SECONDS
     }
+
+    if (type === 'vault-rush') {
+      return TIMER.VAULT_RUSH_SECONDS
+    }
+
     return TIMER.QUESTION_SECONDS
   }
 

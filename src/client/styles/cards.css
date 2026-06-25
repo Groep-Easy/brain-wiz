@@ -41,3 +41,7 @@
 body.client-in-game .gradient-bg-container {
   display: none;
 }
+
+body.client-in-game.wordle-game-page .gradient-bg-container {
+  display: block;
+}

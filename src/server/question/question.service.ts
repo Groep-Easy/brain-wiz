@@ -10,6 +10,7 @@ import type { ClientSocket } from '../room/lobby/lobby.types.js'
 
 const MAX_ANSWERS = 2
 const MAX_USED_IDS = 1000
+const DEFAULT_BASE_POINTS = 1000
 
 @Injectable()
 export class QuestionService {
@@ -57,8 +58,7 @@ export class QuestionService {
       wrongAnswers: wrongAnswers,
       imagePath: dto.imagePath || '',
       timeLimitSeconds: dto.timeLimitSeconds || null,
-      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-      basePoints: dto.basePoints ?? 1000,
+      basePoints: dto.basePoints ?? DEFAULT_BASE_POINTS,
     })
 
     try {
@@ -82,11 +82,8 @@ export class QuestionService {
       queryBuilder.where('question.id NOT IN (:...usedIds)', { usedIds })
     }
 
-    const unusedQuestions = await queryBuilder.getMany()
-    if (unusedQuestions.length === 0) return null
-
-    const randomIndex = Math.floor(Math.random() * unusedQuestions.length)
-    return unusedQuestions[randomIndex] ?? null
+    const question = await queryBuilder.orderBy('RANDOM()').limit(1).getOne()
+    return question ?? null
   }
   // when called sends the question to the host of the room
   public async sendQuestionToRoom(hostSocket: ClientSocket, usedIds: string[] = []): Promise<void> {

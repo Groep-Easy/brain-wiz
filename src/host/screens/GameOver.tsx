@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Player, ScoreMap } from '@brain-wiz/shared/types/index'
-import synthWave from '@brain-wiz/shared/SFX/synthwave.mp3'
-import '../styles/game_over.css'
+import '../../shared/styles/game_over.css'
+
+import { sounds } from '@brain-wiz/shared/SFX/SFX'
 
 interface GameOverProps {
   players: Player[]
@@ -50,7 +51,7 @@ export function GameOver({ players, finalScores, onBackToMenu }: GameOverProps):
 
   return (
     <>
-      <audio id="game-over" loop autoPlay src={synthWave} preload="auto"></audio>
+      <audio src={sounds.gameOver} loop autoPlay></audio>
       <main className={`go-page${visible ? ' go-page--visible' : ''}`}>
         {/* ── Header ── */}
         <header className="go-header">

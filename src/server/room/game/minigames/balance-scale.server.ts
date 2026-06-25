@@ -4,6 +4,7 @@ import {
   HARD_SCALE_DIFFICULTY,
   generateScalePuzzle,
   type ScaleDifficulty,
+  type ScalePuzzle,
 } from '@brain-wiz/minigames/balance-scale/shared/scaleGame'
 import { getDefaultScaleItemPool } from '@brain-wiz/minigames/balance-scale/shared/scaleGame.presets'
 import { hashSeed } from '@brain-wiz/shared/utils/seeded-random'
@@ -22,6 +23,8 @@ const SOLVE_SPEED_BONUS = 300
 const MILLISECONDS_PER_SECOND = 1000
 const EASY_SCALE_ROUND_COUNT = 2
 
+type BalanceScalePublicState = Omit<ScalePuzzle, 'correctOptionId'>
+
 @Injectable()
 export class BalanceScaleServerAdapter implements MinigameAdapter {
   public readonly type = 'balance-scale'
@@ -30,7 +33,13 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     return type === this.type
   }
 
-  public createRound(input: CreateMinigameRoundInput): GeneratedMinigameRound {
+  public createRound(
+    input: CreateMinigameRoundInput
+  ): GeneratedMinigameRound<
+    BalanceScalePublicState,
+    BalanceScalePrivateState,
+    BalanceScaleScoringConfig
+  > {
     const difficulty = this.difficultyForRound(input.roundIndex)
     const itemPool = getDefaultScaleItemPool(hashSeed(input.seed), difficulty)
     const puzzle = generateScalePuzzle({
@@ -56,7 +65,7 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
     return {
       type: this.type,
       seed: input.seed,
-      publicState: puzzle,
+      publicState: this.toPublicState(puzzle),
       privateState: privateState,
       scoringConfig: scoringConfig,
     }
@@ -147,6 +156,16 @@ export class BalanceScaleServerAdapter implements MinigameAdapter {
 
   private difficultyForRound(roundIndex: number): ScaleDifficulty {
     return roundIndex < EASY_SCALE_ROUND_COUNT ? EASY_SCALE_DIFFICULTY : HARD_SCALE_DIFFICULTY
+  }
+
+  private toPublicState(puzzle: ScalePuzzle): BalanceScalePublicState {
+    return {
+      id: puzzle.id,
+      placed: puzzle.placed,
+      addTo: puzzle.addTo,
+      options: puzzle.options,
+      equations: puzzle.equations,
+    }
   }
 
   private parseOptionId(submission: unknown): string | undefined {

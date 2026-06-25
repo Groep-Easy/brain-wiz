@@ -32,7 +32,10 @@ export class BlockSeederService implements OnApplicationBootstrap {
     let updated = 0
 
     for (const [i, seed] of BLOCK_SEED.entries()) {
-      const existing = await this.blocks.findOne({ where: { id: seed.id } })
+      const existing = await this.blocks
+        .createQueryBuilder('block')
+        .where('block.id = :id', { id: seed.id })
+        .getOne()
       if (existing) {
         existing.kind = seed.kind
         existing.label = seed.label

@@ -18,6 +18,7 @@ import { Console } from './console/Console'
 import { LeaderBoard } from './components/LeaderBoard'
 import { ScaleMechanicsMock } from '@brain-wiz/minigames/balance-scale/mock/ScaleMechanicsMock'
 import { SlidingPuzzleMock } from '@brain-wiz/minigames/sliding-puzzle/mock/SlidingPuzzleMock'
+import { BonkAirMock } from '@brain-wiz/minigames/bonk-air/mock/BonkAirMock'
 import { GlassFilter } from '@brain-wiz/shared/components/GlassFilter'
 import { BackgroundGradient } from '@brain-wiz/shared/components/BackgroundGradient'
 import '@brain-wiz/shared/styles/global.css'
@@ -79,6 +80,7 @@ createRoot(container).render(
         />
         <Route path="/balance-scale-mock" element={<ScaleMechanicsMock />} />
         <Route path="/sliding-puzzle-mock" element={<SlidingPuzzleMock />} />
+        <Route path="/bonk-air-mock" element={<BonkAirMock />} />
         {/* Fallback for /host or any unrecognized path */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

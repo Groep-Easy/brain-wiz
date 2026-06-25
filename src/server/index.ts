@@ -9,7 +9,7 @@ import 'reflect-metadata'
 import * as path from 'path'
 import * as express from 'express'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { WsAdapter } from '@nestjs/platform-ws'
 import { AppModule } from './app.module'
 import { ENV } from '@brain-wiz/config/env.config'
@@ -28,7 +28,9 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 
-  setSwaggerConfig(app)
+  if (ENV.NODE_ENV !== NodeEnv.Production) {
+    setSwaggerConfig(app)
+  }
 
   if (ENV.TRUST_PROXY) {
     app.getHttpAdapter().getInstance().set('trust proxy', 1)
@@ -53,11 +55,10 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(ENV.SERVER_PORT, ENV.SERVER_HOST)
 
-  // eslint-disable-next-line no-console
-  console.log('\n  Brain Wiz Server Successfully Started!')
+  const logger = new Logger('Bootstrap')
+  logger.log('\n  Brain Wiz Server Successfully Started!')
   if (ENV.NODE_ENV === NodeEnv.Development) {
-    // eslint-disable-next-line no-console
-    console.log(`
+    logger.log(`
   Host Display:  http://localhost:5174/ (Vite dev host)
   Player Client: http://localhost:5173/client (Vite dev client)
   REST API:      http://localhost:3000/api
@@ -66,8 +67,7 @@ async function bootstrap(): Promise<void> {
   Port 3000 serves the compiled host/client files but won't auto-reload.
     `)
   } else {
-    // eslint-disable-next-line no-console
-    console.log(`
+    logger.log(`
   Host Display:  ${ENV.SERVER_BASE_URL}/
   Player Client: ${ENV.SERVER_BASE_URL}/client
   REST API:      ${ENV.SERVER_BASE_URL}/api

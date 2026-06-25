@@ -26,8 +26,8 @@ import { isValidRoomCode } from '@brain-wiz/shared/utils/room-code'
 import { validateDisplayName } from '@brain-wiz/shared/utils/display-name'
 import { RoomNotFoundError } from '../room.errors'
 import { InvalidHostTokenError, NotEnoughPlayersError } from './lobby.errors'
-import type { ClientSocket, CreateRoomResult } from './lobby.types'
-import type { PlayerAvatar, RoomState } from '@brain-wiz/shared/types/index'
+import type { ClientSocket, CreateRoomResult, JoinClientRequest } from './lobby.types'
+import type { RoomState } from '@brain-wiz/shared/types/index'
 import type { GameFlowItem } from '@brain-wiz/shared/types/flow'
 import { QuestionService } from '../../question/question.service.js'
 import { FlowService } from '../../flow/flow.service.js'
@@ -81,15 +81,8 @@ export class LobbyService {
   }
 
   /** Handle a PLAYER_JOIN: fresh join or reconnect (when playerId is supplied). */
-  public async joinClient(
-    socket: ClientSocket,
-    connectionId: string,
-    roomCode: string,
-    playerName: string,
-    playerId?: string,
-    playerToken?: string,
-    playerAvatar?: PlayerAvatar
-  ): Promise<void> {
+  public async joinClient(socket: ClientSocket, request: JoinClientRequest): Promise<void> {
+    const { connectionId, roomCode, playerName, playerId, playerToken, playerAvatar } = request
     if (!isValidRoomCode(roomCode)) {
       this.reject(socket, 'Invalid room code')
       return

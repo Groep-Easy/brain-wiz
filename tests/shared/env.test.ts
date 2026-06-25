@@ -7,23 +7,20 @@ import {
   getClientBaseUrl,
 } from '@brain-wiz/shared/utils/env'
 
+const globalWithWindow: { window?: unknown } = globalThis
+
 describe('Env Utils', () => {
   let originalWindow: unknown
   let originalProcessEnv: NodeJS.ProcessEnv
 
-  interface GlobalWithWindow {
-    window?: unknown
-  }
-  const globalObj = global as unknown as GlobalWithWindow
-
   beforeEach(() => {
-    originalWindow = globalObj.window
-    delete globalObj.window
+    originalWindow = globalWithWindow.window
+    delete globalWithWindow.window
     originalProcessEnv = { ...process.env }
   })
 
   afterEach(() => {
-    globalObj.window = originalWindow
+    globalWithWindow.window = originalWindow
     process.env = originalProcessEnv
   })
 
@@ -46,7 +43,7 @@ describe('Env Utils', () => {
 
     it('returns ws://hostname:3000 if development', () => {
       process.env['NODE_ENV'] = 'development'
-      globalObj.window = {
+      globalWithWindow.window = {
         location: { hostname: 'localhost', port: '5173' },
       }
       assert.equal(getBackendWsUrl(), 'ws://localhost:3000')
@@ -54,7 +51,7 @@ describe('Env Utils', () => {
 
     it('returns ws://host if not development and protocol is http:', () => {
       process.env['NODE_ENV'] = 'production'
-      globalObj.window = {
+      globalWithWindow.window = {
         location: {
           hostname: 'brainwiz.local',
           protocol: 'http:',
@@ -67,7 +64,7 @@ describe('Env Utils', () => {
 
     it('returns wss://host if not development and protocol is https:', () => {
       process.env['NODE_ENV'] = 'production'
-      globalObj.window = {
+      globalWithWindow.window = {
         location: {
           hostname: 'brainwiz.com',
           protocol: 'https:',
@@ -96,13 +93,13 @@ describe('Env Utils', () => {
   describe('getClientBaseUrl', () => {
     it('returns http://hostname:5173 if development', () => {
       process.env['NODE_ENV'] = 'development'
-      globalObj.window = { location: { hostname: 'localhost', port: '5173' } }
+      globalWithWindow.window = { location: { hostname: 'localhost', port: '5173' } }
       assert.equal(getClientBaseUrl(), 'http://localhost:5173')
     })
 
     it('returns window origin if window is defined and not development', () => {
       process.env['NODE_ENV'] = 'production'
-      globalObj.window = {
+      globalWithWindow.window = {
         location: { hostname: 'brainwiz.com', port: '443', origin: 'https://brainwiz.com' },
       }
       assert.equal(getClientBaseUrl(), 'https://brainwiz.com')
