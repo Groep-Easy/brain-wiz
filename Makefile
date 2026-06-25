@@ -31,7 +31,7 @@ cert:
 			-keyout "$(CERT_DIR)/nginx-selfsigned.key" \
 			-out    "$(CERT_DIR)/nginx-selfsigned.crt" \
 			-subj "/CN=$(CERT_CN)"; \
-		chmod 600 "$(CERT_DIR)/nginx-selfsigned.key"; \
+		chmod 644 "$(CERT_DIR)/nginx-selfsigned.key"; \
 		echo "Self-signed certificate generated at $(CERT_DIR)."; \
 	fi
 
