@@ -11,13 +11,11 @@ import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
 import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRules'
 import bonkAirArt from '../../assets/images/MG_atc.png'
 
-import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
-
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
-import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
+import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 
 import { useHostSocket } from './hooks/useHostSocket'
 import type { ActiveRoom } from './App.interfaces'
@@ -105,14 +103,8 @@ export function App(): React.JSX.Element {
 
   function renderGameplay(active: ActiveRoom, phase: 'playing' | 'reveal'): React.JSX.Element {
     if (h.roundContent) {
-      const isVaultRushPlaying = h.roundContent.type === 'vault-rush' && phase === 'playing'
-
       return (
         <main className="app app--minigame">
-          {isVaultRushPlaying ? (
-            <audio id="vault-rush-music" loop autoPlay src={vaultRushMusic} preload="auto" />
-          ) : null}
-
           {renderMinigame(
             h.roundContent,
             h.roundReveal,

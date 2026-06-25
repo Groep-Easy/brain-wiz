@@ -12,6 +12,7 @@ import pop from './pop.mp3'
 import quack from './quack.mp3'
 import reveal from './reveal.mp3'
 import startGame from './start-game.wav'
+import vaultRush from './vault-rush.mp3'
 import waterDrop from './water-drop.mp3'
 import wrong from './wrong.mp3'
 
@@ -29,6 +30,7 @@ export const sounds = {
   quack,
   reveal,
   startGame,
+  vaultRush,
   waterDrop,
   wrong,
 } as const
