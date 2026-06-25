@@ -97,7 +97,7 @@ export interface OpenWindow {
   options: Map<string, RoundOption>
   privateState?: Record<string, unknown>
   scoringConfig?: Record<string, unknown>
-  submitted: Set<string>
+  submitted: Map<string, string>
   progress: Map<string, RoundProgressSnapshot>
 }
 

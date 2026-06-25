@@ -7,7 +7,7 @@ export interface MinigameChoiceGridProps {
   selectedChoiceId: string | null
   submitted: boolean
   phase: 'playing' | 'reveal'
-  correctChoiceId?: string
+  correctChoiceId?: string | undefined
   tileClasses?: readonly string[]
   onSelect: (choice: RoundAnswerChoice) => void
 }

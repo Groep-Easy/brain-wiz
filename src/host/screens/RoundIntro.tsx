@@ -6,7 +6,7 @@ import { isMuted } from '@brain-wiz/shared/SFX/mute'
 interface RoundIntroProps {
   index: number
   total: number
-  questionText?: string
+  questionText?: string | undefined
 }
 
 export function RoundIntro({ index, total, questionText }: RoundIntroProps): React.JSX.Element {

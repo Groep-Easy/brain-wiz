@@ -20,7 +20,7 @@ interface LeaderBoardProps {
 }
 
 interface RoadmapProps {
-  roadmap?: RoadmapUpdate
+  roadmap?: RoadmapUpdate | undefined
 }
 
 type TimelineItem =

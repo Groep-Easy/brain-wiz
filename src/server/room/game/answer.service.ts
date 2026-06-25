@@ -48,7 +48,7 @@ export class AnswerService {
         options: new Map((e.options ?? []).map((o) => [o.id, o])),
         ...(e.privateState !== undefined ? { privateState: e.privateState } : {}),
         ...(e.scoringConfig !== undefined ? { scoringConfig: e.scoringConfig } : {}),
-        submitted: new Set<string>(),
+        submitted: new Map<string, string>(),
         progress: new Map<string, RoundProgressSnapshot>(),
       })
     })
@@ -61,6 +61,14 @@ export class AnswerService {
     this.bus.on('ROUND_WINDOW_ABORTED').subscribe((e) => {
       this.windows.delete(e.roomId)
     })
+  }
+
+  public getClientSubmission(roomId: string, clientId: string): string | undefined {
+    const window = this.windows.get(roomId)
+    if (!window || !window.submitted.has(clientId)) {
+      return undefined
+    }
+    return window.submitted.get(clientId)
   }
 
   public async submit(socket: ClientSocket, payload: AnswerSubmitPayload): Promise<void> {
@@ -185,7 +193,7 @@ export class AnswerService {
 
   private async persistSubmission(input: PersistSubmissionInput): Promise<void> {
     const { socket, roomId, clientId, window, answerValue } = input
-    window.submitted.add(clientId)
+    window.submitted.set(clientId, answerValue)
     const row = this.answers.create({
       clientId,
       roundId: window.roundId,
@@ -245,7 +253,7 @@ export class AnswerService {
         continue
       }
 
-      window.submitted.add(clientId)
+      window.submitted.set(clientId, snapshot.answerValue)
       const row = this.answers.create({
         clientId,
         roundId: window.roundId,
