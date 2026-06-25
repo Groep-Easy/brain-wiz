@@ -7,8 +7,6 @@ import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import { BackgroundGradient } from '@brain-wiz/shared/components/BackgroundGradient'
 import '../styles/welcome.css'
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - Vite env variable
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
 const JOIN_GAME_URL = `${getClientBaseUrl()}/client`

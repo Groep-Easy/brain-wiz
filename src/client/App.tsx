@@ -141,6 +141,9 @@ function BonkAirMinigame({
   const bonkPlanRef = useRef<unknown>(null)
   const [bonkReplayDone, setBonkReplayDone] = useState(false)
 
+  const submitRef = useRef(s.handleRoundSubmit)
+  submitRef.current = s.handleRoundSubmit
+
   useEffect(() => {
     if (
       s.roomState?.phase === 'playing' &&
@@ -148,9 +151,8 @@ function BonkAirMinigame({
       s.secondsRemaining > 0 &&
       s.secondsRemaining <= 1
     ) {
-      s.handleRoundSubmit(bonkPlanRef.current ?? { solution: {} })
+      submitRef.current(bonkPlanRef.current ?? { solution: {} })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.secondsRemaining, s.roundSubmitted, s.roomState?.phase])
 
   const puzzle = roundContent.publicState as BonkAirPuzzle
