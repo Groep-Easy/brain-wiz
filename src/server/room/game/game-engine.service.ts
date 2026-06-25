@@ -56,7 +56,7 @@ export class GameEngineService {
     @InjectRepository(Round) private readonly roundRepo: Repository<Round>,
     @Inject(ROUND_PRESENTER) private readonly presenter: RoundPresenter,
     private readonly bus: GameEventBus
-  ) {}
+  ) { }
 
   /** Overridable so tests can inject a controllable timer. */
   protected createTimer(): PhaseTimerLike {
@@ -120,7 +120,6 @@ export class GameEngineService {
 
   private async buildRoadmapThemes(
     roomId: string,
-    currentRoundIndex: number
   ): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
@@ -132,9 +131,6 @@ export class GameEngineService {
     const countByTheme = new Map<string, number>()
 
     for (const round of rounds) {
-      if (round.roundIndex < currentRoundIndex) {
-        continue
-      }
 
       const theme = round.question?.theme ?? round.gameType
 
@@ -170,7 +166,7 @@ export class GameEngineService {
     this.broadcaster.broadcastRoadmap(room.id, {
       playerPos: round.roundIndex + 1,
       totalQuestions: room.totalRounds,
-      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
+      themes: await this.buildRoadmapThemes(room.id),
     })
 
     if (await this.runPhase(room, game, GamePhase.INTRO, TIMER.ROUND_INTRO_SECONDS)) {
