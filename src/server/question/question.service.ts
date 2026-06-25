@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
 import { Question } from '../entities/question.entity.js'
 import type { CreateQuestionDto } from './dto/create-question.dto.js'
+import { ConnectionRegistry } from '../room/lobby/connection-registry.js'
+import { RoomBroadcaster } from '../room/lobby/room-broadcaster.js'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
+import type { ClientSocket } from '../room/lobby/lobby.types.js'
 
 const MAX_ANSWERS = 2
 const MAX_USED_IDS = 1000
@@ -11,7 +15,9 @@ const DEFAULT_BASE_POINTS = 1000
 @Injectable()
 export class QuestionService {
   public constructor(
-    @InjectRepository(Question) private readonly questions: Repository<Question>
+    @InjectRepository(Question) private readonly questions: Repository<Question>,
+    private readonly registry: ConnectionRegistry,
+    private readonly broadcaster: RoomBroadcaster
   ) {}
 
   private validateUsedIds(usedIds: string[]): void {
@@ -78,5 +84,17 @@ export class QuestionService {
 
     const question = await queryBuilder.orderBy('RANDOM()').limit(1).getOne()
     return question ?? null
+  }
+  // when called sends the question to the host of the room
+  public async sendQuestionToRoom(hostSocket: ClientSocket, usedIds: string[] = []): Promise<void> {
+    const membership = this.registry.lookup(hostSocket)
+    if (!membership || membership.role !== 'host') return
+
+    const question = await this.getRandomQuestion(usedIds)
+    if (!question) return
+
+    this.broadcaster.emitToRoom(membership.roomId, EVENTS.QUESTION_SHOW, {
+      question: question.text,
+    })
   }
 }

@@ -75,6 +75,11 @@ export interface HostSkipTimer {
   type: 'HOST_SKIP_TIMER'
   roomId: string
 }
+export interface PlayerDisconnected {
+  type: 'PLAYER_DISCONNECTED'
+  roomId: string
+  clientId: string
+}
 
 export type GameDomainEvent =
   | RoundWindowOpened
@@ -85,3 +90,4 @@ export type GameDomainEvent =
   | RoundScored
   | RoundWindowAborted
   | HostSkipTimer
+  | PlayerDisconnected

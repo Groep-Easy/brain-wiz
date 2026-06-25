@@ -5,13 +5,15 @@
  * RoomService/ClientService backed by in-memory fake repositories, the real
  * ConnectionRegistry/RoomBroadcaster, and recording sockets.
  */
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
 import { LobbyService } from '../../src/server/room/lobby/lobby.service'
 import type { GameEngineService } from '../../src/server/room/game/game-engine.service'
 import { RoomService } from '../../src/server/room/room.service'
 import { ClientService } from '../../src/server/client/client.service'
+import { AnswerService } from '../../src/server/room/game/answer.service'
+import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 import { ConnectionRegistry } from '../../src/server/room/lobby/connection-registry'
 import { RoomBroadcaster } from '../../src/server/room/lobby/room-broadcaster'
 import { RoomNotFoundError } from '../../src/server/room/room.errors'
@@ -182,7 +184,12 @@ function makeLobby(questions: Question[] = []): LobbyService {
     noopEngine,
     fakeQuestionService(questions),
     fakeFlowService(),
-    fakeGameEventBus()
+    {
+      getClientSubmission: () => undefined,
+    } as unknown as AnswerService,
+    {
+      publish: () => undefined,
+    } as unknown as GameEventBus
   )
 }
 
@@ -374,8 +381,12 @@ describe('LobbyService room teardown clears the host token', () => {
     const client = recordingSocket()
     await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
 
+    mock.timers.enable({ apis: ['setTimeout'] })
     // No host socket connected; the lone client leaving empties the room.
     await lobby.leaveClient(client)
+
+    mock.timers.tick(ROOM.RECONNECT_GRACE_MS + 100)
+    mock.timers.reset()
 
     // Token is gone, so a host can no longer authenticate against this room.
     await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
@@ -623,7 +634,12 @@ describe('LobbyService abort-on-empty', () => {
       gameEngine,
       fakeQuestionService(),
       fakeFlowService(),
-      fakeGameEventBus()
+      {
+        getClientSubmission: () => undefined,
+      } as unknown as AnswerService,
+      {
+        publish: () => undefined,
+      } as unknown as GameEventBus
     )
     return { lobby, rooms, clients, registry, aborted }
   }
@@ -642,6 +658,14 @@ describe('LobbyService abort-on-empty', () => {
     assert.deepEqual(aborted, [])
 
     await lobby.handleDisconnect(s2)
+    assert.deepEqual(aborted, [])
+
+    const state = await lobby.getRoomState(code)
+    const aliceId = state?.players.find((p) => p.name === 'Alice')?.id || ''
+    const bobId = state?.players.find((p) => p.name === 'Bob')?.id || ''
+    await lobby.expireGrace(aliceId)
+    await lobby.expireGrace(bobId)
+
     assert.deepEqual(aborted, [roomId])
 
     const room = await rooms.findById(roomId)

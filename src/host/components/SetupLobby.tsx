@@ -18,6 +18,8 @@ import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - Vite env variable
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 interface SetupLobbyProps {
