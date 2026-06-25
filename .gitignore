@@ -35,3 +35,8 @@ tmp/
 .tmp/
 
 ssl/
+
+# Nginx TLS certificates — generated locally, never commit private keys/certs
+/nginx/ssl/*.key
+/nginx/ssl/*.crt
+/nginx/ssl/*.pem
