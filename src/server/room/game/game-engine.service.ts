@@ -126,10 +126,7 @@ export class GameEngineService {
     game.timer.cancel()
   }
 
-  private async buildRoadmapThemes(
-    roomId: string,
-    currentRoundIndex: number
-  ): Promise<RoadmapTheme[]> {
+  private async buildRoadmapThemes(roomId: string): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
       .leftJoinAndSelect('round.question', 'question')
@@ -140,10 +137,6 @@ export class GameEngineService {
     const countByTheme = new Map<string, number>()
 
     for (const round of rounds) {
-      if (round.roundIndex < currentRoundIndex) {
-        continue
-      }
-
       const theme = round.question?.theme ?? round.gameType
 
       if (!theme) {
@@ -218,7 +211,7 @@ export class GameEngineService {
     this.broadcaster.broadcastRoadmap(room.id, {
       playerPos: round.roundIndex + 1,
       totalQuestions: room.totalRounds,
-      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
+      themes: await this.buildRoadmapThemes(room.id),
     })
   }
 
@@ -259,6 +252,11 @@ export class GameEngineService {
     round: Round,
     game: RunningGame
   ): Promise<void> {
+    await this.markRound(round, RoundStatusEnum.FINISHED)
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
+      scores: await this.buildScores(room.id),
+    })
+
     const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
     const isLastRound = round.roundIndex === totalRounds - 1
     if (isLastRound) {
@@ -266,14 +264,6 @@ export class GameEngineService {
       return
     }
 
-    await this.markRound(round, RoundStatusEnum.FINISHED)
-    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
-      scores: await this.buildScores(room.id),
-    })
-    if (round.roundIndex === ROUNDS.COUNT) {
-      await this.enterPhase(room, GamePhase.GAME_OVER)
-      return
-    }
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),

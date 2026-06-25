@@ -12,7 +12,7 @@ const SCORE_RULES: ScoreRule[] = [
   { icon: '🛬', label: 'Aircraft reaches its target (landed / routed)', points: `+${CONFIG.PTS_DONE}` },
   { icon: '⭐', label: 'Star collected along the way', points: `+${CONFIG.PTS_STAR}` },
   { icon: '🏆', label: 'Perfect: every aircraft arrived, no incidents', points: `+${CONFIG.PTS_PERFECT}` },
-  { icon: '⏱️', label: 'Finish early (TAKE OFF): per second left', points: `+${CONFIG.EARLY_PER_SECOND} (max +${CONFIG.EARLY_MAX})` },
+  { icon: '⏱️', label: 'Finish early', points: `+${CONFIG.EARLY_PER_SECOND} (max +${CONFIG.EARLY_MAX})` },
 ]
 
 const PENALTY_RULES: ScoreRule[] = [
@@ -28,7 +28,27 @@ const PENALTY_RULES: ScoreRule[] = [
 export function BonkAirRules(): JSX.Element {
   return (
     <aside className="bonk-air-rules">
-      <h2 className="bonk-air-rules__title">Sector Control — how to score</h2>
+      <h2 className="bonk-air-rules__title">Sector Control — how to play</h2>
+      <div className="bonk-air-rules__objective">
+        <p className="bonk-air-rules__goal">
+          Every aircraft and its target share a <strong>colour</strong>. Drag a route from each
+          plane to its matching coloured zone or runway before the clock runs out.
+        </p>
+        <ul className="bonk-air-rules__dos">
+          <li>
+            <span className="bonk-air-rules__icon">↔️</span>
+            <span className="bonk-air-rules__label">Keep aircraft separated</span>
+          </li>
+          <li>
+            <span className="bonk-air-rules__icon">🌩️</span>
+            <span className="bonk-air-rules__label">Steer clear of bad weather (storms)</span>
+          </li>
+          <li>
+            <span className="bonk-air-rules__icon">🚫</span>
+            <span className="bonk-air-rules__label">Stay out of no-fly zones</span>
+          </li>
+        </ul>
+      </div>
       <div className="bonk-air-rules__group bonk-air-rules__group--plus">
         <h3>Points</h3>
         <ul>
