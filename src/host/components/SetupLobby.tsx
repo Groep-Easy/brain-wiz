@@ -10,7 +10,6 @@ import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
 import { FlowEditor } from '../screens/FlowEditor'
 import { toFlowItems } from '../flow/flow-api'
 import '../styles/setup_lobby.css'
-// import { BlockIcon } from './BlockIcon'
 import { ROOM } from '@brain-wiz/config/game.config'
 
 import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
@@ -49,6 +48,9 @@ export function SetupLobby({
     [gameFlow.length]
   )
 
+  /** How many more connected players are needed before the game can start. */
+  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
+
   const openEditor = () => {
     setActiveTab('flow')
   }
@@ -65,12 +67,13 @@ export function SetupLobby({
     startGame()
   }
 
-
   const handleCancelFlow = () => {
     setActiveTab('lobby')
   }
 
-  useEffect(() => { if (!isMuted()) playSound(sounds.jazz, true) }, [roomCode])
+  useEffect(() => {
+    if (!isMuted()) playSound(sounds.jazz, true)
+  }, [roomCode])
 
   useEffect(() => {
     if (roomCode) {
@@ -80,10 +83,8 @@ export function SetupLobby({
         .catch((err) => {
           console.error('Failed to generate QR code:', err)
         })
-
     }
   }, [roomCode])
-
 
   const handleKick = async (playerId: string) => {
     try {
@@ -106,13 +107,10 @@ export function SetupLobby({
       }
 
       if (!isMuted()) playSound(sounds.quack, false)
-    }
-    catch (err) {
+    } catch (err) {
       console.error('Kick error', err)
     }
   }
-
-  const missingPlayers = ROOM.MIN_PLAYERS_TO_START - players.length
 
   return (
     <>
@@ -271,8 +269,11 @@ export function SetupLobby({
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
-                                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
-                                  <span className="flow-block-icon">{block.icon}</span>
+                                  <img
+                                    className="flow-block-icon"
+                                    src={block.icon}
+                                    alt={block.label}
+                                  />
                                   <span className="flow-block-label">{block.label}</span>
                                   {block.kind === 'minigame' && (
                                     <span className="flow-block-time">

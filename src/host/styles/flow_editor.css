@@ -168,6 +168,13 @@
   line-height: 1;
 }
 
+/* Palette/flow block icons are now images; constrain them to the icon box. */
+img.block-icon {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
 .block-label {
   font-size: 1rem;
 }
@@ -306,8 +313,18 @@
   font-size: 2rem;
 }
 
+.canvas-block img.block-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .canvas-block.has-time-control .block-icon {
   font-size: 1.75rem;
+}
+
+.canvas-block.has-time-control img.block-icon {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .minigame-time-control {

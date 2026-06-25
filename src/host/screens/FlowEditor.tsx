@@ -35,11 +35,11 @@ import {
 } from '../flow/flowMutations'
 import { buildSerpentine } from '../flow/serpentine'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
+import { BlockIcon } from '../components/BlockIcon'
 import '../styles/flow_editor.css'
 
 import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
-// import { BlockIcon } from '../components/BlockIcon'
 
 export interface FlowEditorProps {
   initialFlow: FlowItem[]
@@ -48,7 +48,12 @@ export interface FlowEditorProps {
   onCancel: () => void
 }
 
-export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowEditorProps): React.JSX.Element {
+export function FlowEditor({
+  initialFlow,
+  roomCode,
+  hostToken,
+  onCancel,
+}: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
   const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
   const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)
@@ -242,8 +247,12 @@ export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowE
             Cancel
           </button>
           {saveStatus === 'saving' && <span className="flow-save-status">Saving…</span>}
-          {saveStatus === 'saved' && <span className="flow-save-status flow-save-status--ok">Saved ✓</span>}
-          {saveStatus === 'error' && <span className="flow-save-status flow-save-status--err">Save failed</span>}
+          {saveStatus === 'saved' && (
+            <span className="flow-save-status flow-save-status--ok">Saved ✓</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="flow-save-status flow-save-status--err">Save failed</span>
+          )}
         </div>
       </header>
 
@@ -266,8 +275,7 @@ export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowE
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
-                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
-                  <span className="block-icon">{block.icon}</span>
+                  <BlockIcon icon={block.icon} label={block.label} />
                   <span className="block-label">{block.label}</span>
                 </div>
               ))}
@@ -284,8 +292,7 @@ export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowE
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
-                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
-                  <span className="block-icon">{block.icon}</span>
+                  <BlockIcon icon={block.icon} label={block.label} />
                   <span className="block-label">{block.label}</span>
                 </div>
               ))}
@@ -316,8 +323,9 @@ export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowE
                   {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
                   {lastCell && dropIndex === count && <div className="drop-indicator after" />}
                   <div
-                    className={`canvas-block ${block.kind} ${block.kind === 'minigame' ? 'has-time-control' : ''
-                      }`}
+                    className={`canvas-block ${block.kind} ${
+                      block.kind === 'minigame' ? 'has-time-control' : ''
+                    }`}
                     draggable
                     onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
                   >
@@ -345,8 +353,7 @@ export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowE
                         ⚙
                       </button>
                     )}
-                    {/* <BlockIcon icon={block.icon} label={block.label} /> */}
-                    <span className="block-icon">{block.icon}</span>
+                    <BlockIcon icon={block.icon} label={block.label} />
                     <span className="block-label">{block.label}</span>
                     {block.kind === 'minigame' && (
                       <div
