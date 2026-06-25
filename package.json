@@ -20,7 +20,7 @@
     "db:reset": "docker compose down -v",
     "lint": "npm run lint --workspaces --if-present && eslint tests",
     "lint:fix": "npm run lint:fix --workspaces --if-present && eslint tests --fix",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build:libs && npm run typecheck --workspaces --if-present",
     "format": "prettier --write \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,html,css,json}\" \"tests/**/*.ts\" \"docs/**/*.md\"",
     "test": "npm run lint:fix && npm run format && npm run test:project-checks",
