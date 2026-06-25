@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import '../styles/answer.css'
-import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { FULL_BAR_PERCENT, SHAPES, TILE_CLASSES } from './Answer.constants'
 import type {
   AnswerProps,
@@ -8,6 +7,9 @@ import type {
   AnswerTileProps,
   RevealBannerProps,
 } from './Answer.types'
+
+import { isMuted } from '@brain-wiz/shared/SFX/mute'
+import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 
 export function Answer({
   question,
@@ -112,9 +114,11 @@ function AnswerTile({
 
 function RevealBanner({ result }: RevealBannerProps): React.JSX.Element {
   useEffect(() => {
-    if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong, false)
-    if (result?.isCorrect) playSound(sounds.correct, false)
-    else playSound(sounds.wrong, false)
+    if (!isMuted()) {
+      if (!result || result.isTimeout || result.answerId === null) playSound(sounds.wrong, false)
+      if (result?.isCorrect) playSound(sounds.correct, false)
+      else playSound(sounds.wrong, false)
+    }
   }, [result])
 
   if (!result || result.isTimeout || result.answerId === null) {

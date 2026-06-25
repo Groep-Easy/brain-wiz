@@ -45,14 +45,12 @@ export interface FlowEditorProps {
   initialFlow: FlowItem[]
   roomCode: string
   hostToken: string
-  onCancel: () => void
 }
 
 export function FlowEditor({
   initialFlow,
   roomCode,
   hostToken,
-  onCancel,
 }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
   const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
@@ -94,9 +92,9 @@ export function FlowEditor({
     setFlow((prev) => setBlockMinigameTime(prev, uid, blockId, value))
   }
 
-  // The snake grid: cells in visual order + per-slot logical insert mapping. A
-  // fixed MAX_FLOW_COLUMNS means a full flow lands as exact rows.
-  const { cells, count, logicalInsertForSlot } = useMemo(
+  // The snake grid: cells in visual (reading) order. A fixed MAX_FLOW_COLUMNS
+  // means a full flow lands as exact rows.
+  const { cells, count } = useMemo(
     () => buildSerpentine(flow.length, MAX_FLOW_COLUMNS),
     [flow.length]
   )
@@ -165,22 +163,33 @@ export function FlowEditor({
   }
 
   // --- Whole-canvas drop target ------------------------------------------
-  // Work out which slot the cursor is over in reading order: pick the first
-  // block the cursor sits before, accounting for wrapped rows (Y then X).
+  // Work out the flow-order insertion index the cursor is over. We walk the
+  // blocks in flow order along the snake path: a later row sits lower (Y), and
+  // within a row the path runs left-to-right on even rows and right-to-left on
+  // odd ones, so the "before this block" test flips per row direction.
   const computeDropIndex = (clientX: number, clientY: number): number => {
     const track = trackRef.current
     if (!track) return flow.length
+    // `.canvas-block`s come back in visual order (== `cells`); index their
+    // rects by flow position so we can scan the snake in flow order.
     const blocks = Array.from(track.querySelectorAll<HTMLElement>('.canvas-block'))
-    let index = 0
-    for (const el of blocks) {
-      const rect = el.getBoundingClientRect()
-      const aboveRow = clientY < rect.top
-      const inRow = clientY >= rect.top && clientY <= rect.bottom
-      if (aboveRow) return index
-      if (inRow && clientX < rect.left + rect.width / 2) return index
-      index++
+    const rectByLogical: (DOMRect | undefined)[] = []
+    cells.forEach((cell, i) => {
+      const el = blocks[i]
+      if (el) rectByLogical[cell.logicalIndex] = el.getBoundingClientRect()
+    })
+    for (let j = 0; j < flow.length; j++) {
+      const rect = rectByLogical[j]
+      if (!rect) continue
+      if (clientY < rect.top) return j // cursor sits in an earlier row ⇒ before j
+      if (clientY <= rect.bottom) {
+        const mid = rect.left + rect.width / 2
+        const isEvenRow = Math.floor(j / MAX_FLOW_COLUMNS) % 2 === 0
+        const isBefore = isEvenRow ? clientX < mid : clientX > mid
+        if (isBefore) return j
+      }
     }
-    return blocks.length
+    return flow.length
   }
 
   const onCanvasDragOver = (e: React.DragEvent) => {
@@ -197,9 +206,7 @@ export function FlowEditor({
 
   const onCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    const slot = computeDropIndex(e.clientX, e.clientY)
-    // The cursor lands in a *visual* slot; map it back to a flow-order index.
-    const index = logicalInsertForSlot[slot] ?? flow.length
+    const index = computeDropIndex(e.clientX, e.clientY)
     setDropIndex(null)
     const source = e.dataTransfer.getData('application/x-source')
 
@@ -242,9 +249,6 @@ export function FlowEditor({
         <div className="flow-editor-actions">
           <button className="shuffle-btn" onClick={openSizePicker} title="Generate a random flow">
             🎲 Randomize
-          </button>
-          <button className="cancel-btn" onClick={onCancel} title="Return without saving">
-            Cancel
           </button>
           {saveStatus === 'saving' && <span className="flow-save-status">Saving…</span>}
           {saveStatus === 'saved' && (
@@ -313,15 +317,39 @@ export function FlowEditor({
               const block = resolveBlock(item.blockId)
               if (!block) return null
               const timeLimitSeconds = clampMinigameTimeSeconds(item.timeLimitSeconds, item.blockId)
-              const lastCell = cell.visualPos === count - 1
+              // The indicators are keyed to flow order. `beforeClass` shows where
+              // a block inserted *before this one* lands; `endClass` (drawn on the
+              // last flow block) shows where an appended block lands. At a snake
+              // turn the gap is vertical (above/below); within a row it's a
+              // vertical bar whose side follows the row's flow direction.
+              const f = cell.logicalIndex
+              const isLastInFlow = f === count - 1
+              const beforeClass =
+                f === 0
+                  ? 'start'
+                  : f % MAX_FLOW_COLUMNS === 0
+                    ? 'above'
+                    : cell.row % 2 === 0
+                      ? 'before'
+                      : 'after'
+              const endClass =
+                count % MAX_FLOW_COLUMNS === 0
+                  ? 'below'
+                  : cell.row % 2 === 0
+                    ? 'after'
+                    : 'before'
               return (
                 <div
                   className="canvas-cell"
                   key={item.uid}
                   style={{ gridRow: cell.row + 1, gridColumn: cell.col }}
                 >
-                  {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
-                  {lastCell && dropIndex === count && <div className="drop-indicator after" />}
+                  {dropIndex === f && dropIndex < count && (
+                    <div className={`drop-indicator ${beforeClass}`} />
+                  )}
+                  {isLastInFlow && dropIndex === count && (
+                    <div className={`drop-indicator ${endClass}`} />
+                  )}
                   <div
                     className={`canvas-block ${block.kind} ${
                       block.kind === 'minigame' ? 'has-time-control' : ''
@@ -464,7 +492,7 @@ export function FlowEditor({
               max={MAX_FLOW_BLOCKS}
               value={sizePicker}
               autoFocus
-              onChange={(e) => setSizePicker(Number(e.target.value))}
+              onChange={(e) => setSizePicker(Math.min(MAX_FLOW_BLOCKS, Number(e.target.value)))}
               onKeyDown={(e) => e.key === 'Enter' && confirmShuffle()}
             />
             <div className="size-modal-actions">
