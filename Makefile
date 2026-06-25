@@ -31,9 +31,15 @@ cert:
 			-keyout "$(CERT_DIR)/nginx-selfsigned.key" \
 			-out    "$(CERT_DIR)/nginx-selfsigned.crt" \
 			-subj "/CN=$(CERT_CN)"; \
-		chmod 644 "$(CERT_DIR)/nginx-selfsigned.key"; \
 		echo "Self-signed certificate generated at $(CERT_DIR)."; \
 	fi
+	@# The nginx-unprivileged container runs as UID 101, which is NOT the host
+	@# user that owns these files. nginx must be able to (a) traverse the cert
+	@# directory and (b) read the key/cert, so make both world-traversable/
+	@# readable. A restrictive umask otherwise leaves the dir at 700 and nginx
+	@# fails with "fopen(... .key) Permission denied" even when the key is 644.
+	@chmod 755 "$(CERT_DIR)"
+	@chmod 644 "$(CERT_DIR)/nginx-selfsigned.key" "$(CERT_DIR)/nginx-selfsigned.crt"
 
 deploy:
 	git pull --ff-only
