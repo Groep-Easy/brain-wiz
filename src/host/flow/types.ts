@@ -20,11 +20,11 @@ export interface FlowItem {
   uid: string
   blockId: string
   /** How many questions a quiz (theme) block contributes. Undefined = default. */
-  questions?: number
+  questions?: number | undefined
 }
 
 /** A flow item as stored on the server (no client-only `uid`). */
 export interface StoredFlowItem {
   blockId: string
-  questions?: number
+  questions?: number | undefined
 }

@@ -124,8 +124,12 @@ function makeLobby(questions: Question[] = []): LobbyService {
     noopEngine,
     fakeQuestionService(questions),
     fakeFlowService(),
-    { getClientSubmission: () => undefined } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
-    { publish: () => undefined } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
+    {
+      getClientSubmission: () => undefined,
+    } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+    {
+      publish: () => undefined,
+    } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
   )
 }
 
@@ -498,8 +502,12 @@ describe('LobbyService abort-on-empty', () => {
       gameEngine,
       fakeQuestionService(),
       fakeFlowService(),
-      { getClientSubmission: () => undefined } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
-      { publish: () => undefined } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
+      {
+        getClientSubmission: () => undefined,
+      } as unknown as import('../../src/server/room/game/answer.service').AnswerService,
+      {
+        publish: () => undefined,
+      } as unknown as import('../../src/server/room/game/game-event-bus').GameEventBus
     )
     return { lobby, rooms, clients, registry, aborted }
   }
@@ -521,8 +529,8 @@ describe('LobbyService abort-on-empty', () => {
     assert.deepEqual(aborted, [])
 
     const state = await lobby.getRoomState(code)
-    const aliceId = state!.players.find(p => p.name === 'Alice')!.id
-    const bobId = state!.players.find(p => p.name === 'Bob')!.id
+    const aliceId = state?.players.find((p) => p.name === 'Alice')?.id || ''
+    const bobId = state?.players.find((p) => p.name === 'Bob')?.id || ''
     await lobby.expireGrace(aliceId)
     await lobby.expireGrace(bobId)
 

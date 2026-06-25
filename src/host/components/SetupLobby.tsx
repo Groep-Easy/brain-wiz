@@ -13,7 +13,8 @@ import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
 
-// @ts-expect-error - Vite env variable
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - Vite env variable
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
 import useSound from 'use-sound'

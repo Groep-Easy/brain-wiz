@@ -31,7 +31,8 @@ import { ReconnectToast } from '../client/components/ReconnectToast'
 import './styles/welcome.css'
 import { getBackendHttpUrl, getBackendWsUrl } from '@brain-wiz/shared/utils/env'
 
-// @ts-expect-error - Vite env variable
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - Vite env variable
 const BACKEND_WS_URL = getBackendWsUrl(import.meta.env.VITE_WS_URL)
 const BACKEND_HTTP_URL = getBackendHttpUrl(BACKEND_WS_URL)
 const MAX_RECONNECT_ATTEMPTS = 5

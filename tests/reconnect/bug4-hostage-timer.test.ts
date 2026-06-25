@@ -40,9 +40,11 @@ describe('Bug 4: Hostage Timer', () => {
     const callback = bus.on.mock.calls.find((c: unknown[]) => c[0] === 'ROUND_WINDOW_OPENED')
     const subscribeCb =
       callback?.[1] ||
-      (bus.on.mock.results as unknown as Array<{ value: { subscribe: { mock: { calls: unknown[][] } } } }>).find(
-        (r) => r.value?.subscribe
-      )?.value.subscribe.mock.calls[0]?.[0]
+      (
+        bus.on.mock.results as unknown as Array<{
+          value: { subscribe: { mock: { calls: unknown[][] } } }
+        }>
+      ).find((r) => r.value?.subscribe)?.value.subscribe.mock.calls[0]?.[0]
     if (typeof subscribeCb === 'function') {
       subscribeCb({
         roomId,
