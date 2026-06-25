@@ -30,7 +30,6 @@ import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
-import { GameEventBus } from '../../src/server/room/game/game-event-bus'
 
 interface FakeRoomQueryBuilder {
   where(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
@@ -161,10 +160,6 @@ function fakeFlowService(): FlowService {
     randomize: async () => [],
     normalizeForStorage: async (flow: unknown) => flow,
   } as unknown as FlowService
-}
-
-function fakeGameEventBus(): GameEventBus {
-  return new GameEventBus()
 }
 
 function makeLobby(questions: Question[] = []): LobbyService {
