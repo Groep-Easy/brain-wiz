@@ -12,6 +12,28 @@ import {
   MIN_MINIGAME_TIME_SECONDS,
 } from '@brain-wiz/shared/constants/flow.constants'
 
+// import codingImg from '../../../assets/images/coding.png'
+// import filmsImg from '../../../assets/images/films.png'
+// import gamingImg from '../../../assets/images/gaming.png'
+// import geographyImg from '../../../assets/images/geography.png'
+// import historyImg from '../../../assets/images/history.png'
+// import internetMemesImg from '../../../assets/images/internet&memes.png'
+// import knowledgeImg from '../../../assets/images/knowledge.png'
+// import musicImg from '../../../assets/images/music.png'
+// import scienceImg from '../../../assets/images/science.png'
+// import sportImg from '../../../assets/images/sport.png'
+// import artImg from '../../../assets/images/art.png'
+// import culturetImg from '../../../assets/images/culture.png'
+// import otherImg from '../../../assets/images/other.png'
+// import techImg from '../../../assets/images/tech.png'
+
+// // Minigames
+// import slidingPuzzleImg from '../../../assets/images/MG_slidingPuzzle.png'
+// import scaleImg from '../../../assets/images/MG_scale.png'
+// import vaultImg from '../../../assets/images/MG_vault.png'
+// import woordleImg from '../../../assets/images/MG_woordle.png'
+// import atcImg from '../../../assets/images/MG_atc.png'
+
 /** Default number of questions for a quiz block, and the allowed range. */
 export const DEFAULT_QUESTIONS_PER_BLOCK = 5
 export const MIN_QUESTIONS_PER_BLOCK = 1
@@ -26,6 +48,29 @@ const DEFAULT_MINIGAME_TIME_BY_BLOCK_ID: Record<string, number> = {
 export { MAX_MINIGAME_TIME_SECONDS, MINIGAME_TIME_STEP_SECONDS, MIN_MINIGAME_TIME_SECONDS }
 
 /** Every block a host can place in a flow: trivia themes + mini-games. */
+// export const PALETTE: BlockDef[] = [
+//   { id: 'theme-history', label: 'History', kind: 'theme', icon: historyImg },
+//   { id: 'theme-science', label: 'Science', kind: 'theme', icon: scienceImg },
+//   { id: 'theme-sport', label: 'Sport', kind: 'theme', icon: sportImg },
+//   { id: 'theme-culture', label: 'Culture', kind: 'theme', icon: culturetImg },
+//   { id: 'theme-geography', label: 'Geography', kind: 'theme', icon: geographyImg },
+//   { id: 'theme-technology', label: 'Technology', kind: 'theme', icon: techImg },
+//   { id: 'theme-art', label: 'Art', kind: 'theme', icon: artImg },
+//   { id: 'theme-coding', label: 'Coding', kind: 'theme', icon: codingImg },
+//   { id: 'theme-films', label: 'Films', kind: 'theme', icon: filmsImg },
+//   { id: 'theme-gaming', label: 'Gaming', kind: 'theme', icon: gamingImg },
+//   { id: 'theme-general', label: 'General', kind: 'theme', icon: knowledgeImg },
+//   { id: 'theme-internet', label: 'Internet', kind: 'theme', icon: internetMemesImg },
+//   { id: 'theme-music', label: 'Music', kind: 'theme', icon: musicImg },
+//   { id: 'theme-other', label: 'Other', kind: 'theme', icon: otherImg },
+//   { id: 'mini-balance-scale', label: 'Balance Scale', kind: 'minigame', icon: scaleImg },
+//   { id: 'mini-sliding-puzzle', label: 'Sliding Puzzle', kind: 'minigame', icon: slidingPuzzleImg },
+//   { id: 'mini-vault-rush', label: 'Vault Rush', kind: 'minigame', icon: vaultImg },
+//   { id: 'mini-bonk-air', label: 'Bonk Air', kind: 'minigame', icon: atcImg },
+//   { id: 'mini-light-switch', label: 'Light Switch Puzzle', kind: 'minigame', icon: knowledgeImg },
+//   { id: 'mini-wordle', label: 'Guess the Word', kind: 'minigame', icon: woordleImg },
+// ]
+
 export const PALETTE: BlockDef[] = [
   { id: 'theme-history', label: 'History', kind: 'theme', icon: '🏺' },
   { id: 'theme-science', label: 'Science', kind: 'theme', icon: '🔬' },

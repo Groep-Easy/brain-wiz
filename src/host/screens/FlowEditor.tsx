@@ -24,7 +24,7 @@ import {
   createFlowItem,
   randomFlowFrom,
 } from '../flow/palette'
-import { fetchCatalog } from '../flow/flow-api'
+import { fetchCatalog, storeRoomFlow } from '../flow/flow-api'
 import type { BlockDef, FlowItem } from '../flow/types'
 import {
   insertBlock,
@@ -39,14 +39,16 @@ import '../styles/flow_editor.css'
 
 import { playSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
+// import { BlockIcon } from '../components/BlockIcon'
 
 export interface FlowEditorProps {
   initialFlow: FlowItem[]
-  onSave: (flow: FlowItem[]) => void
+  roomCode: string
+  hostToken: string
   onCancel: () => void
 }
 
-export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): React.JSX.Element {
+export function FlowEditor({ initialFlow, roomCode, hostToken, onCancel }: FlowEditorProps): React.JSX.Element {
   const trackRef = useRef<HTMLDivElement>(null)
   const [flow, setFlow] = useState<FlowItem[]>(initialFlow)
   const [catalog, setCatalog] = useState<BlockDef[]>(PALETTE)
@@ -54,6 +56,27 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   // Size picker shown when the host asks for a randomized flow.
   const [sizePicker, setSizePicker] = useState<number | null>(null)
+
+  // ── Autosave ──────────────────────────────────────────────────────────────
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    // Skip saving on the initial mount — the flow hasn't changed yet.
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    setSaveStatus('saving')
+    const timer = setTimeout(async () => {
+      const ok = await storeRoomFlow(roomCode, hostToken, flow)
+      setSaveStatus(ok ? 'saved' : 'error')
+      // Clear the indicator after 2s so it doesn't clutter the UI.
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [flow, roomCode, hostToken])
+
   // The uid of the quiz block whose question-count popover is open, if any.
   const [settingsFor, setSettingsFor] = useState<string | null>(null)
 
@@ -218,13 +241,9 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
           <button className="cancel-btn" onClick={onCancel} title="Return without saving">
             Cancel
           </button>
-          <button
-            className="primary-btn save-btn"
-            onClick={() => onSave(flow)}
-            title="Save changes"
-          >
-            Save
-          </button>
+          {saveStatus === 'saving' && <span className="flow-save-status">Saving…</span>}
+          {saveStatus === 'saved' && <span className="flow-save-status flow-save-status--ok">Saved ✓</span>}
+          {saveStatus === 'error' && <span className="flow-save-status flow-save-status--err">Save failed</span>}
         </div>
       </header>
 
@@ -247,6 +266,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
+                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
                   <span className="block-icon">{block.icon}</span>
                   <span className="block-label">{block.label}</span>
                 </div>
@@ -264,6 +284,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                   draggable
                   onDragStart={(e) => onPaletteDragStart(e, block.id)}
                 >
+                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
                   <span className="block-icon">{block.icon}</span>
                   <span className="block-label">{block.label}</span>
                 </div>
@@ -295,9 +316,8 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                   {dropIndex === cell.visualPos && <div className="drop-indicator before" />}
                   {lastCell && dropIndex === count && <div className="drop-indicator after" />}
                   <div
-                    className={`canvas-block ${block.kind} ${
-                      block.kind === 'minigame' ? 'has-time-control' : ''
-                    }`}
+                    className={`canvas-block ${block.kind} ${block.kind === 'minigame' ? 'has-time-control' : ''
+                      }`}
                     draggable
                     onDragStart={(e) => onFlowDragStart(e, cell.logicalIndex)}
                   >
@@ -325,6 +345,7 @@ export function FlowEditor({ initialFlow, onSave, onCancel }: FlowEditorProps): 
                         ⚙
                       </button>
                     )}
+                    {/* <BlockIcon icon={block.icon} label={block.label} /> */}
                     <span className="block-icon">{block.icon}</span>
                     <span className="block-label">{block.label}</span>
                     {block.kind === 'minigame' && (

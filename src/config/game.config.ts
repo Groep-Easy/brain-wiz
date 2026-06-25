@@ -65,7 +65,7 @@ export const TIMER = Object.freeze({
   // needs a longer reveal window than a quiz before the round advances.
   BONK_AIR_REVEAL_SECONDS: 14,
   ROUND_INTRO_SECONDS: 3,
-  LEADERBOARD_SECONDS: 6,
+  LEADERBOARD_SECONDS: 3,
   SCORED_AWAIT_TIMEOUT_MS: 5_000,
 })
 

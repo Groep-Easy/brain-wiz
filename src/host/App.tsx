@@ -12,7 +12,7 @@ import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRu
 
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
-import { WelcomeScreen } from './screens/WelcomeScreen'
+// import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
@@ -43,6 +43,10 @@ export function App(): React.JSX.Element {
 
   const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
+  }
+
+  const handleSkipTimer = (): void => {
+    console.warn('handleSkipTimer: not yet implemented in useHostSocket')
   }
 
   const performCloseLobby = (): void => {
@@ -139,6 +143,7 @@ export function App(): React.JSX.Element {
         answeredCount={h.answeredCount}
         totalPlayers={h.totalPlayers}
         reveal={phase === 'reveal' ? h.reveal : null}
+        onSkip={handleSkipTimer}
       />
     )
   }
@@ -169,7 +174,17 @@ export function App(): React.JSX.Element {
     if (h.fatalError) return renderFatal()
 
     const active = activeRoom()
-    if (!active) return <WelcomeScreen />
+    if (!active) {
+      return (
+        <main className="app">
+          <div className="welcome-screen">
+            <div className="welcome-card">
+              <p>Connecting…</p>
+            </div>
+          </div>
+        </main>
+      )
+    }
 
     return renderActivePhase(active)
   }
@@ -226,15 +241,14 @@ function renderMinigame(
   ) {
     return (
       <RoundMinigameSurface
-        className={`host-minigame ${
-          content.type === 'balance-scale'
-            ? 'host-minigame--scale'
-            : content.type === 'vault-rush'
-              ? 'host-minigame--vault'
-              : content.type === 'light-switch'
-                ? 'host-minigame--light'
-                : 'host-minigame--sliding'
-        }`}
+        className={`host-minigame ${content.type === 'balance-scale'
+          ? 'host-minigame--scale'
+          : content.type === 'vault-rush'
+            ? 'host-minigame--vault'
+            : content.type === 'light-switch'
+              ? 'host-minigame--light'
+              : 'host-minigame--sliding'
+          }`}
         content={content}
         mode="display"
         phase={phase}

@@ -15,7 +15,7 @@ export function RoundIntro({ index, total, questionText }: RoundIntroProps): Rea
     <main className="round-intro">
       <div className="round-intro-card">
         <p className="round-intro-eyebrow">
-          Question {index} of {total}
+          Question {index + 1} of {total}
         </p>
         {questionText ? (
           <>

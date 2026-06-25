@@ -181,6 +181,14 @@ export class GameEngineService {
     await this.present(room.id, round)
 
     let didEndEarly = false
+    const skipSub = this.bus
+      .on('HOST_SKIP_TIMER')
+      .pipe(filter((e) => e.roomId === room.id))
+      .subscribe(() => {
+        didEndEarly = false
+        game.timer.endEarly()
+      })
+
     const earlySub = this.bus
       .on('ALL_PLAYERS_ANSWERED')
       .pipe(filter((e) => e.roomId === room.id && e.roundId === round.id))
@@ -191,6 +199,7 @@ export class GameEngineService {
 
     const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds, true)
     earlySub.unsubscribe()
+    skipSub.unsubscribe()
     if (didAbort) {
       this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
       return
@@ -203,6 +212,13 @@ export class GameEngineService {
     const revealSeconds =
       round.gameType === 'bonk-air' ? TIMER.BONK_AIR_REVEAL_SECONDS : TIMER.REVEAL_SECONDS
     if (await this.runPhase(room, game, GamePhase.REVEAL, revealSeconds)) {
+      return
+    }
+
+    const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
+    const isLastRound = round.roundIndex === totalRounds - 1
+    if (isLastRound) {
+      await this.enterPhase(room, GamePhase.GAME_OVER)
       return
     }
 

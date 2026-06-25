@@ -522,3 +522,12 @@
   color: var(--sl-text-primary);
   box-shadow: var(--sl-shadow-sm);
 }
+
+.block-icon {
+  width: 4rem;
+  height: 4rem;
+}
+
+img.block-icon {
+  object-fit: contain;
+}

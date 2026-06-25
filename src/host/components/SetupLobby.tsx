@@ -11,6 +11,7 @@ import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
+// import { BlockIcon } from './BlockIcon'
 import { ROOM } from '@brain-wiz/config/game.config'
 
 import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
@@ -53,16 +54,28 @@ export function SetupLobby({
     setActiveTab('flow')
   }
 
+  const startGame = () => {
+    stopSound(sounds.jazz)
+    if (!isMuted()) playStartGameSound()
+    setTimeout(() => {
+      onStartGame(timePerQuestion)
+    }, 1000)
+  }
+
+  const handleStart = () => {
+    startGame()
+  }
+
   const handleSaveFlow = async (newFlow: FlowItem[]) => {
     await storeRoomFlow(roomCode, hostToken, newFlow)
-    setActiveTab('lobby')
+    handleStart()
   }
 
   const handleCancelFlow = () => {
     setActiveTab('lobby')
   }
 
-  useEffect(() => {if(!isMuted()) playSound(sounds.jazz, true)}, [roomCode])
+  useEffect(() => { if (!isMuted()) playSound(sounds.jazz, true) }, [roomCode])
 
   useEffect(() => {
     if (roomCode) {
@@ -72,19 +85,10 @@ export function SetupLobby({
         .catch((err) => {
           console.error('Failed to generate QR code:', err)
         })
+
     }
   }, [roomCode])
 
-  const ONE_SECOND_TIME_OUT = 1000
-  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
-
-  const handleStart = () => {
-    stopSound(sounds.jazz)
-    if (!isMuted()) playSound(sounds.startGame, false)
-    setTimeout(() => {
-      onStartGame(timePerQuestion)
-    }, ONE_SECOND_TIME_OUT)
-  }
 
   const handleKick = async (playerId: string) => {
     try {
@@ -181,6 +185,8 @@ export function SetupLobby({
             {activeTab === 'flow' ? (
               <FlowEditor
                 initialFlow={toFlowItems(gameFlow)}
+                roomCode={roomCode}
+                hostToken={hostToken}
                 onSave={handleSaveFlow}
                 onCancel={handleCancelFlow}
               />
@@ -204,7 +210,6 @@ export function SetupLobby({
                         <div className="join-code">{roomCode}</div>
                       </div>
                     </aside>
-
                     {/* Right Main Content */}
                     <div className="lobby-main-cards">
                       <div className="players-card">
@@ -270,6 +275,7 @@ export function SetupLobby({
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
+                                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
                                   <span className="flow-block-icon">{block.icon}</span>
                                   <span className="flow-block-label">{block.label}</span>
                                   {block.kind === 'minigame' && (
