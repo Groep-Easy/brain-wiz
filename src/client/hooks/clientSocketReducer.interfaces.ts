@@ -64,3 +64,9 @@ export type ClientSocketAction =
   | { type: 'optionSelected'; choiceId: string }
   | { type: 'leftRoom' }
   | { type: 'fatalCleared' }
+
+export type ServerEventHandler = (state: ClientSocketState, data: unknown) => ClientSocketState
+
+export type ActionHandlerMap = {
+  [A in ClientSocketAction as A['type']]: (state: ClientSocketState, action: A) => ClientSocketState
+}

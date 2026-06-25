@@ -7,6 +7,7 @@
   box-sizing: border-box;
   background: var(--bg);
 }
+
 .hq-top {
   display: flex;
   justify-content: space-between;
@@ -14,9 +15,11 @@
   font-size: 1.1rem;
   color: var(--navy);
 }
+
 .hq-status {
   font-weight: 700;
 }
+
 .hq-timer {
   position: relative;
   height: 18px;
@@ -24,11 +27,13 @@
   border-radius: var(--radius-round);
   overflow: hidden;
 }
+
 .hq-timer-bar {
   height: 100%;
   background: var(--teal);
   transition: width 1s linear;
 }
+
 .hq-timer-label {
   position: absolute;
   right: 10px;
@@ -38,11 +43,13 @@
   color: #fff;
   font-weight: 700;
 }
+
 .hq-question {
   text-align: center;
   font-size: clamp(1.5rem, 4vw, 3rem);
   margin: 0.5rem 0;
 }
+
 .hq-answers {
   flex: 1;
   display: grid;
@@ -50,6 +57,7 @@
   grid-template-rows: 1fr 1fr;
   gap: 1rem;
 }
+
 .hq-tile {
   position: relative;
   display: flex;
@@ -64,28 +72,35 @@
     opacity 300ms ease,
     transform 300ms ease;
 }
+
 .tile-teal {
   background: var(--teal);
 }
+
 .tile-red {
   background: var(--red);
 }
+
 .tile-blue {
   background: var(--darkblue);
 }
+
 .tile-tan {
   background: var(--tan);
   color: var(--dark);
 }
+
 .hq-tile.is-dim {
   opacity: 0.35;
 }
+
 .hq-tile.is-correct {
   transform: scale(1.03);
   box-shadow:
     0 0 0 6px #fff inset,
     0 0 24px rgba(0, 0, 0, 0.25);
 }
+
 .hq-tile-bar {
   position: absolute;
   left: 0;
@@ -94,6 +109,7 @@
   background: rgba(255, 255, 255, 0.25);
   transition: width 600ms ease;
 }
+
 .hq-tile-shape,
 .hq-tile-text,
 .hq-tile-count,
@@ -101,12 +117,37 @@
   position: relative;
   z-index: 1;
 }
+
 .hq-tile-text {
   flex: 1;
 }
+
 .hq-tile-count {
   font-weight: 700;
 }
+
 .hq-tile-check {
   font-size: 1.5em;
+}
+
+/* Skip timer button — sits in the top-right of the question header */
+.hq-skip-btn {
+  padding: 0.35rem 0.9rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: 2px solid var(--tan);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--navy);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+  /* Push left so it doesn't sit under the fixed MuteButton (48px button + 16px gap) */
+  margin-right: 72px;
+}
+
+.hq-skip-btn:hover {
+  background: var(--tan);
 }

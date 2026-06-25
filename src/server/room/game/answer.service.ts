@@ -114,31 +114,7 @@ export class AnswerService {
     const { roomId, clientId } = membership
 
     const window = this.windows.get(roomId)
-    if (!window) {
-      this.ack(socket, false, 'window-closed')
-      return
-    }
-    if (
-      window.scoringMode !== 'minigame' ||
-      payload.roundId !== window.roundId ||
-      payload.type !== window.roundType
-    ) {
-      this.ack(socket, false, 'invalid-answer')
-      return
-    }
-    const adapter = this.minigames?.get(payload.type)
-    const isValid = adapter !== undefined && adapter.validateSubmission(payload.submission)
-    if (payload.type === 'bonk-air') {
-      this.logger.log(
-        `[bonk-air] submitRound client=${clientId} valid=${isValid} alreadySubmitted=${window.submitted.has(clientId)}`
-      )
-    }
-    if (!isValid) {
-      this.ack(socket, false, 'invalid-answer')
-      return
-    }
-    if (window.submitted.has(clientId)) {
-      this.ack(socket, false, 'already-answered')
+    if (!this.validateRoundSubmission(socket, payload, clientId, window)) {
       return
     }
 
@@ -151,6 +127,44 @@ export class AnswerService {
     })
   }
 
+  /** Validates a RoundSubmit against the open window, ACKing on rejection.
+   *  Narrows `window` to a defined OpenWindow when it returns true. */
+  private validateRoundSubmission(
+    socket: ClientSocket,
+    payload: RoundSubmitPayload,
+    clientId: string,
+    window: OpenWindow | undefined
+  ): window is OpenWindow {
+    if (!window) {
+      this.ack(socket, false, 'window-closed')
+      return false
+    }
+    if (
+      window.scoringMode !== 'minigame' ||
+      payload.roundId !== window.roundId ||
+      payload.type !== window.roundType
+    ) {
+      this.ack(socket, false, 'invalid-answer')
+      return false
+    }
+    const adapter = this.minigames?.get(payload.type)
+    const isValid = adapter !== undefined && adapter.validateSubmission(payload.submission)
+    if (payload.type === 'bonk-air') {
+      this.logger.log(
+        `[bonk-air] submitRound client=${clientId} valid=${isValid} alreadySubmitted=${window.submitted.has(clientId)}`
+      )
+    }
+    if (!isValid) {
+      this.ack(socket, false, 'invalid-answer')
+      return false
+    }
+    if (window.submitted.has(clientId)) {
+      this.ack(socket, false, 'already-answered')
+      return false
+    }
+    return true
+  }
+
   public updateRoundProgress(socket: ClientSocket, payload: RoundProgressPayload): void {
     const membership = this.registry.lookup(socket)
     if (!membership || membership.role !== 'client') {
@@ -159,13 +173,7 @@ export class AnswerService {
     const { roomId, clientId } = membership
 
     const window = this.windows.get(roomId)
-    if (
-      !window ||
-      window.scoringMode !== 'minigame' ||
-      payload.roundId !== window.roundId ||
-      payload.type !== window.roundType ||
-      window.submitted.has(clientId)
-    ) {
+    if (!this.canAcceptRoundProgress(payload, clientId, window)) {
       return
     }
 
@@ -179,6 +187,31 @@ export class AnswerService {
       timeToAnswerMs: Date.now() - window.shownAt,
     })
 
+    this.emitRoundProgressFeedback(socket, payload, window, adapter)
+  }
+
+  /** True when the open window can accept progress for this payload/client.
+   *  Narrows `window` to a defined OpenWindow when it returns true. */
+  private canAcceptRoundProgress(
+    payload: RoundProgressPayload,
+    clientId: string,
+    window: OpenWindow | undefined
+  ): window is OpenWindow {
+    return (
+      window !== undefined &&
+      window.scoringMode === 'minigame' &&
+      payload.roundId === window.roundId &&
+      payload.type === window.roundType &&
+      !window.submitted.has(clientId)
+    )
+  }
+
+  private emitRoundProgressFeedback(
+    socket: ClientSocket,
+    payload: RoundProgressPayload,
+    window: OpenWindow,
+    adapter: NonNullable<ReturnType<MinigameRegistry['get']>>
+  ): void {
     if (adapter.getProgressFeedback && window.privateState) {
       const feedback = adapter.getProgressFeedback(payload.submission, window.privateState)
       if (feedback !== undefined) {

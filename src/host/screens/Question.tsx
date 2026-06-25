@@ -42,6 +42,7 @@ export function Question({
   }, [question])
   if (revealed) {
     stopSound(sounds.suspense)
+    if (!isMuted()) playSound(sounds.reveal, false)
   }
 
   return (
@@ -52,7 +53,7 @@ export function Question({
         </span>
         <span className="hq-status">
           {revealed
-            ? `${summary?.correctPlayers ?? 0} of ${summary?.totalAnswered ?? 0} got it right`
+            ? `${summary?.correctPlayers ?? 0} of ${totalPlayers} got it right`
             : `${answeredCount} / ${totalPlayers} answered`}
         </span>
         {!revealed && (
@@ -79,9 +80,8 @@ export function Question({
           return (
             <div
               key={answer.id}
-              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${
-                dim ? 'is-dim' : ''
-              } ${revealed && isCorrect ? 'is-correct' : ''}`}
+              className={`hq-tile ${TILE_CLASSES[i] ?? 'tile-teal'} ${dim ? 'is-dim' : ''
+                } ${revealed && isCorrect ? 'is-correct' : ''}`}
             >
               {revealed && (
                 <div className="hq-tile-bar" style={{ width: `${(stat?.fraction ?? 0) * 100}%` }} />

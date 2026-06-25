@@ -22,6 +22,8 @@ How the system fits together and the decisions behind it.
 ## Game design
 
 - [Round types](game-design/round-types.md): the round families and the minigame contract.
+- [Sliding Puzzle](game-design/sliding-puzzle.md): server state, board flow, and scoring notes.
+- [Balance Scale](game-design/balance-scale.md): public/private state, answer flow, and scoring notes.
 - [Vault Rush](game-design/vault-rush.md): a worked minigame in depth.
 
 ## Security

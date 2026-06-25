@@ -90,9 +90,17 @@ export function useHostSocket(roomCode: string | undefined, hostToken: string | 
     dispatch({ type: 'closed' })
   }
 
+  /** Tell the server to end the current question timer immediately. */
+  const sendSkipTimer = (): void => {
+    const socket = socketRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN) return
+    socket.send(JSON.stringify({ event: 'HOST_SKIP_TIMER', data: {} }))
+  }
+
   return {
     ...state,
     handleStartGame,
     closeConnection,
+    sendSkipTimer,
   }
 }

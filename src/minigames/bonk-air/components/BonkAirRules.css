@@ -7,10 +7,13 @@
   --alert: #ff5c5c;
   --amber: #ffb948;
   --dim: #9fb1c2;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  width: min(440px, 90vw);
+  /* Wide "block" layout: the sections sit side by side and wrap down to one
+     column only on narrow screens, so the card stays short vertically. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  align-items: start;
+  gap: 16px 18px;
+  width: min(960px, 95vw);
   padding: 24px;
   border-radius: 18px;
   background: var(--deck);
@@ -21,10 +24,48 @@
 }
 
 .bonk-air-rules__title {
+  grid-column: 1 / -1;
   margin: 0;
   font-size: 1.5rem;
   text-align: center;
   color: var(--amber);
+}
+
+/* Objective / how-to-play blurb shown above the scoring legend. */
+.bonk-air-rules__objective {
+  background: var(--deck-2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--deck-edge);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bonk-air-rules__goal {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--cream);
+}
+
+.bonk-air-rules__goal strong {
+  color: var(--amber);
+}
+
+.bonk-air-rules__dos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bonk-air-rules__dos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .bonk-air-rules__group {
@@ -100,6 +141,14 @@
   gap: 28px;
   padding: 24px;
   min-height: 100svh;
+}
+
+/* Illustrative artwork above the rules card on the host screen. */
+.host-minigame--bonk-air__art {
+  width: clamp(96px, 12vw, 160px);
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 .host-minigame__rotate-hint {
