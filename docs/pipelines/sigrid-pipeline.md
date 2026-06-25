@@ -67,6 +67,7 @@ on:
       - master
   workflow_dispatch:
 ```
+
 ---
 
 ## Authentication
@@ -351,16 +352,16 @@ System: brain-wiz
 
 The dashboard contains quality information such as:
 
-* maintainability;
-* architecture;
-* open source health;
-* security;
-* test code ratio;
-* build volume;
-* technology stack;
-* libraries;
-* component quality;
-* maintainability risks.
+- maintainability;
+- architecture;
+- open source health;
+- security;
+- test code ratio;
+- build volume;
+- technology stack;
+- libraries;
+- component quality;
+- maintainability risks.
 
 The Code Explorer can be used to inspect specific files and components with lower quality scores.
 
@@ -401,23 +402,23 @@ Sigrid is a quality analysis tool. It helps the team understand where maintainab
 
 Sigrid can help identify:
 
-* complex code;
-* duplicated code;
-* large units;
-* risky dependencies;
-* security concerns;
-* weaker components;
-* maintainability trends over time.
+- complex code;
+- duplicated code;
+- large units;
+- risky dependencies;
+- security concerns;
+- weaker components;
+- maintainability trends over time.
 
 Sigrid does not:
 
-* run the test suite;
-* build the application;
-* format the code;
-* lint the code;
-* automatically refactor code;
-* automatically fix maintainability issues;
-* replace code review.
+- run the test suite;
+- build the application;
+- format the code;
+- lint the code;
+- automatically refactor code;
+- automatically fix maintainability issues;
+- replace code review.
 
 Those tasks are handled by other CI jobs and by the development team.
 
@@ -461,13 +462,13 @@ The Brain Wiz repository is now connected to Sigrid through a separate GitHub Ac
 
 The workflow:
 
-* runs on pushes to `develop` and `master`;
-* can be started manually;
-* uploads the source code to Sigrid;
-* analyzes maintainability, open source health, and security;
-* excludes generated folders;
-* stores Sigrid output as a GitHub Actions artifact;
-* shows results in the Sigrid dashboard.
+- runs on pushes to `develop` and `master`;
+- can be started manually;
+- uploads the source code to Sigrid;
+- analyzes maintainability, open source health, and security;
+- excludes generated folders;
+- stores Sigrid output as a GitHub Actions artifact;
+- shows results in the Sigrid dashboard.
 
 ```text
 GitHub Actions → Sigrid upload → Sigrid dashboard → code quality feedback

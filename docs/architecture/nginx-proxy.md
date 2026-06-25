@@ -12,20 +12,20 @@ Nginx automatically handles SSL termination. Run `make cert` once on a fresh hos
 
 ### 2. Port Management & Isolation
 
-Nginx binds to port `3000` on the host machine and safely proxies traffic to the internal Node.js Docker container. The Node backend itself runs on an isolated Docker network and is **never** directly exposed to the internet.
+Nginx is the only public entry point, bound to ports `80` and `443` on the host. It proxies traffic to the Node.js backend, which listens on port `3000` inside an isolated Docker network and is **never** directly exposed to the internet.
 
 ### 3. Security & Rate Limiting
 
 Nginx acts as a security buffer:
 
-- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks. This is the edge layer; the app adds HTTP and WebSocket limits on top — see [Rate Limiting](../security/rate-limiting.md).
+- **Rate Limiting**: Enforces request rate limits to prevent spam and DDoS attacks. This is the edge layer; the app adds HTTP and WebSocket limits on top (see [Rate Limiting](../security/rate-limiting.md)).
 - **Error Pages**: Strips identifying server headers and serves custom HTML error pages located in `./nginx/errors/`.
 
 ### 4. Structured JSON Logging
 
 Nginx writes access logs in structured JSON format (not the default `combined` text format):
 
-- Fields (`status`, `method`, `remote_addr`, `request_time`, `request_id`, …) are first-class values — no regex parsing required.
+- Fields (`status`, `method`, `remote_addr`, `request_time`, `request_id`, …) are first-class values, with no regex parsing required.
 - Promtail promotes `status`, `method`, and `remote_addr` as indexed Loki labels for cheap filtering.
 - Query directly in Grafana: `{job="nginx"} | json | status = "429"`
 
@@ -49,7 +49,7 @@ Correlate across both nginx and app logs in Loki:
 
 ## Deployment
 
-All services — app, nginx, database, and (optionally) observability — live in a **single `docker-compose.yml`**. Core services start by default; extras are opt-in via Compose profiles.
+All services (app, nginx, database, and optionally observability) live in a **single `docker-compose.yml`**. Core services start by default; extras are opt-in via Compose profiles.
 
 ### One-time setup (fresh host)
 
@@ -69,7 +69,7 @@ make deploy-obs             # same, plus observability (Grafana on 3200)
 make down                   # stop the stack
 ```
 
-`make deploy` runs `docker compose -f docker-compose.yml up --build -d` — the
+`make deploy` runs `docker compose -f docker-compose.yml up --build -d`. The
 explicit `-f` skips the local-dev `docker-compose.override.yml`, so the
 database is **never** published to the host on the server. The DB and Loki are
 internal-only (no host ports); nginx is the sole public entry point on 80/443.
