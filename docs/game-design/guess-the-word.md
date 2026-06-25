@@ -142,7 +142,7 @@ This file defines the TypeScript types for the Guess the Word components.
 ---
 ### `WordleMock.tsx`
 
-The mock file contains all the stateful game logic and is used to drive the `WordleGame` component during both local development and the real game flow.
+WordleMock.tsx contains the client-side input, reveal, and waiting-for-feedback state. It does not evaluate guesses authoritatively in the real game flow; it sends raw guess strings to the server and waits for WordleFeedback.
 
 It manages:
 
@@ -281,6 +281,44 @@ Returns the number of guesses made.
 Returns the elapsed time in seconds between two `Date` objects.
 
 ---
+
+# Server state and feedback flow
+
+Wordle uses the Brain Wiz public/private state split to keep the answer hidden from the client at all times.
+
+## Round creation
+
+When a Wordle round is created, `WordleServerAdapter.createRound()` produces three separate objects:
+
+- **`publicState`** — `{ wordLength, maxTries }` — sent to the client so it knows how to render the grid
+- **`privateState`** — `{ answer }` — stored server-side only and never sent to the client
+- **`scoringConfig`** — contains `basePoints`, `pointsPerExtraGuess`, `solveSpeedBonus`, and `timeLimitMs`
+
+The answer is never included in any message sent to the client during play. The client only ever receives the word length and the maximum number of tries from `publicState`.
+
+## Per-guess feedback
+
+Each time the player submits a guess, the client sends a `WordleSubmission` to the server containing only the raw guessed words:
+
+```ts
+{ guesses: string[] }
+```
+
+The server passes this to `AnswerService.updateRoundProgress()`, which calls `WordleServerAdapter.getProgressFeedback()` with the submission and the private state. The adapter evaluates every guess against the secret answer and returns a `WordleFeedback` object:
+
+```ts
+{
+  guesses: Guess[],
+  phase: GamePhase
+}
+```
+
+This feedback is broadcast back to the client as a `ROUND_FEEDBACK` event. The client uses it to update the tile grid and trigger the reveal animation. Because the server evaluates the guesses, the client never needs to know the answer — it only receives the resulting tile states.
+
+## Final scoring
+
+When the round ends, `WordleServerAdapter.scoreSubmission()` is called with the final submission, the private state (including the answer), the scoring config, and the time taken to answer. The score is calculated server-side using the private answer, so the result cannot be manipulated by the client.
+
 
 ## Word list and known limitation
 
