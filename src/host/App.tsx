@@ -8,14 +8,15 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRules'
 
-import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
 // import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
+import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 import { useHostSocket } from './hooks/useHostSocket'
@@ -29,8 +30,6 @@ export function App(): React.JSX.Element {
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
-  // makes sure the playing guess the word text shows up at host screen only when
-  // Guess the word is playing
   useEffect(() => {
     if (h.roundContent?.type === 'wordle') {
       document.body.classList.add('wordle-game-page')
@@ -51,6 +50,7 @@ export function App(): React.JSX.Element {
   }
 
   const performCloseLobby = (): void => {
+    stopSound(sounds.jazz)
     setConfirmCloseOpen(false)
     h.closeConnection()
     void navigate('/')
@@ -81,7 +81,6 @@ export function App(): React.JSX.Element {
   function renderLobby(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--lobby">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={active.code}
           hostToken={active.token}
@@ -187,6 +186,10 @@ export function App(): React.JSX.Element {
       )
     }
 
+    return renderActivePhase(active)
+  }
+
+  function renderActivePhase(active: ActiveRoom): React.JSX.Element {
     const phase = active.room.phase
 
     if (phase === 'lobby') return renderLobby(active)
@@ -255,12 +258,23 @@ function renderMinigame(
     )
   }
 
+   if (content.type === 'bonk-air') {
+    return (
+      <div className="host-minigame host-minigame--bonk-air">
+        <BonkAirRules />
+        <p className="host-minigame__rotate-hint">
+          📱➡️ Turn your phone sideways to play
+        </p>
+      </div>
+    )
+  }
+
   if (content.type === 'wordle') {
-  return (
-    <div className="wordle-host-waiting">
-      <p className="wordle-host-waiting__text">Playing Guess the Word</p>
-    </div>
-   )
+    return (
+      <div className="wordle-host-waiting">
+        <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+      </div>
+    )
   }
 
   return (

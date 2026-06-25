@@ -61,6 +61,9 @@ export const TIMER = Object.freeze({
   SLIDING_PUZZLE_SECONDS: 40,
   VAULT_RUSH_SECONDS: 30,
   REVEAL_SECONDS: 5,
+  // Bonk Air plays an animated "watch the planes fly" replay during reveal, so it
+  // needs a longer reveal window than a quiz before the round advances.
+  BONK_AIR_REVEAL_SECONDS: 14,
   ROUND_INTRO_SECONDS: 3,
   LEADERBOARD_SECONDS: 3,
   SCORED_AWAIT_TIMEOUT_MS: 5_000,

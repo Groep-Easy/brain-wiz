@@ -11,49 +11,27 @@
  * visual drop slot back to an index into the original linear flow, used by the
  * editor's drag-and-drop.
  */
+import type { ArrowDir, Serpentine, SerpentineCell, VisualEntry } from './serpentine.types'
 
-export type ArrowDir = 'right' | 'left' | 'down' | 'none'
+export type { ArrowDir, Serpentine, SerpentineCell } from './serpentine.types'
 
-export interface SerpentineCell {
-  /** Index into the original linear flow. */
-  logicalIndex: number
-  /** Position in visual (left-to-right, top-to-bottom) reading order. */
-  visualPos: number
-  /** 0-based grid row. */
-  row: number
-  /** 1-based grid column. Reversed rows count down so a partial row stays under
-   *  the end of the row above it. */
-  col: number
-  /** The connector drawn from this cell toward the next step. */
-  arrow: ArrowDir
+/** The logical indices of one row, in reading order (reversed on odd rows). */
+function rowOrder(start: number, end: number, rowIndex: number): number[] {
+  const ascending = Array.from({ length: Math.max(0, end - start) }, (_, i) => start + i)
+  return rowIndex % 2 === 1 ? ascending.reverse() : ascending
 }
 
-export interface Serpentine {
-  /** Cells in the order they should be rendered (visual order). */
-  cells: SerpentineCell[]
-  /** Total number of cells (== `length`). */
-  count: number
-  /**
-   * For each visual drop slot (0..count), the index to splice into the *logical*
-   * flow. Slot k sits just before the cell at visual position k.
-   */
-  logicalInsertForSlot: number[]
-}
-
-/** Build the snake grid for a flow of `length` items at `columns` per row. */
-export function buildSerpentine(length: number, columns: number): Serpentine {
-  const cols = Math.max(1, columns)
+/** Place each flow index into its snake cell and record the visual order. */
+function buildCells(
+  length: number,
+  cols: number
+): { cells: SerpentineCell[]; visual: VisualEntry[] } {
   const cells: SerpentineCell[] = []
-  // Flat record of each visual position's logical index, for the drop mapping.
-  const visual: { logicalIndex: number; rowIndex: number }[] = []
-
+  const visual: VisualEntry[] = []
   for (let rowIndex = 0; rowIndex * cols < length; rowIndex++) {
     const start = rowIndex * cols
     const end = Math.min(length, start + cols)
-    const ascending: number[] = []
-    for (let i = start; i < end; i++) ascending.push(i)
-    const ordered = rowIndex % 2 === 1 ? ascending.reverse() : ascending
-    for (const logicalIndex of ordered) {
+    for (const logicalIndex of rowOrder(start, end, rowIndex)) {
       // Reading position within the row, then its grid column (reversed rows
       // count down from the right so the snake turns under the previous block).
       const positionInRow = logicalIndex - start
@@ -62,34 +40,49 @@ export function buildSerpentine(length: number, columns: number): Serpentine {
       visual.push({ logicalIndex, rowIndex })
     }
   }
+  return { cells, visual }
+}
 
-  // Connector per cell, by *flow* adjacency: down when the next step is on the
-  // next row, otherwise along the row's reading direction.
-  for (const cell of cells) {
-    const L = cell.logicalIndex
-    if (L >= length - 1) continue
-    const rowOfL = Math.floor(L / cols)
-    const rowOfNext = Math.floor((L + 1) / cols)
-    if (rowOfNext !== rowOfL) cell.arrow = 'down'
-    else cell.arrow = rowOfL % 2 === 0 ? 'right' : 'left'
-  }
+/**
+ * The connector drawn from a cell toward the next flow step: down when the next
+ * step wraps to a new row, otherwise along the row's reading direction.
+ */
+function arrowFor(logicalIndex: number, length: number, cols: number): ArrowDir {
+  if (logicalIndex >= length - 1) return 'none'
+  const rowOfThis = Math.floor(logicalIndex / cols)
+  const rowOfNext = Math.floor((logicalIndex + 1) / cols)
+  if (rowOfNext !== rowOfThis) return 'down'
+  return rowOfThis % 2 === 0 ? 'right' : 'left'
+}
 
-  // Map each visual drop slot back to a logical splice index. Every gap between
-  // two visually adjacent cells corresponds to exactly one step in flow order.
+/** The logical splice index for the gap just before `current` (after `prev`). */
+function gapInsertIndex(prev: VisualEntry, current: VisualEntry): number {
+  const isSameRow = prev.rowIndex === current.rowIndex
+  const isEvenRow = prev.rowIndex % 2 === 0
+  return isSameRow && !isEvenRow ? prev.logicalIndex : prev.logicalIndex + 1
+}
+
+/** Map each visual drop slot (0..n) back to an index into the linear flow. */
+function buildInsertSlots(visual: VisualEntry[], length: number): number[] {
   const n = visual.length
-  const logicalInsertForSlot = new Array<number>(n + 1)
-  logicalInsertForSlot[0] = 0
-  logicalInsertForSlot[n] = length
+  const slots = new Array<number>(n + 1)
+  slots[0] = 0
+  slots[n] = length
   for (let k = 1; k < n; k++) {
     const prev = visual[k - 1]
     const current = visual[k]
-    if (prev === undefined || current === undefined) {
-      continue
-    }
-    const isSameRow = prev.rowIndex === current.rowIndex
-    const isEvenRow = prev.rowIndex % 2 === 0
-    logicalInsertForSlot[k] = isSameRow && !isEvenRow ? prev.logicalIndex : prev.logicalIndex + 1
+    if (prev === undefined || current === undefined) continue
+    slots[k] = gapInsertIndex(prev, current)
   }
+  return slots
+}
 
-  return { cells, count: n, logicalInsertForSlot }
+/** Build the snake grid for a flow of `length` items at `columns` per row. */
+export function buildSerpentine(length: number, columns: number): Serpentine {
+  const cols = Math.max(1, columns)
+  const { cells, visual } = buildCells(length, cols)
+  for (const cell of cells) {
+    cell.arrow = arrowFor(cell.logicalIndex, length, cols)
+  }
+  return { cells, count: visual.length, logicalInsertForSlot: buildInsertSlots(visual, length) }
 }

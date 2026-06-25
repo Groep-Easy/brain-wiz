@@ -42,10 +42,12 @@ export class RealRoundPresenter implements RoundPresenter {
 
     // Ensure question relation is loaded
     if (!round.question && round.questionId) {
-      const loaded = await this.roundRepo.findOne({
-        where: { id: round.id },
-        relations: { question: true },
-      })
+      const loaded = await this.roundRepo
+        .createQueryBuilder('round')
+        .leftJoinAndSelect('round.question', 'question')
+        .where('round.id = :roundId', { roundId: round.id })
+        .getOne()
+
       if (loaded) {
         roundWithQuestion = loaded
       }
