@@ -216,6 +216,11 @@ export class GameEngineService {
       return
     }
 
+    await this.markRound(round, RoundStatusEnum.FINISHED)
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
+      scores: await this.buildScores(room.id),
+    })
+
     const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
     const isLastRound = round.roundIndex === totalRounds - 1
     if (isLastRound) {
@@ -223,14 +228,6 @@ export class GameEngineService {
       return
     }
 
-    await this.markRound(round, RoundStatusEnum.FINISHED)
-    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
-      scores: await this.buildScores(room.id),
-    })
-    if (round.roundIndex === ROUNDS.COUNT) {
-      await this.enterPhase(room, GamePhase.GAME_OVER)
-      return
-    }
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),

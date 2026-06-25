@@ -9,6 +9,7 @@ import { useEffect, useReducer, useRef } from 'react'
 import type { PlayerAvatar } from '@brain-wiz/shared/types/index'
 import { loadSavedPlayer, saveSavedPlayer, clearSavedPlayer } from '../helpers/saved-player'
 import { clientSocketReducer, createInitialClientState } from './clientSocketReducer'
+import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import {
   buildAnswerMessage,
   buildJoinMessage,
@@ -166,6 +167,11 @@ export function useClientSocket() {
 
   function handleLeaveRoom(): void {
     intentionalCloseRef.current = true
+    const socket = socketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ event: EVENTS.PLAYER_LEAVE, data: {} }))
+    }
+    clearSavedPlayer()
     if (socketRef.current) {
       socketRef.current.close()
       socketRef.current = null
