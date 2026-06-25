@@ -42,6 +42,7 @@ export function Question({
   }, [question])
   if (revealed) {
     stopSound(sounds.suspense)
+    if (!isMuted()) playSound(sounds.reveal, false)
   }
 
   return (
