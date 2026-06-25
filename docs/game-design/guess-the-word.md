@@ -282,11 +282,11 @@ Returns the elapsed time in seconds between two `Date` objects.
 
 ---
 
-# Server state and feedback flow
+## Server state and feedback flow
 
 Wordle uses the Brain Wiz public/private state split to keep the answer hidden from the client at all times.
 
-## Round creation
+### Round creation
 
 When a Wordle round is created, `WordleServerAdapter.createRound()` produces three separate objects:
 
@@ -296,7 +296,7 @@ When a Wordle round is created, `WordleServerAdapter.createRound()` produces thr
 
 The answer is never included in any message sent to the client during play. The client only ever receives the word length and the maximum number of tries from `publicState`.
 
-## Per-guess feedback
+### Per-guess feedback
 
 Each time the player submits a guess, the client sends a `WordleSubmission` to the server containing only the raw guessed words:
 
@@ -315,7 +315,7 @@ The server passes this to `AnswerService.updateRoundProgress()`, which calls `Wo
 
 This feedback is broadcast back to the client as a `ROUND_FEEDBACK` event. The client uses it to update the tile grid and trigger the reveal animation. Because the server evaluates the guesses, the client never needs to know the answer — it only receives the resulting tile states.
 
-## Final scoring
+### Final scoring
 
 When the round ends, `WordleServerAdapter.scoreSubmission()` is called with the final submission, the private state (including the answer), the scoring config, and the time taken to answer. The score is calculated server-side using the private answer, so the result cannot be manipulated by the client.
 
