@@ -11,7 +11,7 @@ import { FlowEditor } from '../screens/FlowEditor'
 import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
 import type { FlowItem } from '../flow/types'
 import '../styles/setup_lobby.css'
-import { BlockIcon } from './BlockIcon'
+// import { BlockIcon } from './BlockIcon'
 import { ROOM } from '@brain-wiz/config/game.config'
 
 import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
@@ -273,7 +273,8 @@ export function SetupLobby({
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
-                                  <BlockIcon icon={block.icon} label={block.label} />
+                                  {/* <BlockIcon icon={block.icon} label={block.label} /> */}
+                                  <span className="flow-block-icon">{block.icon}</span>
                                   <span className="flow-block-label">{block.label}</span>
                                   {block.kind === 'minigame' && (
                                     <span className="flow-block-time">
