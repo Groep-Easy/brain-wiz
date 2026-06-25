@@ -25,6 +25,7 @@ export const ROOM = Object.freeze({
   MIN_PLAYERS_TO_START: 2,
   JOIN_TIMEOUT_MS: 30_000,
   RECONNECT_GRACE_MS: 30_000,
+  EMPTY_LOBBY_TEARDOWN_MS: 300_000,
 })
 
 export const RATE_LIMIT = Object.freeze({

@@ -66,6 +66,7 @@ export class LobbyService {
       return false
     }
     this.registry.registerHost(room.id, socket)
+    this.clearRoomTeardownTimer(room.id)
     await this.rooms.updateHostSocket(room, connectionId)
     const state = await this.buildState(room)
     this.broadcaster.emitToSocket(socket, EVENTS.ROOM_STATE_UPDATE, { room: state })
@@ -87,12 +88,12 @@ export class LobbyService {
       this.reject(socket, 'Room not found')
       return
     }
-    if (room.status !== RoomStatusEnum.LOBBY) {
-      this.reject(socket, 'Game already started')
+    if (await this.attemptReconnect(socket, room, request)) {
       return
     }
 
-    if (await this.attemptReconnect(socket, room, request)) {
+    if (room.status !== RoomStatusEnum.LOBBY) {
+      this.reject(socket, 'Game already started')
       return
     }
 
@@ -108,6 +109,7 @@ export class LobbyService {
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
+    this.clearRoomTeardownTimer(room.id)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
@@ -242,14 +244,38 @@ export class LobbyService {
     return this.registry.hasGraceTimer(clientId)
   }
 
+  private clearRoomTeardownTimer(roomId: string): void {
+    const timer = this.registry.clearRoomTeardownTimer(roomId)
+    if (timer) {
+      clearTimeout(timer)
+    }
+  }
+
   /**
    * When a room has no live sockets left (everyone has left/expired and the
-   * host is gone), drop its in-memory host token so the registry's maps don't
-   * grow unbounded as rooms come and go.
+   * host is gone), set a timer to eventually tear it down, dropping the host
+   * token and marking it abandoned in the DB.
    */
   private maybeTeardownRoom(roomId: string): void {
     if (this.registry.getRoomSockets(roomId).length === 0) {
-      this.registry.clearHostToken(roomId)
+      if (!this.registry.hasRoomTeardownTimer(roomId)) {
+        const timer = setTimeout(() => {
+          void this.teardownRoom(roomId)
+        }, ROOM.EMPTY_LOBBY_TEARDOWN_MS)
+        timer.unref()
+        this.registry.setRoomTeardownTimer(roomId, timer)
+      }
+    }
+  }
+
+  private async teardownRoom(roomId: string): Promise<void> {
+    this.clearRoomTeardownTimer(roomId)
+    if (this.registry.getRoomSockets(roomId).length > 0) return
+
+    this.registry.clearHostToken(roomId)
+    const room = await this.rooms.findById(roomId)
+    if (room && room.status === RoomStatusEnum.LOBBY) {
+      await this.rooms.finishRoom(room, RoomStatusEnum.ABANDONED)
     }
   }
 
@@ -360,6 +386,7 @@ export class LobbyService {
     const reconnectToken = randomUUID()
     this.registry.setReconnectToken(client.id, reconnectToken)
     this.registry.registerClient(room.id, client.id, socket)
+    this.clearRoomTeardownTimer(room.id)
     this.broadcaster.emitToSocket(socket, EVENTS.PLAYER_JOIN_ACK, {
       playerId: client.id,
       roomCode: room.joinCode,
