@@ -24,6 +24,7 @@ import type {
   RoundSummary,
   RoadmapTheme,
   ScoreMap,
+  GamePhase as WireGamePhase,
 } from '@brain-wiz/shared/types/index'
 import {
   GamePhase,
@@ -106,6 +107,13 @@ export class GameEngineService {
       this.leaderboardOrderByRoom.delete(roomId)
       this.totalRoundsByRoom.delete(roomId)
     }
+  }
+
+  /** The live wire phase of a running game, or undefined when no game is
+   *  running for the room. Lets LobbyService build room-state snapshots that
+   *  carry the real phase instead of defaulting to `round-intro`. */
+  public getLivePhase(roomId: string): WireGamePhase | undefined {
+    return this.games.get(roomId)?.phase
   }
 
   /** Trip the abort flag and cancel whatever phase is in flight. */
@@ -208,6 +216,11 @@ export class GameEngineService {
       return
     }
 
+    await this.markRound(round, RoundStatusEnum.FINISHED)
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
+      scores: await this.buildScores(room.id),
+    })
+
     const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
     const isLastRound = round.roundIndex === totalRounds - 1
     if (isLastRound) {
@@ -215,14 +228,6 @@ export class GameEngineService {
       return
     }
 
-    await this.markRound(round, RoundStatusEnum.FINISHED)
-    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
-      scores: await this.buildScores(room.id),
-    })
-    if (round.roundIndex === ROUNDS.COUNT) {
-      await this.enterPhase(room, GamePhase.GAME_OVER)
-      return
-    }
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),
@@ -310,6 +315,10 @@ export class GameEngineService {
     phase: GamePhase
   ): Promise<void> {
     const wire = PHASE_TO_WIRE[phase]
+    const game = this.games.get(room.id)
+    if (game) {
+      game.phase = wire
+    }
     this.broadcaster.emitToRoom(room.id, EVENTS.GAME_PHASE_CHANGE, { phase: wire })
     const roster = await this.clients.findByRoom(room.id)
     this.broadcaster.broadcastRoomState(room.id, toRoomState(room, roster, wire))

@@ -24,9 +24,8 @@ interface SetupLobbyProps {
   roomCode: string
   hostToken: string
   players: Player[]
-  /** The server-owned game flow (from RoomState), shown read-only in the lobby. */
   gameFlow: StoredFlowItem[]
-  onStartGame: (timePerQuestion: number) => void
+  onStartGame: () => void
   onCloseLobby: () => void
 }
 
@@ -38,8 +37,7 @@ export function SetupLobby({
   onStartGame,
   onCloseLobby,
 }: SetupLobbyProps): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<'lobby' | 'flow' | 'settings'>('lobby')
-  const [timePerQuestion, setTimePerQuestion] = useState(20)
+  const [activeTab, setActiveTab] = useState<'lobby' | 'flow'>('lobby')
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
@@ -50,6 +48,7 @@ export function SetupLobby({
 
   /** How many more connected players are needed before the game can start. */
   const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
+  const joinDisplayUrl = `${getClientBaseUrl()}/client`.replace(/^https?:\/\//, '')
 
   const openEditor = () => {
     setActiveTab('flow')
@@ -59,16 +58,12 @@ export function SetupLobby({
     stopSound(sounds.jazz)
     if (!isMuted()) playSound(sounds.startGame, false)
     setTimeout(() => {
-      onStartGame(timePerQuestion)
+      onStartGame()
     }, 1000)
   }
 
   const handleStart = () => {
     startGame()
-  }
-
-  const handleCancelFlow = () => {
-    setActiveTab('lobby')
   }
 
   useEffect(() => {
@@ -145,12 +140,6 @@ export function SetupLobby({
             >
               Game Flow
             </button>
-            <button
-              className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Settings
-            </button>
           </div>
 
           <div className="header-right">
@@ -182,7 +171,6 @@ export function SetupLobby({
                 initialFlow={toFlowItems(gameFlow)}
                 roomCode={roomCode}
                 hostToken={hostToken}
-                onCancel={handleCancelFlow}
               />
             ) : (
               <>
@@ -199,7 +187,7 @@ export function SetupLobby({
                           <div className="qr-placeholder">Generating...</div>
                         )}
                         <p className="hint">or visit</p>
-                        <div className="join-url">brain-wiz.app</div>
+                        <div className="join-url">{joinDisplayUrl}</div>
                         <p className="hint">and enter code</p>
                         <div className="join-code">{roomCode}</div>
                       </div>
@@ -290,20 +278,6 @@ export function SetupLobby({
                         </div>
                       </div>
                     </div>
-                  </div>
-                </section>
-
-                <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
-                  <div className="field">
-                    <label htmlFor="time-per-question">Time per question (seconds)</label>
-                    <input
-                      type="number"
-                      id="time-per-question"
-                      value={timePerQuestion}
-                      onChange={(e) => setTimePerQuestion(Number(e.target.value))}
-                      min="5"
-                      max="120"
-                    />
                   </div>
                 </section>
               </>

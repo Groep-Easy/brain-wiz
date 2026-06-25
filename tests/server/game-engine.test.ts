@@ -260,7 +260,7 @@ describe('GameEngineService', () => {
     assert.equal(count(EVENTS.ROUND_START), 5)
     assert.equal(count(EVENTS.GAME_PHASE_CHANGE), 20)
     assert.equal(count(EVENTS.TIMER_EXPIRED), 5)
-    assert.equal(count(EVENTS.ROUND_END), 4)
+    assert.equal(count(EVENTS.ROUND_END), 5)
     assert.equal(count(EVENTS.GAME_OVER), 1)
     assert.deepEqual(presentCalls, [0, 1, 2, 3, 4])
     assert.deepEqual(finishCalls, [RoomStatusEnum.FINISHED])

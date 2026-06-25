@@ -13,7 +13,6 @@ import bonkAirArt from '../../assets/images/MG_atc.png'
 
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
-// import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
@@ -47,7 +46,7 @@ export function App(): React.JSX.Element {
   }
 
   const handleSkipTimer = (): void => {
-    console.warn('handleSkipTimer: not yet implemented in useHostSocket')
+    h.sendSkipTimer()
   }
 
   const performCloseLobby = (): void => {
@@ -142,7 +141,7 @@ export function App(): React.JSX.Element {
         question={h.question}
         secondsRemaining={h.secondsRemaining}
         answeredCount={h.answeredCount}
-        totalPlayers={h.totalPlayers}
+        totalPlayers={active.room.players.length}
         reveal={phase === 'reveal' ? h.reveal : null}
         onSkip={handleSkipTimer}
       />
@@ -259,7 +258,7 @@ function renderMinigame(
     )
   }
 
-   if (content.type === 'bonk-air') {
+  if (content.type === 'bonk-air') {
     return (
       <div className="host-minigame host-minigame--bonk-air">
         <img className="host-minigame--bonk-air__art" src={bonkAirArt} alt="" aria-hidden="true" />
