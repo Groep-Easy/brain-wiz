@@ -16,13 +16,13 @@ This was mainly caused by infrastructure and configuration issues, not by the ga
 
 The main problems were:
 
-* The application container had more permissions than needed
-* Docker capabilities were not strict enough
-* Some services were exposed too easily during development
-* The database port could be exposed too broadly
-* Nginx/proxy configuration was active when it was not always needed
-* Sigrid reported dependency/package-lock findings that needed to be checked
-* Some findings looked worse on the dashboard because the latest branch/merge had not fully updated yet
+- The application container had more permissions than needed
+- Docker capabilities were not strict enough
+- Some services were exposed too easily during development
+- The database port could be exposed too broadly
+- Nginx/proxy configuration was active when it was not always needed
+- Sigrid reported dependency/package-lock findings that needed to be checked
+- Some findings looked worse on the dashboard because the latest branch/merge had not fully updated yet
 
 ## Fix 1: Docker Container Hardening
 
@@ -46,10 +46,10 @@ The application is a Node/NestJS server. It does not need special Linux permissi
 
 This means:
 
-* The container gets fewer system permissions
-* The attack surface is smaller
-* The container is safer if something goes wrong
-* Sigrid no longer sees unnecessary privileges as a security risk
+- The container gets fewer system permissions
+- The attack surface is smaller
+- The container is safer if something goes wrong
+- Sigrid no longer sees unnecessary privileges as a security risk
 
 ### Final decision
 
@@ -118,10 +118,10 @@ Now Nginx only runs when the proxy profile is explicitly enabled
 
 This means:
 
-* Local development stays simpler
-* Unused proxy services are not exposed by default
-* The application has fewer open services during normal development
-* Sigrid sees a cleaner and safer configuration
+- Local development stays simpler
+- Unused proxy services are not exposed by default
+- The application has fewer open services during normal development
+- Sigrid sees a cleaner and safer configuration
 
 ## Fix 4: Database Port Exposure
 
@@ -138,7 +138,7 @@ We changed the database port binding so it only listens on localhost
 ```yaml
 db:
   ports:
-    - "127.0.0.1:${DB_PORT:-5432}:5432"
+    - '127.0.0.1:${DB_PORT:-5432}:5432'
 ```
 
 ### Why this fixes the issue
@@ -147,10 +147,10 @@ Binding PostgreSQL to `127.0.0.1` means the database is only reachable from the 
 
 This is safer because:
 
-* The database is not exposed to the whole network
-* Other devices cannot connect to it directly
-* Local development still works
-* The risk of accidental database exposure is reduced
+- The database is not exposed to the whole network
+- Other devices cannot connect to it directly
+- Local development still works
+- The risk of accidental database exposure is reduced
 
 ## Fix 5: Removed Unused / Risky Configuration
 
@@ -250,14 +250,13 @@ After applying the security improvements, the score improved to **5.0**
 
 The biggest improvements came from:
 
-* Removing unnecessary Docker capabilities
-* Preventing privilege escalation in the container
-* Not exposing Nginx/proxy by default
-* Binding the database port to localhost
-* Cleaning up unused configuration
-* Reviewing the package-lock integrity finding
-* Documenting the false positive clearly
-
+- Removing unnecessary Docker capabilities
+- Preventing privilege escalation in the container
+- Not exposing Nginx/proxy by default
+- Binding the database port to localhost
+- Cleaning up unused configuration
+- Reviewing the package-lock integrity finding
+- Documenting the false positive clearly
 
 ## Final Result
 
