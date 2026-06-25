@@ -25,8 +25,13 @@ what players see and how they score. There are two families.
 | `bonk-air`       | Draw a launch plan, then watch it play out.            |
 
 `collab-puzzle` and `head-to-head` are reserved in the `RoundType` union but are
-not implemented yet. Vault Rush has its own deep-dive in
-[vault-rush.md](vault-rush.md).
+not implemented yet.
+
+Minigame implementation notes:
+
+- [Sliding Puzzle](sliding-puzzle.md)
+- [Balance Scale](balance-scale.md)
+- [Vault Rush](vault-rush.md)
 
 ## How a minigame round works
 
