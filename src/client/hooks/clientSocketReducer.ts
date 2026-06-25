@@ -98,6 +98,18 @@ const SERVER_EVENT_HANDLERS: Record<string, ServerEventHandler> = {
     reconnectExhausted: false,
     joinError: 'You were kicked from the lobby',
   }),
+  [EVENTS.ROOM_CLOSED]: (state) => ({
+    ...state,
+    kicked: true,
+    creds: null,
+    playerId: null,
+    joined: false,
+    joining: false,
+    roomState: null,
+    finalScores: null,
+    reconnectExhausted: false,
+    joinError: 'The host left — the room was closed',
+  }),
   [EVENTS.ROOM_STATE_UPDATE]: (state, data) => ({
     ...state,
     roomState: (data as { room: RoomState }).room,

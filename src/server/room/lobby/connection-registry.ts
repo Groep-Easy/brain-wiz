@@ -22,6 +22,7 @@ export class ConnectionRegistry {
   private readonly _reconnectTokens = new Map<string, string>()
   private readonly _graceTimers = new Map<string, NodeJS.Timeout>()
   private readonly _roomTeardownTimers = new Map<string, NodeJS.Timeout>()
+  private readonly _hostGraceTimers = new Map<string, NodeJS.Timeout>()
 
   public registerHost(roomId: string, socket: ClientSocket): void {
     const existing = this._hosts.get(roomId)
@@ -145,6 +146,20 @@ export class ConnectionRegistry {
   public clearRoomTeardownTimer(roomId: string): NodeJS.Timeout | undefined {
     const timer = this._roomTeardownTimers.get(roomId)
     this._roomTeardownTimers.delete(roomId)
+    return timer
+  }
+
+  public setHostGraceTimer(roomId: string, timer: NodeJS.Timeout): void {
+    this._hostGraceTimers.set(roomId, timer)
+  }
+
+  public hasHostGraceTimer(roomId: string): boolean {
+    return this._hostGraceTimers.has(roomId)
+  }
+
+  public clearHostGraceTimer(roomId: string): NodeJS.Timeout | undefined {
+    const timer = this._hostGraceTimers.get(roomId)
+    this._hostGraceTimers.delete(roomId)
     return timer
   }
 }

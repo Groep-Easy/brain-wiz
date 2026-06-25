@@ -43,7 +43,7 @@ export class LobbyService {
     private readonly questionService: QuestionService,
     private readonly flow: FlowService,
     private readonly bus: GameEventBus
-  ) {}
+  ) { }
 
   public async createRoom(): Promise<CreateRoomResult> {
     const room = await this.rooms.createRoom()
@@ -67,6 +67,7 @@ export class LobbyService {
     }
     this.registry.registerHost(room.id, socket)
     this.clearRoomTeardownTimer(room.id)
+    this.clearHostGraceTimer(room.id)
     await this.rooms.updateHostSocket(room, connectionId)
     const state = await this.buildState(room)
     this.broadcaster.emitToSocket(socket, EVENTS.ROOM_STATE_UPDATE, { room: state })
@@ -198,6 +199,7 @@ export class LobbyService {
       if (room) {
         await this.rooms.updateHostSocket(room, null)
       }
+      this.armHostGrace(membership.roomId)
       this.maybeTeardownRoom(membership.roomId)
       return
     }
@@ -277,6 +279,62 @@ export class LobbyService {
     if (room && room.status === RoomStatusEnum.LOBBY) {
       await this.rooms.finishRoom(room, RoomStatusEnum.ABANDONED)
     }
+  }
+
+  /** Arm the host-reconnect grace window. If the host does not come back before
+   *  it elapses, the room is closed and its players are evicted. */
+  private armHostGrace(roomId: string): void {
+    if (this.registry.hasHostGraceTimer(roomId)) return
+    const timer = setTimeout(() => {
+      void this.expireHostGrace(roomId)
+    }, ROOM.HOST_RECONNECT_GRACE_MS)
+    timer.unref()
+    this.registry.setHostGraceTimer(roomId, timer)
+  }
+
+  private clearHostGraceTimer(roomId: string): void {
+    const timer = this.registry.clearHostGraceTimer(roomId)
+    if (timer) {
+      clearTimeout(timer)
+    }
+  }
+
+  /** Grace window elapsed without the host returning: close the room for good. */
+  private async expireHostGrace(roomId: string): Promise<void> {
+    this.clearHostGraceTimer(roomId)
+    if (this.registry.getHostSocket(roomId)) {
+      return
+    }
+    const room = await this.rooms.findById(roomId)
+    if (
+      !room ||
+      room.status === RoomStatusEnum.FINISHED ||
+      room.status === RoomStatusEnum.ABANDONED
+    ) {
+      return
+    }
+    await this.closeRoom(room)
+  }
+
+  /** Mark the room abandoned, notify every player, and drop their live sockets. */
+  private async closeRoom(room: Room): Promise<void> {
+    await this.rooms.finishRoom(room, RoomStatusEnum.ABANDONED)
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROOM_CLOSED, { reason: 'host-left' })
+    for (const socket of this.registry.getClientSockets(room.id)) {
+      const membership = this.registry.lookup(socket)
+      if (membership?.role === 'client') {
+        this.registry.clearReconnectToken(membership.clientId)
+        const timer = this.registry.clearGraceTimer(membership.clientId)
+        if (timer) {
+          clearTimeout(timer)
+        }
+      }
+      this.registry.unregister(socket)
+      socket.close?.()
+    }
+    this.registry.clearHostToken(room.id)
+    this.clearRoomTeardownTimer(room.id)
+    this.broadcaster.clearCache(room.id)
   }
 
   public async startGame(code: string, hostToken: string): Promise<RoomState> {
