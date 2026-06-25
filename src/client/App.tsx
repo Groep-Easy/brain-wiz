@@ -187,8 +187,10 @@ const CLIENT_MINIGAME_RENDERERS: Record<
   'vault-rush': renderVaultRushMinigame,
   wordle: renderWordleMinigame,
   'light-switch': renderLightSwitchMinigame,
+  // Keyed by roundId so a second Bonk Air round remounts with fresh local state
+  // (replay-done flag + drawn plan) instead of reusing the previous round's.
   'bonk-air': (s, roundContent, phase) => (
-    <BonkAirMinigame s={s} roundContent={roundContent} phase={phase} />
+    <BonkAirMinigame key={roundContent.roundId} s={s} roundContent={roundContent} phase={phase} />
   ),
 }
 
