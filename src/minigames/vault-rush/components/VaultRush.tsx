@@ -2,7 +2,6 @@ import { useEffect, useState, type JSX } from 'react'
 import type { VaultRushProps } from './VaultRush.types.js'
 import './VaultRush.css'
 
-//import { isMuted } from '@brain-wiz/shared/SFX/mute'
 import { sounds } from '@brain-wiz/shared/SFX/SFX'
 
 const MAX_CODE_LENGTH = 4
