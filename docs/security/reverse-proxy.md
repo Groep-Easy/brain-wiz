@@ -8,7 +8,7 @@ application. The app container only listens on the internal Docker network
 
 This doc covers the security side of that proxy. The operational side, meaning
 why we run nginx along with deployment, certificates and logging, lives in
-`docs/architecture/NGINX_PROXY.md`.
+`docs/architecture/nginx-proxy.md`.
 
 ## What we implemented
 

@@ -7,15 +7,14 @@ import { buildSerpentine } from '../flow/serpentine'
 import { getBackendHttpUrl, getBackendWsUrl, getClientBaseUrl } from '@brain-wiz/shared/utils/env'
 import { CharacterPreview } from '@brain-wiz/shared/components/CharacterPreview'
 import { WizardLogo } from '@brain-wiz/shared/components/WizardLogo'
-import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 import { FlowEditor } from '../screens/FlowEditor'
-import { storeRoomFlow, toFlowItems } from '../flow/flow-api'
-import type { FlowItem } from '../flow/types'
+import { toFlowItems } from '../flow/flow-api'
 import '../styles/setup_lobby.css'
 import { ROOM } from '@brain-wiz/config/game.config'
 
 import { playSound, stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { isMuted } from '@brain-wiz/shared/SFX/mute'
+import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 const BACKEND_HTTP_URL = getBackendHttpUrl(getBackendWsUrl(import.meta.env.VITE_WS_URL))
 
@@ -23,9 +22,8 @@ interface SetupLobbyProps {
   roomCode: string
   hostToken: string
   players: Player[]
-  /** The server-owned game flow (from RoomState), shown read-only in the lobby. */
   gameFlow: StoredFlowItem[]
-  onStartGame: (timePerQuestion: number) => void
+  onStartGame: () => void
   onCloseLobby: () => void
 }
 
@@ -37,8 +35,7 @@ export function SetupLobby({
   onStartGame,
   onCloseLobby,
 }: SetupLobbyProps): React.JSX.Element {
-  const [activeTab, setActiveTab] = useState<'lobby' | 'flow' | 'settings'>('lobby')
-  const [timePerQuestion, setTimePerQuestion] = useState(20)
+  const [activeTab, setActiveTab] = useState<'lobby' | 'flow'>('lobby')
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
 
   const flowTrackRef = useRef<HTMLDivElement>(null)
@@ -47,20 +44,29 @@ export function SetupLobby({
     [gameFlow.length]
   )
 
+  /** How many more connected players are needed before the game can start. */
+  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
+  const joinDisplayUrl = `${getClientBaseUrl()}/client`.replace(/^https?:\/\//, '')
+
   const openEditor = () => {
     setActiveTab('flow')
   }
 
-  const handleSaveFlow = async (newFlow: FlowItem[]) => {
-    await storeRoomFlow(roomCode, hostToken, newFlow)
-    setActiveTab('lobby')
+  const startGame = () => {
+    stopSound(sounds.jazz)
+    if (!isMuted()) playSound(sounds.startGame, false)
+    setTimeout(() => {
+      onStartGame()
+    }, 1000)
   }
 
-  const handleCancelFlow = () => {
-    setActiveTab('lobby')
+  const handleStart = () => {
+    startGame()
   }
 
-  useEffect(() => {if(!isMuted()) playSound(sounds.jazz, true)}, [roomCode])
+  useEffect(() => {
+    if (!isMuted()) playSound(sounds.jazz, true)
+  }, [roomCode])
 
   useEffect(() => {
     if (roomCode) {
@@ -72,17 +78,6 @@ export function SetupLobby({
         })
     }
   }, [roomCode])
-
-  const ONE_SECOND_TIME_OUT = 1000
-  const missingPlayers = Math.max(0, ROOM.MIN_PLAYERS_TO_START - players.length)
-
-  const handleStart = () => {
-    stopSound(sounds.jazz)
-    if (!isMuted()) playSound(sounds.startGame, false)
-    setTimeout(() => {
-      onStartGame(timePerQuestion)
-    }, ONE_SECOND_TIME_OUT)
-  }
 
   const handleKick = async (playerId: string) => {
     try {
@@ -105,8 +100,7 @@ export function SetupLobby({
       }
 
       if (!isMuted()) playSound(sounds.quack, false)
-    }
-    catch (err) {
+    } catch (err) {
       console.error('Kick error', err)
     }
   }
@@ -144,12 +138,6 @@ export function SetupLobby({
             >
               Game Flow
             </button>
-            <button
-              className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Settings
-            </button>
           </div>
 
           <div className="header-right">
@@ -179,8 +167,8 @@ export function SetupLobby({
             {activeTab === 'flow' ? (
               <FlowEditor
                 initialFlow={toFlowItems(gameFlow)}
-                onSave={handleSaveFlow}
-                onCancel={handleCancelFlow}
+                roomCode={roomCode}
+                hostToken={hostToken}
               />
             ) : (
               <>
@@ -197,12 +185,11 @@ export function SetupLobby({
                           <div className="qr-placeholder">Generating...</div>
                         )}
                         <p className="hint">or visit</p>
-                        <div className="join-url">brain-wiz.app</div>
+                        <div className="join-url">{joinDisplayUrl}</div>
                         <p className="hint">and enter code</p>
                         <div className="join-code">{roomCode}</div>
                       </div>
                     </aside>
-
                     {/* Right Main Content */}
                     <div className="lobby-main-cards">
                       <div className="players-card">
@@ -268,7 +255,11 @@ export function SetupLobby({
                             return (
                               <div className="flow-cell" key={cell.logicalIndex} style={style}>
                                 <div className={`flow-block ${block.kind}`}>
-                                  <span className="flow-block-icon">{block.icon}</span>
+                                  <img
+                                    className="flow-block-icon"
+                                    src={block.icon}
+                                    alt={block.label}
+                                  />
                                   <span className="flow-block-label">{block.label}</span>
                                   {block.kind === 'minigame' && (
                                     <span className="flow-block-time">
@@ -285,20 +276,6 @@ export function SetupLobby({
                         </div>
                       </div>
                     </div>
-                  </div>
-                </section>
-
-                <section className={`panel ${activeTab === 'settings' ? 'active' : ''}`}>
-                  <div className="field">
-                    <label htmlFor="time-per-question">Time per question (seconds)</label>
-                    <input
-                      type="number"
-                      id="time-per-question"
-                      value={timePerQuestion}
-                      onChange={(e) => setTimePerQuestion(Number(e.target.value))}
-                      min="5"
-                      max="120"
-                    />
                   </div>
                 </section>
               </>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { SetupLobby } from './components/SetupLobby'
@@ -8,15 +8,15 @@ import { RoundIntro } from './screens/RoundIntro'
 import { GameOver } from './screens/GameOver'
 import { RoundMinigameSurface } from '@brain-wiz/minigames/components/RoundMinigameSurface'
 import { CountdownCircle } from '@brain-wiz/shared/components/CountdownCircle'
+import { BonkAirRules } from '@brain-wiz/minigames/bonk-air/components/BonkAirRules'
+import bonkAirArt from '../../assets/images/MG_atc.png'
 
-import jazzMusic from '@brain-wiz/shared/SFX/jazz.mp3'
-import leaderboardMusic from '@brain-wiz/shared/SFX/leaderboard.mp3'
 import vaultRushMusic from '@brain-wiz/shared/SFX/vault-rush.mp3'
 
-import { WelcomeScreen } from './screens/WelcomeScreen'
 import { ConfirmDialog } from '@brain-wiz/shared/components/ConfirmDialog'
 import './styles/welcome.css'
 
+import { stopSound, sounds } from '@brain-wiz/shared/SFX/SFX'
 import { MuteButton } from '@brain-wiz/shared/components/MuteButton'
 
 import { useHostSocket } from './hooks/useHostSocket'
@@ -30,11 +30,27 @@ export function App(): React.JSX.Element {
   const h = useHostSocket(roomCode, hostToken)
   const [confirmCloseOpen, setConfirmCloseOpen] = useState<boolean>(false)
 
+  useEffect(() => {
+    if (h.roundContent?.type === 'wordle') {
+      document.body.classList.add('wordle-game-page')
+    } else {
+      document.body.classList.remove('wordle-game-page')
+    }
+    return () => {
+      document.body.classList.remove('wordle-game-page')
+    }
+  }, [h.roundContent?.type])
+
   const handleCloseLobby = (): void => {
     setConfirmCloseOpen(true)
   }
 
+  const handleSkipTimer = (): void => {
+    h.sendSkipTimer()
+  }
+
   const performCloseLobby = (): void => {
+    stopSound(sounds.jazz)
     setConfirmCloseOpen(false)
     h.closeConnection()
     void navigate('/')
@@ -65,7 +81,6 @@ export function App(): React.JSX.Element {
   function renderLobby(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--lobby">
-        <audio id="bg-music" loop autoPlay src={jazzMusic} preload="auto"></audio>
         <SetupLobby
           roomCode={active.code}
           hostToken={active.token}
@@ -126,8 +141,9 @@ export function App(): React.JSX.Element {
         question={h.question}
         secondsRemaining={h.secondsRemaining}
         answeredCount={h.answeredCount}
-        totalPlayers={h.totalPlayers}
+        totalPlayers={active.room.players.length}
         reveal={phase === 'reveal' ? h.reveal : null}
+        onSkip={handleSkipTimer}
       />
     )
   }
@@ -145,7 +161,6 @@ export function App(): React.JSX.Element {
   function renderLeaderboard(active: ActiveRoom): React.JSX.Element {
     return (
       <main className="app app--solid">
-        <audio id="leaderboard-music" autoPlay src={leaderboardMusic} preload="auto"></audio>
         <LeaderBoard
           leaderboard={h.leaderboard}
           roadmap={h.roadmap}
@@ -159,8 +174,22 @@ export function App(): React.JSX.Element {
     if (h.fatalError) return renderFatal()
 
     const active = activeRoom()
-    if (!active) return <WelcomeScreen />
+    if (!active) {
+      return (
+        <main className="app">
+          <div className="welcome-screen">
+            <div className="welcome-card">
+              <p>Connecting…</p>
+            </div>
+          </div>
+        </main>
+      )
+    }
 
+    return renderActivePhase(active)
+  }
+
+  function renderActivePhase(active: ActiveRoom): React.JSX.Element {
     const phase = active.room.phase
 
     if (phase === 'lobby') return renderLobby(active)
@@ -212,21 +241,40 @@ function renderMinigame(
   ) {
     return (
       <RoundMinigameSurface
-        className={`host-minigame ${
-          content.type === 'balance-scale'
-            ? 'host-minigame--scale'
-            : content.type === 'vault-rush'
-              ? 'host-minigame--vault'
-              : content.type === 'light-switch'
-                ? 'host-minigame--light'
-                : 'host-minigame--sliding'
-        }`}
+        className={`host-minigame ${content.type === 'balance-scale'
+          ? 'host-minigame--scale'
+          : content.type === 'vault-rush'
+            ? 'host-minigame--vault'
+            : content.type === 'light-switch'
+              ? 'host-minigame--light'
+              : 'host-minigame--sliding'
+          }`}
         content={content}
         mode="display"
         phase={phase}
         reveal={reveal}
         {...(secondsRemaining !== undefined ? { secondsRemaining } : {})}
       />
+    )
+  }
+
+  if (content.type === 'bonk-air') {
+    return (
+      <div className="host-minigame host-minigame--bonk-air">
+        <img className="host-minigame--bonk-air__art" src={bonkAirArt} alt="" aria-hidden="true" />
+        <BonkAirRules />
+        <p className="host-minigame__rotate-hint">
+          📱➡️ Turn your phone sideways to play
+        </p>
+      </div>
+    )
+  }
+
+  if (content.type === 'wordle') {
+    return (
+      <div className="wordle-host-waiting">
+        <p className="wordle-host-waiting__text">Playing Guess the Word</p>
+      </div>
     )
   }
 

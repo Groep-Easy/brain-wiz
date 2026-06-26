@@ -279,7 +279,7 @@ describe('GameEngineService', () => {
       TIMER.ROUND_INTRO_SECONDS,
       TIMER.SLIDING_PUZZLE_SECONDS,
       TIMER.REVEAL_SECONDS,
-      TIMER.LEADERBOARD_SECONDS,
+      // TIMER.LEADERBOARD_SECONDS,
     ])
   })
 
@@ -289,13 +289,13 @@ describe('GameEngineService', () => {
     await engine.run('room-1')
 
     const leaderboardCount = broadcaster.events.filter((e) => e === EVENTS.LEADERBOARD_SHOW).length
-    assert.equal(leaderboardCount, 5)
+    assert.equal(leaderboardCount, 4)
 
     const leaderboardPayloads = broadcaster.eventPayloads.filter(
       (_payload, index) => broadcaster.events[index] === EVENTS.LEADERBOARD_SHOW
     )
 
-    assert.equal(leaderboardPayloads.length, 5)
+    assert.equal(leaderboardPayloads.length, 4)
     const leaderboardPayload = leaderboardPayloads[0] as {
       round: unknown
       leaderboard: LeaderboardEntry[]

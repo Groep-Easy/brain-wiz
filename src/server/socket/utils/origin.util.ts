@@ -28,6 +28,7 @@ export function isOriginAllowed(origin: string | undefined, allowed: readonly st
   // We check if the allowed list contains the default dev origins to infer dev mode.
   if (allowed.includes('http://localhost:5173')) {
     if (
+      origin.startsWith('http://127.') ||
       origin.startsWith('http://192.168.') ||
       origin.startsWith('http://10.') ||
       origin.startsWith('http://172.')

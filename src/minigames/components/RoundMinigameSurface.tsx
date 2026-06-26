@@ -1,4 +1,3 @@
-import type { RoundContentPayload, RoundRevealPayload } from '@brain-wiz/shared/types/index'
 import { BalanceScale } from '../balance-scale/components/BalanceScale.js'
 import { ScaleEquationClues } from '../balance-scale/components/ScaleEquationClues.js'
 import {
@@ -15,20 +14,143 @@ import { VaultRush } from '../vault-rush/components/VaultRush.js'
 import type { VaultRushPuzzle } from '../vault-rush/shared/vaultRushGame.js'
 import { WordleMock } from '../wordleGame/mock/WordleGameMock.js'
 import type { WordlePublicState, WordleSubmission } from '../wordleGame/shared/wordleGame.types.js'
+import { BonkAir } from '../bonk-air/components/BonkAir.js'
+import type { BonkAirPuzzle } from '../bonk-air/shared/bonkAirGame.js'
+import { DEFAULT_MAX_TRIES, DEFAULT_WORD_LENGTH } from './RoundMinigameSurface.constants.js'
+import type { RoundMinigameSurfaceProps, SurfaceContext } from './RoundMinigameSurface.types.js'
 
-export type RoundMinigameSurfaceMode = 'play' | 'display'
-export type RoundMinigameSurfacePhase = 'playing' | 'reveal'
+export type {
+  RoundMinigameSurfaceMode,
+  RoundMinigameSurfacePhase,
+  RoundMinigameSurfaceProps,
+} from './RoundMinigameSurface.types.js'
 
-export interface RoundMinigameSurfaceProps {
-  content: RoundContentPayload
-  reveal?: RoundRevealPayload | null
-  mode?: RoundMinigameSurfaceMode
-  phase?: RoundMinigameSurfacePhase
-  className?: string
-  showScaleEquations?: boolean
-  secondsRemaining?: number
-  onSubmissionChange?: (submission: unknown) => void
-  submitted?: boolean
+/** Wrap a minigame's content in the standard surface section. */
+function surfaceSection(ctx: SurfaceContext, children: React.ReactNode): React.JSX.Element {
+  return (
+    <section
+      className={ctx.classes}
+      data-round-id={ctx.content.roundId}
+      data-round-type={ctx.content.type}
+    >
+      {children}
+    </section>
+  )
+}
+
+function renderBalanceScale(ctx: SurfaceContext): React.JSX.Element {
+  const solution = ctx.reveal?.publicSolution as { correctOptionId?: string } | undefined
+  const puzzle = {
+    ...(ctx.content.publicState as ScalePuzzle),
+    ...(solution?.correctOptionId ? { correctOptionId: solution.correctOptionId } : {}),
+  }
+  return surfaceSection(
+    ctx,
+    <>
+      {ctx.showScaleEquations ? <ScaleEquationClues equations={puzzle.equations} /> : null}
+      <BalanceScale
+        phase={ctx.phase === 'reveal' ? REVEAL_SCALE_PHASE : ANSWERING_SCALE_PHASE}
+        puzzle={puzzle}
+      />
+    </>
+  )
+}
+
+function renderSlidingPuzzle(ctx: SurfaceContext): React.JSX.Element {
+  const puzzle = ctx.content.publicState as SlidingPuzzlePuzzle
+  const isReadOnly = ctx.mode === 'display'
+  return surfaceSection(
+    ctx,
+    <SlidingPuzzle
+      {...(!isReadOnly
+        ? {
+            onBoardChange: (board: SlidingPuzzleBoard) => {
+              if (ctx.onSubmissionChange) ctx.onSubmissionChange({ board })
+            },
+          }
+        : {})}
+      puzzle={puzzle}
+      readOnly={isReadOnly}
+    />
+  )
+}
+
+function renderVaultRush(ctx: SurfaceContext): React.JSX.Element {
+  const puzzle = ctx.content.publicState as VaultRushPuzzle
+  const solution = ctx.reveal?.publicSolution as { code?: string } | undefined
+  const readOnly = ctx.mode === 'display' || ctx.phase === 'reveal'
+  const solutionCode = ctx.phase === 'reveal' ? solution?.code : undefined
+  return surfaceSection(
+    ctx,
+    <VaultRush
+      {...(!readOnly
+        ? {
+            onCodeChange: (code: string) => {
+              ctx.onSubmissionChange?.({ code })
+            },
+          }
+        : {})}
+      {...(solutionCode ? { solutionCode } : {})}
+      {...(ctx.phase === 'playing' && ctx.secondsRemaining !== undefined
+        ? { secondsRemaining: ctx.secondsRemaining }
+        : {})}
+      puzzle={puzzle}
+      readOnly={readOnly}
+    />
+  )
+}
+
+function renderWordle(ctx: SurfaceContext): React.JSX.Element {
+  const publicState = ctx.content.publicState as Partial<WordlePublicState>
+  if (ctx.mode === 'display') {
+    // Host display — show a static placeholder, no interaction needed.
+    return surfaceSection(ctx, <div className="wordle-display-placeholder">Wordle in progress…</div>)
+  }
+  return surfaceSection(
+    ctx,
+    <WordleMock
+      maxTries={publicState.maxTries ?? DEFAULT_MAX_TRIES}
+      onGuess={(submission: WordleSubmission) => ctx.onSubmissionChange?.(submission)}
+      onSubmit={(submission: WordleSubmission) => ctx.onSubmissionChange?.(submission)}
+      roundId={ctx.content.roundId}
+      submitted={ctx.submitted}
+      wordLength={publicState.wordLength ?? DEFAULT_WORD_LENGTH}
+    />
+  )
+}
+
+function renderLightSwitch(ctx: SurfaceContext): React.JSX.Element {
+  return surfaceSection(
+    ctx,
+    <div className="card">
+      <h1>Turn all lights on!</h1>
+    </div>
+  )
+}
+
+function renderBonkAir(ctx: SurfaceContext): React.JSX.Element {
+  const puzzle = ctx.content.publicState as BonkAirPuzzle
+  const readOnly = ctx.mode === 'display'
+  return surfaceSection(
+    ctx,
+    <BonkAir
+      phase={ctx.phase === 'reveal' ? 'reveal' : 'playing'}
+      puzzle={puzzle}
+      readOnly={readOnly}
+      {...(!readOnly
+        ? { onSubmissionChange: (submission: unknown) => ctx.onSubmissionChange?.(submission) }
+        : {})}
+    />
+  )
+}
+
+const SURFACE_RENDERERS: Record<string, (ctx: SurfaceContext) => React.JSX.Element> = {
+  'balance-scale': renderBalanceScale,
+  'sliding-puzzle': renderSlidingPuzzle,
+  'vault-rush': renderVaultRush,
+  wordle: renderWordle,
+  'light-switch': renderLightSwitch,
+  'bonk-air': renderBonkAir,
 }
 
 /**
@@ -48,109 +170,17 @@ export function RoundMinigameSurface({
   submitted = false,
 }: RoundMinigameSurfaceProps): React.JSX.Element | null {
   const classes = ['round-minigame-surface', className].filter(Boolean).join(' ')
-
-  if (content.type === 'balance-scale') {
-    const solution = reveal?.publicSolution as { correctOptionId?: string } | undefined
-    const puzzle = {
-      ...(content.publicState as ScalePuzzle),
-      ...(solution?.correctOptionId ? { correctOptionId: solution.correctOptionId } : {}),
-    }
-
-    return (
-      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-        {showScaleEquations ? <ScaleEquationClues equations={puzzle.equations} /> : null}
-        <BalanceScale
-          phase={phase === 'reveal' ? REVEAL_SCALE_PHASE : ANSWERING_SCALE_PHASE}
-          puzzle={puzzle}
-        />
-      </section>
-    )
+  const ctx: SurfaceContext = {
+    content,
+    reveal,
+    mode,
+    phase,
+    classes,
+    showScaleEquations,
+    secondsRemaining,
+    onSubmissionChange,
+    submitted,
   }
-
-  if (content.type === 'sliding-puzzle') {
-    const puzzle = content.publicState as SlidingPuzzlePuzzle
-    const isReadOnly = mode === 'display'
-
-    return (
-      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-        <SlidingPuzzle
-          {...(!isReadOnly
-            ? {
-                onBoardChange: (board: SlidingPuzzleBoard) => {
-                  if (onSubmissionChange) onSubmissionChange({ board })
-                },
-              }
-            : {})}
-          puzzle={puzzle}
-          readOnly={isReadOnly}
-        />
-      </section>
-    )
-  }
-
-  if (content.type === 'vault-rush') {
-    const puzzle = content.publicState as VaultRushPuzzle
-    const solution = reveal?.publicSolution as { code?: string } | undefined
-    const readOnly = mode === 'display' || phase === 'reveal'
-    const solutionCode = phase === 'reveal' ? solution?.code : undefined
-
-    return (
-      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-        <VaultRush
-          {...(!readOnly
-            ? {
-                onCodeChange: (code: string) => {
-                  onSubmissionChange?.({ code })
-                },
-              }
-            : {})}
-          {...(solutionCode ? { solutionCode } : {})}
-          {...(phase === 'playing' && secondsRemaining !== undefined ? { secondsRemaining } : {})}
-          puzzle={puzzle}
-          readOnly={readOnly}
-        />
-      </section>
-    )
-  }
-
-  if (content.type === 'wordle') {
-    const publicState = content.publicState as Partial<WordlePublicState>
-    const wordLength = publicState.wordLength ?? 5
-    const maxTries = publicState.maxTries ?? 6
-    const isReadOnly = mode === 'display'
-
-    if (isReadOnly) {
-      // Host display — show a static placeholder, no interaction needed
-      return (
-        <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-          <div className="wordle-display-placeholder">Wordle in progress…</div>
-        </section>
-      )
-    }
-
-    return (
-      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-        <WordleMock
-          maxTries={maxTries}
-          onGuess={(submission: WordleSubmission) => onSubmissionChange?.(submission)}
-          onSubmit={(submission: WordleSubmission) => onSubmissionChange?.(submission)}
-          roundId={content.roundId}
-          submitted={submitted}
-          wordLength={wordLength}
-        />
-      </section>
-    )
-  }
-
-  if (content.type === 'light-switch') {
-    return (
-      <section className={classes} data-round-id={content.roundId} data-round-type={content.type}>
-        <div className="card">
-          <h1>Turn all lights on!</h1>
-        </div>
-      </section>
-    )
-  }
-
-  return null
+  const render = SURFACE_RENDERERS[content.type]
+  return render ? render(ctx) : null
 }

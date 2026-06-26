@@ -144,40 +144,20 @@ export class ScoringService {
     const answered = new Set<string>()
     let publicSolution: unknown
 
-    const scoreRow = (row: ClientAnswer): MinigameScoreResult => {
-      const submission = this.parseSubmission(row.answerValue)
-
-      if (!submission || !adapter || !ctx.privateState || !ctx.scoringConfig) {
-        return { isCorrect: false, pointsAwarded: 0 }
-      }
-
-      return adapter.scoreSubmission(
-        submission,
-        ctx.privateState,
-        ctx.scoringConfig,
-        row.timeToAnswerMs ?? 0
-      )
-    }
-
-    const applyScoreToClient = async (clientId: string, points: number): Promise<void> => {
-      if (points <= 0) return
-
-      const client = roster.find((c) => c.id === clientId)
-      if (!client) return
-
-      await this.clients.addScore(client, points)
-    }
-
     for (const row of rows) {
       answered.add(row.clientId)
 
-      const result = scoreRow(row)
+      const result = this.scoreMinigameRow(ctx, adapter, row)
+
+      if (ctx.roundType === 'bonk-air') {
+        this.logBonkAirScore(row, result)
+      }
 
       row.isCorrect = result.isCorrect
       row.pointsAwarded = result.pointsAwarded
 
       await this.answers.save(row)
-      await applyScoreToClient(row.clientId, result.pointsAwarded)
+      await this.applyScoreToClient(roster, row.clientId, result.pointsAwarded)
 
       if (result.publicSolution !== undefined) {
         publicSolution = result.publicSolution
@@ -211,6 +191,57 @@ export class ScoringService {
     }
 
     this.broadcaster.emitToRoom(roomId, EVENTS.ROUND_REVEAL, reveal)
+  }
+
+  private scoreMinigameRow(
+    ctx: ScoringContext,
+    adapter: ReturnType<MinigameRegistry['get']> | undefined,
+    row: ClientAnswer
+  ): MinigameScoreResult {
+    const submission = this.parseSubmission(row.answerValue)
+
+    if (!submission || !adapter || !ctx.privateState || !ctx.scoringConfig) {
+      return { isCorrect: false, pointsAwarded: 0 }
+    }
+
+    return adapter.scoreSubmission(
+      submission,
+      ctx.privateState,
+      ctx.scoringConfig,
+      row.timeToAnswerMs ?? 0
+    )
+  }
+
+  private async applyScoreToClient(
+    roster: Awaited<ReturnType<ClientService['findByRoom']>>,
+    clientId: string,
+    points: number
+  ): Promise<void> {
+    if (points <= 0) return
+
+    const client = roster.find((c) => c.id === clientId)
+    if (!client) return
+
+    await this.clients.addScore(client, points)
+  }
+
+  private logBonkAirScore(row: ClientAnswer, result: MinigameScoreResult): void {
+    const parsed = this.parseSubmission(row.answerValue)
+    const solution =
+      typeof parsed === 'object' && parsed !== null
+        ? (parsed as { solution?: unknown }).solution
+        : undefined
+    const paths =
+      typeof solution === 'object' && solution !== null
+        ? Object.values(solution as Record<string, unknown>)
+        : []
+    const complete = paths.filter(
+      (p) => typeof p === 'object' && p !== null && (p as { complete?: unknown }).complete === true
+    ).length
+    this.logger.log(
+      `[bonk-air] score client=${row.clientId} drawn=${paths.length} complete=${complete} ` +
+        `points=${result.pointsAwarded} isCorrect=${result.isCorrect}`
+    )
   }
 
   private parseSubmission(answerValue: string): unknown | undefined {

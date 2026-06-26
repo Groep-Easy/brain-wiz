@@ -25,6 +25,8 @@ export const ROOM = Object.freeze({
   MIN_PLAYERS_TO_START: 2,
   JOIN_TIMEOUT_MS: 30_000,
   RECONNECT_GRACE_MS: 30_000,
+  HOST_RECONNECT_GRACE_MS: 30_000,
+  EMPTY_LOBBY_TEARDOWN_MS: 300_000,
 })
 
 export const RATE_LIMIT = Object.freeze({
@@ -61,8 +63,11 @@ export const TIMER = Object.freeze({
   SLIDING_PUZZLE_SECONDS: 40,
   VAULT_RUSH_SECONDS: 30,
   REVEAL_SECONDS: 5,
+  // Bonk Air plays an animated "watch the planes fly" replay during reveal, so it
+  // needs a longer reveal window than a quiz before the round advances.
+  BONK_AIR_REVEAL_SECONDS: 14,
   ROUND_INTRO_SECONDS: 3,
-  LEADERBOARD_SECONDS: 6,
+  LEADERBOARD_SECONDS: 3,
   SCORED_AWAIT_TIMEOUT_MS: 5_000,
 })
 

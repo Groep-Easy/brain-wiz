@@ -45,8 +45,9 @@ const MINIGAME_BLOCKS: BlockSeed[] = [
   { minigameKey: 'balance-scale', label: 'Balance Scale', icon: '⚖️' },
   { minigameKey: 'sliding-puzzle', label: 'Sliding Puzzle', icon: '🧩' },
   { minigameKey: 'vault-rush', label: 'Vault Rush', icon: '🔐' },
-  { minigameKey: 'wordle', label: 'Wordle', icon: '📝' },
+  { minigameKey: 'wordle', label: 'Guess the Word', icon: '📝' },
   { minigameKey: 'light-switch', label: 'Light Switch Puzzle', icon: '💡' },
+  { minigameKey: 'bonk-air', label: 'Bonk Air', icon: '✈️' },
 ].map((m) => ({
   id: `mini-${m.minigameKey}`,
   kind: BlockKindEnum.MINIGAME,

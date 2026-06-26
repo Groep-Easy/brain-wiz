@@ -5,7 +5,7 @@
  * RoomService/ClientService backed by in-memory fake repositories, the real
  * ConnectionRegistry/RoomBroadcaster, and recording sockets.
  */
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Repository } from 'typeorm'
 import { LobbyService } from '../../src/server/room/lobby/lobby.service'
@@ -20,6 +20,7 @@ import {
   InvalidHostTokenError,
 } from '../../src/server/room/lobby/lobby.errors'
 import { Room } from '../../src/server/entities/room.entity'
+import { RoomStatusEnum } from '../../src/server/entities/enums'
 import { Client } from '../../src/server/entities/client.entity'
 import * as EVENTS from '@brain-wiz/shared/constants/socket-events.constants'
 import { ROOM, PLAYER } from '@brain-wiz/config/game.config'
@@ -27,29 +28,82 @@ import { NAME_REJECTION } from '@brain-wiz/shared/utils/display-name'
 import { QuestionService } from '../../src/server/question/question.service.js'
 import { FlowService } from '../../src/server/flow/flow.service.js'
 import type { Question } from '../../src/server/entities/question.entity.js'
+import { GameEventBus } from '../../src/server/room/game/game-event-bus'
+
+interface FakeRoomQueryBuilder {
+  where(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  andWhere(condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder
+  getOne(): Promise<Room | null>
+}
+
+const makeRoomId = (value: number): string =>
+  `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`
 
 // ── In-memory fake repositories ──────────────────────────────────────────────
 function fakeRoomRepo(): Repository<Room> {
   const store: Room[] = []
   let seq = 0
+
   return {
     create: (p: Partial<Room>): Room => Object.assign(new Room(), p),
+
     save: async (r: Room): Promise<Room> => {
       if (!r.id) {
-        r.id = `room-${++seq}`
+        r.id = makeRoomId(++seq)
       }
+
       if (!store.includes(r)) {
         store.push(r)
       }
+
       return r
     },
-    findOne: async (o: { where?: { id?: string; joinCode?: string } }): Promise<Room | null> => {
-      const w = o.where ?? {}
-      return (
-        store.find(
-          (r) => (w.id ? r.id === w.id : true) && (w.joinCode ? r.joinCode === w.joinCode : true)
-        ) ?? null
-      )
+
+    createQueryBuilder: (): FakeRoomQueryBuilder => {
+      let joinCodeFilter: string | undefined
+      let idFilter: string | undefined
+      let statusesFilter: RoomStatusEnum[] | undefined
+
+      const queryBuilder: FakeRoomQueryBuilder = {
+        where: (condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          if (condition.includes('room.joinCode')) {
+            joinCodeFilter = params['joinCode'] as string
+          }
+
+          if (condition.includes('room.id')) {
+            idFilter = params['id'] as string
+          }
+
+          return queryBuilder
+        },
+
+        andWhere: (_condition: string, params: Record<string, unknown>): FakeRoomQueryBuilder => {
+          statusesFilter = params['statuses'] as RoomStatusEnum[]
+          return queryBuilder
+        },
+
+        getOne: async (): Promise<Room | null> => {
+          return (
+            store.find((room) => {
+              if (joinCodeFilter !== undefined && room.joinCode !== joinCodeFilter) {
+                return false
+              }
+
+              if (idFilter !== undefined && room.id !== idFilter) {
+                return false
+              }
+
+              if (statusesFilter !== undefined && !statusesFilter.includes(room.status)) {
+                return false
+              }
+
+              return true
+            }) ?? null
+          )
+        },
+      }
+
+      return queryBuilder
     },
   } as unknown as Repository<Room>
 }
@@ -107,6 +161,10 @@ function fakeFlowService(): FlowService {
   } as unknown as FlowService
 }
 
+function fakeGameEventBus(): GameEventBus {
+  return new GameEventBus()
+}
+
 function makeLobby(questions: Question[] = []): LobbyService {
   const rooms = new RoomService(fakeRoomRepo())
   const clients = new ClientService(fakeClientRepo())
@@ -115,6 +173,7 @@ function makeLobby(questions: Question[] = []): LobbyService {
   const noopEngine = {
     run: (): void => undefined,
     abort: (): void => undefined,
+    getLivePhase: (): undefined => undefined,
   } as unknown as GameEngineService
   return new LobbyService(
     rooms,
@@ -123,7 +182,8 @@ function makeLobby(questions: Question[] = []): LobbyService {
     broadcaster,
     noopEngine,
     fakeQuestionService(questions),
-    fakeFlowService()
+    fakeFlowService(),
+    fakeGameEventBus()
   )
 }
 
@@ -309,17 +369,33 @@ describe('LobbyService.joinClient input validation', () => {
 })
 
 describe('LobbyService room teardown clears the host token', () => {
-  it('drops the host token once the room has no live sockets', async () => {
-    const lobby = makeLobby()
-    const { code, hostToken } = await lobby.createRoom()
-    const client = recordingSocket()
-    await lobby.joinClient(client, { connectionId: 'sock-1', roomCode: code, playerName: 'Alice' })
+  it('retains the host token initially but drops it after the teardown grace period', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const client = recordingSocket()
+      await lobby.joinClient(client, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
 
-    // No host socket connected; the lone client leaving empties the room.
-    await lobby.leaveClient(client)
+      // No host socket connected; the lone client leaving empties the room.
+      await lobby.leaveClient(client)
 
-    // Token is gone, so a host can no longer authenticate against this room.
-    await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+      // Token is retained initially, so the host token is still recognized (throws NotEnoughPlayersError, not InvalidHostTokenError)
+      await assert.rejects(async () => lobby.startGame(code, hostToken), NotEnoughPlayersError)
+
+      // Advance time to expire the teardown timer
+      mock.timers.tick(ROOM.EMPTY_LOBBY_TEARDOWN_MS + 1000)
+      await Promise.resolve()
+
+      // Token is gone, so a host can no longer authenticate against this room.
+      await assert.rejects(async () => lobby.startGame(code, hostToken), InvalidHostTokenError)
+    } finally {
+      mock.timers.reset()
+    }
   })
 })
 
@@ -483,6 +559,75 @@ describe('LobbyService disconnect + reconnect grace', () => {
   })
 })
 
+describe('LobbyService host reconnect grace', () => {
+  async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 20; i++) {
+      await Promise.resolve()
+    }
+  }
+
+  it('closes the room and evicts players when the host stays gone past the grace window', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const host = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn', host)
+      const player = recordingSocket()
+      await lobby.joinClient(player, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
+
+      await lobby.handleDisconnect(host)
+
+      assert.equal(eventsOf(player).includes(EVENTS.ROOM_CLOSED), false)
+
+      mock.timers.tick(ROOM.HOST_RECONNECT_GRACE_MS + 1000)
+      await flushMicrotasks()
+
+      assert.ok(eventsOf(player).includes(EVENTS.ROOM_CLOSED))
+      const late = recordingSocket()
+      await lobby.joinClient(late, { connectionId: 'sock-2', roomCode: code, playerName: 'Bob' })
+      assert.ok(eventsOf(late).includes(EVENTS.PLAYER_JOIN_REJECTED))
+    } finally {
+      mock.timers.reset()
+    }
+  })
+
+  it('keeps the room alive when the host reconnects within the grace window', async () => {
+    mock.timers.enable()
+    try {
+      const lobby = makeLobby()
+      const { code, hostToken } = await lobby.createRoom()
+      const host = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn', host)
+      const player = recordingSocket()
+      await lobby.joinClient(player, {
+        connectionId: 'sock-1',
+        roomCode: code,
+        playerName: 'Alice',
+      })
+
+      await lobby.handleDisconnect(host)
+
+      const host2 = recordingSocket()
+      await lobby.connectHost(code, hostToken, 'host-conn-2', host2)
+
+      mock.timers.tick(ROOM.HOST_RECONNECT_GRACE_MS + 1000)
+      await flushMicrotasks()
+
+      assert.equal(eventsOf(player).includes(EVENTS.ROOM_CLOSED), false)
+      const late = recordingSocket()
+      await lobby.joinClient(late, { connectionId: 'sock-2', roomCode: code, playerName: 'Bob' })
+      assert.ok(eventsOf(late).includes(EVENTS.PLAYER_JOIN_ACK))
+    } finally {
+      mock.timers.reset()
+    }
+  })
+})
+
 describe('LobbyService.startGame', () => {
   it('starts when enough players are connected and broadcasts GAME_START', async () => {
     const lobby = makeLobby()
@@ -555,6 +700,7 @@ describe('LobbyService abort-on-empty', () => {
     const gameEngine = {
       run: (): void => undefined,
       abort: (id: string): void => void aborted.push(id),
+      getLivePhase: (): undefined => undefined,
     } as unknown as GameEngineService
     const lobby = new LobbyService(
       rooms,
@@ -563,7 +709,8 @@ describe('LobbyService abort-on-empty', () => {
       broadcaster,
       gameEngine,
       fakeQuestionService(),
-      fakeFlowService()
+      fakeFlowService(),
+      fakeGameEventBus()
     )
     return { lobby, rooms, clients, registry, aborted }
   }
@@ -587,6 +734,47 @@ describe('LobbyService abort-on-empty', () => {
     const room = await rooms.findById(roomId)
     assert.ok(room)
     void registry
+  })
+})
+
+describe('LobbyService disconnect preserves live game phase', () => {
+  it('broadcasts the engine live phase (not round-intro) when a player disconnects mid-game', async () => {
+    const rooms = new RoomService(fakeRoomRepo())
+    const clients = new ClientService(fakeClientRepo())
+    const registry = new ConnectionRegistry()
+    const broadcaster = new RoomBroadcaster(registry)
+    const gameEngine = {
+      run: (): void => undefined,
+      abort: (): void => undefined,
+      getLivePhase: (): string => 'playing',
+    } as unknown as GameEngineService
+    const lobby = new LobbyService(
+      rooms,
+      clients,
+      registry,
+      broadcaster,
+      gameEngine,
+      fakeQuestionService(),
+      fakeFlowService(),
+      fakeGameEventBus()
+    )
+
+    const { code, hostToken } = await lobby.createRoom()
+    const host = recordingSocket()
+    await lobby.connectHost(code, hostToken, 'host-conn', host)
+
+    const s1 = recordingSocket()
+    const s2 = recordingSocket()
+    await lobby.joinClient(s1, { connectionId: 'c1', roomCode: code, playerName: 'Alice' })
+    await lobby.joinClient(s2, { connectionId: 'c2', roomCode: code, playerName: 'Bob' })
+    await lobby.startGame(code, hostToken)
+
+    await lobby.handleDisconnect(s1)
+
+    const updates = host.sent.filter((m) => m.event === EVENTS.ROOM_STATE_UPDATE)
+    const lastUpdate = updates[updates.length - 1]
+    assert.ok(lastUpdate, 'host should receive a room-state update on disconnect')
+    assert.equal((lastUpdate.data as { room: { phase: string } }).room.phase, 'playing')
   })
 })
 

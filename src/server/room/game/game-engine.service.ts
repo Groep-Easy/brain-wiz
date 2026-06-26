@@ -24,6 +24,7 @@ import type {
   RoundSummary,
   RoadmapTheme,
   ScoreMap,
+  GamePhase as WireGamePhase,
 } from '@brain-wiz/shared/types/index'
 import {
   GamePhase,
@@ -108,6 +109,13 @@ export class GameEngineService {
     }
   }
 
+  /** The live wire phase of a running game, or undefined when no game is
+   *  running for the room. Lets LobbyService build room-state snapshots that
+   *  carry the real phase instead of defaulting to `round-intro`. */
+  public getLivePhase(roomId: string): WireGamePhase | undefined {
+    return this.games.get(roomId)?.phase
+  }
+
   /** Trip the abort flag and cancel whatever phase is in flight. */
   public abort(roomId: string): void {
     const game = this.games.get(roomId)
@@ -118,10 +126,7 @@ export class GameEngineService {
     game.timer.cancel()
   }
 
-  private async buildRoadmapThemes(
-    roomId: string,
-    currentRoundIndex: number
-  ): Promise<RoadmapTheme[]> {
+  private async buildRoadmapThemes(roomId: string): Promise<RoadmapTheme[]> {
     const rounds = await this.roundRepo
       .createQueryBuilder('round')
       .leftJoinAndSelect('round.question', 'question')
@@ -132,10 +137,6 @@ export class GameEngineService {
     const countByTheme = new Map<string, number>()
 
     for (const round of rounds) {
-      if (round.roundIndex < currentRoundIndex) {
-        continue
-      }
-
       const theme = round.question?.theme ?? round.gameType
 
       if (!theme) {
@@ -166,12 +167,7 @@ export class GameEngineService {
     await this.markRound(round, RoundStatusEnum.ACTIVE)
     await this.rooms.setCurrentRound(room as Room, round.roundIndex)
 
-    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
-    this.broadcaster.broadcastRoadmap(room.id, {
-      playerPos: round.roundIndex + 1,
-      totalQuestions: room.totalRounds,
-      themes: await this.buildRoadmapThemes(room.id, round.roundIndex),
-    })
+    await this.startRoundBroadcast(room, round)
 
     if (await this.runPhase(room, game, GamePhase.INTRO, TIMER.ROUND_INTRO_SECONDS)) {
       return
@@ -180,7 +176,62 @@ export class GameEngineService {
     await this.enterPhase(room, GamePhase.QUESTION)
     await this.present(room.id, round)
 
+    const questionOutcome = await this.runQuestionPhase(room, round, game)
+    if (questionOutcome.didAbort) {
+      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
+      return
+    }
+    this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+
+    await this.closeAndAwaitScore(
+      room.id,
+      round.id,
+      questionOutcome.didEndEarly ? 'all-answered' : 'expired'
+    )
+
+    // Bonk Air plays an animated replay during reveal, so it gets a longer window.
+    const revealSeconds =
+      round.gameType === 'bonk-air' ? TIMER.BONK_AIR_REVEAL_SECONDS : TIMER.REVEAL_SECONDS
+    if (await this.runPhase(room, game, GamePhase.REVEAL, revealSeconds)) {
+      return
+    }
+
+    await this.advanceAfterReveal(room, round, game)
+  }
+
+  /** Broadcast ROUND_START and the roadmap snapshot for a freshly-active round. */
+  private async startRoundBroadcast(
+    room: {
+      id: string
+      totalRounds: number
+    },
+    round: Round
+  ): Promise<void> {
+    this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_START, { round: this.toRoundSummary(round) })
+    this.broadcaster.broadcastRoadmap(room.id, {
+      playerPos: round.roundIndex + 1,
+      totalQuestions: room.totalRounds,
+      themes: await this.buildRoadmapThemes(room.id),
+    })
+  }
+
+  /** Run the active question timer with early-end subscriptions wired up.
+   *  `didAbort` mirrors the timer abort; `didEndEarly` is true when ALL_PLAYERS_ANSWERED
+   *  ended the phase (vs. a host skip or natural expiry). */
+  private async runQuestionPhase(
+    room: { id: string },
+    round: Round,
+    game: RunningGame
+  ): Promise<{ didAbort: boolean; didEndEarly: boolean }> {
     let didEndEarly = false
+    const skipSub = this.bus
+      .on('HOST_SKIP_TIMER')
+      .pipe(filter((e) => e.roomId === room.id))
+      .subscribe(() => {
+        didEndEarly = false
+        game.timer.endEarly()
+      })
+
     const earlySub = this.bus
       .on('ALL_PLAYERS_ANSWERED')
       .pipe(filter((e) => e.roomId === room.id && e.roundId === round.id))
@@ -191,26 +242,28 @@ export class GameEngineService {
 
     const didAbort = await this.timePhase(room.id, game, round.timeLimitSeconds, true)
     earlySub.unsubscribe()
-    if (didAbort) {
-      this.bus.publish({ type: 'ROUND_WINDOW_ABORTED', roomId: room.id })
-      return
-    }
-    this.broadcaster.emitToRoom(room.id, EVENTS.TIMER_EXPIRED)
+    skipSub.unsubscribe()
+    return { didAbort, didEndEarly }
+  }
 
-    await this.closeAndAwaitScore(room.id, round.id, didEndEarly ? 'all-answered' : 'expired')
-
-    if (await this.runPhase(room, game, GamePhase.REVEAL, TIMER.REVEAL_SECONDS)) {
-      return
-    }
-
+  /** After the reveal phase, transition to game-over, round-end, or leaderboard. */
+  private async advanceAfterReveal(
+    room: { id: string; joinCode: string; status: RoomStatusEnum; currentRoundIndex: number },
+    round: Round,
+    game: RunningGame
+  ): Promise<void> {
     await this.markRound(round, RoundStatusEnum.FINISHED)
     this.broadcaster.emitToRoom(room.id, EVENTS.ROUND_END, {
       scores: await this.buildScores(room.id),
     })
-    if (round.roundIndex === ROUNDS.COUNT) {
+
+    const totalRounds = this.totalRoundsByRoom.get(round.roomId) ?? ROUNDS.COUNT
+    const isLastRound = round.roundIndex === totalRounds - 1
+    if (isLastRound) {
       await this.enterPhase(room, GamePhase.GAME_OVER)
       return
     }
+
     await this.enterPhase(room, GamePhase.LEADERBOARD)
     this.broadcaster.emitToRoom(room.id, EVENTS.LEADERBOARD_SHOW, {
       round: this.toRoundSummary(round),
@@ -298,6 +351,10 @@ export class GameEngineService {
     phase: GamePhase
   ): Promise<void> {
     const wire = PHASE_TO_WIRE[phase]
+    const game = this.games.get(room.id)
+    if (game) {
+      game.phase = wire
+    }
     this.broadcaster.emitToRoom(room.id, EVENTS.GAME_PHASE_CHANGE, { phase: wire })
     const roster = await this.clients.findByRoom(room.id)
     this.broadcaster.broadcastRoomState(room.id, toRoomState(room, roster, wire))

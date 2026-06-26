@@ -210,6 +210,16 @@ export class SocketGateway
     void this.lobby.leaveClient(client)
   }
 
+  @SubscribeMessage(EVENTS.HOST_SKIP_TIMER)
+  public handleHostSkipTimer(@ConnectedSocket() client: IdentifiedSocket): void {
+    const membership = this.lobby.getMembership(client)
+
+    if (!membership || membership.role !== 'host') {
+      return
+    }
+    this.lobby.publishHostSkip(membership.roomId)
+  }
+
   @SubscribeMessage(EVENTS.QUESTION_SHOW)
   public handleQuestionShow(@ConnectedSocket() client: IdentifiedSocket): void {
     void this.lobby.sendQuestionToRoom(client)

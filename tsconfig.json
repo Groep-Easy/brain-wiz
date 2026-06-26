@@ -45,7 +45,8 @@
     "src/**/*.tsx",
     "src/**/*.d.ts",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "vitest.config.ts"
   ],
   "exclude": ["node_modules", "dist", "src/client", "src/host", "src/minigames", "src/shared", "src/config"]
 }

@@ -3,7 +3,7 @@ import type { VaultRushPuzzle } from '@brain-wiz/minigames/vault-rush/shared/vau
 export interface VaultRushProps {
   puzzle: VaultRushPuzzle
   readOnly?: boolean
-  solutionCode?: string
+  solutionCode?: string | undefined
   submitted?: boolean
   secondsRemaining?: number | undefined
   onCodeChange?: (code: string) => void

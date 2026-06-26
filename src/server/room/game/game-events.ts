@@ -70,6 +70,17 @@ export interface RoundWindowAborted {
   roomId: string
 }
 
+/** The host pressed "Skip" to end the current question timer immediately. */
+export interface HostSkipTimer {
+  type: 'HOST_SKIP_TIMER'
+  roomId: string
+}
+export interface PlayerDisconnected {
+  type: 'PLAYER_DISCONNECTED'
+  roomId: string
+  clientId: string
+}
+
 export type GameDomainEvent =
   | RoundWindowOpened
   | AllPlayersAnswered
@@ -78,3 +89,5 @@ export type GameDomainEvent =
   | RoundWindowClosed
   | RoundScored
   | RoundWindowAborted
+  | HostSkipTimer
+  | PlayerDisconnected

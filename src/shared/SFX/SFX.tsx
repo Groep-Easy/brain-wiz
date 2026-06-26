@@ -10,6 +10,7 @@ import leaderBoard from './leaderboard.mp3'
 import partyHorn from './party-horn.mp3'
 import pop from './pop.mp3'
 import quack from './quack.mp3'
+import reveal from './reveal.mp3'
 import startGame from './start-game.wav'
 import waterDrop from './water-drop.mp3'
 import wrong from './wrong.mp3'
@@ -26,6 +27,7 @@ export const sounds = {
   partyHorn,
   pop,
   quack,
+  reveal,
   startGame,
   waterDrop,
   wrong,
@@ -55,4 +57,8 @@ export function stopSound(soundSource: string) {
     audioData.currentTime = 0
     _currentAudio.delete(soundSource)
   }
+}
+
+export function getTSAudio(): HTMLAudioElement[] {
+  return [..._currentAudio.values()]
 }

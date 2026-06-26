@@ -20,7 +20,7 @@ interface LeaderBoardProps {
 }
 
 interface RoadmapProps {
-  roadmap?: RoadmapUpdate
+  roadmap?: RoadmapUpdate | undefined
 }
 
 type TimelineItem =
@@ -173,9 +173,9 @@ function Roadmap({ roadmap }: RoadmapProps) {
 
               {isThemeNode && (
                 <g>
-                  <text x={x} y={y + 5} textAnchor="middle" fontSize={18}>
-                    {paletteItem?.icon}
-                  </text>
+                  {paletteItem?.icon && (
+                    <image href={paletteItem.icon} x={x - 12} y={y - 12} width={24} height={24} />
+                  )}
 
                   <text x={x} y={y - 24} textAnchor="middle" className="themeLabel">
                     {paletteItem?.label ?? rawTheme}

@@ -26,6 +26,9 @@ export const PLAYER_LEAVE = 'PLAYER_LEAVE'
 export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED'
 /** Server → all:    player reconnected.   Payload: { playerId }              */
 export const PLAYER_RECONNECTED = 'PLAYER_RECONNECTED'
+/** Server → client: host stayed gone past the grace window; room is closed.
+ *  Payload: { reason: string }                                               */
+export const ROOM_CLOSED = 'ROOM_CLOSED'
 
 // ── Game flow ─────────────────────────────────────────────────────────────────
 /** Server → all:    game started.         Payload: none                      */
@@ -68,6 +71,8 @@ export const ANSWER_COUNT_UPDATE = 'ANSWER_COUNT_UPDATE'
 export const TIMER_TICK = 'TIMER_TICK'
 /** Server → all:    expired.              Payload: none                          */
 export const TIMER_EXPIRED = 'TIMER_EXPIRED'
+/** Host → server:   skip the current question timer immediately.  Payload: none */
+export const HOST_SKIP_TIMER = 'HOST_SKIP_TIMER'
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 /** Server → client: an inbound message failed validation. Payload: { message, details? } */

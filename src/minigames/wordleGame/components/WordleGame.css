@@ -1,13 +1,23 @@
 .wordle-game {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .title {
-  font-size: clamp(1.5rem, 5vw, 3rem);
+  font-size: clamp(3rem, 4vw, 4rem);
   display: flex;
   justify-content: center;
+  font-family:
+    inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-weight: 950;
+  color: #f7f3e8;
+  margin-bottom: clamp(4rem, 4vw, 8rem);
 }
 
 .tile-row {
@@ -15,6 +25,7 @@
   justify-content: center;
   flex-direction: row;
   gap: clamp(6px, 2vw, 15px);
+  margin-bottom: clamp(1rem, 4vw, 1rem);
 }
 
 .tile {
@@ -25,6 +36,16 @@
   align-items: center;
   justify-content: center;
   font-size: clamp(1rem, 3vw, 1.5rem);
+  color: #f7f3e8;
+  font-family:
+    inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-weight: 500;
 }
 
 .tile--empty {
@@ -58,6 +79,7 @@
 
 .keyboard--row1 {
   max-width: min(30rem, 100%);
+  margin-top: clamp(1rem, 4vw, 1rem);
 }
 
 .keyboard--row2 {
@@ -112,4 +134,21 @@
   display: flex;
   justify-content: center;
   color: red;
+}
+
+.wordle-host-waiting {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.wordle-host-waiting__text {
+  font-family: inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 950;
+  color: #f7f3e8;
+  letter-spacing: -0.02em;
 }
